@@ -581,6 +581,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-list{padding:8px 0 8px}
 .cp-empty{padding:60px 20px;text-align:center;color:#8888aa;font-size:13px}
 
+/* SEARCH OVERLAY */
+#view-search-view{display:none;position:fixed;top:0;left:0;right:0;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#0a0a0f;min-height:unset}
+#view-search-view.open{display:flex;animation:viewIn .2s ease-out}
+
 /* AI VIEW */
 #view-ai{background:#0a0a0f}
 .ai-view-scroll{flex:1;overflow-y:auto;padding:16px 14px 80px}
@@ -706,7 +710,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-list" class="view">
   <header class="home-hdr">
     <div class="hdr-logo" style="flex:none;font-size:16px">비움</div>
-    <div class="home-search-bar" onclick="showView('search-view')">
+    <div class="home-search-bar" onclick="openSearchOverlay()">
       <span style="font-size:14px;color:#8888aa">🔍</span>
       <span style="flex:1;font-size:13px;color:#8888aa" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
     </div>
@@ -1498,10 +1502,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
-<!-- ========== SEARCH VIEW ========== -->
-<div id="view-search-view" class="view">
+<!-- ========== SEARCH OVERLAY ========== -->
+<div id="view-search-view">
   <header class="hdr">
-    <div class="hdr-logo">BIUM</div>
+    <button class="hdr-back" onclick="closeSearchOverlay()">←</button>
+    <div class="hdr-title">검색</div>
+    <div style="width:38px"></div>
   </header>
   <!-- 검색바 (sticky) -->
   <div class="sv-top">
@@ -1541,13 +1547,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="ei">🔍</div>
     <p id="sv-empty-msg">검색어를 입력하거나 카테고리를 선택하세요</p>
   </div>
-  <nav class="tabbar">
-    <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
-    <button class="tab on"><span class="ti">🔍</span><span data-i18n="tab_search">검색</span></button>
-    <button class="tab-fab" onclick="showView('form')">＋</button>
-    <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
-    <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
-  </nav>
 </div>
 
 <!-- ========== WISHLIST ========== -->
@@ -2668,7 +2667,6 @@ function showView(name){
   if(name==='mypage')renderMypage();
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
-  if(name==='search-view')renderSearchView();
   if(name==='chat')renderChatList();
   if(name==='wishlist')renderWishlist();
   if(name==='chat-room')renderChatRoom(curChatRoomId);
@@ -2685,7 +2683,21 @@ function showView(name){
   if(name==='ai')resetAiView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
 }
-function goBack(){showView(prevView||'list')}
+function openSearchOverlay(){
+  const el=document.getElementById('view-search-view');
+  if(!el)return;
+  el.classList.add('open');
+  renderSearchView();
+}
+function closeSearchOverlay(){
+  const el=document.getElementById('view-search-view');
+  if(el)el.classList.remove('open');
+}
+function goBack(){
+  const overlay=document.getElementById('view-search-view');
+  if(overlay&&overlay.classList.contains('open')){closeSearchOverlay();return;}
+  showView(prevView||'list');
+}
 
 /* ==================== AUTH ==================== */
 async function doLogin(){
@@ -2928,7 +2940,7 @@ function renderCatStep2(){
     <div style="background:#12121a">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">소분류</div>
       ${sub.items.map((item,i)=>`
-        <div onclick="applySvSearch('${item}');showView('search-view')"
+        <div onclick="applySvSearch('${item}');openSearchOverlay()"
           style="display:flex;align-items:center;padding:14px 20px;border-bottom:${i<sub.items.length-1?'1px solid #1e1e2e':'none'};cursor:pointer">
           <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0;margin-right:10px"></span>
           <span style="font-size:15px;color:#fff">${item}</span>
@@ -3073,7 +3085,7 @@ function renderHomeSections(){
 
 function goSearchCat(cat){
   curFilter=cat;
-  showView('search-view');
+  openSearchOverlay();
 }
 
 function openNoticeModal(){openModal('modal-notice')}
