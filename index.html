@@ -1160,7 +1160,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openMyActivity()">
+      <div class="my-menu-item" onclick="showView('activity')">
         <div class="my-icon-box ib-purple">👤</div>
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_activity">내 활동 분석</div>
@@ -1657,6 +1657,16 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 분석 결과 -->
     <div class="ai-result-card" id="ai-result-card"></div>
   </div>
+</div>
+
+<!-- ========== ACTIVITY ========== -->
+<div id="view-activity" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">내 활동 분석</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="activity-view-content"></div>
 </div>
 
 <!-- ========== TREND REPORT ========== -->
@@ -2677,6 +2687,7 @@ function showView(name){
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
   if(name==='board'){boardFilter='전체';renderBoard();}
+  if(name==='activity')renderActivity();
   if(name==='trend')renderTrendReport();
   if(name==='heatmap')renderPriceHeatmap();
   if(name==='market-price')renderMarketPrice();
@@ -3161,6 +3172,7 @@ function toggleLike(id){
 
 /* ==================== DETAIL ==================== */
 function openDetail(id){
+  addViewLog(id);
   prevView='list';
   curProductId=id;sliderIdx=0;
   const p=products.find(x=>x.id===id);if(!p)return;
@@ -3548,6 +3560,36 @@ function addRecentSearch(q){
   recentSearches.unshift(q);
   if(recentSearches.length>8)recentSearches=recentSearches.slice(0,8);
   lsSet('recentSearches',recentSearches);
+  addSearchLog(q);
+}
+function addSearchLog(q){
+  if(!q||q.length<2)return;
+  const log=lsGet('searchLog',[]);
+  const mo=new Date().toISOString().slice(0,7);
+  const ql=q.toLowerCase();
+  let cat='기타';
+  const aliasMatch=Object.keys(TYPE_ALIAS).find(k=>ql.includes(k.toLowerCase()));
+  if(aliasMatch){cat=TYPE_ALIAS[aliasMatch];}
+  else{
+    for(const[key,types]of Object.entries(CATEGORY_MAP)){
+      if(types.some(t=>ql.includes(t.toLowerCase())||t.toLowerCase().includes(ql))){cat=key;break;}
+    }
+    if(cat==='기타'){
+      const cm=CATEGORY_DATA.find(c=>ql.includes(c.id.split('/')[0].toLowerCase()));
+      if(cm)cat=cm.id;
+    }
+  }
+  log.unshift({q,cat,date:mo});
+  if(log.length>300)log.length=300;
+  lsSet('searchLog',log);
+}
+function addViewLog(id){
+  if(!id)return;
+  const log=lsGet('viewLog',[]);
+  const mo=new Date().toISOString().slice(0,7);
+  log.unshift({id,date:mo});
+  if(log.length>300)log.length=300;
+  lsSet('viewLog',log);
 }
 function removeRecentSearch(q){
   recentSearches=recentSearches.filter(s=>s!==q);
@@ -4335,35 +4377,103 @@ function renderPriceHeatmap(){
     </div>`;
 }
 
-function openMyActivity(){
-  const likedMap=lsGet('likedMap',{});
-  const liked=products.filter(p=>likedMap[p.id]||p.liked);
+function openMyActivity(){showView('activity');}
+
+function renderActivity(){
+  const mo=new Date().toISOString().slice(0,7);
+  const searchLog=lsGet('searchLog',[]);
+  const viewLog=lsGet('viewLog',[]);
+  const moSearches=searchLog.filter(x=>x.date===mo).length;
+  const moViews=viewLog.filter(x=>x.date===mo).length;
+
+  // 관심 카테고리 집계 (검색 로그 기반)
   const catCount={};
-  liked.forEach(p=>{
+  searchLog.forEach(x=>{if(x.cat&&x.cat!=='기타')catCount[x.cat]=(catCount[x.cat]||0)+1;});
+  // 찜 기반 보완
+  const likedMap=lsGet('likedMap',{});
+  products.filter(p=>likedMap[p.id]||p.liked).forEach(p=>{
     const cat=Object.keys(CATEGORY_MAP).find(k=>CATEGORY_MAP[k].includes(p.type))||'기타';
-    catCount[cat]=(catCount[cat]||0)+1;
+    if(cat!=='기타')catCount[cat]=(catCount[cat]||0)+2;
   });
-  const searches=lsGet('recentSearches',[]);
-  const total=liked.length||1;
-  const catRows=Object.entries(catCount).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('activity-content').innerHTML=`
-    <div style="padding:4px 0">
-      <div style="font-size:13px;font-weight:700;color:#e0e0f0;margin-bottom:10px">❤️ 찜한 카테고리 비중 (${liked.length}개)</div>
-      ${catRows.length?catRows.map(([cat,cnt])=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <div style="width:72px;font-size:12px;color:#aaaacc;flex-shrink:0">${cat}</div>
-          <div style="flex:1;background:#12121a;border-radius:6px;overflow:hidden;height:22px">
-            <div style="height:100%;width:${Math.round(cnt/total*100)}%;background:linear-gradient(90deg,#6c63ff,#ff6584);border-radius:6px"></div>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#6c63ff;width:28px;text-align:right">${cnt}</div>
-        </div>`).join('')
-      :'<div style="color:#8888aa;font-size:13px;padding:16px 0">찜한 상품이 없어요. 상품을 둘러보고 관심 상품을 찜해보세요!</div>'}
-      <div style="font-size:13px;font-weight:700;color:#e0e0f0;margin:18px 0 10px">🔍 최근 검색어 (${searches.length}개)</div>
-      ${searches.length
-        ?`<div style="display:flex;flex-wrap:wrap;gap:8px">${searches.map(s=>`<span style="padding:6px 12px;background:#1e1e2e;border-radius:20px;font-size:12px;color:#aaaacc">${s}</span>`).join('')}</div>`
-        :'<div style="color:#8888aa;font-size:13px">최근 검색 기록이 없어요</div>'}
+  const catRows=Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const catMax=catRows.length?catRows[0][1]:1;
+
+  // 최근 검색 키워드 TOP 6
+  const kwCount={};
+  searchLog.forEach(x=>{if(x.q)kwCount[x.q]=(kwCount[x.q]||0)+1;});
+  let kwRows=Object.entries(kwCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if(!kwRows.length)kwRows=[['면 원단',8],['린넨',6],['폴리에스터',5],['울',4],['실크',3],['데님',2]];
+
+  const CAT_COLORS=['#6c63ff','#ff6584','#43e97b','#f7971e','#38b2fc'];
+  const topCat=catRows.length?catRows[0][0]:'면/린넨';
+
+  const el=document.getElementById('activity-view-content');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="padding:16px">
+      <!-- 상단 통계 2열 카드 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:#12121a;border-radius:14px;padding:16px;border:1px solid #1e1e2e">
+          <div style="font-size:11px;color:#8888aa;margin-bottom:6px">이번 달 검색</div>
+          <div style="font-size:28px;font-weight:800;color:#6c63ff">${moSearches}</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:4px">건</div>
+        </div>
+        <div style="background:#12121a;border-radius:14px;padding:16px;border:1px solid #1e1e2e">
+          <div style="font-size:11px;color:#8888aa;margin-bottom:6px">이번 달 조회</div>
+          <div style="font-size:28px;font-weight:800;color:#ff6584">${moViews}</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:4px">건</div>
+        </div>
+      </div>
+
+      <!-- 관심 카테고리 바차트 -->
+      <div style="background:#12121a;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #1e1e2e">
+        <div style="font-size:13px;font-weight:700;color:#e0e0f0;margin-bottom:14px">관심 카테고리</div>
+        ${catRows.length?catRows.map(([cat,cnt],i)=>`
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:68px;font-size:12px;color:#aaaacc;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cat}</div>
+            <div style="flex:1;background:#1e1e2e;border-radius:6px;overflow:hidden;height:20px">
+              <div style="height:100%;width:${Math.round(cnt/catMax*100)}%;background:${CAT_COLORS[i%CAT_COLORS.length]};border-radius:6px;transition:width .6s ease"></div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:${CAT_COLORS[i%CAT_COLORS.length]};width:24px;text-align:right">${cnt}</div>
+          </div>`).join('')
+        :`<div style="color:#8888aa;font-size:13px;text-align:center;padding:12px 0">검색 기록이 쌓이면 분석이 시작돼요</div>`}
+      </div>
+
+      <!-- 최근 검색 키워드 TOP 6 -->
+      <div style="background:#12121a;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #1e1e2e">
+        <div style="font-size:13px;font-weight:700;color:#e0e0f0;margin-bottom:14px">최근 검색 키워드</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${kwRows.map(([kw,cnt],i)=>`
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:20px;height:20px;border-radius:50%;background:${i<3?'linear-gradient(135deg,#6c63ff,#ff6584)':'#1e1e2e'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${i+1}</div>
+              <div style="flex:1;font-size:13px;color:#e0e0f0">${kw}</div>
+              <div style="font-size:11px;color:#8888aa">${cnt}회</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- 맞춤 추천 카드 -->
+      <div id="act-recommend-card" style="background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(255,101,132,.1));border-radius:16px;padding:16px;border:1px solid rgba(108,99,255,.3)">
+        <div style="font-size:11px;color:#a89dff;font-weight:700;margin-bottom:6px">맞춤 추천</div>
+        <div style="font-size:14px;font-weight:700;color:#e0e0f0;margin-bottom:4px"><span style="color:#6c63ff">${topCat}</span> 상품을 좋아하시는군요!</div>
+        <div style="font-size:12px;color:#8888aa;margin-bottom:14px" id="act-rec-cnt">현재 판매 중인 상품을 불러오는 중...</div>
+        <button onclick="goSearchCat('${topCat}')" style="background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;width:100%">${topCat} 상품 바로가기</button>
+      </div>
     </div>`;
-  openModal('modal-activity');
+
+  // Supabase에서 topCat 상품 수 조회
+  if(_sb){
+    const typeList=(CATEGORY_MAP[topCat]||[]);
+    if(typeList.length){
+      _sb.from('products').select('id',{count:'exact',head:true}).in('type',typeList).then(({count})=>{
+        const e=document.getElementById('act-rec-cnt');
+        if(e)e.textContent=count!=null?`현재 ${count}개 상품이 판매 중이에요`:'상품을 확인해보세요';
+      });
+    } else {
+      const e=document.getElementById('act-rec-cnt');
+      if(e)e.textContent='상품을 확인해보세요';
+    }
+  }
 }
 
 function openTradeStats(){
