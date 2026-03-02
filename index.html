@@ -1074,11 +1074,27 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" id="my-admin-menu" style="display:none" onclick="showView('admin')">
+      <div class="my-menu-item" onclick="showView('admin')">
         <div class="my-icon-box ib-purple">🛡️</div>
         <div class="my-menu-info">
           <div class="my-menu-title">관리자 대시보드</div>
           <div class="my-menu-sub">카테고리 · 배너 · 회원 · 상품 관리</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showView('profile-edit')">
+        <div class="my-icon-box ib-green">🏠</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">회사정보 수정</div>
+          <div class="my-menu-sub">미니홈피 · 인사말 · 영업시간 · 거래조건</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showView('settings')">
+        <div class="my-icon-box ib-purple">⚙️</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">설정</div>
+          <div class="my-menu-sub">알림 · 거래설정 · 프로필</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -1167,26 +1183,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_trade_stats">거래 통계 리포트</div>
           <div class="my-menu-sub" data-i18n="mnu_trade_stats_sub">월간 거래·카테고리 비중</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-    </div>
-    <!-- 계정·설정 섹션 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title">계정·설정</div>
-      <div class="my-menu-item" onclick="showView('profile-edit')">
-        <div class="my-icon-box ib-green">🏠</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title">회사정보 수정</div>
-          <div class="my-menu-sub">미니홈피 · 인사말 · 영업시간 · 거래조건</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="showView('settings')">
-        <div class="my-icon-box ib-purple">⚙️</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title">설정</div>
-          <div class="my-menu-sub">알림 · 거래설정 · 프로필</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -3861,10 +3857,6 @@ function renderMypage(){
   set('my-sub-products',myProducts.length+t('cnt_reg'));
   set('my-sub-wish',wishes+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
-
-  // 관리자 메뉴 표시
-  const adminMenu=document.getElementById('my-admin-menu');
-  if(adminMenu)adminMenu.style.display=u.type==='admin'?'flex':'none';
 
   // Supabase 실시간 카운트 (연결 시)
   if(_sb&&u.id){
