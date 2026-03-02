@@ -2535,7 +2535,7 @@ const CATEGORY_DATA=[
   {id:'울/모직',emoji:'🐑',sub:[
     {name:'서지',items:['이태리','국산']},
     {name:'트위드',items:['해리스','도네갈']},
-    {name:'플란넬',items:[]},
+    {name:'플란넨',items:[]},
     {name:'캐시미어',items:[]},
   ]},
   {id:'니트/져지',emoji:'🧶',sub:[
@@ -2663,7 +2663,7 @@ function renderCatStep2(){
     <div style="background:#12121a">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">소분류</div>
       ${sub.items.map((item,i)=>`
-        <div onclick="catGoProducts('${catSelId}','${item}')"
+        <div onclick="applySvSearch('${item}');showView('search-view')"
           style="display:flex;align-items:center;padding:14px 20px;border-bottom:${i<sub.items.length-1?'1px solid #1e1e2e':'none'};cursor:pointer">
           <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0;margin-right:10px"></span>
           <span style="font-size:15px;color:#fff">${item}</span>
