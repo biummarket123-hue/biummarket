@@ -578,7 +578,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-sort-bar{display:flex;gap:8px;padding:10px 14px 6px;background:#0a0a0f;border-bottom:1px solid #1e1e2e;position:sticky;top:56px;z-index:50}
 .cp-sort-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#1e1e2e;color:#8888aa;border:1.5px solid #1e1e2e;cursor:pointer;transition:all .15s}
 .cp-sort-btn.on{background:rgba(108,99,255,.15);color:#6c63ff;border-color:#6c63ff}
-.cp-list{padding:0 0 8px}
+.cp-list{padding:8px 0 8px}
 .cp-empty{padding:60px 20px;text-align:center;color:#8888aa;font-size:13px}
 
 /* AI VIEW */
@@ -2432,7 +2432,7 @@ function showView(name){
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
   if(name==='ai')resetAiView();
-  if(name==='category')renderCategoryView();
+  if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
 }
 function goBack(){showView(prevView||'list')}
 
@@ -2583,63 +2583,101 @@ function filterByCategory(prods,key){
 /* ===== CATEGORY VIEW JS ===== */
 const CAT_DEFS=CATEGORY_DATA.map(c=>({key:c.id,icon:c.emoji,label:c.id}));
 let curCatKey='',curCatSort='latest';
-let catStep=0,catSelId='',catSelSubIdx=0;
+let catStep=0,catSelId='',catSelSubIdx=-1;
 
 function renderCategoryView(){
-  const el=document.getElementById('cat-grid');
-  if(!el)return;
-  if(catStep===0){
-    el.style.display='';
-    el.innerHTML=CATEGORY_DATA.map(c=>{
-      const cnt=filterByCategory(products,c.id).length;
-      return `<div class="cat-grid-item" onclick="catDrillDown1('${c.id}')">
-        <span class="cat-icon">${c.emoji}</span>
-        <span class="cat-name">${c.id}</span>
-        <span class="cat-count">${cnt}개</span>
-      </div>`;
-    }).join('');
-  } else if(catStep===1){
-    const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
-    el.style.display='block';
-    el.innerHTML=
-      `<button onclick="catStep=0;renderCategoryView()" style="display:block;background:none;border:none;color:#8888aa;font-size:14px;cursor:pointer;padding:4px 0 12px;width:100%;text-align:left">← 뒤로</button>`+
-      `<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">${cat.emoji} ${cat.id}</div>`+
-      cat.sub.map((s,i)=>
-        `<div class="cat-grid-item" onclick="catDrillDown2(${i})" style="flex-direction:row;justify-content:space-between;width:100%;box-sizing:border-box;margin-bottom:6px">`+
-        `<span style="font-size:14px;font-weight:600;color:#fff">${s.name}</span>`+
-        `<span style="font-size:12px;color:#8888aa">${s.items.length?s.items.length+'개 ›':'›'}</span>`+
-        `</div>`
-      ).join('');
-  } else if(catStep===2){
-    const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
-    const sub=cat.sub[catSelSubIdx];
-    el.style.display='block';
-    el.innerHTML=
-      `<button onclick="catStep=1;renderCategoryView()" style="display:block;background:none;border:none;color:#8888aa;font-size:14px;cursor:pointer;padding:4px 0 12px;width:100%;text-align:left">← 뒤로</button>`+
-      `<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">${sub.name}</div>`+
-      (sub.items.length
-        ? sub.items.map(item=>
-            `<div class="cat-grid-item" onclick="catSearchItem('${item}')" style="width:100%;box-sizing:border-box;margin-bottom:6px">`+
-            `<span style="font-size:14px;color:#fff">${item}</span>`+
-            `</div>`
-          ).join('')
-        : `<div style="padding:20px;color:#8888aa;text-align:center">소분류 항목이 없어요</div>`);
-  }
+  if(catStep===0)renderCatStep0();
+  else if(catStep===1)renderCatStep1();
+  else if(catStep===2)renderCatStep2();
 }
 
-function catDrillDown1(id){
-  catSelId=id;catStep=1;renderCategoryView();
+function renderCatStep0(){
+  const grid=document.getElementById('cat-grid');
+  if(!grid)return;
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 14px 80px';
+  grid.innerHTML=CATEGORY_DATA.map(cat=>{
+    const prodCnt=filterByCategory(products,cat.id).length;
+    const subCnt=cat.sub.length;
+    return `<div class="cat-grid-item" onclick="catGoStep1('${cat.id}')">
+      <span class="cat-icon">${cat.emoji}</span>
+      <span class="cat-name">${cat.id}</span>
+      <span class="cat-count">${prodCnt}개 상품 · ${subCnt}분류</span>
+    </div>`;
+  }).join('');
 }
-function catDrillDown2(idx){
-  const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
-  const sub=cat.sub[idx];
-  if(!sub.items.length){catSearchItem(sub.name);return;}
-  catSelSubIdx=idx;catStep=2;renderCategoryView();
+
+function renderCatStep1(){
+  const catData=CATEGORY_DATA.find(c=>c.id===catSelId);
+  if(!catData)return;
+  const grid=document.getElementById('cat-grid');
+  const prodCnt=filterByCategory(products,catSelId).length;
+  grid.style.cssText='display:block;padding:0 0 80px';
+  grid.innerHTML=`
+    <div style="background:#12121a;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e1e2e;margin-bottom:12px">
+      <span onclick="catGoBack()" style="cursor:pointer;font-size:20px;color:#aaa;margin-right:4px">←</span>
+      <span style="font-size:20px">${catData.emoji}</span>
+      <div>
+        <div style="font-weight:700;font-size:17px;color:#fff">${catData.id}</div>
+        <div style="font-size:13px;color:#999">${prodCnt}개 상품 · ${catData.sub.length}개 중분류</div>
+      </div>
+    </div>
+    <div style="background:#12121a">
+      <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">중분류</div>
+      ${catData.sub.map((sub,i)=>`
+        <div onclick="${sub.items.length>0?`catGoStep2(${i})`:`catGoProducts('${catSelId}','${sub.name}')`}"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:${i<catData.sub.length-1?'1px solid #1e1e2e':'none'};cursor:pointer">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0"></span>
+            <span style="font-size:15px;color:#fff">${sub.name}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${sub.items.length>0?`<span style="font-size:13px;color:#aaa">${sub.items.length}개 소분류</span><span style="color:#bbb;font-size:16px">›</span>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:12px;background:#12121a">
+      <div style="padding:12px 20px 6px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#888;font-weight:500">전체 상품</span>
+        <span style="font-size:13px;color:#6c63ff;font-weight:700">${prodCnt}건</span>
+      </div>
+      ${filterByCategory(products,catSelId).slice(0,5).map(p=>renderHomeProduct(p)).join('')}
+    </div>`;
 }
-function catSearchItem(q){
-  applySvSearch(q);
-  showView('search-view');
+
+function renderCatStep2(){
+  const catData=CATEGORY_DATA.find(c=>c.id===catSelId);
+  if(!catData)return;
+  const sub=catData.sub[catSelSubIdx];
+  if(!sub)return;
+  const grid=document.getElementById('cat-grid');
+  grid.style.cssText='display:block;padding:0 0 80px';
+  grid.innerHTML=`
+    <div style="background:#12121a;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e1e2e;margin-bottom:12px">
+      <span onclick="catGoBack()" style="cursor:pointer;font-size:20px;color:#aaa;margin-right:4px">←</span>
+      <span style="font-size:20px">${catData.emoji}</span>
+      <div>
+        <div style="font-weight:700;font-size:17px;color:#fff">${sub.name}</div>
+        <div style="font-size:13px;color:#999">${catData.id} · ${sub.items.length}개 소분류</div>
+      </div>
+    </div>
+    <div style="background:#12121a">
+      <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">소분류</div>
+      ${sub.items.map((item,i)=>`
+        <div onclick="catGoProducts('${catSelId}','${item}')"
+          style="display:flex;align-items:center;padding:14px 20px;border-bottom:${i<sub.items.length-1?'1px solid #1e1e2e':'none'};cursor:pointer">
+          <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0;margin-right:10px"></span>
+          <span style="font-size:15px;color:#fff">${item}</span>
+        </div>`).join('')}
+    </div>`;
 }
+
+function catGoStep1(id){catSelId=id;catStep=1;renderCategoryView();}
+function catGoStep2(subIdx){catSelSubIdx=subIdx;catStep=2;renderCategoryView();}
+function catGoBack(){
+  if(catStep===2){catStep=1;renderCategoryView();}
+  else if(catStep===1){catStep=0;renderCategoryView();}
+}
+function catGoProducts(catId,keyword){openCatProducts(catId,keyword);}
 
 function openCatProducts(key,label){
   curCatKey=key;curCatSort='latest';
