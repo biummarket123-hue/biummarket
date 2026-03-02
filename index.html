@@ -2516,16 +2516,59 @@ function showListSkeleton(){
   if(sec){sec.innerHTML=Array(3).fill(0).map(()=>`<div class="cat-section"><div class="cat-section-hd"><div class="skel-line skeleton" style="width:100px;height:14px;margin:0"></div></div>${Array(3).fill(0).map(()=>`<div class="h-product-card"><div class="h-product-img skeleton"></div><div class="h-product-body"><div class="skel-line skeleton" style="margin:0 0 6px"></div><div class="skel-line sm skeleton" style="margin:0 0 6px"></div><div class="skel-line xs skeleton" style="margin:0"></div></div></div>`).join('')}</div>`).join('');}
 }
 
-/* ===== SHARED CATEGORY MAP (단일 진실 소스) ===== */
-const CATEGORY_MAP={
-  '면/린넨':  ['면','린넨'],
-  '폴리/합섬': ['폴리','합섬'],
-  '울/모직':  ['울','모직'],
-  '니트/저지': ['니트','저지'],
-  '실크/새틴': ['실크','새틴'],
-  '데님/청':  ['데님','청'],
-  '기능성':   ['기능성'],
-};
+/* ===== CATEGORY DATA (3단계 대/중/소 구조) ===== */
+const CATEGORY_DATA=[
+  {id:'면/린넨',emoji:'🧵',sub:[
+    {name:'트월',items:['20수','40수','60수']},
+    {name:'옥스포드',items:['셔츠용','두꺼운']},
+    {name:'론/보일',items:['프린트','무지']},
+    {name:'린넨',items:['워싱','오가닉']},
+    {name:'캔버스/덕',items:[]},
+  ]},
+  {id:'폴리/합섬',emoji:'✨',sub:[
+    {name:'쉬폰',items:['프린트','무지']},
+    {name:'새틴',items:['백새틴','샤무즈']},
+    {name:'메쉬',items:['쿨맥스','에어메쉬']},
+    {name:'타프타',items:[]},
+    {name:'오간자',items:[]},
+  ]},
+  {id:'울/모직',emoji:'🐑',sub:[
+    {name:'서지',items:['이태리','국산']},
+    {name:'트위드',items:['해리스','도네갈']},
+    {name:'플란넬',items:[]},
+    {name:'캐시미어',items:[]},
+  ]},
+  {id:'니트/져지',emoji:'🧶',sub:[
+    {name:'져지',items:['싱글','인터록']},
+    {name:'립',items:['1X1','2X2']},
+    {name:'스웨트',items:['기모','쭈리']},
+    {name:'스판져지',items:['2WAY','4WAY']},
+  ]},
+  {id:'실크/새틴',emoji:'💎',sub:[
+    {name:'새틴',items:['하부타이','샤르뫼']},
+    {name:'쉬폰',items:[]},
+    {name:'듀피온',items:[]},
+  ]},
+  {id:'데님/청',emoji:'👖',sub:[
+    {name:'라이트(~10oz)',items:[]},
+    {name:'미드(10~13oz)',items:[]},
+    {name:'헤비(14oz~)',items:[]},
+    {name:'셀비지',items:[]},
+  ]},
+  {id:'기능성',emoji:'⚡',sub:[
+    {name:'쿨링',items:['쿨맥스','아이스터치']},
+    {name:'보온',items:['플리스','써모']},
+    {name:'방수/발수',items:[]},
+    {name:'UV차단',items:[]},
+  ]},
+  {id:'레이스/자수',emoji:'🌸',sub:[
+    {name:'레이스',items:['토션','기퓌르']},
+    {name:'자수',items:['울오버','보더']},
+    {name:'비즈/스팽글',items:[]},
+  ]},
+];
+// 하위 호환용 CATEGORY_MAP 자동 생성 (대분류id → 중분류명 배열)
+const CATEGORY_MAP=Object.fromEntries(CATEGORY_DATA.map(cat=>[cat.id,cat.sub.map(s=>s.name)]));
 // 카테고리 키 → 상품 배열 필터링 공통 함수
 function filterByCategory(prods,key){
   if(key==='전체')return prods;
@@ -2538,29 +2581,64 @@ function filterByCategory(prods,key){
 }
 
 /* ===== CATEGORY VIEW JS ===== */
-const CAT_DEFS=[
-  {key:'면/린넨',icon:'🧵',label:'면/린넨'},
-  {key:'폴리/합섬',icon:'🔷',label:'폴리/합섬'},
-  {key:'울/모직',icon:'🐑',label:'울/모직'},
-  {key:'니트/저지',icon:'🧶',label:'니트/저지'},
-  {key:'실크/새틴',icon:'✨',label:'실크/새틴'},
-  {key:'데님/청',icon:'👖',label:'데님/청'},
-  {key:'기능성',icon:'⚡',label:'기능성'},
-  {key:'기타',icon:'📦',label:'기타'},
-];
+const CAT_DEFS=CATEGORY_DATA.map(c=>({key:c.id,icon:c.emoji,label:c.id}));
 let curCatKey='',curCatSort='latest';
+let catStep=0,catSelId='',catSelSubIdx=0;
 
 function renderCategoryView(){
   const el=document.getElementById('cat-grid');
   if(!el)return;
-  el.innerHTML=CAT_DEFS.map(c=>{
-    const cnt=filterByCategory(products,c.key).length;
-    return `<div class="cat-grid-item" onclick="openCatProducts('${c.key}','${c.label}')">
-      <span class="cat-icon">${c.icon}</span>
-      <span class="cat-name">${c.label}</span>
-      <span class="cat-count">${cnt}개</span>
-    </div>`;
-  }).join('');
+  if(catStep===0){
+    el.style.display='';
+    el.innerHTML=CATEGORY_DATA.map(c=>{
+      const cnt=filterByCategory(products,c.id).length;
+      return `<div class="cat-grid-item" onclick="catDrillDown1('${c.id}')">
+        <span class="cat-icon">${c.emoji}</span>
+        <span class="cat-name">${c.id}</span>
+        <span class="cat-count">${cnt}개</span>
+      </div>`;
+    }).join('');
+  } else if(catStep===1){
+    const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
+    el.style.display='block';
+    el.innerHTML=
+      `<button onclick="catStep=0;renderCategoryView()" style="display:block;background:none;border:none;color:#8888aa;font-size:14px;cursor:pointer;padding:4px 0 12px;width:100%;text-align:left">← 뒤로</button>`+
+      `<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">${cat.emoji} ${cat.id}</div>`+
+      cat.sub.map((s,i)=>
+        `<div class="cat-grid-item" onclick="catDrillDown2(${i})" style="flex-direction:row;justify-content:space-between;width:100%;box-sizing:border-box;margin-bottom:6px">`+
+        `<span style="font-size:14px;font-weight:600;color:#fff">${s.name}</span>`+
+        `<span style="font-size:12px;color:#8888aa">${s.items.length?s.items.length+'개 ›':'›'}</span>`+
+        `</div>`
+      ).join('');
+  } else if(catStep===2){
+    const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
+    const sub=cat.sub[catSelSubIdx];
+    el.style.display='block';
+    el.innerHTML=
+      `<button onclick="catStep=1;renderCategoryView()" style="display:block;background:none;border:none;color:#8888aa;font-size:14px;cursor:pointer;padding:4px 0 12px;width:100%;text-align:left">← 뒤로</button>`+
+      `<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">${sub.name}</div>`+
+      (sub.items.length
+        ? sub.items.map(item=>
+            `<div class="cat-grid-item" onclick="catSearchItem('${item}')" style="width:100%;box-sizing:border-box;margin-bottom:6px">`+
+            `<span style="font-size:14px;color:#fff">${item}</span>`+
+            `</div>`
+          ).join('')
+        : `<div style="padding:20px;color:#8888aa;text-align:center">소분류 항목이 없어요</div>`);
+  }
+}
+
+function catDrillDown1(id){
+  catSelId=id;catStep=1;renderCategoryView();
+}
+function catDrillDown2(idx){
+  const cat=CATEGORY_DATA.find(c=>c.id===catSelId);
+  const sub=cat.sub[idx];
+  if(!sub.items.length){catSearchItem(sub.name);return;}
+  catSelSubIdx=idx;catStep=2;renderCategoryView();
+}
+function catSearchItem(q){
+  applySvSearch(q);
+  showView('search-view');
 }
 
 function openCatProducts(key,label){
@@ -2595,16 +2673,15 @@ function renderCatProducts(){
 }
 
 /* ===== HOME REDESIGN JS ===== */
-// HOME_CATS: CATEGORY_MAP 키에서 자동 생성
+// HOME_CATS: CATEGORY_DATA에서 자동 생성
 const HOME_CATS=[
   {key:'전체',label:'전체'},
-  ...Object.keys(CATEGORY_MAP).map(k=>({key:k,label:k})),
+  ...CATEGORY_DATA.map(c=>({key:c.id,label:c.id})),
   {key:'기타',label:'기타'},
 ];
-// HOME_SECTIONS: 아이콘만 별도 관리, 나머지는 CATEGORY_MAP에서
-const _SEC_ICONS={'면/린넨':'🌿','울/모직':'🐑','니트/저지':'🧶','실크/새틴':'✨','데님/청':'👖','폴리/합섬':'🔷','기능성':'⚡','기타':'📦'};
+// HOME_SECTIONS: CATEGORY_DATA에서 자동 생성
 const HOME_SECTIONS=[
-  ...Object.keys(CATEGORY_MAP).map(k=>({key:k,label:`${_SEC_ICONS[k]||'📦'} ${k}`})),
+  ...CATEGORY_DATA.map(c=>({key:c.id,label:`${c.emoji} ${c.id}`})),
   {key:'기타',label:'📦 기타'},
 ];
 let homeCurCat='전체';
@@ -3944,14 +4021,14 @@ function renderAnalytics(){
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
   renderChips();
-  // 상품 등록 폼 원단종류 옵션 → CATEGORY_MAP에서 동적 생성
+  // 상품 등록 폼 원단종류 옵션 → CATEGORY_DATA에서 동적 생성
   (function populateTypeSelect(){
     const sel=document.getElementById('f-type');
     if(!sel)return;
-    Object.entries(CATEGORY_MAP).forEach(([cat,types])=>{
+    CATEGORY_DATA.forEach(cat=>{
       const grp=document.createElement('optgroup');
-      grp.label=cat;
-      types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;grp.appendChild(o);});
+      grp.label=cat.id;
+      cat.sub.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;grp.appendChild(o);});
       sel.appendChild(grp);
     });
     const other=document.createElement('option');
