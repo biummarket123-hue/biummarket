@@ -1082,6 +1082,98 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+    </div>
+    <!-- 커뮤니티 섹션 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title" data-i18n="my_sec_community">커뮤니티</div>
+      <div class="my-menu-item" onclick="openTopSellers()">
+        <div class="my-icon-box ib-yellow">🏆</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 판매자 랭킹</div>
+          <div class="my-menu-sub" data-i18n="mnu_top_sellers_sub">판매 실적 · 거래 완료 순위</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openBoard()">
+        <div class="my-icon-box ib-teal">💬</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_board">업계 게시판</div>
+          <div class="my-menu-sub" data-i18n="mnu_board_sub">트렌드·정보·Q&A</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showView('ai')">
+        <div class="my-icon-box ib-purple">🔬</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_ai_detect">원단 감별 AI</div>
+          <div class="my-menu-sub" data-i18n="mnu_ai_detect_sub">사진으로 소재 분석</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openTrendReport()">
+        <div class="my-icon-box ib-pink">📊</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_trend">AI 트렌드 리포트</div>
+          <div class="my-menu-sub" data-i18n="mnu_trend_sub">시즌 수요 예측·패션위크 분석</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+    </div>
+    <!-- 데이터·분석 섹션 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title" data-i18n="my_sec_data">데이터·분석</div>
+      <div class="my-menu-item" onclick="showView('analytics')">
+        <div class="my-icon-box ib-green">💰</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_sales_dash">매출 대시보드</div>
+          <div class="my-menu-sub" data-i18n="mnu_sales_dash_sub">매출·조회·전환율 분석</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openPriceHeatmap()">
+        <div class="my-icon-box ib-blue">🗺️</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_price_heat">시장 가격 히트맵</div>
+          <div class="my-menu-sub" data-i18n="mnu_price_heat_sub">소재별·지역별 평균 가격</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openMarketPriceModal()">
+        <div class="my-icon-box ib-teal">📈</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_realtime">원단 실시간 시세</div>
+          <div class="my-menu-sub" data-i18n="mnu_realtime_sub">주요 소재 가격 차트</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openMyActivity()">
+        <div class="my-icon-box ib-purple">👤</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_activity">내 활동 분석</div>
+          <div class="my-menu-sub" data-i18n="mnu_activity_sub">검색·관심 카테고리 통계</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openProductRanking()">
+        <div class="my-icon-box ib-orange">🔥</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_ranking">인기 상품 랭킹</div>
+          <div class="my-menu-sub" data-i18n="mnu_ranking_sub">조회·찜·문의 TOP 10</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openTradeStats()">
+        <div class="my-icon-box ib-yellow">📋</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" data-i18n="mnu_trade_stats">거래 통계 리포트</div>
+          <div class="my-menu-sub" data-i18n="mnu_trade_stats_sub">월간 거래·카테고리 비중</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+    </div>
+    <!-- 계정·설정 섹션 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">계정·설정</div>
       <div class="my-menu-item" onclick="showView('profile-edit')">
         <div class="my-icon-box ib-green">🏠</div>
         <div class="my-menu-info">
@@ -2501,8 +2593,11 @@ async function doSignup(){
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
 async function doLogout(){
-  try{if(_sb&&curUser?.email!=='admin')await _sb.auth.signOut();}catch(e){}
-  curUser=null;lsSet('curUser',null);showView('login');
+  if(!confirm('로그아웃 하시겠습니까?'))return;
+  try{if(_sb&&curUser?.email!=='admin')await _sb.auth.signOut();}catch(e){console.error('signOut 오류:',e);}
+  curUser=null;lsSet('curUser',null);
+  if(document.getElementById('view-login'))showView('login');
+  else window.location.reload();
 }
 function selectType(type,el){
   selectedUserType=type;
