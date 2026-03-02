@@ -935,16 +935,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-admin" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">관리자 대시보드</div>
+    <div class="hdr-title">비움마켓 관리</div>
     <button class="hdr-btn" onclick="doLogout()">🚪</button>
   </header>
-  <div class="admin-tabs" id="admin-tabs">
-    <button class="atab on" onclick="switchAdminTab('overview',this)">개요</button>
-    <button class="atab" onclick="switchAdminTab('users',this)">회원</button>
-    <button class="atab" onclick="switchAdminTab('products',this)">상품</button>
-    <button class="atab" onclick="switchAdminTab('notices',this)">공지</button>
-  </div>
-  <div class="admin-content" id="admin-content"></div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="admin-content"></div>
 </div>
 
 <!-- ========== SELLER PAGE ========== -->
@@ -1043,7 +1037,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 서비스 섹션 -->
     <div class="my-section-wrap">
       <div class="my-section-title">서비스</div>
-      <div class="my-menu-item" onclick="showView('notif-settings')">
+      <div class="my-menu-item" onclick="showView('notif')">
         <div class="my-icon-box ib-yellow">🔔</div>
         <div class="my-menu-info">
           <div class="my-menu-title">알림</div>
@@ -1067,7 +1061,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showToast('공지사항 준비중이에요 📢')">
+      <div class="my-menu-item" onclick="showView('notices')">
         <div class="my-icon-box ib-orange">📢</div>
         <div class="my-menu-info">
           <div class="my-menu-title">공지사항</div>
@@ -1408,6 +1402,26 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       ※ 알림 설정은 이 기기에만 저장됩니다.<br>실제 푸시 알림은 앱 설치 후 지원됩니다.
     </div>
   </div>
+</div>
+
+<!-- ========== NOTIF LIST ========== -->
+<div id="view-notif" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">알림</div>
+    <button class="hdr-btn" onclick="showView('notif-settings')" title="알림 설정">⚙️</button>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="notif-items-list"></div>
+</div>
+
+<!-- ========== NOTICES ========== -->
+<div id="view-notices" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">공지사항</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="notices-list"></div>
 </div>
 
 <!-- ========== PROFILE EDIT ========== -->
@@ -2280,6 +2294,12 @@ const DEFAULT_USERS=[
   {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'buyer',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
 ];
 let users=lsGet('users',DEFAULT_USERS);
+const DEFAULT_NOTICES=[
+  {id:1,title:'[공지] 비움마켓 v3.0 Premium 업데이트 안내',content:'새로운 3단계 카테고리, 설정 화면 등 다양한 기능이 추가됐어요.',date:'2026.03.03',author:'관리자'},
+  {id:2,title:'[공지] 여름 원단 특가 기획전 진행 중',content:'면·린넨·폴리 여름 원단을 특가로 만나보세요.',date:'2026.02.25',author:'관리자'},
+  {id:3,title:'[안내] 매너 온도 시스템 개편 안내',content:'매너 온도 산정 방식이 거래 완료 기반으로 개편됐습니다.',date:'2026.02.20',author:'관리자'},
+];
+let notices=lsGet('notices',DEFAULT_NOTICES);
 let curUser=lsGet('curUser',null);
 
 function findUser(email,pw){return users.find(u=>u.email===email&&u.pw===pw)}
@@ -2521,7 +2541,7 @@ function showView(name){
   if(target){target.classList.add('active');window.scrollTo(0,0)}
   if(name==='list')renderList();
   if(name==='mypage')renderMypage();
-  if(name==='admin')renderAdmin('overview');
+  if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
   if(name==='search-view')renderSearchView();
   if(name==='chat')renderChatList();
@@ -2529,6 +2549,8 @@ function showView(name){
   if(name==='chat-room')renderChatRoom(curChatRoomId);
   if(name==='reservations')renderReservations();
   if(name==='notif-settings')renderNotifSettings();
+  if(name==='notif')renderNotifView();
+  if(name==='notices')renderNotices();
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
   if(name==='ai')resetAiView();
@@ -3335,7 +3357,7 @@ document.getElementById('sv-input').addEventListener('input',e=>{
   renderSearchView();
 });
 const _btnLoc=document.getElementById('btn-loc');if(_btnLoc)_btnLoc.addEventListener('click',()=>showToast('지역 설정 기능 준비중이에요'));
-document.getElementById('btn-alert').addEventListener('click',()=>showToast('새로운 알림이 없어요'));
+document.getElementById('btn-alert').addEventListener('click',()=>showView('notif'));
 
 /* ==================== SEARCH VIEW ==================== */
 function renderSearchView(){
@@ -4129,49 +4151,158 @@ function openMarketPriceModal(){
 }
 
 /* ==================== ADMIN ==================== */
-let curAdminTab='overview';
-function renderAdmin(tab){
-  curAdminTab=tab;
-  const content=document.getElementById('admin-content');
-  if(tab==='overview'){
-    content.innerHTML=`
-      <div class="stat-grid">
-        <div class="stat-card"><div class="sv">${users.length}</div><div class="sl">총 회원</div></div>
-        <div class="stat-card"><div class="sv">${products.length}</div><div class="sl">총 상품</div></div>
-        <div class="stat-card"><div class="sv">${products.reduce((a,p)=>a+p.likes,0)}</div><div class="sl">총 관심</div></div>
-        <div class="stat-card"><div class="sv">${products.reduce((a,p)=>a+p.chats,0)}</div><div class="sl">총 채팅</div></div>
+function renderAdmin(){
+  const el=document.getElementById('admin-content');
+  if(!el)return;
+  const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
+  const chatsCnt=products.reduce((a,p)=>a+(p.chats||0),0);
+  el.innerHTML=`
+    <div style="padding:20px 16px 12px">
+      <div style="display:inline-block;background:rgba(108,99,255,.15);border:1px solid #6c63ff;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;color:#6c63ff;margin-bottom:8px">ADMIN PANEL</div>
+      <div style="font-size:22px;font-weight:900;color:#fff">비움마켓 관리</div>
+      <div style="font-size:12px;color:#8888aa;margin-top:2px">실시간 현황 · 2026. 3. 3.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px">
+      <div class="stat-card" style="text-align:center"><div class="sv" id="adm-cnt-products">${products.length}</div><div class="sl">총 상품</div></div>
+      <div class="stat-card" style="text-align:center"><div class="sv" id="adm-cnt-users">${users.length}</div><div class="sl">총 회원</div></div>
+      <div class="stat-card" style="text-align:center"><div class="sv" id="adm-cnt-chats">${chatsCnt}</div><div class="sl">총 채팅</div></div>
+      <div class="stat-card" style="text-align:center"><div class="sv" id="adm-cnt-urgent">${urgentCnt}</div><div class="sl">급처 상품</div></div>
+    </div>
+    <div class="my-section-wrap">
+      <div class="my-section-title">관리 메뉴</div>
+      <div class="my-menu-item" onclick="showToast('카테고리 관리 준비중이에요')">
+        <div class="my-icon-box ib-purple">📋</div>
+        <div class="my-menu-info"><div class="my-menu-title">카테고리 관리</div><div class="my-menu-sub">3단계 분류 · 8개 대분류</div></div>
+        <span class="my-menu-arrow">›</span>
       </div>
-      <div style="background:var(--g100);border-radius:var(--r);padding:14px;font-size:13px;line-height:1.8;color:var(--g700)">
-        <b>📌 최근 활동</b><br>
-        · 신규 상품 ${products.filter(p=>p.id>10).length}건 등록됨<br>
-        · 신규 회원 ${users.length-3}명 가입<br>
-        · 오늘 접속자: 127명<br>
-        · 이번 주 거래액: ₩18,450,000
-      </div>`;
-  }else if(tab==='users'){
-    content.innerHTML=`<div class="table-wrap"><table class="data-table"><thead><tr><th>이름</th><th>유형</th><th>이메일</th><th>가입일</th><th>관리</th></tr></thead><tbody>`+
-    users.map(u=>`<tr><td><b>${u.name}</b></td><td><span class="badge badge-${u.type==='admin'?'orange':u.type==='seller'?'green':'blue'}">${u.type}</span></td><td style="font-size:11px">${u.email}</td><td style="font-size:11px">${u.joinDate||'-'}</td><td><button class="action-btn" onclick="showToast('${u.name} 정보 수정 준비중')">수정</button></td></tr>`).join('')+
-    '</tbody></table></div>';
-  }else if(tab==='products'){
-    content.innerHTML=`<div class="table-wrap"><table class="data-table"><thead><tr><th>상품명</th><th>종류</th><th>수량</th><th>단가</th><th>관리</th></tr></thead><tbody>`+
-    products.slice(0,20).map(p=>`<tr><td style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</td><td><span class="badge badge-blue">${p.type}</span></td><td>${p.qty}m</td><td>${fmtPrice(p.price)}</td><td><button class="action-btn del" onclick="adminDeleteProduct(${p.id})">삭제</button></td></tr>`).join('')+
-    '</tbody></table></div>';
-  }else if(tab==='notices'){
-    content.innerHTML=`<div style="margin-bottom:12px"><button class="btn-primary" style="padding:10px 18px;font-size:13px" onclick="showToast('공지 작성 기능 준비중이에요')">+ 공지 작성</button></div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${['[공지] 비움마켓 v18.3 업데이트 안내','[공지] 여름 원단 특가 기획전 진행 중','[안내] 매너 온도 시스템 개편 안내'].map((title,i)=>`<div style="border:1px solid var(--g200);border-radius:var(--rs);padding:12px 14px;cursor:pointer" onclick="showToast('공지 상세 준비중')"><div style="font-size:13px;font-weight:600;margin-bottom:4px">${title}</div><div style="font-size:11px;color:var(--g500)">${['2024.12.01','2024.11.25','2024.11.20'][i]}</div></div>`).join('')}
+      <div class="my-menu-item" onclick="showToast('배너 관리 준비중이에요')">
+        <div class="my-icon-box ib-blue">🖼️</div>
+        <div class="my-menu-info"><div class="my-menu-title">배너 관리</div><div class="my-menu-sub">홈 메인 배너 · 0개</div></div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showAdminNotices()">
+        <div class="my-icon-box ib-orange">📢</div>
+        <div class="my-menu-info"><div class="my-menu-title">공지사항 관리</div><div class="my-menu-sub" id="adm-notice-sub">${notices.length}개 공지</div></div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showAdminUsers()">
+        <div class="my-icon-box ib-teal">👥</div>
+        <div class="my-menu-info"><div class="my-menu-title">회원 관리</div><div class="my-menu-sub" id="adm-user-sub">${users.length}명 가입</div></div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showAdminProducts()">
+        <div class="my-icon-box ib-green">📦</div>
+        <div class="my-menu-info"><div class="my-menu-title">상품 관리</div><div class="my-menu-sub" id="adm-prod-sub">${products.length}개 등록 · 급처 ${urgentCnt}개</div></div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+    </div>
+    <div style="padding:0 16px 20px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="resetCategories()" style="padding:14px;background:#1e1e2e;border:1px solid #2a2a3e;border-radius:14px;color:#aaaacc;font-size:14px;font-weight:600;cursor:pointer;width:100%">카테고리 초기화</button>
+      <button onclick="resetAll()" style="padding:14px;background:transparent;border:1.5px solid #ff6584;border-radius:14px;color:#ff6584;font-size:14px;font-weight:600;cursor:pointer;width:100%">전체 초기화</button>
     </div>`;
+  if(_sb){
+    _sb.from('products').select('id',{count:'exact',head:true}).then(({count})=>{if(count!=null){const e=document.getElementById('adm-cnt-products');if(e)e.textContent=count;const s=document.getElementById('adm-prod-sub');if(s)s.textContent=`${count}개 등록 · 급처 ${urgentCnt}개`;}});
+    _sb.from('users').select('id',{count:'exact',head:true}).then(({count})=>{if(count!=null){const e=document.getElementById('adm-cnt-users');if(e)e.textContent=count;const s=document.getElementById('adm-user-sub');if(s)s.textContent=`${count}명 가입`;}});
   }
 }
-function switchAdminTab(tab,el){
-  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');renderAdmin(tab);
+function showAdminNotices(){
+  const el=document.getElementById('admin-content');if(!el)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e1e2e">
+      <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#fff;flex:1">공지사항 관리</span>
+      <button onclick="adminAddNotice()" style="background:#6c63ff;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">+ 공지 작성</button>
+    </div>
+    <div id="admin-notices-list" style="padding:12px 16px">
+      ${notices.map(n=>`
+        <div style="border:1px solid #1e1e2e;border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div style="font-size:14px;font-weight:600;color:#fff;flex:1">${n.title}</div>
+            <button onclick="adminDeleteNotice(${n.id})" style="background:none;border:none;color:#ff6584;cursor:pointer;font-size:18px;flex-shrink:0">×</button>
+          </div>
+          <div style="font-size:12px;color:#8888aa;margin-top:4px">${n.date} · ${n.author}</div>
+        </div>`).join('')}
+    </div>`;
+}
+function adminAddNotice(){
+  const title=prompt('공지 제목을 입력하세요');
+  if(!title||!title.trim())return;
+  const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace(/\.$/,'');
+  notices.unshift({id:Date.now(),title:title.trim(),content:'',date:today,author:'관리자'});
+  lsSet('notices',notices);
+  showAdminNotices();showToast('공지가 등록됐어요 📢');
+}
+function adminDeleteNotice(id){
+  if(!confirm('공지를 삭제할까요?'))return;
+  notices=notices.filter(n=>n.id!==id);
+  lsSet('notices',notices);
+  showAdminNotices();showToast('공지가 삭제됐어요');
+}
+function showAdminUsers(){
+  const el=document.getElementById('admin-content');if(!el)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e1e2e">
+      <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#fff">회원 관리</span>
+    </div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>이름</th><th>유형</th><th>이메일</th><th>가입일</th><th>관리</th></tr></thead><tbody>
+    ${users.map(u=>`<tr><td><b>${u.name}</b></td><td><span class="badge badge-${u.type==='admin'?'orange':u.type==='seller'?'green':'blue'}">${u.type}</span></td><td style="font-size:11px">${u.email}</td><td style="font-size:11px">${u.joinDate||'-'}</td><td><button class="action-btn" onclick="showToast('수정 준비중')">수정</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+function showAdminProducts(){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e1e2e">
+      <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#fff">상품 관리</span>
+    </div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>상품명</th><th>종류</th><th>수량</th><th>단가</th><th>관리</th></tr></thead><tbody>
+    ${products.slice(0,30).map(p=>`<tr><td style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</td><td><span class="badge badge-blue">${p.type}</span></td><td>${p.qty}m</td><td>${fmtPrice(p.price)}</td><td><button class="action-btn del" onclick="adminDeleteProduct(${p.id})">삭제</button></td></tr>`).join('')}
+    </tbody></table></div>`;
 }
 async function adminDeleteProduct(id){
   if(!confirm('정말 삭제할까요?'))return;
-  const{error}=await _sb.from('products').delete().eq('id',id);
-  if(error)console.error('delete error:',error);
-  products=products.filter(p=>p.id!==id);saveProducts();renderAdmin('products');showToast('삭제됐어요');
+  if(_sb){const{error}=await _sb.from('products').delete().eq('id',id);if(error)console.error('delete error:',error);}
+  products=products.filter(p=>p.id!==id);saveProducts();showAdminProducts();showToast('삭제됐어요');
+}
+function resetCategories(){
+  if(!confirm('카테고리 데이터를 초기화할까요?'))return;
+  lsDelTTL('categories');showToast('카테고리가 초기화됐어요 ♻️');
+}
+function resetAll(){
+  if(!confirm('모든 로컬 데이터를 초기화할까요?\n로그인 정보도 삭제됩니다.'))return;
+  localStorage.clear();showToast('초기화 완료. 재시작해요.');
+  setTimeout(()=>location.reload(),1500);
+}
+function renderNotifView(){
+  const el=document.getElementById('notif-items-list');if(!el)return;
+  const items=lsGet('notifHistory',[]);
+  if(!items.length){
+    el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#8888aa;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
+    return;
+  }
+  el.innerHTML=items.map(item=>`
+    <div style="padding:16px;border-bottom:1px solid #1e1e2e;display:flex;gap:12px;align-items:flex-start">
+      <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px">${item.title}</div>
+        <div style="font-size:12px;color:#8888aa">${item.desc||''}</div>
+        <div style="font-size:11px;color:#6666aa;margin-top:4px">${item.time||''}</div>
+      </div>
+    </div>`).join('');
+}
+function renderNotices(){
+  const el=document.getElementById('notices-list');if(!el)return;
+  if(!notices.length){
+    el.innerHTML='<div style="text-align:center;padding:60px 20px;color:#8888aa;font-size:14px">공지사항이 없어요</div>';
+    return;
+  }
+  el.innerHTML=notices.map(n=>`
+    <div style="padding:18px 16px;border-bottom:1px solid #1e1e2e;cursor:pointer" onclick="showToast('${n.date} · ${n.author}')">
+      <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:5px">${n.title}</div>
+      <div style="font-size:12px;color:#8888aa">${n.date} · ${n.author}</div>
+    </div>`).join('');
 }
 
 /* ==================== ANALYTICS ==================== */
