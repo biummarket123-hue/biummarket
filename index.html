@@ -1042,134 +1042,63 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <!-- 서비스 섹션 -->
     <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_service">서비스</div>
+      <div class="my-section-title">서비스</div>
       <div class="my-menu-item" onclick="showView('notif-settings')">
         <div class="my-icon-box ib-yellow">🔔</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_notif">알림</div>
-          <div class="my-menu-sub" data-i18n="mnu_notif_sub">새 상품·가격변동·거래</div>
+          <div class="my-menu-title">알림</div>
+          <div class="my-menu-sub">새 상품 · 가격변동 · 거래</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="openKeywordAlert()">
         <div class="my-icon-box ib-teal">🔍</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_keyword">키워드 알림</div>
-          <div class="my-menu-sub" data-i18n="mnu_keyword_sub">원하는 원단 등록시 알림</div>
+          <div class="my-menu-title">키워드 알림</div>
+          <div class="my-menu-sub">원하는 원단 등록시 알림</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="openCart()">
         <div class="my-icon-box ib-blue">🛒</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_cart">묶음 장바구니</div>
+          <div class="my-menu-title">묶음 장바구니</div>
           <div class="my-menu-sub" id="my-sub-cart">0건 담김</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-    </div>
-    <!-- 커뮤니티 섹션 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_community">커뮤니티</div>
-      <div class="my-menu-item" onclick="openTopSellers()">
-        <div class="my-icon-box ib-yellow">🏆</div>
+      <div class="my-menu-item" onclick="showToast('공지사항 준비중이에요 📢')">
+        <div class="my-icon-box ib-orange">📢</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 판매자 랭킹</div>
-          <div class="my-menu-sub" data-i18n="mnu_top_sellers_sub">판매 실적 · 거래 완료 순위</div>
+          <div class="my-menu-title">공지사항</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openBoard()">
-        <div class="my-icon-box ib-teal">💬</div>
+      <div class="my-menu-item" id="my-admin-menu" style="display:none" onclick="showView('admin')">
+        <div class="my-icon-box ib-purple">🛡️</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_board">업계 게시판</div>
-          <div class="my-menu-sub" data-i18n="mnu_board_sub">트렌드·정보·Q&A</div>
+          <div class="my-menu-title">관리자 대시보드</div>
+          <div class="my-menu-sub">카테고리 · 배너 · 회원 · 상품 관리</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('ai')">
-        <div class="my-icon-box ib-purple">🔬</div>
+      <div class="my-menu-item" onclick="showView('profile-edit')">
+        <div class="my-icon-box ib-green">🏠</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_ai_detect">원단 감별 AI</div>
-          <div class="my-menu-sub" data-i18n="mnu_ai_detect_sub">사진으로 소재 분석</div>
+          <div class="my-menu-title">회사정보 수정</div>
+          <div class="my-menu-sub">미니홈피 · 인사말 · 영업시간 · 거래조건</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openTrendReport()">
-        <div class="my-icon-box ib-pink">📊</div>
+      <div class="my-menu-item" onclick="showView('settings')">
+        <div class="my-icon-box ib-purple">⚙️</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_trend">AI 트렌드 리포트</div>
-          <div class="my-menu-sub" data-i18n="mnu_trend_sub">시즌 수요 예측·패션위크 분석</div>
+          <div class="my-menu-title">설정</div>
+          <div class="my-menu-sub">알림 · 거래설정 · 프로필</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
     </div>
-    <!-- 데이터·분석 섹션 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_data">데이터·분석</div>
-      <div class="my-menu-item" onclick="showView('analytics')">
-        <div class="my-icon-box ib-green">💰</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_sales_dash">매출 대시보드</div>
-          <div class="my-menu-sub" data-i18n="mnu_sales_dash_sub">매출·조회·전환율 분석</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="openPriceHeatmap()">
-        <div class="my-icon-box ib-blue">🗺️</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_price_heat">시장 가격 히트맵</div>
-          <div class="my-menu-sub" data-i18n="mnu_price_heat_sub">소재별·지역별 평균 가격</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="openMarketPriceModal()">
-        <div class="my-icon-box ib-teal">📈</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_realtime">원단 실시간 시세</div>
-          <div class="my-menu-sub" data-i18n="mnu_realtime_sub">주요 소재 가격 차트</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="openMyActivity()">
-        <div class="my-icon-box ib-purple">👤</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_activity">내 활동 분석</div>
-          <div class="my-menu-sub" data-i18n="mnu_activity_sub">검색·관심 카테고리 통계</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="openProductRanking()">
-        <div class="my-icon-box ib-orange">🔥</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_ranking">인기 상품 랭킹</div>
-          <div class="my-menu-sub" data-i18n="mnu_ranking_sub">조회·찜·문의 TOP 10</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-      <div class="my-menu-item" onclick="openTradeStats()">
-        <div class="my-icon-box ib-yellow">📋</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_trade_stats">거래 통계 리포트</div>
-          <div class="my-menu-sub" data-i18n="mnu_trade_stats_sub">월간 거래·카테고리 비중</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-    </div>
-    <!-- 계정 섹션 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_account">계정</div>
-      <div class="my-menu-item" onclick="openLangSettings()">
-        <div class="my-icon-box ib-green">🌐</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_lang">언어 설정</div>
-          <div class="my-menu-sub" data-i18n="mnu_lang_sub">한국어 · English · 日本語 외</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
-    </div>
-    <!-- 로그아웃 버튼 -->
-    <button class="my-logout-btn" onclick="doLogout()" data-i18n="mnu_logout">🚪 로그아웃</button>
   </div>
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
@@ -1235,64 +1164,145 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div style="width:38px"></div>
   </header>
   <div style="flex:1;overflow-y:auto;padding-bottom:20px">
-    <!-- 계정 섹션 -->
+    <!-- 프로필 섹션 -->
+    <div style="background:#12121a;padding:20px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #1e1e2e">
+      <div class="my-av" id="sett-av" style="width:56px;height:56px;font-size:22px;flex-shrink:0">?</div>
+      <div style="flex:1;min-width:0">
+        <div id="sett-uname" style="font-size:16px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">로그인이 필요해요</div>
+        <div id="sett-uinfo" style="font-size:12px;color:#8888aa;margin-top:3px">–</div>
+      </div>
+      <button onclick="showView('profile-edit')" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">프로필 수정</button>
+    </div>
+    <!-- 알림 설정 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">알림 설정</div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">푸시 알림</div>
+          <div class="toggle-desc">전체 알림 켜기/끄기</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ns-push" onchange="toggleNotif('push',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">채팅 알림</div>
+          <div class="toggle-desc">새 메시지 알림</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ns-chat" onchange="toggleNotif('chat',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">신규 상품 알림</div>
+          <div class="toggle-desc">관심 카테고리 신규 등록</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ns-newprod" onchange="toggleNotif('newProd',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">급처 상품 알림</div>
+          <div class="toggle-desc">급처 상품 등록 시 알림</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ns-urgent" onchange="toggleNotif('urgent',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+    <!-- 거래 설정 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">거래 설정</div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">가격 제안 허용</div>
+          <div class="toggle-desc">구매자가 가격을 제안할 수 있음</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ts-price" onchange="toggleTrade('priceOffer',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">스와치 무료 발송</div>
+          <div class="toggle-desc">스와치 요청 시 무료 발송</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ts-swatch" onchange="toggleTrade('freeSwatch',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">택배 거래</div>
+          <div class="toggle-desc">택배 발송으로 거래</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ts-delivery" onchange="toggleTrade('delivery',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <div class="toggle-title">직거래</div>
+          <div class="toggle-desc">대면 직거래 가능</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="ts-direct" onchange="toggleTrade('directTrade',this.checked)"/><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+    <!-- 계정 -->
     <div class="my-section-wrap">
       <div class="my-section-title">계정</div>
       <div class="my-menu-item" onclick="openChangePw()">
         <div class="my-icon-box ib-purple">🔑</div>
         <div class="my-menu-info">
           <div class="my-menu-title">비밀번호 변경</div>
-          <div class="my-menu-sub">로그인 비밀번호를 변경해요</div>
         </div>
-        <span class="sett-val">••••••</span>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="openSettLocModal()">
         <div class="my-icon-box ib-green">📍</div>
         <div class="my-menu-info">
           <div class="my-menu-title">지역 변경</div>
-          <div class="my-menu-sub">거래 기준 지역을 설정해요</div>
+          <div class="my-menu-sub">현재: <span id="sett-loc-val">–</span></div>
         </div>
-        <span class="sett-val" id="sett-loc-val">–</span>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="openSettTypeModal()">
         <div class="my-icon-box ib-blue">👤</div>
         <div class="my-menu-info">
           <div class="my-menu-title">회원 유형 변경</div>
-          <div class="my-menu-sub">판매자·구매자·겸업 변경</div>
+          <div class="my-menu-sub">현재: <span id="sett-type-val">–</span></div>
         </div>
-        <span class="sett-val" id="sett-type-val">–</span>
         <span class="my-menu-arrow">›</span>
       </div>
     </div>
-    <!-- 서비스 섹션 -->
+    <!-- 앱 정보 -->
     <div class="my-section-wrap">
-      <div class="my-section-title">서비스</div>
+      <div class="my-section-title">앱 정보</div>
       <div class="my-menu-item" onclick="openLangSettings()">
         <div class="my-icon-box ib-teal">🌐</div>
         <div class="my-menu-info">
-          <div class="my-menu-title">언어 설정</div>
-          <div class="my-menu-sub">앱 표시 언어를 변경해요</div>
+          <div class="my-menu-title">Language / 언어</div>
         </div>
         <span class="sett-val" id="sett-lang-val">🇰🇷 한국어</span>
+        <span style="background:#6c63ff;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px">KR</span>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('notif-settings')">
-        <div class="my-icon-box ib-yellow">🔔</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title">알림 설정</div>
-          <div class="my-menu-sub">새 상품·가격변동·거래 알림</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
+      <div class="my-menu-item">
+        <div class="my-icon-box ib-purple">📱</div>
+        <div class="my-menu-info"><div class="my-menu-title">버전</div></div>
+        <span class="sett-val">v3.0 Premium</span>
+      </div>
+      <div class="my-menu-item">
+        <div class="my-icon-box ib-green">📦</div>
+        <div class="my-menu-info"><div class="my-menu-title">등록 상품 수</div></div>
+        <span class="sett-val" id="sett-prod-count">–</span>
+      </div>
+      <div class="my-menu-item">
+        <div class="my-icon-box ib-yellow">💾</div>
+        <div class="my-menu-info"><div class="my-menu-title">저장 공간</div></div>
+        <span class="sett-val" id="sett-storage">계산중...</span>
       </div>
     </div>
-    <!-- 기타 섹션 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title">기타</div>
+    <!-- 하단 액션 -->
+    <div style="padding:16px">
+      <button onclick="deleteDummyProducts()" style="width:100%;padding:14px;background:#1e1e2e;border:1px solid #2a2a3e;border-radius:14px;color:#aaaacc;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🖊️ 더미 상품 삭제</button>
+      <button class="my-logout-btn" onclick="doLogout()">🔴 로그아웃</button>
+      <button onclick="resetAllData()" style="width:100%;padding:14px;background:rgba(255,101,132,.08);border:1px solid rgba(255,101,132,.2);border-radius:14px;color:#ff6584;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">🗑️ 데이터 초기화</button>
     </div>
-    <button class="my-logout-btn" onclick="doLogout()">🚪 로그아웃</button>
-    <div class="sett-ver">BIUM MARKET v2.0 · ⓒ 2025 비움마켓</div>
+    <!-- 푸터 -->
+    <div style="text-align:center;padding:16px 16px 24px">
+      <div style="font-size:18px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px">비움마켓</div>
+      <div class="sett-ver">v3.0 Premium · © 2026 LOWHIGH MARKET</div>
+    </div>
   </div>
 </div>
 
@@ -2284,7 +2294,8 @@ let svFilter='전체';
 let recentSearches=lsGet('recentSearches',[]);
 let chatRooms=lsGet('chatRooms',{});
 let curChatRoomId=null;
-let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false});
+let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
+let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
 
 /* ==================== AI IMAGE ANALYSIS ==================== */
 function compressImage(dataUrl,maxSize=400,quality=0.7){
@@ -3502,6 +3513,29 @@ function toggleNotif(key,val){
   lsSet('notifSettings',notifSettings);
   showToast(val?'알림이 켜졌어요 🔔':'알림이 꺼졌어요 🔕');
 }
+function toggleTrade(key,val){
+  tradeSettings[key]=val;
+  lsSet('tradeSettings',tradeSettings);
+  showToast(val?'설정이 켜졌어요 ✅':'설정이 꺼졌어요');
+}
+async function deleteDummyProducts(){
+  const dummyIds=DEFAULT_PRODUCTS.map(p=>p.id);
+  if(!confirm('샘플 더미 상품을 삭제할까요?'))return;
+  products=products.filter(p=>!dummyIds.includes(p.id));
+  lsSet('products',products);lsDelTTL('products_sb');
+  if(_sb){
+    try{await _sb.from('products').delete().in('id',dummyIds);}
+    catch(e){console.error('더미 삭제 오류:',e);}
+  }
+  showToast('더미 상품을 삭제했어요 🗑️');
+  renderList();
+}
+function resetAllData(){
+  if(!confirm('모든 로컬 데이터를 초기화할까요?\n로그인 정보도 삭제됩니다.'))return;
+  localStorage.clear();
+  showToast('데이터 초기화 완료. 앱을 재시작해요.');
+  setTimeout(()=>location.reload(),1500);
+}
 
 /* ==================== PROFILE EDIT ==================== */
 function renderProfileEdit(){
@@ -3545,16 +3579,57 @@ const TYPE_OPTIONS=[
 function renderSettings(){
   const u=curUser||{};
   const lang=LANGS[curLang]||LANGS.ko;
-  const locEl=document.getElementById('sett-loc-val');
-  if(locEl){
-    const locShort=(u.loc||u.location||'').split(' ').slice(-1)[0];
-    locEl.textContent=locShort||'미설정';
-  }
-  const typeEl=document.getElementById('sett-type-val');
   const typeMap={seller:'판매자',buyer:'구매자',brand:'브랜드',both:'겸업',admin:'관리자',guest:'게스트'};
+
+  // 프로필
+  const avEl=document.getElementById('sett-av');
+  if(avEl)avEl.textContent=u.name?u.name[0].toUpperCase():'?';
+  const nameEl=document.getElementById('sett-uname');
+  if(nameEl)nameEl.textContent=u.name||'로그인이 필요해요';
+  const infoEl=document.getElementById('sett-uinfo');
+  if(infoEl){
+    const loc=(u.loc||u.location||'').split(' ').slice(-1)[0]||'위치 미설정';
+    infoEl.textContent=`${typeMap[u.type]||'–'} · ${loc}`;
+  }
+
+  // 알림 토글
+  const nsMap={push:'push',chat:'chat',newProd:'newprod',urgent:'urgent'};
+  Object.entries(nsMap).forEach(([k,id])=>{const el=document.getElementById('ns-'+id);if(el)el.checked=!!notifSettings[k];});
+
+  // 거래 토글
+  const tsMap={priceOffer:'price',freeSwatch:'swatch',delivery:'delivery',directTrade:'direct'};
+  Object.entries(tsMap).forEach(([k,id])=>{const el=document.getElementById('ts-'+id);if(el)el.checked=!!tradeSettings[k];});
+
+  // 계정 값
+  const locEl=document.getElementById('sett-loc-val');
+  if(locEl){const locShort=(u.loc||u.location||'').split(' ').slice(-1)[0];locEl.textContent=locShort||'미설정';}
+  const typeEl=document.getElementById('sett-type-val');
   if(typeEl)typeEl.textContent=typeMap[u.type]||'–';
+
+  // 언어
   const langEl=document.getElementById('sett-lang-val');
   if(langEl)langEl.textContent=`${lang.flag} ${lang.name}`;
+
+  // 등록 상품 수
+  const prodEl=document.getElementById('sett-prod-count');
+  if(prodEl){
+    const cnt=u.name?products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)).length:0;
+    prodEl.textContent=cnt+'개';
+    if(_sb&&u.id){
+      _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',u.id)
+        .then(({count})=>{if(count!=null&&prodEl)prodEl.textContent=count+'개';});
+    }
+  }
+
+  // 저장 공간
+  const storEl=document.getElementById('sett-storage');
+  if(storEl){
+    try{
+      let total=0;
+      for(const k in localStorage){if(Object.prototype.hasOwnProperty.call(localStorage,k))total+=(localStorage[k].length+k.length)*2;}
+      storEl.textContent=total>1024*1024?`${(total/1024/1024).toFixed(1)}MB`:`${Math.round(total/1024)}KB`;
+    }catch(e){storEl.textContent='–';}
+  }
 }
 function openSettLocModal(){
   const u=curUser||{};
@@ -3691,6 +3766,10 @@ function renderMypage(){
   set('my-sub-products',myProducts.length+t('cnt_reg'));
   set('my-sub-wish',wishes+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
+
+  // 관리자 메뉴 표시
+  const adminMenu=document.getElementById('my-admin-menu');
+  if(adminMenu)adminMenu.style.display=u.type==='admin'?'flex':'none';
 
   // Supabase 실시간 카운트 (연결 시)
   if(_sb&&u.id){
