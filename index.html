@@ -2707,6 +2707,7 @@ function closeSearchOverlay(){
 function goBack(){
   const overlay=document.getElementById('view-search-view');
   if(overlay&&overlay.classList.contains('open')){closeSearchOverlay();return;}
+  if(prevView==='search-view'){openSearchOverlay();return;}
   showView(prevView||'list');
 }
 
@@ -3173,7 +3174,10 @@ function toggleLike(id){
 /* ==================== DETAIL ==================== */
 function openDetail(id){
   addViewLog(id);
-  prevView='list';
+  const overlay=document.getElementById('view-search-view');
+  const fromSearch=overlay&&overlay.classList.contains('open');
+  if(fromSearch){overlay.classList.remove('open');prevView='search-view';}
+  else{prevView='list';}
   curProductId=id;sliderIdx=0;
   const p=products.find(x=>x.id===id);if(!p)return;
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
