@@ -1428,27 +1428,73 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-profile-edit" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">프로필 수정</div>
+    <div class="hdr-title">회사정보 수정</div>
     <div style="width:38px"></div>
   </header>
   <div class="f-scroll">
-    <div class="pe-av-wrap">
-      <div class="pe-av-circle" id="pe-av">?</div>
-      <div class="pe-av-hint">이름 첫 글자로 자동 설정돼요</div>
+    <!-- 상단 프로필 카드 -->
+    <div style="background:#12121a;padding:18px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #1e1e2e">
+      <div class="my-av" id="pe-av" style="width:52px;height:52px;font-size:20px;flex-shrink:0">?</div>
+      <div style="flex:1;min-width:0">
+        <div id="pe-bizname-preview" style="font-size:15px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">회사명</div>
+        <div style="font-size:11px;color:#8888aa;margin-top:2px">미니홈피 수정 · 고객에게 보여지는 정보입니다</div>
+      </div>
+      <button onclick="showToast('미리보기 준비중이에요')" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">👁 미리보기</button>
     </div>
-    <div class="fg">
-      <label>이름 / 업체명 <span class="req">*</span></label>
-      <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?'"/>
+    <!-- 기본 정보 -->
+    <div style="padding:16px 16px 8px;border-bottom:1px solid #1e1e2e">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:12px">기본 정보</div>
+      <div class="fg"><label>회사명 <span class="req">*</span></label>
+        <input type="text" class="fi" id="pe-name" placeholder="회사명 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'회사명'"/>
+      </div>
+      <div class="fg"><label>대표자</label><input type="text" class="fi" id="pe-ceo" placeholder="대표자명"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg" style="margin:0"><label>설립년도</label><input type="text" class="fi" id="pe-founded" placeholder="예) 1999"/></div>
+        <div class="fg" style="margin:0"><label>사업자번호</label><input type="text" class="fi" id="pe-biznum" placeholder="000-00-00000"/></div>
+      </div>
+      <div class="fg" style="margin-top:10px"><label>전화번호</label><input type="text" class="fi" id="pe-tel" placeholder="예) 02-1234-5678"/></div>
+      <div class="fg"><label>주소</label><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문"/></div>
     </div>
-    <div class="fg">
-      <label>소개</label>
-      <textarea class="fi" id="pe-intro" placeholder="업체 소개나 자기소개를 입력하세요" style="min-height:80px"></textarea>
+    <!-- 인사말·소개 -->
+    <div style="padding:16px 16px 8px;border-bottom:1px solid #1e1e2e">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:12px">인사말·소개</div>
+      <div class="fg"><label>인사말 <span style="font-size:11px;color:#8888aa;font-weight:400">(미니홈피에 표시)</span></label>
+        <textarea class="fi" id="pe-intro" placeholder="예) 20년 경력 동대문 원단 도매업체입니다. 면/린넨 전문으로 OEM 납품도 가능합니다." style="min-height:90px"></textarea>
+      </div>
+      <div class="fg"><label>태그 <span style="font-size:11px;color:#8888aa;font-weight:400">(쉼표로 구분)</span></label>
+        <input type="text" class="fi" id="pe-tags" placeholder="예) 면/린넨 전문, 25년 경력, OEM 납품"/>
+      </div>
     </div>
-    <div class="fg">
-      <label>사업장 위치</label>
-      <input type="text" class="fi" id="pe-loc" placeholder="예) 서울 성동구 성수동"/>
+    <!-- 영업·거래 조건 -->
+    <div style="padding:16px 16px 8px;border-bottom:1px solid #1e1e2e">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:12px">영업·거래 조건</div>
+      <div class="fg"><label>영업시간</label><input type="text" class="fi" id="pe-hours" placeholder="예) 월-토 08:00-19:00 | 일요일 휴무"/></div>
+      <div class="fg"><label>최소주문량</label><input type="text" class="fi" id="pe-moq" placeholder="예) 100야드"/></div>
+      <div class="fg"><label>배송방법 <span style="font-size:11px;color:#8888aa;font-weight:400">(복수 선택)</span></label>
+        <div id="pe-ship-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+      </div>
+      <div class="fg"><label>결제방법 <span style="font-size:11px;color:#8888aa;font-weight:400">(복수 선택)</span></label>
+        <div id="pe-pay-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+      </div>
     </div>
-    <button class="submit-btn" onclick="saveProfile()">저장하기</button>
+    <!-- SNS·홍보 -->
+    <div style="padding:16px 16px 8px;border-bottom:1px solid #1e1e2e">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:12px">SNS·홍보</div>
+      <div class="fg"><label>인스타그램</label><input type="text" class="fi" id="pe-insta" placeholder="@계정명 또는 URL"/></div>
+      <div class="fg"><label>블로그</label><input type="text" class="fi" id="pe-blog" placeholder="블로그 URL"/></div>
+    </div>
+    <!-- 회사 사진 -->
+    <div style="padding:16px;border-bottom:1px solid #1e1e2e">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:6px">회사 사진</div>
+      <div style="font-size:12px;color:#8888aa;margin-bottom:12px">회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 6장)</div>
+      <div id="pe-photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
+      <button onclick="showToast('사진 등록 기능 준비중이에요')" style="padding:10px 18px;background:#1e1e2e;border:1px solid #2a2a3e;border-radius:12px;color:#aaaacc;font-size:13px;font-weight:600;cursor:pointer">+ 사진 추가</button>
+    </div>
+    <!-- 하단 저장 -->
+    <div style="padding:20px 16px">
+      <button onclick="saveProfile()" style="width:100%;padding:16px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.3px">💾 저장하기</button>
+      <div style="text-align:center;font-size:12px;color:#8888aa;margin-top:10px">저장 후 미니홈피에 즉시 반영됩니다</div>
+    </div>
   </div>
 </div>
 
@@ -1563,23 +1609,76 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-ai" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">✨ AI 가격 분석</div>
+    <div class="hdr-title">원단 감별 AI</div>
     <div style="width:38px"></div>
   </header>
   <div class="ai-view-scroll">
-    <div class="ai-hint" style="margin-bottom:16px">
-      <span class="ai-icon">🤖</span>
-      <span>원단 사진을 업로드하면 AI가 소재·적정 가격·판매 전략을 분석해드려요!</span>
+    <!-- 상단 카드 -->
+    <div style="margin:16px;background:linear-gradient(135deg,#2a2400,#3a3400);border:1px solid #c8a84b44;border-radius:20px;padding:28px 20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">🔬</div>
+      <div style="font-size:20px;font-weight:800;color:#e6c97b;margin-bottom:8px">AI 원단 감별</div>
+      <div style="font-size:13px;color:#aaaacc;line-height:1.6">원단 사진을 촬영하면 AI가 소재를 분석해드립니다</div>
     </div>
-    <input type="file" id="ai-file-input" accept="image/*" style="display:none" onchange="handleAiUpload(event)"/>
-    <div class="ai-upload-area" id="ai-upload-area" onclick="document.getElementById('ai-file-input').click()">
-      <div class="ai-camera-icon">📷</div>
-      <div class="ai-upload-hint">원단 사진을 업로드하세요</div>
-      <div class="ai-upload-sub">JPG / PNG · 클릭하여 선택</div>
+    <!-- 파일 입력 (숨김) -->
+    <input type="file" id="ai-file-input" accept="image/*" capture="camera" style="display:none" onchange="handleAiUpload(event)"/>
+    <input type="file" id="ai-gallery-input" accept="image/*" style="display:none" onchange="handleAiUpload(event)"/>
+    <!-- 버튼 2개 -->
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="document.getElementById('ai-file-input').click()" style="padding:16px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer">📷 사진 촬영</button>
+      <button onclick="document.getElementById('ai-gallery-input').click()" style="padding:16px;background:#1e1e2e;border:1px solid #2a2a3e;color:#e0e0f0;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer">🖼 갤러리에서 선택</button>
     </div>
-    <button class="ai-analyze-btn" id="ai-analyze-btn" onclick="startAiAnalysis()" disabled>AI 분석 시작</button>
+    <!-- 분석 항목 안내 -->
+    <div style="padding:20px 16px 8px">
+      <div style="font-size:11px;font-weight:700;color:#8888aa;letter-spacing:.5px;margin-bottom:12px">분석 항목</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🏆</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">소재 종류</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:2px">면, 울, 실크, 폴리 등</div>
+        </div>
+        <div style="background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">⚖️</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">예상 중량</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:2px">경량~중량~헤비</div>
+        </div>
+        <div style="background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🎨</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">직조 패턴</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:2px">평직, 능직, 수자직</div>
+        </div>
+        <div style="background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">📐</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">조직 밀도</div>
+          <div style="font-size:11px;color:#8888aa;margin-top:2px">고밀도/저밀도</div>
+        </div>
+      </div>
+    </div>
+    <!-- 이미지 미리보기 -->
+    <div style="padding:0 16px;display:none" id="ai-upload-area"></div>
+    <!-- 분석 결과 -->
     <div class="ai-result-card" id="ai-result-card"></div>
   </div>
+</div>
+
+<!-- ========== BOARD (업계 게시판) ========== -->
+<div id="view-board" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">업계 게시판</div>
+    <div style="width:38px"></div>
+  </header>
+  <!-- 필터 탭 -->
+  <div style="display:flex;gap:0;border-bottom:1px solid #1e1e2e;overflow-x:auto;flex-shrink:0" id="board-filter-tabs">
+    <button style="flex-shrink:0;padding:12px 16px;background:none;border:none;border-bottom:2px solid #6c63ff;font-size:13px;font-weight:700;color:#6c63ff;cursor:pointer" onclick="setBoardFilter('전체')">전체</button>
+    <button style="flex-shrink:0;padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#8888aa;cursor:pointer" onclick="setBoardFilter('트렌드')">트렌드</button>
+    <button style="flex-shrink:0;padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#8888aa;cursor:pointer" onclick="setBoardFilter('정보')">정보</button>
+    <button style="flex-shrink:0;padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#8888aa;cursor:pointer" onclick="setBoardFilter('Q&A')">Q&A</button>
+    <button style="flex-shrink:0;padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#8888aa;cursor:pointer" onclick="setBoardFilter('거래')">거래</button>
+  </div>
+  <!-- 게시글 목록 -->
+  <div style="flex:1;overflow-y:auto;padding-bottom:80px" id="board-post-list"></div>
+  <!-- 글쓰기 FAB -->
+  <button onclick="showToast('글쓰기 기능 준비중이에요')" style="position:fixed;bottom:24px;right:20px;width:52px;height:52px;background:linear-gradient(135deg,#6c63ff,#a89dff);border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,.5);z-index:10">✏️</button>
 </div>
 
 </div><!-- #app -->
@@ -2460,10 +2559,11 @@ function handleAiUpload(e){
   r.onload=ev=>{
     aiViewImgData=ev.target.result;
     const area=document.getElementById('ai-upload-area');
-    area.innerHTML=`<img src="${aiViewImgData}" alt="업로드된 원단 이미지"/>`;
-    area.classList.add('has-img');
-    const btn=document.getElementById('ai-analyze-btn');
-    if(btn)btn.disabled=false;
+    if(area){
+      area.style.display='block';
+      area.innerHTML=`<img src="${aiViewImgData}" alt="업로드된 원단 이미지" style="width:100%;border-radius:16px;max-height:280px;object-fit:cover;margin-bottom:12px"/>`;
+    }
+    startAiAnalysis();
   };
   r.readAsDataURL(file);
   e.target.value='';
@@ -2471,24 +2571,19 @@ function handleAiUpload(e){
 function resetAiView(){
   aiViewImgData='';
   const area=document.getElementById('ai-upload-area');
-  if(area){
-    area.className='ai-upload-area';
-    area.innerHTML='<div class="ai-camera-icon">📷</div><div class="ai-upload-hint">원단 사진을 업로드하세요</div><div class="ai-upload-sub">JPG / PNG · 클릭하여 선택</div>';
-  }
-  const btn=document.getElementById('ai-analyze-btn');
-  if(btn){btn.disabled=true;btn.textContent='AI 분석 시작';}
+  if(area){area.style.display='none';area.innerHTML='';}
   const result=document.getElementById('ai-result-card');
-  if(result)result.classList.remove('show');
+  if(result){result.innerHTML='';result.classList.remove('show');}
 }
 async function startAiAnalysis(){
   if(!aiViewImgData){showToast('이미지를 먼저 업로드해주세요');return;}
   const btn=document.getElementById('ai-analyze-btn');
-  btn.disabled=true;btn.textContent='분석 중...';
+  if(btn){btn.disabled=true;btn.textContent='분석 중...';}
   const result=document.getElementById('ai-result-card');
   result.innerHTML='<div class="ai-loading">✨ AI가 원단을 분석하고 있어요...</div>';
   result.classList.add('show');
   const data=await analyzeImageWithAI(aiViewImgData);
-  btn.textContent='AI 분석 시작';btn.disabled=false;
+  if(btn){btn.textContent='AI 분석 시작';btn.disabled=false;}
   if(!data){
     result.innerHTML='<div class="ai-loading" style="color:#ff6584">분석에 실패했어요. 다시 시도해주세요.</div>';
     return;
@@ -2553,6 +2648,7 @@ function showView(name){
   if(name==='notices')renderNotices();
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
+  if(name==='board'){boardFilter='전체';renderBoard();}
   if(name==='ai')resetAiView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
 }
@@ -3651,31 +3747,86 @@ function resetAllData(){
 }
 
 /* ==================== PROFILE EDIT ==================== */
+const SHIP_OPTIONS=['직접배송','택배','퀵','화물'];
+const PAY_OPTIONS=['현금','계좌이체','카드','외상'];
+let peShipSel=[];
+let pePaySel=[];
+
+function renderPeChips(){
+  const shipEl=document.getElementById('pe-ship-chips');
+  const payEl=document.getElementById('pe-pay-chips');
+  if(shipEl)shipEl.innerHTML=SHIP_OPTIONS.map(o=>`<button onclick="togglePeChip('ship','${o}')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${peShipSel.includes(o)?'#6c63ff':'#2a2a3e'};background:${peShipSel.includes(o)?'rgba(108,99,255,.2)':'#12121a'};color:${peShipSel.includes(o)?'#a89dff':'#8888aa'}">${o}</button>`).join('');
+  if(payEl)payEl.innerHTML=PAY_OPTIONS.map(o=>`<button onclick="togglePeChip('pay','${o}')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${pePaySel.includes(o)?'#6c63ff':'#2a2a3e'};background:${pePaySel.includes(o)?'rgba(108,99,255,.2)':'#12121a'};color:${pePaySel.includes(o)?'#a89dff':'#8888aa'}">${o}</button>`).join('');
+}
+function togglePeChip(type,val){
+  if(type==='ship'){const i=peShipSel.indexOf(val);if(i>-1)peShipSel.splice(i,1);else peShipSel.push(val);}
+  else{const i=pePaySel.indexOf(val);if(i>-1)pePaySel.splice(i,1);else pePaySel.push(val);}
+  renderPeChips();
+}
 function renderProfileEdit(){
   const u=curUser||{};
+  const profile=u.profile||{};
   const nameEl=document.getElementById('pe-name');
-  const introEl=document.getElementById('pe-intro');
-  const locEl=document.getElementById('pe-loc');
+  if(nameEl){nameEl.value=u.name||'';}
   const avEl=document.getElementById('pe-av');
-  nameEl.value=u.name||'';
-  introEl.value=u.intro||'';
-  locEl.value=u.loc||'';
-  avEl.textContent=(u.name||'?')[0];
+  if(avEl)avEl.textContent=(u.name||'?')[0];
+  const previewEl=document.getElementById('pe-bizname-preview');
+  if(previewEl)previewEl.textContent=u.name||'회사명';
+  const ceoEl=document.getElementById('pe-ceo');
+  if(ceoEl)ceoEl.value=profile.ceo||'';
+  const foundedEl=document.getElementById('pe-founded');
+  if(foundedEl)foundedEl.value=profile.founded||'';
+  const biznumEl=document.getElementById('pe-biznum');
+  if(biznumEl)biznumEl.value=profile.biznum||'';
+  const telEl=document.getElementById('pe-tel');
+  if(telEl)telEl.value=u.tel||profile.tel||'';
+  const locEl=document.getElementById('pe-loc');
+  if(locEl)locEl.value=u.loc||'';
+  const introEl=document.getElementById('pe-intro');
+  if(introEl)introEl.value=u.intro||'';
+  const tagsEl=document.getElementById('pe-tags');
+  if(tagsEl)tagsEl.value=(profile.tags||[]).join(', ');
+  const hoursEl=document.getElementById('pe-hours');
+  if(hoursEl)hoursEl.value=profile.hours||'';
+  const moqEl=document.getElementById('pe-moq');
+  if(moqEl)moqEl.value=profile.moq||'';
+  peShipSel=[...(profile.ship||[])];
+  pePaySel=[...(profile.pay||[])];
+  renderPeChips();
+  const instaEl=document.getElementById('pe-insta');
+  if(instaEl)instaEl.value=profile.insta||'';
+  const blogEl=document.getElementById('pe-blog');
+  if(blogEl)blogEl.value=profile.blog||'';
 }
 async function saveProfile(){
   const name=document.getElementById('pe-name').value.trim();
+  if(!name){showToast('회사명을 입력해주세요');return;}
+  const profileData={
+    ceo:document.getElementById('pe-ceo').value.trim(),
+    founded:document.getElementById('pe-founded').value.trim(),
+    biznum:document.getElementById('pe-biznum').value.trim(),
+    tel:document.getElementById('pe-tel').value.trim(),
+    hours:document.getElementById('pe-hours').value.trim(),
+    moq:document.getElementById('pe-moq').value.trim(),
+    ship:[...peShipSel],
+    pay:[...pePaySel],
+    tags:document.getElementById('pe-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    insta:document.getElementById('pe-insta').value.trim(),
+    blog:document.getElementById('pe-blog').value.trim(),
+  };
   const intro=document.getElementById('pe-intro').value.trim();
   const loc=document.getElementById('pe-loc').value.trim();
-  if(!name){showToast('이름을 입력해주세요');return;}
   if(curUser){
     curUser.name=name;curUser.intro=intro;curUser.loc=loc;
+    curUser.tel=profileData.tel;
+    curUser.profile={...((curUser.profile)||{}),...profileData};
     lsSet('curUser',curUser);
     if(_sb&&curUser.id&&curUser.id!=='admin'){
-      try{await _sb.from('users').update({name,intro,loc}).eq('id',curUser.id);}
+      try{await _sb.from('users').update({name,intro,loc,profile:curUser.profile}).eq('id',curUser.id);}
       catch(e){console.error('프로필 업데이트 오류:',e);}
     }
   }
-  showToast('프로필이 저장됐어요 ✅');
+  showToast('회사정보가 저장됐어요 ✅');
   goBack();
 }
 
@@ -3960,24 +4111,43 @@ function openTopSellers(){
   openModal('modal-top-sellers');
 }
 
-function openBoard(){
-  const POSTS=[
-    {title:'2025 봄 트렌드 원단 추천',author:'에코텍스코리아',date:'2025-02-28',views:142,cat:'트렌드'},
-    {title:'동대문 원단 시장 최근 동향 공유',author:'광장섬유',date:'2025-02-25',views:89,cat:'정보'},
-    {title:'린넨 소재 여름 가공법 Q&A',author:'명성모직',date:'2025-02-20',views:213,cat:'Q&A'},
-    {title:'고급 울 원단 취급 시 주의사항',author:'고려모직',date:'2025-02-15',views:67,cat:'정보'},
-    {title:'나일론 스판덱스 혼방 비율별 특성 비교',author:'JS스트레치',date:'2025-02-10',views:178,cat:'정보'},
-  ];
-  const catColor={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8'};
-  document.getElementById('board-list').innerHTML=POSTS.map(p=>`
-    <div style="padding:14px 16px;border-bottom:1px solid #1e1e2e;cursor:pointer" onclick="showToast('게시글 기능 준비중이에요')">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+const BOARD_POSTS=[
+  {id:1,title:'2026 봄 트렌드 원단 추천',author:'에코텍스코리아',date:'2026.02.28',views:142,cat:'트렌드'},
+  {id:2,title:'동대문 원단 시장 최근 동향 공유',author:'광장섬유',date:'2026.02.25',views:89,cat:'정보'},
+  {id:3,title:'린넨 소재 여름 가공법 Q&A',author:'명성모직',date:'2026.02.20',views:213,cat:'Q&A'},
+  {id:4,title:'고급 울 원단 취급 시 주의사항',author:'고려모직',date:'2026.02.15',views:67,cat:'정보'},
+  {id:5,title:'나일론 스판덱스 혼방 비율별 특성 비교',author:'JS스트레치',date:'2026.02.10',views:178,cat:'정보'},
+  {id:6,title:'거래처 구합니다 — 면 원단 정기 구매',author:'솜솜공방',date:'2026.03.01',views:34,cat:'거래'},
+];
+let boardFilter='전체';
+function openBoard(){showView('board');}
+function setBoardFilter(cat){
+  boardFilter=cat;
+  renderBoard();
+}
+function renderBoard(){
+  const catColor={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8','거래':'#c8a84b'};
+  const filtered=boardFilter==='전체'?BOARD_POSTS:BOARD_POSTS.filter(p=>p.cat===boardFilter);
+  const listEl=document.getElementById('board-post-list');
+  if(!listEl)return;
+  listEl.innerHTML=filtered.length?filtered.map(p=>`
+    <div style="padding:16px;border-bottom:1px solid #1e1e2e;cursor:pointer" onclick="showToast('게시글 상세 준비중이에요')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${catColor[p.cat]||'#6c63ff'}22;color:${catColor[p.cat]||'#6c63ff'}">${p.cat}</span>
       </div>
-      <div style="font-size:14px;font-weight:600;color:#e0e0f0;margin-bottom:4px">${p.title}</div>
+      <div style="font-size:14px;font-weight:600;color:#e0e0f0;margin-bottom:6px;line-height:1.4">${p.title}</div>
       <div style="font-size:11px;color:#8888aa">${p.author} · ${p.date} · 조회 ${p.views}</div>
-    </div>`).join('');
-  openModal('modal-board');
+    </div>`).join('')
+  :'<div style="padding:60px 20px;text-align:center;color:#8888aa"><div style="font-size:36px;margin-bottom:12px">📭</div><div>게시글이 없어요</div></div>';
+  // 탭 활성화 동기화
+  const cats=['전체','트렌드','정보','Q&A','거래'];
+  const tabs=document.querySelectorAll('#board-filter-tabs button');
+  tabs.forEach((btn,i)=>{
+    const active=cats[i]===boardFilter;
+    btn.style.color=active?'#6c63ff':'#8888aa';
+    btn.style.borderBottom=active?'2px solid #6c63ff':'2px solid transparent';
+    btn.style.fontWeight=active?'700':'600';
+  });
 }
 
 function openTrendReport(){
