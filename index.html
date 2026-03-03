@@ -495,10 +495,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 /* 필드 안내 텍스트 */
 .form-field-tip{font-size:11px;color:#8888aa;margin-top:4px;padding:0 2px}
 
-/* 홈 플로팅 등록 버튼 */
-.home-fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:#C9A84C;color:#ffffff;font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;border:none;z-index:9999;transition:transform .15s,box-shadow .15s;line-height:1}
-.home-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.5)}
-.home-fab:active{transform:scale(.95)}
 
 /* BUTTON HOVER EFFECTS */
 .btn-primary,.submit-btn,.hero-btn-primary{transition:transform .15s,box-shadow .15s,opacity .15s}
@@ -813,8 +809,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <p id="empty-msg">검색 결과가 없어요</p>
     </div>
   </div>
-  <!-- 홈 플로팅 등록 버튼 -->
-  <button class="home-fab" onclick="showView('form')" title="상품 등록">+</button>
   <nav class="tabbar">
     <button class="tab on" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
@@ -829,8 +823,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="hdr-logo" data-i18n="cat_hdr">카테고리</div>
   </header>
   <div class="cat-grid" id="cat-grid"></div>
-  <!-- 카테고리 플로팅 등록 버튼 -->
-  <button class="home-fab" onclick="showView('form')" title="상품 등록">+</button>
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab on" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
@@ -5172,19 +5164,10 @@ function renderAnalytics(){
   })();
 })();
 </script>
-<button id="floating-add-btn" onclick="showView('form')" style="position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:#C9A84C;color:#fff;font-size:32px;font-weight:300;border:none;cursor:pointer;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;line-height:1;transform:translateZ(0);-webkit-transform:translateZ(0);">+</button>
-<script>
-function updateFabPosition(){
-  const app=document.getElementById('app')||document.querySelector('.app-container');
-  if(!app)return;
-  const rect=app.getBoundingClientRect();
-  const fab=document.getElementById('floating-add-btn');
-  if(!fab)return;
-  fab.style.right=(window.innerWidth-rect.right+20)+'px';
-}
-window.addEventListener('resize',updateFabPosition);
-document.addEventListener('DOMContentLoaded',updateFabPosition);
-setTimeout(updateFabPosition,500);
-</script>
+<div id="fab-wrap" style="position:fixed;bottom:80px;left:0;right:0;pointer-events:none;z-index:99999;">
+  <div style="max-width:430px;margin:0 auto;position:relative;height:0;">
+    <button onclick="showView('form')" style="position:absolute;bottom:0;right:20px;width:56px;height:56px;border-radius:50%;background:#C9A84C;color:#fff;font-size:32px;line-height:1;border:none;cursor:pointer;pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,0.5);">+</button>
+  </div>
+</div>
 </body>
 </html>
