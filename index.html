@@ -495,6 +495,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 /* 필드 안내 텍스트 */
 .form-field-tip{font-size:11px;color:#8888aa;margin-top:4px;padding:0 2px}
 
+/* 홈 플로팅 등록 버튼 */
+.home-fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(200,168,75,.5);cursor:pointer;border:none;z-index:100;transition:transform .15s,box-shadow .15s;line-height:1}
+.home-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(200,168,75,.65)}
+.home-fab:active{transform:scale(.95)}
+
 /* BUTTON HOVER EFFECTS */
 .btn-primary,.submit-btn,.hero-btn-primary{transition:transform .15s,box-shadow .15s,opacity .15s}
 .btn-primary:hover,.submit-btn:hover,.hero-btn-primary:hover{transform:scale(1.02);box-shadow:0 6px 20px rgba(108,99,255,.35)}
@@ -808,6 +813,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <p id="empty-msg">검색 결과가 없어요</p>
     </div>
   </div>
+  <!-- 홈 플로팅 등록 버튼 -->
+  <button class="home-fab" onclick="showView('form')" title="상품 등록">+</button>
   <nav class="tabbar">
     <button class="tab on" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
@@ -3613,15 +3620,16 @@ function setAiCardLoading(isLoading){
   }
 }
 async function runFormAIAnalysis(dataUrl){
+  // 사진 먼저 등록 (AI 성공/실패 무관하게 유지)
+  if(uploadedImgs.length<10){uploadedImgs.unshift(dataUrl);renderFormImgs();}
   setAiCardLoading(true);
   try{
     const result=await analyzeImageWithAI(dataUrl);
     setAiCardLoading(false);
-    if(result&&result.__error){alert(result.__error);return;}
-    if(!result){alert('분석 실패: 알 수 없는 오류');return;}
-    // 사진을 목록 첫 번째에 추가
-    uploadedImgs.unshift(dataUrl);
-    renderFormImgs();
+    if(!result||result.__error){
+      showToast('AI 분석 실패. 사진은 등록되었으니 직접 입력해주세요.');
+      return;
+    }
     // 필드 자동 입력
     if(result.name)document.getElementById('f-title').value=result.name;
     if(result.material)document.getElementById('f-material').value=result.material;
@@ -3635,7 +3643,7 @@ async function runFormAIAnalysis(dataUrl){
     showToast('✅ AI 자동 입력 완료! 내용을 확인해주세요.');
   }catch(err){
     setAiCardLoading(false);
-    alert('분석 실패: '+err.message);
+    showToast('AI 분석 실패. 사진은 등록되었으니 직접 입력해주세요.');
   }
 }
 
