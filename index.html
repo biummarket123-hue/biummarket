@@ -3687,7 +3687,7 @@ async function submitForm(){
   }
   const payload={
     title,type:formCat1,cat:formCat1,
-    material,weight,qty,price,unit,
+    material,weight,qty:parseInt(qty)||0,price:parseInt(price)||0,unit,
     list_price:parseInt(document.getElementById('f-list-price').value)||null,
     bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
     moq:parseInt(document.getElementById('f-moq').value)||null,
