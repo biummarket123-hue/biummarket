@@ -86,8 +86,21 @@ export default async function handler(req) {
 
     const data = await claudeRes.json();
     const text = data.content?.[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    const result = match ? JSON.parse(match[0]) : null;
+    console.log('[analyze-image] Claude 원문 응답:', text);
+
+    // 마크다운 코드블록 제거 후 JSON 추출
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    let result = null;
+    if (match) {
+      try {
+        result = JSON.parse(match[0]);
+      } catch (parseErr) {
+        console.error('[analyze-image] JSON 파싱 실패:', parseErr.message, '원문:', match[0]);
+      }
+    } else {
+      console.warn('[analyze-image] JSON 객체를 찾을 수 없음. cleaned:', cleaned);
+    }
 
     return new Response(JSON.stringify({ result }), {
       status: 200,

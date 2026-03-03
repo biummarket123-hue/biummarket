@@ -986,7 +986,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 
     <!-- 재고수량 / 단위 -->
     <div class="form-row">
-      <div class="fg"><label>재고수량 <span class="req">*</span></label><input type="number" class="fi" id="f-qty" placeholder="수량" min="0" step="0.1"/></div>
+      <div class="fg"><label>재고수량 <span class="req">*</span></label><input type="number" class="fi" id="f-qty" placeholder="수량" min="0" step="1" inputmode="numeric" pattern="[0-9]*"/></div>
       <div class="fg"><label>단위</label>
         <select class="unit-select" id="f-unit">
           <option value="yard">yard</option>
@@ -2671,18 +2671,25 @@ function compressImage(dataUrl,maxSize=400,quality=0.7){
 }
 async function analyzeImageWithAI(dataUrl){
   const base64=dataUrl.split(',')[1];
-  const mediaType=dataUrl.startsWith('data:image/png')?'image/png':'image/jpeg';
+  const mediaType=dataUrl.startsWith('data:image/png')?'image/png'
+    :dataUrl.startsWith('data:image/webp')?'image/webp':'image/jpeg';
+  console.log('[AI분석] fetch 시작 — mediaType:',mediaType,'base64 길이:',base64?.length);
   try{
-    // Vercel Edge Function으로 프록시 — API 키는 서버에서만 사용
     const res=await fetch('/api/analyze-image',{
       method:'POST',
       headers:{'content-type':'application/json'},
       body:JSON.stringify({base64,mediaType})
     });
-    if(!res.ok)return null;
+    console.log('[AI분석] 응답 status:',res.status);
+    if(!res.ok){
+      const errText=await res.text();
+      console.error('[AI분석] 서버 오류 응답:',errText);
+      return null;
+    }
     const data=await res.json();
+    console.log('[AI분석] 파싱된 result:',data.result);
     return data.result||null;
-  }catch(e){console.warn('[AI분석] 오류:',e);return null;}
+  }catch(e){console.error('[AI분석] fetch 예외:',e);return null;}
 }
 async function runAIAnalysis(dataUrl){
   // 폼에서 이미지 첨부 시 자동 호출 — runFormAIAnalysis로 위임
@@ -3673,7 +3680,7 @@ async function submitForm(){
     list_price:listPrice||undefined,
     bulk_price:bulkPrice||undefined,
     moq:moq||undefined,
-    sample:formSample,urgent,
+    sample:formSample,is_urgent:urgent,
     description,
     seller:sellerInfo,
     imgs:Math.max(1,uploadedImgs.length),
