@@ -496,8 +496,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .form-field-tip{font-size:11px;color:#8888aa;margin-top:4px;padding:0 2px}
 
 /* 홈 플로팅 등록 버튼 */
-.home-fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(200,168,75,.5);cursor:pointer;border:none;z-index:100;transition:transform .15s,box-shadow .15s;line-height:1}
-.home-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(200,168,75,.65)}
+.home-fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:#C9A84C;color:#ffffff;font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;border:none;z-index:9999;transition:transform .15s,box-shadow .15s;line-height:1}
+.home-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.5)}
 .home-fab:active{transform:scale(.95)}
 
 /* BUTTON HOVER EFFECTS */
@@ -829,6 +829,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="hdr-logo" data-i18n="cat_hdr">카테고리</div>
   </header>
   <div class="cat-grid" id="cat-grid"></div>
+  <!-- 카테고리 플로팅 등록 버튼 -->
+  <button class="home-fab" onclick="showView('form')" title="상품 등록">+</button>
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab on" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
