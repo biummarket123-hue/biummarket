@@ -3688,9 +3688,9 @@ async function submitForm(){
   const payload={
     title,type:formCat1,cat:formCat1,
     material,weight,qty,price,unit,
-    list_price:listPrice||undefined,
-    bulk_price:bulkPrice||undefined,
-    moq:moq||undefined,
+    list_price:parseInt(document.getElementById('f-list-price').value)||null,
+    bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
+    moq:parseInt(document.getElementById('f-moq').value)||null,
     sample:formSample,is_urgent:urgent,
     description,
     seller:sellerInfo,
