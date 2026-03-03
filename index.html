@@ -1027,15 +1027,18 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     </div>
 
     <!-- 급처 상품 -->
-    <div class="form-switch-row">
-      <div>
-        <div class="form-switch-label">⚡ 급처 상품</div>
-        <div class="form-switch-desc">피드 상단 노출</div>
+    <div style="background:#1a1a2e;border:1px solid #ff6b35;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="color:#ff6b35;font-weight:700;font-size:15px;">⚡ 급처 상품</div>
+          <div style="color:#aaa;font-size:12px;margin-top:4px;">활성화 시 피드 상단 노출</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:52px;height:28px;">
+          <input type="checkbox" id="urgentToggle" style="opacity:0;width:0;height:0;" onchange="urgent=this.checked">
+          <span id="urgentSlider" onclick="document.getElementById('urgentToggle').click()" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s;"></span>
+          <span id="urgentThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
+        </label>
       </div>
-      <label class="form-switch">
-        <input type="checkbox" id="f-urgent"/>
-        <span class="slider"></span>
-      </label>
     </div>
 
     <!-- 하단 고정 등록 버튼 -->
@@ -2653,6 +2656,7 @@ let chatRooms=lsGet('chatRooms',{});
 let curChatRoomId=null;
 let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
 let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
+let urgent=false;
 
 /* ==================== AI IMAGE ANALYSIS ==================== */
 function compressImage(dataUrl,maxSize=400,quality=0.7){
@@ -3654,7 +3658,21 @@ function initFormView(){
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('f-unit').value='yard';
-  document.getElementById('f-urgent').checked=false;
+  urgent=false;
+  const ut=document.getElementById('urgentToggle');
+  if(ut){ut.checked=false;}
+  const us=document.getElementById('urgentSlider');
+  if(us)us.style.background='#333';
+  const uth=document.getElementById('urgentThumb');
+  if(uth)uth.style.transform='translateX(0)';
+  const utEl=document.getElementById('urgentToggle');
+  if(utEl&&!utEl._listenerAdded){
+    utEl.addEventListener('change',function(){
+      document.getElementById('urgentSlider').style.background=this.checked?'#ff6b35':'#333';
+      document.getElementById('urgentThumb').style.transform=this.checked?'translateX(24px)':'translateX(0)';
+    });
+    utEl._listenerAdded=true;
+  }
   setSample(true);
   setAiCardLoading(false);
 }
@@ -3678,7 +3696,7 @@ async function submitForm(){
   const listPrice=parseFloat(document.getElementById('f-list-price').value)||0;
   const bulkPrice=parseFloat(document.getElementById('f-bulk-price').value)||0;
   const moq=parseInt(document.getElementById('f-moq').value)||0;
-  const urgent=document.getElementById('f-urgent').checked;
+  urgent=document.getElementById('urgentToggle')?.checked??urgent;
   const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
   if(uploadedImgs.length>0){
