@@ -1034,8 +1034,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           <div style="color:#aaa;font-size:12px;margin-top:4px;">활성화 시 피드 상단 노출</div>
         </div>
         <label style="position:relative;display:inline-block;width:52px;height:28px;">
-          <input type="checkbox" id="urgentToggle" style="opacity:0;width:0;height:0;" onchange="urgent=this.checked">
-          <span id="urgentSlider" onclick="document.getElementById('urgentToggle').click()" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s;"></span>
+          <input type="checkbox" id="urgentToggle" style="opacity:0;width:0;height:0;" onchange="urgent=this.checked;document.getElementById('urgentSlider').style.background=this.checked?'#ff6b35':'#333';document.getElementById('urgentThumb').style.transform=this.checked?'translateX(24px)':'translateX(0)'">
+          <span id="urgentSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s;"></span>
           <span id="urgentThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
         </label>
       </div>
@@ -3181,7 +3181,7 @@ function renderHomeProduct(p){
     </div>
     <div class="h-product-body">
       ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
-      <div class="h-product-name">${p.title}</div>
+      <div class="h-product-name">${p.title||'(제목 없음)'}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
         ${p.width?`<span class="h-weight-badge">${p.width}cm</span>`:''}
@@ -3660,19 +3660,11 @@ function initFormView(){
   document.getElementById('f-unit').value='yard';
   urgent=false;
   const ut=document.getElementById('urgentToggle');
-  if(ut){ut.checked=false;}
+  if(ut)ut.checked=false;
   const us=document.getElementById('urgentSlider');
   if(us)us.style.background='#333';
   const uth=document.getElementById('urgentThumb');
   if(uth)uth.style.transform='translateX(0)';
-  const utEl=document.getElementById('urgentToggle');
-  if(utEl&&!utEl._listenerAdded){
-    utEl.addEventListener('change',function(){
-      document.getElementById('urgentSlider').style.background=this.checked?'#ff6b35':'#333';
-      document.getElementById('urgentThumb').style.transform=this.checked?'translateX(24px)':'translateX(0)';
-    });
-    utEl._listenerAdded=true;
-  }
   setSample(true);
   setAiCardLoading(false);
 }
