@@ -21,8 +21,9 @@ export default async function handler(req) {
   }
 
   const apiKey = process.env.CLAUDE_API_KEY;
+  console.log('[analyze-image] API 키 존재:', !!apiKey, '길이:', apiKey?.length);
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'API key not configured' }), {
+    return new Response(JSON.stringify({ error: 'API key not configured (CLAUDE_API_KEY)' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

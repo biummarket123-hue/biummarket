@@ -2669,6 +2669,7 @@ function compressImage(dataUrl,maxSize=400,quality=0.7){
     img.src=dataUrl;
   });
 }
+// 성공 시 result 객체 반환, 실패 시 { __error: '메시지' } 반환
 async function analyzeImageWithAI(dataUrl){
   const base64=dataUrl.split(',')[1];
   const mediaType=dataUrl.startsWith('data:image/png')?'image/png'
@@ -2682,14 +2683,19 @@ async function analyzeImageWithAI(dataUrl){
     });
     console.log('[AI분석] 응답 status:',res.status);
     if(!res.ok){
-      const errText=await res.text();
-      console.error('[AI분석] 서버 오류 응답:',errText);
-      return null;
+      let detail='HTTP '+res.status;
+      try{const j=await res.json();detail=j.error||j.detail||detail;}catch{detail=await res.text()||detail;}
+      console.error('[AI분석] 서버 오류:',detail);
+      return {__error:'분석 실패: '+detail};
     }
     const data=await res.json();
     console.log('[AI분석] 파싱된 result:',data.result);
-    return data.result||null;
-  }catch(e){console.error('[AI분석] fetch 예외:',e);return null;}
+    if(!data.result)return {__error:'분석 실패: 서버가 빈 결과를 반환했습니다'};
+    return data.result;
+  }catch(e){
+    console.error('[AI분석] fetch 예외:',e);
+    return {__error:'분석 실패: '+e.message};
+  }
 }
 async function runAIAnalysis(dataUrl){
   // 폼에서 이미지 첨부 시 자동 호출 — runFormAIAnalysis로 위임
@@ -3611,7 +3617,8 @@ async function runFormAIAnalysis(dataUrl){
   try{
     const result=await analyzeImageWithAI(dataUrl);
     setAiCardLoading(false);
-    if(!result){showToast('분석에 실패했습니다. 직접 입력해주세요.');return;}
+    if(result&&result.__error){alert(result.__error);return;}
+    if(!result){alert('분석 실패: 알 수 없는 오류');return;}
     // 사진을 목록 첫 번째에 추가
     uploadedImgs.unshift(dataUrl);
     renderFormImgs();
@@ -3628,7 +3635,7 @@ async function runFormAIAnalysis(dataUrl){
     showToast('✅ AI 자동 입력 완료! 내용을 확인해주세요.');
   }catch(err){
     setAiCardLoading(false);
-    showToast('분석에 실패했습니다. 직접 입력해주세요.');
+    alert('분석 실패: '+err.message);
   }
 }
 
