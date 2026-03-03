@@ -440,6 +440,61 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .img-upload-sub{font-size:11px;color:#8888aa}
 .ai-price-box{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:12px;padding:10px 12px;font-size:12px;color:#66bb6a;line-height:1.6}
 
+/* ===== FORM v2 — CHIP CATEGORY / AI / TOGGLE ===== */
+/* 사진 업로드 영역 */
+.form-img-add-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:80px;height:80px;flex-shrink:0;border:2px dashed #2a2a3e;border-radius:14px;background:#12121a;cursor:pointer;color:#8888aa;font-size:11px}
+.form-img-add-btn .cam-icon{font-size:22px}
+.form-img-add-btn .img-count{font-size:11px;font-weight:700;color:#8888aa}
+.form-img-guide{font-size:11px;color:#666680;margin:6px 0 10px;text-align:center}
+.form-img-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;min-height:84px}
+.form-img-scroll::-webkit-scrollbar{display:none}
+.form-img-item{position:relative;flex-shrink:0;width:80px;height:80px;border-radius:14px;overflow:hidden;border:1.5px solid #2a2a3e}
+.form-img-item img{width:100%;height:100%;object-fit:cover}
+.form-img-item .img-rm{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none}
+.form-img-item.is-main::after{content:'대표';position:absolute;bottom:0;left:0;right:0;text-align:center;background:rgba(0,0,0,.65);color:#c8a84b;font-size:9px;font-weight:800;padding:2px 0}
+/* AI 자동입력 카드 */
+.ai-auto-card{border:2px dashed #c8a84b;border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;background:rgba(200,168,75,.06);margin-bottom:16px;transition:background .15s}
+.ai-auto-card:hover{background:rgba(200,168,75,.12)}
+.ai-auto-card .ai-auto-icon{font-size:24px;flex-shrink:0}
+.ai-auto-card .ai-auto-text{font-size:14px;font-weight:800;color:#c8a84b;line-height:1.3}
+.ai-auto-card .ai-auto-sub{font-size:11px;color:#8888aa;margin-top:2px}
+.ai-loading-bar{font-size:13px;color:#c8a84b;text-align:center;padding:10px 0;display:none}
+/* 카테고리 칩 */
+.chip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}
+.chip-grid.two-col{grid-template-columns:repeat(2,1fr)}
+.cat-chip{padding:9px 6px;border-radius:12px;border:1.5px solid #2a2a3e;background:#12121a;color:#aaaacc;font-size:12px;font-weight:600;text-align:center;cursor:pointer;transition:all .15s;line-height:1.3}
+.cat-chip:hover{border-color:#c8a84b;color:#c8a84b}
+.cat-chip.active{background:#c8a84b;border-color:#c8a84b;color:#1a1400;font-weight:800}
+.cat-sub-wrap{margin-top:10px;display:none}
+.cat-sub-wrap.show{display:block}
+/* 재고 단위 select */
+.unit-select{width:100%;border:1.5px solid #2a2a3e;border-radius:12px;padding:12px 14px;font-size:15px;color:#ffffff;outline:none;background:#12121a;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+/* 가격 입력 suffix */
+.price-field{position:relative}
+.price-field .fi{padding-right:52px}
+.price-field .price-sfx{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:12px;color:#8888aa;pointer-events:none}
+/* 샘플 토글 */
+.sample-toggle{display:flex;gap:8px;margin-bottom:0}
+.sample-btn{flex:1;padding:11px 8px;border-radius:12px;border:1.5px solid #2a2a3e;background:#12121a;color:#8888aa;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s}
+.sample-btn.active{border-color:#c8a84b;background:rgba(200,168,75,.12);color:#c8a84b}
+/* 급처 토글 스위치 */
+.form-switch-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid #1e1e2e;margin-top:4px}
+.form-switch-label{font-size:14px;font-weight:700;color:#ffffff}
+.form-switch-desc{font-size:11px;color:#8888aa;margin-top:2px}
+.form-switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.form-switch input{opacity:0;width:0;height:0}
+.form-switch .slider{position:absolute;inset:0;border-radius:26px;background:#2a2a3e;cursor:pointer;transition:.2s}
+.form-switch .slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;border-radius:50%;background:#fff;transition:.2s}
+.form-switch input:checked+.slider{background:#c8a84b}
+.form-switch input:checked+.slider:before{transform:translateX(18px)}
+/* 하단 고정 등록 버튼 */
+.form-submit-fixed{position:sticky;bottom:0;left:0;right:0;padding:12px 14px 20px;background:linear-gradient(to top,#0a0a0f 80%,transparent);margin:0 -14px -96px}
+.form-submit-btn{width:100%;padding:16px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border-radius:16px;font-size:16px;font-weight:900;letter-spacing:.3px;border:none;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.form-submit-btn:hover{transform:scale(1.01);box-shadow:0 6px 24px rgba(200,168,75,.4)}
+.form-submit-btn:active{transform:scale(.98)}
+/* 필드 안내 텍스트 */
+.form-field-tip{font-size:11px;color:#8888aa;margin-top:4px;padding:0 2px}
+
 /* BUTTON HOVER EFFECTS */
 .btn-primary,.submit-btn,.hero-btn-primary{transition:transform .15s,box-shadow .15s,opacity .15s}
 .btn-primary:hover,.submit-btn:hover,.hero-btn-primary:hover{transform:scale(1.02);box-shadow:0 6px 20px rgba(108,99,255,.35)}
@@ -865,73 +920,129 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-form" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">✕</button>
-    <div class="hdr-title" data-i18n="form_title">원단 판매 등록</div>
+    <div class="hdr-title">원단 판매 등록</div>
     <div style="width:38px"></div>
   </header>
   <div class="f-scroll">
 
-    <!-- AI 힌트 배너 -->
-    <div class="ai-hint">
-      <span class="ai-icon">🤖</span>
-      <span id="ai-hint-text" data-i18n="ai_hint_text">AI 자동 입력: 사진을 첨부하면 소재·색상·중량을 자동으로 인식해드려요!</span>
-    </div>
-
-    <!-- ── 기본 정보 ── -->
-    <div class="form-sec-hd"><span class="form-sec-label" data-i18n="form_sec_basic">기본 정보</span></div>
-
+    <!-- 원단 사진 (최대 10장) -->
+    <div class="form-sec-hd"><span class="form-sec-label">원단 사진</span></div>
     <input type="file" id="file-input" accept="image/*" multiple style="display:none"/>
-    <div class="img-upload-box" id="img-upload-box" onclick="document.getElementById('file-input').click()">
-      <div class="img-upload-icon">📷</div>
-      <div class="img-upload-text">사진 추가</div>
-      <div class="img-upload-sub">최대 5장 · JPG / PNG</div>
-    </div>
-    <div class="img-scroll" id="img-scroll" style="display:none;margin-bottom:14px">
-      <button class="img-add" onclick="document.getElementById('file-input').click()">
-        <span style="font-size:20px">＋</span><span>추가</span>
+    <input type="file" id="ai-auto-input" accept="image/*" style="display:none" onchange="handleFormAiInput(event)"/>
+    <div class="form-img-scroll" id="form-img-scroll">
+      <button class="form-img-add-btn" id="form-img-add-btn" onclick="document.getElementById('file-input').click()">
+        <span class="cam-icon">📷</span>
+        <span class="img-count" id="form-img-count">0/10</span>
       </button>
     </div>
+    <div class="form-img-guide">첫 사진이 대표 이미지 · 터치하면 삭제</div>
 
-    <div class="fg"><label><span data-i18n="form_name_label">상품명</span> <span class="req">*</span></label><input type="text" class="fi" id="f-title" placeholder="예) 아이보리 면 원단 재고 45m"/></div>
-
-    <!-- ── 원단 정보 ── -->
-    <div class="form-sec-hd"><span class="form-sec-label" data-i18n="form_sec_fabric">원단 정보</span></div>
-
-    <div class="fg"><label data-i18n="form_cat_label">카테고리 (대분류)</label>
-      <select class="fi" id="f-cat1" onchange="updateCat2()">
-        <option value="">선택</option>
-        <option value="천연섬유">천연섬유</option>
-        <option value="합성섬유">합성섬유</option>
-        <option value="혼방">혼방</option>
-        <option value="특수원단">특수원단</option>
-      </select>
+    <!-- AI 자동입력 버튼 -->
+    <div class="ai-auto-card" onclick="document.getElementById('ai-auto-input').click()">
+      <span class="ai-auto-icon">🤖</span>
+      <div>
+        <div class="ai-auto-text">AI 자동 입력 — 사진으로 30초 등록</div>
+        <div class="ai-auto-sub">갤러리 사진 선택 → 소재·중량·설명 자동 완성</div>
+      </div>
     </div>
-    <div class="fg"><label><span data-i18n="form_type_label">원단 종류</span> <span class="req">*</span></label>
-      <select class="fi" id="f-type">
-        <option value="">선택해주세요</option>
-      </select>
+    <div class="ai-loading-bar" id="ai-loading-bar">AI가 원단을 분석하고 있습니다...</div>
+
+    <!-- 상품명 -->
+    <div class="fg"><label>상품명 <span class="req">*</span></label><input type="text" class="fi" id="f-title" placeholder="예: 코마 면 트윌 60수 오트밀"/></div>
+
+    <!-- 대분류 -->
+    <div class="fg">
+      <label>대분류 <span class="req">*</span></label>
+      <div class="chip-grid" id="cat1-chips"></div>
     </div>
+
+    <!-- 중분류 (대분류 선택 후 표시) -->
+    <div class="cat-sub-wrap" id="cat2-wrap">
+      <div class="fg">
+        <label>중분류</label>
+        <div class="chip-grid two-col" id="cat2-chips"></div>
+      </div>
+    </div>
+
+    <!-- 소분류 (중분류 선택 후 표시, 있는 경우만) -->
+    <div class="cat-sub-wrap" id="cat3-wrap">
+      <div class="fg">
+        <label>소분류</label>
+        <div class="chip-grid two-col" id="cat3-chips"></div>
+      </div>
+    </div>
+
+    <!-- 숨김 호환 필드 -->
+    <input type="hidden" id="f-cat1"/>
+    <input type="hidden" id="f-type"/>
+
+    <!-- 소재 / 중량 -->
     <div class="form-row">
-      <div class="fg"><label><span data-i18n="form_color_label">색상</span> <span class="req">*</span></label><input type="text" class="fi" id="f-color" placeholder="예) 아이보리"/></div>
-      <div class="fg"><label data-i18n="form_width_label">폭 (cm)</label><input type="number" class="fi" id="f-width" placeholder="예) 150" min="0"/></div>
+      <div class="fg"><label>소재 <span class="req">*</span></label><input type="text" class="fi" id="f-material" placeholder="면 100%"/></div>
+      <div class="fg"><label>중량</label><input type="text" class="fi" id="f-weight" placeholder="185g/yd"/></div>
     </div>
-    <div class="fg"><label data-i18n="form_weight_label">중량 (g/㎡)</label><input type="number" class="fi" id="f-weight" placeholder="예) 180"/></div>
 
-    <!-- ── 판매 정보 ── -->
-    <div class="form-sec-hd"><span class="form-sec-label" data-i18n="form_sec_sale">판매 정보</span></div>
+    <!-- 상세 설명 -->
+    <div class="fg"><label>상세 설명</label><textarea class="fi" id="f-desc" rows="3" placeholder="원단 특징, 용도, 상태, 최소주문 등"></textarea></div>
 
+    <!-- 재고수량 / 단위 -->
     <div class="form-row">
-      <div class="fg"><label><span data-i18n="form_qty_label">재고 (m)</span> <span class="req">*</span></label><input type="number" class="fi" id="f-qty" placeholder="예) 30" min="0" step="0.1" oninput="calcTotal()"/></div>
-      <div class="fg"><label><span data-i18n="form_price_label">가격 (원/m)</span> <span class="req">*</span></label><input type="number" class="fi" id="f-price" placeholder="예) 5000" min="0" oninput="calcTotal()"/></div>
-    </div>
-    <div class="fg"><label data-i18n="form_total_label">총 금액 (자동 계산)</label><div class="total-disp" id="f-total">수량과 단가를 입력하면 자동 계산돼요</div></div>
-    <div class="fg"><label><span data-i18n="form_loc_label">거래 지역</span> <span class="req">*</span></label><input type="text" class="fi" id="f-loc" placeholder="예) 서울 동대문구 신설동"/></div>
-    <div class="fg"><label data-i18n="form_desc_label">상세 설명</label><textarea class="fi" id="f-desc" placeholder="원단 상태, 구매 경위, 거래 방법 등을 자유롭게 적어주세요."></textarea></div>
-    <div class="fg"><label><span data-i18n="form_tags_label">해시태그</span> <span style="color:#8888aa;font-weight:400">(쉼표 구분)</span></label><input type="text" class="fi" id="f-tags" placeholder="재고원단, 할인, 소량가능"/></div>
-    <div class="fg"><label data-i18n="form_ai_label">AI 가격 예측</label>
-      <div class="ai-price-box" id="ai-price-hint">원단 정보를 입력하면 AI가 적정 가격을 예측해드려요 📊</div>
+      <div class="fg"><label>재고수량 <span class="req">*</span></label><input type="number" class="fi" id="f-qty" placeholder="수량" min="0" step="0.1"/></div>
+      <div class="fg"><label>단위</label>
+        <select class="unit-select" id="f-unit">
+          <option value="yard">yard</option>
+          <option value="m">m</option>
+          <option value="마">마</option>
+          <option value="롤">롤</option>
+        </select>
+      </div>
     </div>
 
-    <button class="submit-btn" data-i18n="btn_register" onclick="submitForm()">등록하기</button>
+    <!-- 판매가 / 정가 -->
+    <div class="form-row">
+      <div class="fg"><label>판매가(₩) <span class="req">*</span></label>
+        <div class="price-field"><input type="number" class="fi" id="f-price" placeholder="단가" min="0"/><span class="price-sfx">/yard</span></div>
+      </div>
+      <div class="fg"><label>정가(₩)</label>
+        <div class="price-field"><input type="number" class="fi" id="f-list-price" placeholder="원래 가격" min="0"/><span class="price-sfx">/yard</span></div>
+      </div>
+    </div>
+
+    <!-- 대량가 / MOQ -->
+    <div class="form-row">
+      <div class="fg"><label>대량가(₩)</label>
+        <div class="price-field"><input type="number" class="fi" id="f-bulk-price" placeholder="대량 단가" min="0"/><span class="price-sfx">/yard</span></div>
+      </div>
+      <div class="fg"><label>MOQ 최소수량</label><input type="number" class="fi" id="f-moq" placeholder="예: 500" min="0"/></div>
+    </div>
+    <div class="form-field-tip">💡 대량 기준수량 이상 주문 시 적용 (선택사항)</div>
+
+    <!-- 샘플 -->
+    <div class="fg" style="margin-top:14px">
+      <label>샘플</label>
+      <div class="sample-toggle">
+        <button class="sample-btn active" id="sample-yes" onclick="setSample(true)">✅ 가능</button>
+        <button class="sample-btn" id="sample-no" onclick="setSample(false)">❌ 불가</button>
+      </div>
+    </div>
+
+    <!-- 급처 상품 -->
+    <div class="form-switch-row">
+      <div>
+        <div class="form-switch-label">⚡ 급처 상품</div>
+        <div class="form-switch-desc">피드 상단 노출</div>
+      </div>
+      <label class="form-switch">
+        <input type="checkbox" id="f-urgent"/>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- 하단 고정 등록 버튼 -->
+    <div class="form-submit-fixed">
+      <button class="form-submit-btn" onclick="submitForm()">📦 상품 등록하기</button>
+    </div>
+
   </div>
 </div>
 
@@ -2575,19 +2686,8 @@ async function analyzeImageWithAI(dataUrl){
   }catch(e){console.warn('[AI분석] 오류:',e);return null;}
 }
 async function runAIAnalysis(dataUrl){
-  const hint=document.getElementById('ai-hint-text');
-  hint.textContent='🤖 이미지 분석 중...';
-  try{
-    const result=await analyzeImageWithAI(dataUrl);
-    if(!result){hint.textContent='AI 분석에 실패했어요. 직접 입력해주세요.';return;}
-    if(result.type){
-      const sel=document.getElementById('f-type');
-      for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===result.type){sel.selectedIndex=i;break;}}
-    }
-    if(result.color)document.getElementById('f-color').value=result.color;
-    if(result.weight)document.getElementById('f-weight').value=result.weight;
-    hint.textContent=`✅ AI 자동 입력 완료! 원단:${result.type||'?'} 색상:${result.color||'?'} 중량:${result.weight?result.weight+'g/㎡':'?'} — 확인 후 수정하세요`;
-  }catch(e){hint.textContent='AI 분석 중 오류가 발생했어요. 직접 입력해주세요.';}
+  // 폼에서 이미지 첨부 시 자동 호출 — runFormAIAnalysis로 위임
+  runFormAIAnalysis(dataUrl);
 }
 
 /* ==================== AI VIEW ==================== */
@@ -2692,6 +2792,7 @@ function showView(name){
   if(name==='heatmap')renderPriceHeatmap();
   if(name==='market-price')renderMarketPrice();
   if(name==='ai')resetAiView();
+  if(name==='form')initFormView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
 }
 function openSearchOverlay(){
@@ -3386,95 +3487,178 @@ function renderSellerPage(seller){
   showView('seller');
 }
 
-/* ==================== FORM ==================== */
+/* ==================== FORM v2 ==================== */
+// 이미지 (최대 10장)
 document.getElementById('file-input').addEventListener('change',e=>{
   const files=Array.from(e.target.files);
-  const rem=5-uploadedImgs.length;
-  const wasEmpty=uploadedImgs.length===0;
-  files.slice(0,rem).forEach((f,fi)=>{
+  const MAX=10;
+  const rem=MAX-uploadedImgs.length;
+  files.slice(0,rem).forEach(f=>{
     const r=new FileReader();
-    r.onload=ev=>{
-      uploadedImgs.push(ev.target.result);
-      renderImgPreviews();
-      if(wasEmpty&&fi===0)runAIAnalysis(ev.target.result);
-    };
+    r.onload=ev=>{uploadedImgs.push(ev.target.result);renderFormImgs();};
     r.readAsDataURL(f);
   });
-  if(files.length>rem)showToast('최대 5장까지 첨부 가능해요');
+  if(files.length>rem)showToast('최대 10장까지 첨부 가능해요');
   e.target.value='';
 });
-function renderImgPreviews(){
-  const scroll=document.getElementById('img-scroll');
-  const add=scroll.querySelector('.img-add');
-  const box=document.getElementById('img-upload-box');
-  scroll.querySelectorAll('.img-prev').forEach(e=>e.remove());
+function renderFormImgs(){
+  const scroll=document.getElementById('form-img-scroll');
+  const addBtn=document.getElementById('form-img-add-btn');
+  const countEl=document.getElementById('form-img-count');
+  scroll.querySelectorAll('.form-img-item').forEach(el=>el.remove());
   uploadedImgs.forEach((src,i)=>{
-    const d=document.createElement('div');d.className='img-prev';
-    d.innerHTML=`<img src="${src}" alt="preview"/><button class="img-rm" onclick="removeImg(${i})">✕</button>`;
-    scroll.insertBefore(d,add);
+    const d=document.createElement('div');
+    d.className='form-img-item'+(i===0?' is-main':'');
+    d.innerHTML=`<img src="${src}" alt="preview" onclick="removeFormImg(${i})"/><button class="img-rm" onclick="removeFormImg(${i})">✕</button>`;
+    scroll.insertBefore(d,addBtn);
   });
-  if(box)box.style.display=uploadedImgs.length>0?'none':'flex';
-  scroll.style.display=uploadedImgs.length>0?'flex':'none';
-  add.style.display=uploadedImgs.length>=5?'none':'flex';
+  if(countEl)countEl.textContent=`${uploadedImgs.length}/10`;
+  if(addBtn)addBtn.style.display=uploadedImgs.length>=10?'none':'flex';
 }
-function removeImg(i){uploadedImgs.splice(i,1);renderImgPreviews()}
-function calcTotal(){
-  const qty=parseFloat(document.getElementById('f-qty').value)||0;
-  const price=parseFloat(document.getElementById('f-price').value)||0;
-  const el=document.getElementById('f-total');
-  el.textContent=qty&&price?`총 ${fmtPrice(qty*price)} (${fmtPrice(price)}/m × ${qty}m)`:t('form_total_hint');
-  // AI price hint
-  const hint=document.getElementById('ai-price-hint');
-  const type=document.getElementById('f-type').value;
-  if(type&&price){
-    const ranges={면:[3000,8000],폴리:[2000,6000],울:[12000,35000],린넨:[5000,12000],실크:[20000,80000],혼방:[4000,10000],기타:[2000,15000]};
-    const [lo,hi]=ranges[type]||[2000,20000];
-    const avg=Math.round((lo+hi)/2);
-    const diff=price-avg;
-    const msg=diff<-avg*.2?'✅ AI 예측: 시세보다 저렴해요! 빠른 거래 예상':diff>avg*.2?'⚠️ AI 예측: 시세보다 높을 수 있어요. 조정을 고려해보세요':'📊 AI 예측: 적정 시세 범위예요! ('+type+' 평균 '+fmtPrice(avg)+'/m)';
-    hint.textContent=msg;
+function removeFormImg(i){uploadedImgs.splice(i,1);renderFormImgs();}
+
+// 대/중/소분류 칩 상태
+let formCat1='',formCat2='',formCat3='';
+function initCat1Chips(){
+  const grid=document.getElementById('cat1-chips');
+  if(!grid)return;
+  grid.innerHTML=CATEGORY_DATA.map(cat=>
+    `<button class="cat-chip" data-id="${cat.id}" onclick="selectCat1('${cat.id}')">${cat.emoji} ${cat.id}</button>`
+  ).join('');
+}
+function selectCat1(id){
+  formCat1=id;formCat2='';formCat3='';
+  document.getElementById('f-cat1').value=id;
+  document.getElementById('f-type').value=id;
+  document.querySelectorAll('#cat1-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',btn.dataset.id===id));
+  renderCat2Chips();
+}
+function renderCat2Chips(){
+  const wrap=document.getElementById('cat2-wrap');
+  const grid=document.getElementById('cat2-chips');
+  const cat=CATEGORY_DATA.find(c=>c.id===formCat1);
+  if(!cat||!cat.sub.length){wrap.classList.remove('show');return;}
+  grid.innerHTML=cat.sub.map((s,i)=>
+    `<button class="cat-chip" data-idx="${i}" onclick="selectCat2(${i})">${s.name}</button>`
+  ).join('');
+  wrap.classList.add('show');
+  document.getElementById('cat3-wrap').classList.remove('show');
+}
+function selectCat2(idx){
+  formCat2=idx;formCat3='';
+  document.querySelectorAll('#cat2-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.idx)===idx));
+  renderCat3Chips(idx);
+}
+function renderCat3Chips(idx){
+  const wrap=document.getElementById('cat3-wrap');
+  const grid=document.getElementById('cat3-chips');
+  const cat=CATEGORY_DATA.find(c=>c.id===formCat1);
+  if(!cat)return;
+  const sub=cat.sub[idx];
+  if(!sub||!sub.items||!sub.items.length){wrap.classList.remove('show');return;}
+  grid.innerHTML=sub.items.map((item,i)=>
+    `<button class="cat-chip" data-idx="${i}" onclick="selectCat3(${i},'${item}')">${item}</button>`
+  ).join('');
+  wrap.classList.add('show');
+}
+function selectCat3(idx,val){
+  formCat3=val;
+  document.querySelectorAll('#cat3-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.idx)===idx));
+}
+
+// 샘플 토글
+let formSample=true;
+function setSample(val){
+  formSample=val;
+  document.getElementById('sample-yes').classList.toggle('active',val);
+  document.getElementById('sample-no').classList.toggle('active',!val);
+}
+
+// AI 자동입력 버튼 핸들러
+function handleFormAiInput(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{runFormAIAnalysis(ev.target.result);};
+  r.readAsDataURL(file);
+  e.target.value='';
+}
+async function runFormAIAnalysis(dataUrl){
+  const bar=document.getElementById('ai-loading-bar');
+  if(bar){bar.style.display='block';}
+  try{
+    const result=await analyzeImageWithAI(dataUrl);
+    if(!result){if(bar)bar.style.display='none';showToast('AI 분석에 실패했어요. 직접 입력해주세요.');return;}
+    if(result.name)document.getElementById('f-title').value=result.name;
+    if(result.material)document.getElementById('f-material').value=result.material;
+    if(result.weight)document.getElementById('f-weight').value=result.weight;
+    if(result.description)document.getElementById('f-desc').value=result.description;
+    if(bar)bar.style.display='none';
+    showToast('✅ AI 자동 입력 완료! 내용을 확인해주세요.');
+  }catch(err){
+    if(bar)bar.style.display='none';
+    showToast('AI 분석 중 오류가 발생했어요.');
   }
 }
-function updateCat2(){/* 3-tier category hook */}
+
+// 폼 초기화 시 칩 렌더링
+function initFormView(){
+  uploadedImgs=[];renderFormImgs();
+  formCat1='';formCat2='';formCat3='';
+  initCat1Chips();
+  document.getElementById('cat2-wrap').classList.remove('show');
+  document.getElementById('cat3-wrap').classList.remove('show');
+  ['f-title','f-material','f-weight','f-qty','f-price','f-list-price','f-bulk-price','f-moq','f-desc'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('f-unit').value='yard';
+  document.getElementById('f-urgent').checked=false;
+  setSample(true);
+  const bar=document.getElementById('ai-loading-bar');if(bar)bar.style.display='none';
+}
+
+function calcTotal(){}
+function updateCat2(){}
+
 async function submitForm(){
   const title=document.getElementById('f-title').value.trim();
-  const type=document.getElementById('f-type').value;
-  const color=document.getElementById('f-color').value.trim();
+  const material=document.getElementById('f-material').value.trim();
   const qty=parseFloat(document.getElementById('f-qty').value);
   const price=parseFloat(document.getElementById('f-price').value);
-  const loc=document.getElementById('f-loc').value.trim();
   if(!title){showToast('상품명을 입력해주세요');return;}
-  if(!type){showToast('원단 종류를 선택해주세요');return;}
-  if(!color){showToast('색상을 입력해주세요');return;}
-  if(!qty||qty<=0){showToast('수량을 입력해주세요');return;}
-  if(!price||price<=0){showToast('단가를 입력해주세요');return;}
-  if(!loc){showToast('거래 지역을 입력해주세요');return;}
-  const rawTags=document.getElementById('f-tags').value.trim();
-  const tags=rawTags?rawTags.split(',').map(tg=>tg.trim().replace(/^#/,'')).filter(Boolean):[];
-  const width=parseInt(document.getElementById('f-width').value)||0;
-  const weight=parseInt(document.getElementById('f-weight').value)||0;
+  if(!formCat1){showToast('대분류를 선택해주세요');return;}
+  if(!material){showToast('소재를 입력해주세요');return;}
+  if(!qty||qty<=0){showToast('재고수량을 입력해주세요');return;}
+  if(!price||price<=0){showToast('판매가를 입력해주세요');return;}
+  const weight=document.getElementById('f-weight').value.trim();
   const description=document.getElementById('f-desc').value.trim()||'상품 설명이 없습니다.';
-  const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||loc}:{name:'나',temp:36.5,loc};
-  // 첫 번째 이미지 압축 (Base64 thumbnail)
+  const unit=document.getElementById('f-unit').value;
+  const listPrice=parseFloat(document.getElementById('f-list-price').value)||0;
+  const bulkPrice=parseFloat(document.getElementById('f-bulk-price').value)||0;
+  const moq=parseInt(document.getElementById('f-moq').value)||0;
+  const urgent=document.getElementById('f-urgent').checked;
+  const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
   if(uploadedImgs.length>0){
     try{image_url=await compressImage(uploadedImgs[0],400,0.7);}
     catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);}
   }
-  const payload={title,type,color,width,weight,qty,price,loc,cat:document.getElementById('f-cat1').value||'기타',description,tags,seller:sellerInfo,imgs:Math.max(1,uploadedImgs.length),likes:0,chats:0,time:'방금 전'};
+  const payload={
+    title,type:formCat1,cat:formCat1,
+    material,weight,qty,price,unit,
+    list_price:listPrice||undefined,
+    bulk_price:bulkPrice||undefined,
+    moq:moq||undefined,
+    sample:formSample,urgent,
+    description,
+    seller:sellerInfo,
+    imgs:Math.max(1,uploadedImgs.length),
+    likes:0,chats:0,time:'방금 전'
+  };
   if(image_url)payload.image_url=image_url;
-  // 폼 초기화 헬퍼
   function resetForm(){
-    ['f-title','f-color','f-width','f-weight','f-qty','f-price','f-loc','f-desc','f-tags'].forEach(id=>{document.getElementById(id).value=''});
-    document.getElementById('f-type').value='';document.getElementById('f-cat1').value='';
-    document.getElementById('f-total').textContent=t('form_total_hint');
-    const ph=document.getElementById('ai-price-hint');
-    if(ph)ph.textContent='원단 정보를 입력하면 AI가 적정 가격을 예측해드려요 📊';
-    uploadedImgs=[];renderImgPreviews();
+    initFormView();
   }
-  // Supabase에 상품 저장
   if(!_sb){
-    // Supabase 미연결 — localStorage에만 임시 저장
     console.warn('[submitForm] Supabase 미연결 — localStorage에만 저장됩니다.');
     const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
     products.unshift(newP);saveProducts();
@@ -3484,7 +3668,6 @@ async function submitForm(){
   try{
     console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
     let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
-    // image_url 컬럼이 없으면 이미지 없이 재시도
     if(error&&error.code==='42703'&&payload.image_url){
       console.warn('[submitForm] image_url 컬럼 없음 — 이미지 없이 재시도');
       delete payload.image_url;
@@ -3497,10 +3680,8 @@ async function submitForm(){
       return;
     }
     console.log('[submitForm] insert 성공 — id:',inserted.id);
-    resetForm();
-    showView('list');
-    showToast(t('registered'));
-    lsDelTTL('products_sb');await loadProductsFromSupabase(); // Supabase 최신 목록으로 갱신
+    resetForm();showView('list');showToast(t('registered'));
+    lsDelTTL('products_sb');await loadProductsFromSupabase();
   }catch(e){
     console.error('[submitForm] insert 예외:', e);
     showToast('상품 저장 중 오류가 발생했어요');

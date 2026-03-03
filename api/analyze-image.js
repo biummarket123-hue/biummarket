@@ -67,7 +67,7 @@ export default async function handler(req) {
               },
               {
                 type: 'text',
-                text: '이 원단(fabric) 이미지를 분석해서 JSON으로만 응답해주세요. 다른 텍스트 없이 JSON만. 형식: {"type":"면|폴리|울|린넨|실크|혼방|기타","color":"색상명(한국어)","weight":숫자또는null}',
+                text: '이 원단(fabric) 이미지를 분석해서 JSON으로만 응답해주세요. 다른 텍스트 없이 JSON만. 형식: {"name":"상품명 예시(소재+조직+수/무게 등)","material":"소재 예: 면 100%","weight":"중량 예: 185g/yd 또는 null","description":"원단 특징·용도·추천 용도 2~3문장"}',
               },
             ],
           },
