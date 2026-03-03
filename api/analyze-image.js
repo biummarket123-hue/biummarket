@@ -55,8 +55,8 @@ export default async function handler(req) {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 256,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 512,
         messages: [
           {
             role: 'user',
@@ -67,7 +67,7 @@ export default async function handler(req) {
               },
               {
                 type: 'text',
-                text: '이 원단(fabric) 이미지를 분석해서 JSON으로만 응답해주세요. 다른 텍스트 없이 JSON만. 형식: {"name":"상품명 예시(소재+조직+수/무게 등)","material":"소재 예: 면 100%","weight":"중량 예: 185g/yd 또는 null","description":"원단 특징·용도·추천 용도 2~3문장"}',
+                text: '이 원단 사진을 분석해서 아래 JSON 형식으로만 응답해줘. 다른 텍스트 없이 JSON만:\n{"name":"상품명 (소재+조직+색상 조합, 예: 코마 면 트윌 60수 오트밀)","category":"대분류 (면/린넨, 폴리/합섬, 울/모직, 니트/져지, 실크/새틴, 데님/청, 기능성, 레이스/자수 중 하나)","material":"소재 (예: 면 100%, 폴리에스터 80% 나일론 20%)","weight":"중량 (예: 185g/yd, 모르면 빈 문자열)","description":"상세설명 (원단 특징, 용도, 느낌, 활용처 등 3-4문장)"}',
               },
             ],
           },

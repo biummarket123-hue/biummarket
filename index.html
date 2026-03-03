@@ -938,14 +938,13 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="form-img-guide">첫 사진이 대표 이미지 · 터치하면 삭제</div>
 
     <!-- AI 자동입력 버튼 -->
-    <div class="ai-auto-card" onclick="document.getElementById('ai-auto-input').click()">
-      <span class="ai-auto-icon">🤖</span>
+    <div class="ai-auto-card" id="ai-auto-card" onclick="document.getElementById('ai-auto-input').click()">
+      <span class="ai-auto-icon" id="ai-auto-icon">🤖</span>
       <div>
-        <div class="ai-auto-text">AI 자동 입력 — 사진으로 30초 등록</div>
-        <div class="ai-auto-sub">갤러리 사진 선택 → 소재·중량·설명 자동 완성</div>
+        <div class="ai-auto-text" id="ai-auto-text">AI 자동 입력 — 사진으로 30초 등록</div>
+        <div class="ai-auto-sub" id="ai-auto-sub">갤러리 사진 선택 → 소재·중량·설명 자동 완성</div>
       </div>
     </div>
-    <div class="ai-loading-bar" id="ai-loading-bar">AI가 원단을 분석하고 있습니다...</div>
 
     <!-- 상품명 -->
     <div class="fg"><label>상품명 <span class="req">*</span></label><input type="text" class="fi" id="f-title" placeholder="예: 코마 면 트윌 60수 오트밀"/></div>
@@ -3582,21 +3581,47 @@ function handleFormAiInput(e){
   r.readAsDataURL(file);
   e.target.value='';
 }
+function setAiCardLoading(isLoading){
+  const card=document.getElementById('ai-auto-card');
+  const icon=document.getElementById('ai-auto-icon');
+  const text=document.getElementById('ai-auto-text');
+  const sub=document.getElementById('ai-auto-sub');
+  if(!card)return;
+  if(isLoading){
+    card.style.pointerEvents='none';card.style.opacity='0.75';
+    if(icon)icon.textContent='🔄';
+    if(text)text.textContent='AI가 원단을 분석하고 있습니다...';
+    if(sub)sub.textContent='잠시만 기다려 주세요';
+  }else{
+    card.style.pointerEvents='';card.style.opacity='';
+    if(icon)icon.textContent='🤖';
+    if(text)text.textContent='AI 자동 입력 — 사진으로 30초 등록';
+    if(sub)sub.textContent='갤러리 사진 선택 → 소재·중량·설명 자동 완성';
+  }
+}
 async function runFormAIAnalysis(dataUrl){
-  const bar=document.getElementById('ai-loading-bar');
-  if(bar){bar.style.display='block';}
+  setAiCardLoading(true);
   try{
     const result=await analyzeImageWithAI(dataUrl);
-    if(!result){if(bar)bar.style.display='none';showToast('AI 분석에 실패했어요. 직접 입력해주세요.');return;}
+    setAiCardLoading(false);
+    if(!result){showToast('분석에 실패했습니다. 직접 입력해주세요.');return;}
+    // 사진을 목록 첫 번째에 추가
+    uploadedImgs.unshift(dataUrl);
+    renderFormImgs();
+    // 필드 자동 입력
     if(result.name)document.getElementById('f-title').value=result.name;
     if(result.material)document.getElementById('f-material').value=result.material;
     if(result.weight)document.getElementById('f-weight').value=result.weight;
     if(result.description)document.getElementById('f-desc').value=result.description;
-    if(bar)bar.style.display='none';
+    // 대분류 칩 자동 선택
+    if(result.category){
+      const matched=CATEGORY_DATA.find(c=>c.id===result.category);
+      if(matched)selectCat1(matched.id);
+    }
     showToast('✅ AI 자동 입력 완료! 내용을 확인해주세요.');
   }catch(err){
-    if(bar)bar.style.display='none';
-    showToast('AI 분석 중 오류가 발생했어요.');
+    setAiCardLoading(false);
+    showToast('분석에 실패했습니다. 직접 입력해주세요.');
   }
 }
 
@@ -3613,7 +3638,7 @@ function initFormView(){
   document.getElementById('f-unit').value='yard';
   document.getElementById('f-urgent').checked=false;
   setSample(true);
-  const bar=document.getElementById('ai-loading-bar');if(bar)bar.style.display='none';
+  setAiCardLoading(false);
 }
 
 function calcTotal(){}
