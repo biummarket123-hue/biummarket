@@ -824,7 +824,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <span style="flex:1;font-size:13px;color:#8888aa" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
     </div>
     <button class="hdr-btn" onclick="showView('ai')" title="AI분석">📷</button>
-    <button class="hdr-btn" id="btn-alert" title="알림">🔔</button>
+    <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #0a0a0f"></span></button>
   </header>
   <!-- 레거시 호환용 숨김 요소 -->
   <input type="text" id="search-input" placeholder="원단 종류, 색상, 업체명 검색" autocomplete="off" style="display:none"/>
@@ -3639,6 +3639,7 @@ function toggleDetailLike(){
   _sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
   updateDetailHeart(p);
   showToast(p.liked?t('like_add'):t('like_remove'));
+  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다');
 }
 function editProduct(targetId){
   if(targetId!==undefined)curProductId=targetId;
@@ -3712,6 +3713,8 @@ function submitSuggest(){
   const price=document.getElementById('suggest-price').value;
   if(!price){showToast('제안 가격을 입력해주세요');return}
   closeModal('modal-suggest');showToast('가격 제안이 전송됐어요! 💰');
+  const _sp=products.find(x=>x.id===curProductId);
+  if(_sp)addNotif('💰','rgba(201,168,76,.15)','가격제안 도착',(curUser?.name||'구매자')+'에서 가격제안이 왔습니다');
 }
 function selectRes(type,el){
   curResType=type;
@@ -3737,6 +3740,8 @@ async function submitReservation(){
     if(error)console.error('reservation error:',error);
   }
   closeModal('modal-res');showToast(`${date} ${time} 예약이 신청됐어요! 📅`);
+  const _rp=products.find(x=>x.id===curProductId);
+  if(_rp)addNotif('✅','rgba(0,200,100,.15)','구매요청 도착',(curUser?.name||'구매자')+'에서 '+_rp.title+' 구매 요청');
 }
 
 /* ==================== SELLER PAGE ==================== */
@@ -4007,6 +4012,7 @@ async function submitForm(){
       const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
       products.unshift(newP);saveProducts();
       resetForm();showView('list');showToast(t('registered'));
+      addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);
     }
     return;
   }
@@ -4049,6 +4055,7 @@ async function submitForm(){
       }
       console.log('[submitForm] insert 성공 — id:',inserted.id);
       resetForm();showView('list');showToast(t('registered'));
+      addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);
       lsDelTTL('products_sb');await loadProductsFromSupabase();
     }
   }catch(e){
@@ -4065,6 +4072,7 @@ document.getElementById('sv-input').addEventListener('input',e=>{
 });
 const _btnLoc=document.getElementById('btn-loc');if(_btnLoc)_btnLoc.addEventListener('click',()=>showToast('지역 설정 기능 준비중이에요'));
 document.getElementById('btn-alert').addEventListener('click',()=>showView('notif'));
+updateNotifDot();
 
 /* ==================== SEARCH VIEW ==================== */
 function renderSearchView(){
@@ -4288,6 +4296,7 @@ function sendChatMsg(){
     room.lastMsg=reply;room.lastTime=rtime;
     lsSet('chatRooms',chatRooms);
     renderChatRoom(curChatRoomId);
+    addNotif('💬','rgba(108,99,255,.15)','새 메시지',(room.sellerName||'판매자')+': '+reply);
   },800+Math.random()*800);
 }
 function goChatProduct(){
@@ -5384,9 +5393,33 @@ function resetAll(){
   localStorage.clear();showToast('초기화 완료. 재시작해요.');
   setTimeout(()=>location.reload(),1500);
 }
+function timeAgo(ts){
+  if(!ts)return '방금 전';
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return '방금 전';
+  const m=Math.floor(s/60);if(m<60)return m+'분 전';
+  const h=Math.floor(m/60);if(h<24)return h+'시간 전';
+  return Math.floor(h/24)+'일 전';
+}
+function addNotif(icon,bg,title,desc){
+  const items=lsGet('notifHistory',[]);
+  items.unshift({icon,bg,title,desc,ts:Date.now()});
+  if(items.length>50)items.pop();
+  lsSet('notifHistory',items);
+  const dot=document.getElementById('notif-dot');
+  if(dot)dot.style.display='block';
+}
+function updateNotifDot(){
+  const items=lsGet('notifHistory',[]);
+  const dot=document.getElementById('notif-dot');
+  if(dot)dot.style.display=items.length?'block':'none';
+}
 function renderNotifView(){
   const el=document.getElementById('notif-items-list');if(!el)return;
   const items=lsGet('notifHistory',[]);
+  // 알림 화면 열면 빨간 점 제거
+  const dot=document.getElementById('notif-dot');
+  if(dot)dot.style.display='none';
   if(!items.length){
     el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#8888aa;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
     return;
@@ -5397,7 +5430,7 @@ function renderNotifView(){
       <div style="flex:1">
         <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px">${item.title}</div>
         <div style="font-size:12px;color:#8888aa">${item.desc||''}</div>
-        <div style="font-size:11px;color:#6666aa;margin-top:4px">${item.time||''}</div>
+        <div style="font-size:11px;color:#6666aa;margin-top:4px">${timeAgo(item.ts)}</div>
       </div>
     </div>`).join('');
 }
