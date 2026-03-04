@@ -2709,8 +2709,7 @@ async function loadProductsFromSupabase(){
 let curFilter='전체';
 let curSearch='';
 let curProductId=null;
-let prevView='list';
-let preEditPrevView='';
+let viewHistory=[];
 let fromMyProducts=false;
 let sliderIdx=0;
 let sliderTotal=0;
@@ -2878,11 +2877,17 @@ function showToast(msg){
 }
 
 /* ==================== VIEW ==================== */
-function showView(name){
+function showView(name,push=true){
   const PROTECTED=['chat','form','mypage','wishlist','reservations','notif-settings','profile-edit','analytics','settings'];
   if(PROTECTED.includes(name)&&!curUser){showToast('로그인 후 이용해주세요');name='login';}
-  const prev=document.querySelector('.view.active');
-  if(prev)prevView=prev.id.replace('view-','');
+  const ROOT=['list','category','chat','mypage'];
+  if(ROOT.includes(name)){
+    viewHistory=[];
+  } else if(push){
+    const cur=document.querySelector('.view.active');
+    const curName=cur?cur.id.replace('view-',''):'';
+    if(curName&&curName!==name)viewHistory.push(curName);
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const target=document.getElementById('view-'+name);
   if(target){target.classList.add('active');window.scrollTo(0,0)}
@@ -2923,16 +2928,20 @@ function closeSearchOverlay(){
 function goBack(){
   const overlay=document.getElementById('view-search-view');
   if(overlay&&overlay.classList.contains('open')){closeSearchOverlay();return;}
-  if(prevView==='search-view'){openSearchOverlay();return;}
   const curActive=document.querySelector('.view.active');
   const curName=curActive?curActive.id.replace('view-',''):'';
   if(curName==='form'&&formEditId){
     formEditId=null;
     showMySales();
-    prevView=preEditPrevView||'mypage';
     return;
   }
-  showView(prevView||'list');
+  if(viewHistory.length>0){
+    const prev=viewHistory.pop();
+    if(prev==='search-view'){openSearchOverlay();return;}
+    showView(prev,false);
+  }else{
+    showView('list',false);
+  }
 }
 
 /* ==================== AUTH ==================== */
@@ -3442,8 +3451,7 @@ function openDetail(id){
   addViewLog(id);
   const overlay=document.getElementById('view-search-view');
   const fromSearch=overlay&&overlay.classList.contains('open');
-  if(fromSearch){overlay.classList.remove('open');prevView='search-view';}
-  else{prevView='list';}
+  if(fromSearch)overlay.classList.remove('open');
   curProductId=id;sliderIdx=0;
   const p=products.find(x=>x.id===id);if(!p)return;
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
@@ -3597,7 +3605,8 @@ function openDetail(id){
   if(rdEl)rdEl.valueAsDate=new Date();
 
   curSellerData=seller;
-  showView('detail');
+  if(fromSearch){viewHistory.push('search-view');showView('detail',false);}
+  else{showView('detail');}
 
   // 수정/삭제 버튼 (내 상품 관리에서 진입 시만 헤더에 표시)
   const ownerBar=document.getElementById('pd-owner-bar');
@@ -3634,7 +3643,6 @@ function toggleDetailLike(){
 function editProduct(targetId){
   if(targetId!==undefined)curProductId=targetId;
   const p=products.find(x=>x.id==curProductId);if(!p)return;
-  preEditPrevView=prevView;
   showView('form');
   formEditId=p.id;
   document.getElementById('f-title').value=p.title||'';
@@ -3755,7 +3763,6 @@ function switchSellerTab(tab,el){
   }
 }
 function renderSellerPage(seller){
-  prevView='detail';
   curSellerData=seller;
   const bg=getFColor(seller.name,'abc');
   const overlay=document.getElementById('sh-cover-overlay');
@@ -4681,7 +4688,8 @@ function showMySales(){
   const el=document.getElementById('cp-list');
   if(el)el.innerHTML=myP.map(p=>renderMyProductCard(p)).join('');
   document.getElementById('cp-hdr-title').textContent='내 상품 ('+myP.length+'개)';
-  showView('cat-products');
+  viewHistory=['mypage'];
+  showView('cat-products',false);
 }
 function openMySellerPage(){
   if(!curUser){showToast('로그인이 필요해요');return;}
