@@ -2900,8 +2900,9 @@ function goBack(){
   const curActive=document.querySelector('.view.active');
   const curName=curActive?curActive.id.replace('view-',''):'';
   if(curName==='form'&&formEditId){
-    showView('detail');
-    prevView=preEditPrevView||'list';
+    formEditId=null;
+    showMySales();
+    prevView=preEditPrevView||'mypage';
     return;
   }
   showView(prevView||'list');
