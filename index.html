@@ -568,6 +568,9 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .h-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 .h-seller{font-size:11px;color:#8888aa}
 .h-counts{display:flex;gap:8px;font-size:10px;color:#8888aa}
+.my-card-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.my-card-edit-btn{padding:5px 12px;background:rgba(108,99,255,.15);border:1.5px solid #6c63ff;border-radius:10px;color:#6c63ff;font-size:12px;font-weight:700;cursor:pointer}
+.my-card-del-btn{padding:5px 12px;background:rgba(255,80,80,.12);border:1.5px solid #ff5050;border-radius:10px;color:#ff5050;font-size:12px;font-weight:700;cursor:pointer}
 
 /* PRODUCT DETAIL v2 */
 #view-detail{background:#0a0a0f}
@@ -3267,6 +3270,46 @@ function renderHomeProduct(p){
     </div>
   </div>`;
 }
+function renderMyProductCard(p){
+  const urgent=p.qty<100;
+  const bg=getFColor(p.type,p.color);
+  const unit=p.unit||'m';
+  return `<div class="h-product-card" onclick="openDetailFromMyProducts(${p.id})">
+    <div class="h-product-img" style="background:${bg}">
+      ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
+    </div>
+    <div class="h-product-body">
+      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
+      <div class="h-product-name">${p.title||'(제목 없음)'}</div>
+      <div class="h-badges">
+        <span class="h-fabric-badge">${p.type}</span>
+        ${p.width?`<span class="h-weight-badge">${p.width}cm</span>`:''}
+      </div>
+      <div class="h-price">${fmtPrice(p.price)}<span class="h-pu">/${unit}</span></div>
+      <div class="h-bottom">
+        <span class="h-seller">📍${p.loc?p.loc.split(' ').slice(-1)[0]:'위치 미상'}</span>
+        <span class="h-counts"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
+      </div>
+      <div class="my-card-actions" onclick="event.stopPropagation()">
+        <button class="my-card-edit-btn" onclick="editProductById(${p.id})">✏️ 수정</button>
+        <button class="my-card-del-btn" onclick="deleteProductById(${p.id})">🗑️ 삭제</button>
+      </div>
+    </div>
+  </div>`;
+}
+function editProductById(id){curProductId=id;editProduct();}
+async function deleteProductById(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
+  if(_sb){
+    const{error}=await _sb.from('products').delete().eq('id',id);
+    if(error){showToast('삭제 실패: '+error.message);return;}
+  }
+  products=products.filter(x=>x.id!==id);
+  saveProducts();
+  showToast('상품이 삭제되었어요');
+  showMySales();
+}
 
 function renderHomeSections(){
   const el=document.getElementById('home-category-sections');
@@ -4589,7 +4632,7 @@ function showMySales(){
   // 내 상품을 카테고리 검색 화면으로 — curFilter 이용
   curCatKey='';
   const el=document.getElementById('cp-list');
-  if(el)el.innerHTML=myP.map(p=>renderHomeProduct(p).replace(/openDetail\((\d+)\)/g,'openDetailFromMyProducts($1)')).join('');
+  if(el)el.innerHTML=myP.map(p=>renderMyProductCard(p)).join('');
   document.getElementById('cp-hdr-title').textContent='내 상품 ('+myP.length+'개)';
   showView('cat-products');
 }
