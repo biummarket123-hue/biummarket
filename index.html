@@ -2744,6 +2744,32 @@ function compressImage(dataUrl,maxSize=400,quality=0.7){
     img.src=dataUrl;
   });
 }
+function dataUrlToBlob(dataUrl){
+  const arr=dataUrl.split(',');
+  const mime=arr[0].match(/:(.*?);/)[1];
+  const bstr=atob(arr[1]);let n=bstr.length;
+  const u8=new Uint8Array(n);while(n--)u8[n]=bstr.charCodeAt(n);
+  return new Blob([u8],{type:mime});
+}
+async function uploadProductImg(src,idx){
+  if(!src.startsWith('data:'))return src; // 이미 HTTP URL
+  if(_sb){
+    try{
+      const compressed=await compressImage(src,800,0.8);
+      const blob=dataUrlToBlob(compressed);
+      const uid=curUser?.id||'anon';
+      const path=`products/${uid}/${Date.now()}_${idx}.jpg`;
+      const{error:upErr}=await _sb.storage.from('product-images').upload(path,blob,{contentType:'image/jpeg',upsert:true});
+      if(!upErr){
+        const{data:{publicUrl}}=_sb.storage.from('product-images').getPublicUrl(path);
+        return publicUrl;
+      }
+      console.warn('[uploadProductImg] Storage 업로드 실패:',upErr.message);
+    }catch(e){console.warn('[uploadProductImg] Storage 예외:',e);}
+  }
+  // Fallback: data URL 압축 후 DB 직접 저장
+  try{return await compressImage(src,400,0.7);}catch(e){return src;}
+}
 // 성공 시 result 객체 반환, 실패 시 { __error: '메시지' } 반환
 async function analyzeImageWithAI(dataUrl){
   const base64=dataUrl.split(',')[1];
@@ -3941,14 +3967,8 @@ async function submitForm(){
   const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
   const image_urls=[];
-  for(const src of uploadedImgs){
-    let url;
-    if(src.startsWith('data:')){
-      try{url=await compressImage(src,400,0.7);}
-      catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);url=src;}
-    }else{
-      url=src; // 기존 HTTP URL 그대로 사용
-    }
+  for(let _i=0;_i<uploadedImgs.length;_i++){
+    const url=await uploadProductImg(uploadedImgs[_i],_i);
     image_urls.push(url);
   }
   if(image_urls.length>0)image_url=image_urls[0];
