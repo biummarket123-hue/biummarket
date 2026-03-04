@@ -3616,12 +3616,13 @@ function editProduct(){
   document.getElementById('f-bulk-price').value=p.bulk_price||'';
   document.getElementById('f-moq').value=p.moq||'';
   document.getElementById('f-desc').value=p.description||'';
-  if(p.is_urgent){
-    urgent=true;
-    const ut=document.getElementById('urgentToggle');if(ut)ut.checked=true;
-    const us=document.getElementById('urgentSlider');if(us)us.style.background='#ff6b35';
-    const uth=document.getElementById('urgentThumb');if(uth)uth.style.transform='translateX(24px)';
-  }
+  urgent=p.is_urgent===true;
+  const ut=document.getElementById('urgentToggle');
+  const us=document.getElementById('urgentSlider');
+  const uth=document.getElementById('urgentThumb');
+  if(ut)ut.checked=urgent;
+  if(us)us.style.background=urgent?'#ff6b35':'#333';
+  if(uth)uth.style.transform=urgent?'translateX(24px)':'translateX(0)';
   if(p.cat||p.type)selectCat1(p.cat||p.type);
   if(typeof p.sample==='boolean')setSample(p.sample);
   // 이미지 복원
@@ -3930,7 +3931,7 @@ async function submitForm(){
   const listPrice=parseFloat(document.getElementById('f-list-price').value)||0;
   const bulkPrice=parseFloat(document.getElementById('f-bulk-price').value)||0;
   const moq=parseInt(document.getElementById('f-moq').value)||0;
-  urgent=document.getElementById('urgentToggle')?.checked??urgent;
+  urgent=document.getElementById('urgentToggle')?.checked??false;
   const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
   if(uploadedImgs.length>0){
