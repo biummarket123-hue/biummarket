@@ -3338,42 +3338,60 @@ function openDetail(id){
   document.getElementById('s-next').style.display=sliderTotal>1?'flex':'none';
   updateSlider();
 
+  const unit=p.unit||'m';
+
   // 상품명 + 뱃지
   set('pd-name',p.title);
   const badgeEl=document.getElementById('pd-badges');
   if(badgeEl){
-    const urgent=p.qty<100;
+    const isUrgent=p.is_urgent||(p.qty<100);
     badgeEl.innerHTML=`
-      <span class="pd-mat-badge">${p.type}</span>
+      <span class="pd-mat-badge">${p.material||p.type}</span>
       ${p.weight?`<span class="pd-wt-badge">⚖ ${p.weight}g/㎡</span>`:''}
-      ${urgent?'<span class="pd-urgent-badge">⚡ 급처</span>':''}`;
+      ${isUrgent?'<span class="pd-urgent-badge">⚡ 급처</span>':''}`;
   }
 
   // 가격
-  set('pd-price-main',fmtPrice(p.price)+'/m');
-  set('pd-price-range',`총 ${fmtPrice(p.qty*p.price)} (재고 ${p.qty}m 기준)`);
+  set('pd-price-main',fmtPrice(p.price)+'/'+unit);
+  set('pd-price-range',`총 ${fmtPrice(p.qty*p.price)} (재고 ${p.qty}${unit} 기준)`);
 
-  // MOQ + 할인
+  // MOQ + 샘플 + 할인
   const moqEl=document.getElementById('pd-moq-row');
   if(moqEl){
-    const minQty=p.moq||50;
-    moqEl.innerHTML=`<span class="pd-moq-tag">MOQ ${minQty}m · ${fmtPrice(minQty*p.price)}</span>${p.discount?`<span class="pd-disc-tag">-${p.discount}% 할인</span>`:''}`;
+    let mhtml='';
+    if(p.moq)mhtml+=`<span class="pd-moq-tag">MOQ ${p.moq}${unit} · ${fmtPrice(p.moq*p.price)}</span>`;
+    const discRate=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+    if(discRate)mhtml+=`<span class="pd-disc-tag">-${discRate}% 할인</span>`;
+    if(p.bulk_price)mhtml+=`<span class="pd-moq-tag">대량가 ${fmtPrice(p.bulk_price)}/${unit}</span>`;
+    if(p.sample!==undefined&&p.sample!==null)mhtml+=`<span class="pd-moq-tag">${p.sample?'✅ 샘플 가능':'❌ 샘플 불가'}</span>`;
+    moqEl.innerHTML=mhtml;
   }
 
-  // 판매자
+  // 판매자 (seller 없을 때 방어 처리)
+  const seller=p.seller||{};
+  const sellerName=seller.name||'판매자';
   const selAv=document.getElementById('pd-sel-av');
-  if(selAv){selAv.textContent=p.seller.name[0];selAv.style.background=bg;}
-  set('pd-sel-name',p.seller.name);
-  set('pd-sel-meta',`📍 ${p.loc} · 매너온도 ${p.seller.temp.toFixed(1)}°C`);
-  set('pd-sel-trades',`거래완료 ${p.seller.trades||0}건 →`);
+  if(selAv){selAv.textContent=sellerName[0]||'?';selAv.style.background=bg;}
+  set('pd-sel-name',sellerName);
+  set('pd-sel-meta',`📍 ${p.loc||seller.loc||'위치 미기재'} · 매너온도 ${(seller.temp||36.5).toFixed(1)}°C`);
+  set('pd-sel-trades',`거래완료 ${seller.trades||0}건 →`);
 
   // 설명
-  set('pd-desc',p.description);
+  set('pd-desc',p.description||'');
 
-  // 스펙
+  // 스펙 (material, unit, sample 포함)
   const specEl=document.getElementById('pd-spec');
   if(specEl){
-    const specs=[['폭',p.width+'cm'],['중량',p.weight?p.weight+'g/㎡':'미기재'],['소재',p.type],['색상',p.color],['재고',p.qty+'m'],['최소수량',p.moq?p.moq+'m':'협의']];
+    const specs=[
+      p.material&&['소재',p.material],
+      ['분류',p.type],
+      p.weight&&['중량',p.weight+'g/㎡'],
+      p.width&&['폭',p.width+'cm'],
+      p.color&&['색상',p.color],
+      ['재고',p.qty+unit],
+      p.moq&&['최소수량',p.moq+unit],
+      p.sample!==undefined&&p.sample!==null&&['샘플',p.sample?'✅ 가능':'❌ 불가'],
+    ].filter(Boolean);
     specEl.innerHTML=specs.map(([k,v])=>`<div class="pd-spec-row"><span class="pd-spec-key">${k}</span><span class="pd-spec-val">${v}</span></div>`).join('');
   }
 
@@ -3383,7 +3401,7 @@ function openDetail(id){
 
   // 통계
   const statsEl=document.getElementById('pd-stats');
-  if(statsEl)statsEl.innerHTML=`<span>🤍 관심 ${p.likes}</span><span>💬 문의 ${p.chats}</span><span style="margin-left:auto;font-size:11px">${p.time}</span>`;
+  if(statsEl)statsEl.innerHTML=`<span>🤍 관심 ${p.likes||0}</span><span>💬 문의 ${p.chats||0}</span><span style="margin-left:auto;font-size:11px">${p.time||''}</span>`;
 
   // 찜
   updateDetailHeart(p);
@@ -3392,13 +3410,13 @@ function openDetail(id){
   const rdEl=document.getElementById('res-date');
   if(rdEl)rdEl.valueAsDate=new Date();
 
-  curSellerData=p.seller;
+  curSellerData=seller;
   showView('detail');
 
   // 판매자 수정/삭제 버튼
   const ownerBar=document.getElementById('pd-owner-bar');
   if(ownerBar){
-    const isOwner=curUser&&(p.seller?.id===curUser.id||p.seller_id===curUser.id||p.seller?.name===curUser.name);
+    const isOwner=curUser&&(seller.id===curUser.id||p.seller_id===curUser.id||seller.name===curUser.name);
     ownerBar.style.display=isOwner?'flex':'none';
   }
 
