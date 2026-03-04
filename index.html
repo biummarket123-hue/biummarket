@@ -3430,13 +3430,15 @@ function openDetail(id){
   const tex=getTexture(p.type);
 
   // 1. 슬라이더
-  sliderTotal=p.imgs||1;
+  const imgUrls=p.image_urls&&p.image_urls.length?p.image_urls:(p.image_url?[p.image_url]:[]);
+  sliderTotal=Math.max(imgUrls.length,p.imgs||1);
   const track=document.getElementById('s-track');
   const dots=document.getElementById('s-dots');
   const vs=['','filter:brightness(1.1)','filter:brightness(.9)','filter:saturate(1.3)','filter:hue-rotate(15deg)'];
   track.innerHTML=Array.from({length:sliderTotal},(_,i)=>{
-    const showImg=i===0&&p.image_url;
-    const imgTag=showImg?'<img src="'+p.image_url+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>'  :'';
+    const imgUrl=imgUrls[i]||null;
+    const showImg=!!imgUrl;
+    const imgTag=showImg?'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'';
     return '<div class="s-slide" style="background:'+bg+';background-image:'+(showImg?'none':tex)+';'
       +(showImg?'':(vs[i]||'')+';')+'flex-shrink:0;width:'+(100/sliderTotal)+'%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column">'
       +imgTag
@@ -3630,7 +3632,8 @@ function editProduct(targetId){
   if(typeof p.sample==='boolean')setSample(p.sample);
   // 이미지 복원
   uploadedImgs=[];
-  if(p.image_url)uploadedImgs=[p.image_url];
+  if(p.image_urls&&p.image_urls.length)uploadedImgs=[...p.image_urls];
+  else if(p.image_url)uploadedImgs=[p.image_url];
   renderFormImgs();
   const ft=document.querySelector('#view-form .hdr-title');
   if(ft)ft.textContent='상품 수정';
@@ -3937,15 +3940,18 @@ async function submitForm(){
   urgent=document.getElementById('urgentToggle')?.checked??false;
   const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
-  if(uploadedImgs.length>0){
-    const first=uploadedImgs[0];
-    if(first.startsWith('data:')){
-      try{image_url=await compressImage(first,400,0.7);}
-      catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);image_url=first;}
+  const image_urls=[];
+  for(const src of uploadedImgs){
+    let url;
+    if(src.startsWith('data:')){
+      try{url=await compressImage(src,400,0.7);}
+      catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);url=src;}
     }else{
-      image_url=first; // 기존 HTTP URL 그대로 사용
+      url=src; // 기존 HTTP URL 그대로 사용
     }
+    image_urls.push(url);
   }
+  if(image_urls.length>0)image_url=image_urls[0];
   const payload={
     title,type:formCat1,cat:formCat1,
     material,weight:parseInt(weight)||null,width:null,color:'',qty:parseInt(qty)||0,price:parseInt(price)||0,unit,loc:curUser?.loc||'',
@@ -3959,6 +3965,7 @@ async function submitForm(){
     likes:0,chats:0,time:'방금 전'
   };
   if(image_url)payload.image_url=image_url;
+  if(image_urls.length>0)payload.image_urls=image_urls;
   function resetForm(){
     initFormView();
   }
@@ -3991,11 +3998,17 @@ async function submitForm(){
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
       let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
+      if(error&&error.code==='42703'&&payload.image_urls){
+        console.warn('[submitForm] image_urls 컬럼 없음 — image_urls 없이 재시도');
+        delete payload.image_urls;
+        const res2=await _sb.from('products').insert(payload).select().single();
+        inserted=res2.data;error=res2.error;
+      }
       if(error&&error.code==='42703'&&payload.image_url){
         console.warn('[submitForm] image_url 컬럼 없음 — 이미지 없이 재시도');
         delete payload.image_url;
-        const res2=await _sb.from('products').insert(payload).select().single();
-        inserted=res2.data;error=res2.error;
+        const res2b=await _sb.from('products').insert(payload).select().single();
+        inserted=res2b.data;error=res2b.error;
       }
       if(error&&error.code==='42703'&&'is_urgent' in payload){
         console.warn('[submitForm] is_urgent 컬럼 없음 — is_urgent 없이 재시도');
