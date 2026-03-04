@@ -909,6 +909,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <header class="pd-hdr" id="pd-hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
     <div style="flex:1"></div>
+    <button id="pd-hdr-edit" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#C9A84C;" onclick="editProduct()">✏️</button>
+    <button id="pd-hdr-delete" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#ff5050;" onclick="deleteProduct()">🗑️</button>
     <button class="hdr-btn" onclick="shareProduct()">⤴</button>
   </header>
   <div class="pd-scroll" id="d-scroll">
@@ -2705,6 +2707,7 @@ let curSearch='';
 let curProductId=null;
 let prevView='list';
 let preEditPrevView='';
+let fromMyProducts=false;
 let sliderIdx=0;
 let sliderTotal=0;
 let uploadedImgs=[];
@@ -3362,6 +3365,7 @@ function toggleLike(id){
 }
 
 /* ==================== DETAIL ==================== */
+function openDetailFromMyProducts(id){fromMyProducts=true;openDetail(id);}
 function openDetail(id){
   addViewLog(id);
   const overlay=document.getElementById('view-search-view');
@@ -3521,12 +3525,16 @@ function openDetail(id){
   curSellerData=seller;
   showView('detail');
 
-  // 수정/삭제 버튼
+  // 수정/삭제 버튼 (내 상품 관리에서 진입 시만 헤더에 표시)
   const ownerBar=document.getElementById('pd-owner-bar');
-  if(ownerBar){
-    const isOwner=curUser&&(seller.id===curUser.id||p.seller_id===curUser.id||seller.name===curUser.name);
-    ownerBar.style.display=isOwner?'flex':'none';
-  }
+  if(ownerBar)ownerBar.style.display='none';
+  const hdEdit=document.getElementById('pd-hdr-edit');
+  const hdDel=document.getElementById('pd-hdr-delete');
+  const isOwner=curUser&&(seller.id===curUser.id||p.seller_id===curUser.id||seller.name===curUser.name);
+  const showOwner=fromMyProducts&&isOwner;
+  if(hdEdit)hdEdit.style.display=showOwner?'':'none';
+  if(hdDel)hdDel.style.display=showOwner?'':'none';
+  fromMyProducts=false;
 
   // 스크롤 헤더 감지
   const scroll=document.getElementById('d-scroll');
@@ -4581,7 +4589,7 @@ function showMySales(){
   // 내 상품을 카테고리 검색 화면으로 — curFilter 이용
   curCatKey='';
   const el=document.getElementById('cp-list');
-  if(el)el.innerHTML=myP.map(p=>renderHomeProduct(p)).join('');
+  if(el)el.innerHTML=myP.map(p=>renderHomeProduct(p).replace(/openDetail\((\d+)\)/g,'openDetailFromMyProducts($1)')).join('');
   document.getElementById('cp-hdr-title').textContent='내 상품 ('+myP.length+'개)';
   showView('cat-products');
 }
