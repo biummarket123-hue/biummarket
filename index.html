@@ -3299,7 +3299,7 @@ function renderMyProductCard(p){
     </div>
   </div>`;
 }
-function editProductById(id){curProductId=id;editProduct();}
+function editProductById(id){editProduct(id);}
 async function deleteProductById(id){
   const p=products.find(x=>x.id===id);if(!p)return;
   if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
@@ -3603,8 +3603,9 @@ function toggleDetailLike(){
   updateDetailHeart(p);
   showToast(p.liked?t('like_add'):t('like_remove'));
 }
-function editProduct(){
-  const p=products.find(x=>x.id===curProductId);if(!p)return;
+function editProduct(targetId){
+  if(targetId!==undefined)curProductId=targetId;
+  const p=products.find(x=>x.id==curProductId);if(!p)return;
   preEditPrevView=prevView;
   showView('form');
   formEditId=p.id;
@@ -3937,8 +3938,13 @@ async function submitForm(){
   const sellerInfo=curUser?{id:curUser.id,name:curUser.name,temp:curUser.temp||36.5,loc:curUser.loc||''}:{name:'나',temp:36.5,loc:''};
   let image_url=null;
   if(uploadedImgs.length>0){
-    try{image_url=await compressImage(uploadedImgs[0],400,0.7);}
-    catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);}
+    const first=uploadedImgs[0];
+    if(first.startsWith('data:')){
+      try{image_url=await compressImage(first,400,0.7);}
+      catch(e){console.warn('[submitForm] 이미지 압축 실패:',e);image_url=first;}
+    }else{
+      image_url=first; // 기존 HTTP URL 그대로 사용
+    }
   }
   const payload={
     title,type:formCat1,cat:formCat1,
@@ -3961,8 +3967,8 @@ async function submitForm(){
     if(formEditId){
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...payload};
-      const eid=formEditId;formEditId=null;curProductId=eid;
-      saveProducts();resetForm();showView('detail');prevView=preEditPrevView||'list';showToast('수정 완료!');
+      formEditId=null;
+      saveProducts();resetForm();showMySales();showToast('수정 완료!');
     }else{
       const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
       products.unshift(newP);saveProducts();
@@ -3979,9 +3985,9 @@ async function submitForm(){
       if(error){showToast('수정 실패: '+error.message);return;}
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...upd};
-      const eid=formEditId;formEditId=null;curProductId=eid;
-      resetForm();showView('detail');prevView=preEditPrevView||'list';showToast('수정 완료!');
-      lsDelTTL('products_sb');await loadProductsFromSupabase();
+      formEditId=null;
+      resetForm();showMySales();showToast('수정 완료!');
+      lsDelTTL('products_sb');loadProductsFromSupabase().then(()=>showMySales());
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
       let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
