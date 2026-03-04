@@ -90,13 +90,13 @@ ul{list-style:none}
 .pinfo{padding:9px 9px 7px}
 .pname{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#1a1a1a}
 .pmeta{font-size:11px;color:#666677;margin-bottom:5px}
-.pprice{font-size:13px;font-weight:700;color:#e53935}
+.pprice{font-size:13px;font-weight:700;color:#1a1a1a}
 .pprice .pu{font-size:10px;font-weight:400;color:#666677}
 .pfoot{display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding-top:5px;border-top:1px solid #e0e0ea}
 .ploc{font-size:10px;color:#666677;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pcnt{display:flex;gap:5px;font-size:10px;color:#666677;flex-shrink:0}
 .badge-new{position:absolute;top:7px;left:7px;z-index:2;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
-.badge-urgent{position:absolute;top:7px;right:7px;z-index:2;background:#ff6b35;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.badge-urgent{position:absolute;top:6px;left:6px;z-index:3;background:#e53935;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px}
 
 /* EMPTY */
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#666677;padding:40px;text-align:center}
@@ -541,14 +541,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .ai-section-more{font-size:12px;color:#888899;font-weight:600}
 .ai-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .ai-scroll::-webkit-scrollbar{display:none}
-.ai-card{flex-shrink:0;width:130px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .15s}
+.ai-card{flex-shrink:0;width:130px;background:#f8f8fa;border:2px solid #f5c518;border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .15s}
 .ai-card:hover{transform:translateY(-2px)}
 .ai-card-thumb{height:90px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .ai-card-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .ai-badge-gold{position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;z-index:2}
 .ai-card-info{padding:8px 8px 9px}
 .ai-card-name{font-size:11px;font-weight:600;color:#1a1a1a;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
-.ai-card-price{font-size:12px;font-weight:700;color:#e53935}
+.ai-card-price{font-size:12px;font-weight:700;color:#1a1a1a}
 .ai-card-disc{font-size:10px;color:#ff6584;font-weight:600;margin-left:4px}
 .cat-section{margin:18px 0 0}
 .cat-section-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px;margin-bottom:10px}
@@ -559,12 +559,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .h-product-img{width:80px;height:80px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#eeeeee;display:flex;align-items:center;justify-content:center;position:relative}
 .h-product-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
-.h-badge-urgent{display:inline-flex;align-items:center;background:rgba(255,101,132,.15);color:#ff6584;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:4px;width:fit-content}
+.h-badge-urgent{position:absolute;top:4px;left:4px;z-index:2;background:#e53935;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center}
 .h-product-name{font-size:13px;font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;margin-bottom:3px}
 .h-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .h-fabric-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#eeeeee;color:#888899;font-weight:500}
 .h-weight-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#f0f0f0;color:#555555;font-weight:500}
-.h-price{font-size:14px;font-weight:700;color:#e53935}
+.h-price{font-size:14px;font-weight:700;color:#1a1a1a}
 .h-price .h-pu{font-size:10px;font-weight:400;color:#666677;margin-left:3px}
 .h-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 .h-seller{font-size:11px;color:#666677}
@@ -818,7 +818,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <!-- ========== LIST ========== -->
 <div id="view-list" class="view">
   <header class="home-hdr">
-    <div class="hdr-logo" style="flex:none;font-size:16px">비움</div>
+    <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;gap:1px"><span style="font-size:16px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.3px">비움마켓</span><span style="font-size:8px;font-weight:600;color:#aaaaaa;letter-spacing:0.8px">BIUM MARKET</span></div>
     <div class="home-search-bar" onclick="openSearchOverlay()">
       <span style="font-size:14px;color:#666677">🔍</span>
       <span style="flex:1;font-size:13px;color:#666677" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
@@ -3288,12 +3288,14 @@ function renderAiRecs(){
 function renderHomeProduct(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
+  const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+  const locInfo=p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:discPct?'↓'+discPct+'% 저렴':'';
   return `<div class="h-product-card" onclick="openDetail(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:'' }
+      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
     </div>
     <div class="h-product-body">
-      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
@@ -3301,7 +3303,7 @@ function renderHomeProduct(p){
       </div>
       <div class="h-price">${fmtPrice(p.price)}<span class="h-pu">/m</span></div>
       <div class="h-bottom">
-        <span class="h-seller">📍${p.loc?p.loc.split(' ').slice(-1)[0]:'위치 미상'}</span>
+        <span class="h-seller">${locInfo}</span>
         <span class="h-counts"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
       </div>
     </div>
@@ -3311,12 +3313,14 @@ function renderMyProductCard(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+  const locInfo=p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:discPct?'↓'+discPct+'% 저렴':'';
   return `<div class="h-product-card" onclick="openDetailFromMyProducts(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
+      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
     </div>
     <div class="h-product-body">
-      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
@@ -3324,7 +3328,7 @@ function renderMyProductCard(p){
       </div>
       <div class="h-price">${fmtPrice(p.price)}<span class="h-pu">/${unit}</span></div>
       <div class="h-bottom">
-        <span class="h-seller">📍${p.loc?p.loc.split(' ').slice(-1)[0]:'위치 미상'}</span>
+        <span class="h-seller">${locInfo}</span>
         <span class="h-counts"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
       </div>
       <div class="my-card-actions" onclick="event.stopPropagation()">
@@ -3417,9 +3421,9 @@ function renderCard(p, idx){
   const delay=typeof idx==='number'?(idx%PAGE_SIZE)*0.04:0;
   return `<li class="pcard" onclick="openDetail(${p.id})" style="animation-delay:${delay}s">
     ${isNew?'<div class="badge-new">NEW</div>':''}
-    ${p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
     <div class="pthumb" style="background:${bg};background-image:${tex}">
       ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:'' }
+      ${p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
     </div>
     <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${p.liked?'❤️':'🤍'}</button>
@@ -3428,7 +3432,7 @@ function renderCard(p, idx){
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
       <div class="pprice">${fmtPrice(total)}<span class="pu"> (${fmtPrice(p.price)}/m)</span></div>
       <div class="pfoot">
-        <span class="ploc">📍${p.loc.split(' ').slice(-1)[0]}</span>
+        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
         <span class="pcnt"><span>🤍${p.likes}</span><span>💬${p.chats}</span></span>
       </div>
     </div>
@@ -4752,7 +4756,7 @@ function openTopSellers(){
       <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#ff6584);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0">${s.name[0]}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:#1a1a1a">${s.name}</div>
-        <div style="font-size:11px;color:#666677">${s.loc||'위치 미상'}</div>
+        <div style="font-size:11px;color:#666677">${s.loc||''}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:13px;font-weight:700;color:#6c63ff">❤️ ${s.likes}</div>
