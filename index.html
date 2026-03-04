@@ -535,7 +535,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .premium-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;margin-bottom:8px}
 .premium-title{font-size:16px;font-weight:800;color:#ffffff;margin-bottom:4px;position:relative;z-index:1}
 .premium-sub{font-size:12px;color:rgba(255,255,255,.65);position:relative;z-index:1}
-.ai-section{margin:16px 14px 0;background:#fef9e7;border:2px solid #f5c518;border-radius:16px;padding:14px 12px}
+.ai-section{margin:16px 14px 0;background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:none;border-radius:20px;padding:20px 16px;position:relative;overflow:hidden}
 .ai-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .ai-section-title{font-size:14px;font-weight:800;color:#1a1a1a}
 .ai-section-more{font-size:12px;color:#888899;font-weight:600}
@@ -847,6 +847,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <!-- AI 추천 섹션 -->
     <div class="ai-section">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(251,191,36,0.2);border-radius:50%;pointer-events:none"></div>
       <div class="ai-section-hd">
         <span class="ai-section-title" data-i18n="ai_title">✨ AI 추천 원단</span>
         <span class="ai-section-more" onclick="showView('ai')" data-i18n="ai_more">AI 분석하기 →</span>
