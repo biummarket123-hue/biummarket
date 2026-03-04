@@ -560,15 +560,18 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .h-product-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
 .h-badge-urgent{position:absolute;top:4px;left:4px;z-index:2;background:#e53935;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center}
-.h-product-name{font-size:13px;font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;margin-bottom:3px}
+.h-product-name{font-size:13px;font-weight:700;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;margin-bottom:2px}
+.h-meta{font-size:12px;color:#888;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .h-fabric-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#eeeeee;color:#888899;font-weight:500}
 .h-weight-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#f0f0f0;color:#555555;font-weight:500}
-.h-price{font-size:14px;font-weight:700;color:#1a1a1a}
-.h-price .h-pu{font-size:10px;font-weight:400;color:#666677;margin-left:3px}
-.h-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.h-price{font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:5px}
+.h-price .h-pu{font-size:11px;font-weight:400;color:#666677;margin-left:2px}
+.h-bottom{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.h-moq-tag{background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:500}
+.h-disc-tag{color:#e53935;font-weight:700;font-size:11px}
 .h-seller{font-size:11px;color:#666677}
-.h-counts{display:flex;gap:8px;font-size:10px;color:#666677}
+.h-counts{display:flex;gap:8px;font-size:10px;color:#666677;flex-shrink:0}
 .my-card-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
 .my-card-edit-btn{padding:5px 12px;background:#f0f0f0;border:1.5px solid #d0d0d0;border-radius:10px;color:#444444;font-size:12px;font-weight:700;cursor:pointer}
 .my-card-del-btn{padding:5px 12px;background:rgba(255,80,80,.12);border:1.5px solid #ff5050;border-radius:10px;color:#ff5050;font-size:12px;font-weight:700;cursor:pointer}
@@ -3290,8 +3293,11 @@ function renderAiRecs(){
 function renderHomeProduct(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
+  const unit=p.unit||'m';
+  const seller=p.seller||{};
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const locInfo=p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:discPct?'↓'+discPct+'% 저렴':'';
+  const priceColor=discPct?'#e53935':'#1a1a1a';
+  const metaParts=[seller.name,p.loc?p.loc.split(' ').slice(-1)[0]:'',p.time||''].filter(Boolean);
   return `<div class="h-product-card" onclick="openDetail(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:'' }
@@ -3299,14 +3305,18 @@ function renderHomeProduct(p){
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
+      <div class="h-meta">${metaParts.join(' · ')}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
-        ${p.width?`<span class="h-weight-badge">${p.width}cm</span>`:''}
+        ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
       </div>
-      <div class="h-price">${fmtPrice(p.price)}<span class="h-pu">/m</span></div>
+      <div class="h-price" style="color:${priceColor}">${fmtPrice(p.price)}<span class="h-pu">/${unit}</span></div>
       <div class="h-bottom">
-        <span class="h-seller">${locInfo}</span>
-        <span class="h-counts"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
+        <div style="display:flex;gap:4px;align-items:center;flex:1;flex-wrap:wrap">
+          ${p.moq?`<span class="h-moq-tag">MOQ ${p.moq}${unit}</span>`:''}
+          ${discPct?`<span class="h-disc-tag">-${discPct}%</span>`:''}
+        </div>
+        <span class="h-counts"><span>💬${p.chats||0}</span><span>🤍${p.likes||0}</span></span>
       </div>
     </div>
   </div>`;
@@ -3315,8 +3325,10 @@ function renderMyProductCard(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const seller=p.seller||{};
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const locInfo=p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:discPct?'↓'+discPct+'% 저렴':'';
+  const priceColor=discPct?'#e53935':'#1a1a1a';
+  const metaParts=[seller.name,p.loc?p.loc.split(' ').slice(-1)[0]:'',p.time||''].filter(Boolean);
   return `<div class="h-product-card" onclick="openDetailFromMyProducts(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
@@ -3324,14 +3336,18 @@ function renderMyProductCard(p){
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
+      <div class="h-meta">${metaParts.join(' · ')}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
-        ${p.width?`<span class="h-weight-badge">${p.width}cm</span>`:''}
+        ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
       </div>
-      <div class="h-price">${fmtPrice(p.price)}<span class="h-pu">/${unit}</span></div>
+      <div class="h-price" style="color:${priceColor}">${fmtPrice(p.price)}<span class="h-pu">/${unit}</span></div>
       <div class="h-bottom">
-        <span class="h-seller">${locInfo}</span>
-        <span class="h-counts"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
+        <div style="display:flex;gap:4px;align-items:center;flex:1;flex-wrap:wrap">
+          ${p.moq?`<span class="h-moq-tag">MOQ ${p.moq}${unit}</span>`:''}
+          ${discPct?`<span class="h-disc-tag">-${discPct}%</span>`:''}
+        </div>
+        <span class="h-counts"><span>💬${p.chats||0}</span><span>🤍${p.likes||0}</span></span>
       </div>
       <div class="my-card-actions" onclick="event.stopPropagation()">
         <button class="my-card-edit-btn" onclick="editProductById(${p.id})">✏️ 수정</button>
