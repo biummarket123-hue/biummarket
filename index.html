@@ -3623,6 +3623,10 @@ function editProduct(){
   }
   if(p.cat||p.type)selectCat1(p.cat||p.type);
   if(typeof p.sample==='boolean')setSample(p.sample);
+  // 이미지 복원
+  uploadedImgs=[];
+  if(p.image_url)uploadedImgs=[p.image_url];
+  renderFormImgs();
   const ft=document.querySelector('#view-form .hdr-title');
   if(ft)ft.textContent='상품 수정';
 }
