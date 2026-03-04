@@ -2648,6 +2648,7 @@ let curFilter='전체';
 let curSearch='';
 let curProductId=null;
 let prevView='list';
+let preEditPrevView='';
 let sliderIdx=0;
 let sliderTotal=0;
 let uploadedImgs=[];
@@ -2834,6 +2835,13 @@ function goBack(){
   const overlay=document.getElementById('view-search-view');
   if(overlay&&overlay.classList.contains('open')){closeSearchOverlay();return;}
   if(prevView==='search-view'){openSearchOverlay();return;}
+  const curActive=document.querySelector('.view.active');
+  const curName=curActive?curActive.id.replace('view-',''):'';
+  if(curName==='form'&&formEditId){
+    showView('detail');
+    prevView=preEditPrevView||'list';
+    return;
+  }
   showView(prevView||'list');
 }
 
@@ -3419,12 +3427,14 @@ function toggleDetailLike(){
 }
 function editProduct(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
+  preEditPrevView=prevView;
+  showView('form');
   formEditId=p.id;
-  initFormView();
   document.getElementById('f-title').value=p.title||'';
   document.getElementById('f-material').value=p.material||'';
   document.getElementById('f-weight').value=p.weight||'';
   document.getElementById('f-qty').value=p.qty||'';
+  if(p.unit)document.getElementById('f-unit').value=p.unit;
   document.getElementById('f-price').value=p.price||'';
   document.getElementById('f-list-price').value=p.list_price||'';
   document.getElementById('f-bulk-price').value=p.bulk_price||'';
@@ -3436,11 +3446,10 @@ function editProduct(){
     const us=document.getElementById('urgentSlider');if(us)us.style.background='#ff6b35';
     const uth=document.getElementById('urgentThumb');if(uth)uth.style.transform='translateX(24px)';
   }
-  if(p.cat||p.type){
-    formCat1=p.cat||p.type;
-    document.querySelectorAll('.cat1-chip').forEach(el=>el.classList.toggle('sel',el.dataset.id===formCat1));
-  }
-  showView('form');
+  if(p.cat||p.type)selectCat1(p.cat||p.type);
+  if(typeof p.sample==='boolean')setSample(p.sample);
+  const ft=document.querySelector('#view-form .hdr-title');
+  if(ft)ft.textContent='상품 수정';
 }
 async function deleteProduct(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
@@ -3718,6 +3727,8 @@ function initFormView(){
   if(uth)uth.style.transform='translateX(0)';
   setSample(true);
   setAiCardLoading(false);
+  const ft=document.querySelector('#view-form .hdr-title');
+  if(ft)ft.textContent='원단 판매 등록';
 }
 
 function calcTotal(){}
