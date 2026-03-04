@@ -612,6 +612,55 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-chat-btn:hover{transform:scale(1.02)}
 .pd-res-btn{flex:1;padding:14px;background:#1e1e2e;border:1.5px solid rgba(108,99,255,.5);color:#9b94ff;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
 .pd-res-btn:hover{background:rgba(108,99,255,.1)}
+/* Detail v3 */
+.d-slider-badge-row{position:absolute;bottom:12px;right:12px;display:flex;gap:6px;z-index:2}
+.d-slider-badge{background:rgba(0,0,0,.5);backdrop-filter:blur(4px);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.pd-breadcrumb{display:flex;align-items:center;gap:4px;font-size:12px;color:#666688;margin-bottom:8px;flex-wrap:wrap}
+.pd-bc-sep{color:#444466;margin:0 2px}
+.pd-bc-cur{color:#a89dff;font-weight:600}
+.pd-stats-inline{display:flex;gap:6px;font-size:12px;color:#666688;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.pd-price-card{background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.pd-list-price-line{font-size:13px;color:#8888aa;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.pd-disc-pct{background:rgba(255,101,132,.15);color:#ff6584;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px}
+.pd-price-hero{font-size:30px;font-weight:900;color:#fff;line-height:1.2}
+.pd-price-unit{font-size:15px;font-weight:400;color:#8888aa}
+.pd-saving-badge{display:inline-block;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:#a89dff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:10px;margin-top:8px}
+.pd-badges2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #1e1e2e}
+.pd-badge-sample-ok{padding:6px 14px;background:rgba(46,213,115,.1);border:1px solid rgba(46,213,115,.3);border-radius:10px;font-size:12px;color:#2ed573;font-weight:600}
+.pd-badge-sample-no{padding:6px 14px;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:10px;font-size:12px;color:#ff6584;font-weight:600}
+.pd-badge-stock{padding:6px 14px;background:#1e1e2e;border-radius:10px;font-size:12px;color:#aaaacc;font-weight:500}
+.pd-badge-moq{padding:6px 14px;background:#1e1e2e;border-radius:10px;font-size:12px;color:#aaaacc;font-weight:500}
+.pd-badge-urgent2{padding:6px 14px;background:rgba(255,101,132,.12);border:1px solid rgba(255,101,132,.25);border-radius:10px;font-size:12px;font-weight:700;color:#ff6584}
+.pd-seller2{margin:0 14px;background:#12121a;border:1px solid #1e1e2e;border-radius:16px;padding:14px 16px}
+.pd-sel2-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.pd-cert-badge{font-size:10px;background:rgba(46,213,115,.15);color:#2ed573;padding:2px 7px;border-radius:6px;font-weight:700;margin-left:4px;vertical-align:middle}
+.pd-sel2-btns{display:flex;gap:8px}
+.pd-sel2-btn-sec{flex:1;padding:10px;background:transparent;border:1.5px solid #2a2a3e;border-radius:10px;color:#aaaacc;font-size:13px;font-weight:600;cursor:pointer}
+.pd-sel2-btn-pri{flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.pd-spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.pd-spec-cell{background:#12121a;border:1px solid #1e1e2e;border-radius:12px;padding:12px 14px}
+.pd-spec-cell-key{font-size:11px;color:#8888aa;margin-bottom:4px}
+.pd-spec-cell-val{font-size:14px;font-weight:700;color:#fff}
+.pd-stock-wrap{margin-top:4px}
+.pd-stock-info{display:flex;justify-content:space-between;font-size:12px;color:#8888aa;margin-bottom:6px}
+.pd-stock-warn{color:#ff6584;font-weight:600}
+.pd-stock-good{color:#2ed573;font-weight:600}
+.pd-stock-track{height:6px;background:#1e1e2e;border-radius:3px;overflow:hidden}
+.pd-stock-fill{height:100%;border-radius:3px;transition:width .5s}
+.pd-ai-box{background:#12121a;border:1px solid rgba(108,99,255,.3);border-radius:14px;padding:14px 16px}
+.pd-ai-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pd-ai-num{font-size:12px;color:#8888aa;white-space:nowrap}
+.pd-ai-bar-outer{flex:1;height:8px;background:#1e1e2e;border-radius:4px;position:relative}
+.pd-ai-bar-inner{height:100%;background:linear-gradient(135deg,#6c63ff,#a89dff);border-radius:4px}
+.pd-ai-dot{position:absolute;top:50%;right:25%;transform:translate(50%,-50%);width:14px;height:14px;background:#fff;border:2.5px solid #6c63ff;border-radius:50%}
+.pd-ai-verdict{font-size:13px;color:#aaaacc;text-align:center;padding-top:10px;border-top:1px solid #1e1e2e}
+.pd-sim-row{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.pd-sim-card{flex-shrink:0;width:110px;cursor:pointer}
+.pd-sim-thumb{width:110px;height:80px;border-radius:10px;overflow:hidden;background:#1e1e2e;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:6px}
+.pd-sim-thumb img{width:100%;height:100%;object-fit:cover}
+.pd-sim-title{font-size:12px;font-weight:600;color:#e0e0f0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:3px;line-height:1.4}
+.pd-sim-price{font-size:11px;color:#8888aa}
+.pd-suggest-btn{flex:1;padding:12px 4px;background:#1e1e2e;border:1.5px solid rgba(200,168,75,.5);color:#c8a84b;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer}
 
 /* CHAT LIST v2 */
 #view-chat{background:#0a0a0f}
@@ -860,65 +909,72 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <header class="pd-hdr" id="pd-hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
     <div style="flex:1"></div>
-    <button class="pd-like-btn" id="d-heart" onclick="toggleDetailLike()" style="width:38px;height:38px;border-radius:50%;background:rgba(18,18,26,.7);border:none;flex-direction:row;gap:0">
-      <span class="pd-hicon" id="d-hicon" style="font-size:18px">🤍</span>
-    </button>
     <button class="hdr-btn" onclick="shareProduct()">⤴</button>
   </header>
   <div class="pd-scroll" id="d-scroll">
-    <!-- 이미지 슬라이더 -->
+    <!-- 1. 이미지 슬라이더 -->
     <div class="d-slider" id="d-slider">
       <div class="s-track" id="s-track"></div>
       <div class="s-dots" id="s-dots"></div>
       <button class="s-nav s-prev" id="s-prev" onclick="slideMove(-1)">‹</button>
       <button class="s-nav s-next" id="s-next" onclick="slideMove(1)">›</button>
+      <div class="d-slider-badge-row" id="d-slider-badges"></div>
     </div>
-    <!-- 상품 정보 -->
+    <!-- 메인 정보 -->
     <div class="pd-info">
+      <!-- 2. 카테고리 breadcrumb -->
+      <div class="pd-breadcrumb" id="pd-breadcrumb"></div>
+      <!-- 3. 상품명 -->
       <div class="pd-name" id="pd-name"></div>
-      <div class="pd-badge-row" id="pd-badges"></div>
-      <div class="pd-price-block">
-        <div class="pd-price-main" id="pd-price-main"></div>
-        <div class="pd-price-range" id="pd-price-range"></div>
-      </div>
-      <div class="pd-moq-row" id="pd-moq-row"></div>
+      <!-- 4. 통계 -->
+      <div class="pd-stats-inline" id="pd-stats-row"></div>
+      <!-- 5. 가격 카드 -->
+      <div class="pd-price-card" id="pd-price-card"></div>
+      <!-- 6. 뱃지 행 (샘플/재고/급처) -->
+      <div class="pd-badges2" id="pd-badges2"></div>
     </div>
-    <!-- 판매자 카드 -->
-    <div class="pd-seller-card" onclick="openSellerPage()">
-      <div class="pd-seller-av" id="pd-sel-av"></div>
-      <div class="pd-seller-info">
-        <div class="pd-seller-name" id="pd-sel-name"></div>
-        <div class="pd-seller-meta" id="pd-sel-meta"></div>
-      </div>
-      <div class="pd-seller-trades" id="pd-sel-trades">미니홈피 →</div>
+    <!-- 7. 판매자 카드 -->
+    <div class="pd-seller2" id="pd-seller2"></div>
+    <!-- 8. 원단 스펙 그리드 -->
+    <div class="pd-section" id="pd-spec-section">
+      <div class="pd-section-title">원단 스펙</div>
+      <div class="pd-spec-grid" id="pd-spec-grid"></div>
+      <div id="pd-stock-bar"></div>
     </div>
-    <!-- 상세 설명 -->
-    <div class="pd-section">
-      <div class="pd-section-title" data-i18n="detail_desc">상품 설명</div>
+    <!-- 9. 상세 설명 -->
+    <div class="pd-section" id="pd-desc-section">
+      <div class="pd-section-title">상품 설명</div>
       <div class="pd-desc" id="pd-desc"></div>
     </div>
-    <!-- 원단 스펙 -->
-    <div class="pd-section">
-      <div class="pd-section-title" data-i18n="detail_spec">원단 스펙</div>
-      <div id="pd-spec"></div>
+    <!-- 10. AI 가격 예측 -->
+    <div class="pd-section" id="pd-ai-section">
+      <div class="pd-section-title">✨ AI 가격 예측</div>
+      <div id="pd-ai-content"></div>
+    </div>
+    <!-- 11. 비슷한 원단 -->
+    <div class="pd-section" id="pd-similar-section">
+      <div class="pd-section-title">비슷한 원단</div>
+      <div class="pd-sim-row" id="pd-similar-scroll"></div>
     </div>
     <!-- 태그 -->
     <div class="pd-tag-row" id="pd-tags"></div>
-    <!-- 통계 -->
-    <div class="pd-stats" id="pd-stats"></div>
-    <!-- 레거시 JS 호환용 숨김 요소 -->
+    <!-- 레거시 호환 -->
     <input type="date" id="res-date" style="display:none"/>
-    <span id="d-lcnt" style="display:none">0</span>
   </div>
-  <!-- 판매자 수정/삭제 버튼 -->
+  <!-- 판매자 수정/삭제 (본인 상품만) -->
   <div id="pd-owner-bar" style="display:none;background:#12121a;border-top:1px solid #2a2a3e;padding:10px 14px;gap:10px;flex-direction:row;">
     <button onclick="editProduct()" style="flex:1;padding:14px;background:rgba(201,168,76,0.15);border:1.5px solid #C9A84C;border-radius:14px;color:#C9A84C;font-size:14px;font-weight:700;cursor:pointer;">✏️ 수정하기</button>
     <button onclick="deleteProduct()" style="flex:1;padding:14px;background:rgba(255,80,80,0.12);border:1.5px solid #ff5050;border-radius:14px;color:#ff5050;font-size:14px;font-weight:700;cursor:pointer;">🗑️ 삭제하기</button>
   </div>
-  <!-- 하단 고정 버튼 2개 -->
+  <!-- 하단 액션 바: 좋아요 / 채팅 / 가격제안 / 예약 -->
   <div class="pd-action-bar">
-    <button class="pd-chat-btn" onclick="openChatModal()">💬 채팅하기</button>
-    <button class="pd-res-btn" onclick="openResModal()">📅 예약하기</button>
+    <button class="pd-like-btn" id="d-heart" onclick="toggleDetailLike()">
+      <span class="pd-hicon" id="d-hicon">🤍</span>
+      <span class="pd-lcnt" id="d-lcnt">0</span>
+    </button>
+    <button class="pd-chat-btn" onclick="openChatModal()">💬 채팅</button>
+    <button class="pd-suggest-btn" onclick="openSuggestModal()">💰 가격제안</button>
+    <button class="pd-res-btn" onclick="openResModal()">📅 예약</button>
   </div>
 </div>
 
@@ -3317,91 +3373,143 @@ function openDetail(id){
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
   document.getElementById('d-scroll').scrollTop=0;
 
-  // 슬라이더
-  sliderTotal=p.imgs||1;
+  const unit=p.unit||'m';
+  const seller=p.seller||{};
+  const sellerName=seller.name||'판매자';
   const bg=getFColor(p.type,p.color);
   const tex=getTexture(p.type);
+
+  // 1. 슬라이더
+  sliderTotal=p.imgs||1;
   const track=document.getElementById('s-track');
   const dots=document.getElementById('s-dots');
   const vs=['','filter:brightness(1.1)','filter:brightness(.9)','filter:saturate(1.3)','filter:hue-rotate(15deg)'];
   track.innerHTML=Array.from({length:sliderTotal},(_,i)=>{
     const showImg=i===0&&p.image_url;
-    return `<div class="s-slide" style="background:${bg};background-image:${showImg?'none':tex};${showImg?'':vs[i]||''};flex-shrink:0;width:${100/sliderTotal}%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column">
-      ${showImg?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
-      <div style="position:relative;z-index:1;font-size:36px">${showImg?'':'🧵'}</div>
-      <div style="position:relative;z-index:1;font-size:13px;font-weight:600;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;color:#fff">${p.color} ${p.type}</div>
-    </div>`;
+    const imgTag=showImg?'<img src="'+p.image_url+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>'  :'';
+    return '<div class="s-slide" style="background:'+bg+';background-image:'+(showImg?'none':tex)+';'
+      +(showImg?'':(vs[i]||'')+';')+'flex-shrink:0;width:'+(100/sliderTotal)+'%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column">'
+      +imgTag
+      +'<div style="position:relative;z-index:1;font-size:36px">'+(showImg?'':' 🧵')+'</div>'
+      +'<div style="position:relative;z-index:1;font-size:13px;font-weight:600;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;color:#fff">'+(p.color||'')+' '+p.type+'</div>'
+      +'</div>';
   }).join('');
   track.style.width=(sliderTotal*100)+'%';
-  dots.innerHTML=Array.from({length:sliderTotal},(_,i)=>`<div class="s-dot ${i===0?'on':''}"></div>`).join('');
+  dots.innerHTML=Array.from({length:sliderTotal},(_,i)=>'<div class="s-dot '+(i===0?'on':'')+' "></div>').join('');
   document.getElementById('s-prev').style.display=sliderTotal>1?'flex':'none';
   document.getElementById('s-next').style.display=sliderTotal>1?'flex':'none';
   updateSlider();
 
-  const unit=p.unit||'m';
+  // 슬라이더 뱃지
+  const slBadges=document.getElementById('d-slider-badges');
+  if(slBadges)slBadges.innerHTML=(p.views?'<span class="d-slider-badge">👁 '+p.views+'</span>':'')+'<span class="d-slider-badge">🤍 '+(p.likes||0)+'</span>';
 
-  // 상품명 + 뱃지
+  // 2. Breadcrumb
+  const bcEl=document.getElementById('pd-breadcrumb');
+  if(bcEl){
+    const parts=[p.cat||p.type,p.cat2,p.cat3].filter(Boolean);
+    bcEl.innerHTML=parts.map((c,i)=>i<parts.length-1?'<span>'+c+'</span><span class="pd-bc-sep">›</span>':'<span class="pd-bc-cur">'+c+'</span>').join('');
+    bcEl.style.display=parts.length?'':' none';
+  }
+
+  // 3. 상품명
   set('pd-name',p.title);
-  const badgeEl=document.getElementById('pd-badges');
-  if(badgeEl){
-    const isUrgent=p.is_urgent||(p.qty<100);
-    badgeEl.innerHTML=`
-      <span class="pd-mat-badge">${p.material||p.type}</span>
-      ${p.weight?`<span class="pd-wt-badge">⚖ ${p.weight}g/㎡</span>`:''}
-      ${isUrgent?'<span class="pd-urgent-badge">⚡ 급처</span>':''}`;
-  }
 
-  // 가격
-  set('pd-price-main',fmtPrice(p.price)+'/'+unit);
-  set('pd-price-range',`총 ${fmtPrice(p.qty*p.price)} (재고 ${p.qty}${unit} 기준)`);
+  // 4. 통계 행
+  const statsRow=document.getElementById('pd-stats-row');
+  if(statsRow)statsRow.innerHTML=[
+    p.time&&('<span>'+p.time+'</span>'),
+    '<span>🤍 관심 '+(p.likes||0)+'</span>',
+    '<span>💬 문의 '+(p.chats||0)+'</span>',
+  ].filter(Boolean).join('<span style="color:#333355"> · </span>');
 
-  // MOQ + 샘플 + 할인
-  const moqEl=document.getElementById('pd-moq-row');
-  if(moqEl){
-    let mhtml='';
-    if(p.moq)mhtml+=`<span class="pd-moq-tag">MOQ ${p.moq}${unit} · ${fmtPrice(p.moq*p.price)}</span>`;
+  // 5. 가격 카드
+  const priceCard=document.getElementById('pd-price-card');
+  if(priceCard){
     const discRate=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-    if(discRate)mhtml+=`<span class="pd-disc-tag">-${discRate}% 할인</span>`;
-    if(p.bulk_price)mhtml+=`<span class="pd-moq-tag">대량가 ${fmtPrice(p.bulk_price)}/${unit}</span>`;
-    if(p.sample!==undefined&&p.sample!==null)mhtml+=`<span class="pd-moq-tag">${p.sample?'✅ 샘플 가능':'❌ 샘플 불가'}</span>`;
-    moqEl.innerHTML=mhtml;
+    const saving=p.list_price&&p.list_price>p.price?p.list_price-p.price:0;
+    priceCard.innerHTML=
+      (discRate?'<div class="pd-list-price-line"><s>'+fmtPrice(p.list_price)+'/'+unit+'</s><span class="pd-disc-pct">-'+discRate+'%</span></div>':'')+
+      '<div class="pd-price-hero">'+fmtPrice(p.price)+'<span class="pd-price-unit">/'+unit+'</span></div>'+
+      (saving?'<div class="pd-saving-badge">🎉 '+unit+'당 '+fmtPrice(saving)+' 절약</div>':'')
   }
 
-  // 판매자 (seller 없을 때 방어 처리)
-  const seller=p.seller||{};
-  const sellerName=seller.name||'판매자';
-  const selAv=document.getElementById('pd-sel-av');
-  if(selAv){selAv.textContent=sellerName[0]||'?';selAv.style.background=bg;}
-  set('pd-sel-name',sellerName);
-  set('pd-sel-meta',`📍 ${p.loc||seller.loc||'위치 미기재'} · 매너온도 ${(seller.temp||36.5).toFixed(1)}°C`);
-  set('pd-sel-trades',`거래완료 ${seller.trades||0}건 →`);
+  // 6. 뱃지 행
+  const badges2=document.getElementById('pd-badges2');
+  if(badges2){
+    const isUrgent=p.is_urgent||(p.qty<100);
+    let bhtml='';
+    if(p.sample!==undefined&&p.sample!==null)bhtml+='<span class="'+(p.sample?'pd-badge-sample-ok':'pd-badge-sample-no')+'">'+(p.sample?'✅ 샘플 가능':'❌ 샘플 불가')+'</span>';
+    bhtml+='<span class="pd-badge-stock">📦 재고 '+p.qty+unit+'</span>';
+    if(p.moq)bhtml+='<span class="pd-badge-moq">MOQ '+p.moq+unit+'</span>';
+    if(isUrgent)bhtml+='<span class="pd-badge-urgent2">⚡ 급처</span>';
+    badges2.innerHTML=bhtml;
+  }
 
-  // 설명
-  set('pd-desc',p.description||'');
+  // 7. 판매자 카드
+  const seller2=document.getElementById('pd-seller2');
+  if(seller2)seller2.innerHTML=
+    '<div class="pd-sel2-head">'
+    +'<div style="width:46px;height:46px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0">'+(sellerName[0]||'?')+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div class="pd-seller-name">'+sellerName+'<span class="pd-cert-badge">✓ 인증업체</span></div>'
+    +'<div class="pd-seller-meta">📍 '+(p.loc||seller.loc||'위치 미기재')+' · 매너온도 '+(seller.temp||36.5).toFixed(1)+'°C</div>'
+    +'</div></div>'
+    +'<div class="pd-sel2-btns">'
+    +'<button class="pd-sel2-btn-sec" onclick="openSellerPage()">🏠 회사정보</button>'
+    +'<button class="pd-sel2-btn-pri" onclick="openChatModal()">💬 문의하기</button>'
+    +'</div>';
 
-  // 스펙 (material, unit, sample 포함)
-  const specEl=document.getElementById('pd-spec');
-  if(specEl){
-    const specs=[
-      p.material&&['소재',p.material],
-      ['분류',p.type],
-      p.weight&&['중량',p.weight+'g/㎡'],
-      p.width&&['폭',p.width+'cm'],
-      p.color&&['색상',p.color],
-      ['재고',p.qty+unit],
-      p.moq&&['최소수량',p.moq+unit],
-      p.sample!==undefined&&p.sample!==null&&['샘플',p.sample?'✅ 가능':'❌ 불가'],
+  // 8. 스펙 그리드
+  const specGrid=document.getElementById('pd-spec-grid');
+  if(specGrid){
+    const cells=[
+      p.material&&['🧵 소재',p.material],
+      ['📍 위치',p.loc||seller.loc||'미기재'],
+      p.weight&&['⚖ 중량',p.weight+'g/㎡'],
+      ['📐 단위',unit],
+      p.width&&['📏 폭',p.width+'cm'],
+      p.bulk_price&&['💰 대량가',fmtPrice(p.bulk_price)+'/'+unit],
     ].filter(Boolean);
-    specEl.innerHTML=specs.map(([k,v])=>`<div class="pd-spec-row"><span class="pd-spec-key">${k}</span><span class="pd-spec-val">${v}</span></div>`).join('');
+    specGrid.innerHTML=cells.map(kv=>'<div class="pd-spec-cell"><div class="pd-spec-cell-key">'+kv[0]+'</div><div class="pd-spec-cell-val">'+kv[1]+'</div></div>').join('');
+  }
+
+  // 재고 프로그레스 바
+  const stockBar=document.getElementById('pd-stock-bar');
+  if(stockBar){
+    const pct=Math.min(100,Math.round(p.qty/1000*100));
+    const isLow=p.qty<100;
+    stockBar.innerHTML='<div class="pd-stock-wrap"><div class="pd-stock-info"><span>재고 현황</span><span class="'+(isLow?'pd-stock-warn':'pd-stock-good')+'">'+p.qty+unit+(isLow?' ⚠ 재고 부족':'')+'</span></div><div class="pd-stock-track"><div class="pd-stock-fill" style="width:'+pct+'%;background:'+(isLow?'linear-gradient(135deg,#ff6584,#ff8fab)':'linear-gradient(135deg,#6c63ff,#a89dff)')+'"></div></div></div>';
+  }
+
+  // 9. 설명
+  const descSection=document.getElementById('pd-desc-section');
+  set('pd-desc',p.description||'');
+  if(descSection)descSection.style.display=p.description?'':' none';
+
+  // 10. AI 가격 예측
+  const aiContent=document.getElementById('pd-ai-content');
+  if(aiContent){
+    const aiLow=Math.round(p.price*0.85);
+    const aiHigh=Math.round(p.price*1.15);
+    const verdict=p.list_price&&p.list_price>p.price?'저렴해요 👍':'시장 적정가 ✅';
+    aiContent.innerHTML='<div class="pd-ai-box"><div class="pd-ai-row"><div class="pd-ai-num">'+fmtPrice(aiLow)+'</div><div class="pd-ai-bar-outer"><div class="pd-ai-bar-inner" style="width:65%"></div><div class="pd-ai-dot"></div></div><div class="pd-ai-num">'+fmtPrice(aiHigh)+'</div></div><div class="pd-ai-verdict">시장 평균 대비 <strong>'+verdict+'</strong></div></div>';
+  }
+
+  // 11. 비슷한 원단
+  const simSection=document.getElementById('pd-similar-section');
+  const simScroll=document.getElementById('pd-similar-scroll');
+  if(simSection&&simScroll){
+    const similar=products.filter(x=>x.id!==p.id&&(x.type===p.type||(p.material&&x.material===p.material))).slice(0,8);
+    if(similar.length){
+      simScroll.innerHTML=similar.map(s=>'<div class="pd-sim-card" onclick="openDetail('+s.id+')"><div class="pd-sim-thumb" style="background:'+getFColor(s.type,s.color)+'">'+(s.image_url?'<img src="'+s.image_url+'">':'🧵')+'</div><div class="pd-sim-title">'+s.title+'</div><div class="pd-sim-price">'+fmtPrice(s.price)+'/'+(s.unit||'m')+'</div></div>').join('');
+      simSection.style.display='';
+    }else{simSection.style.display='none';}
   }
 
   // 태그
   const tagsEl=document.getElementById('pd-tags');
-  if(tagsEl)tagsEl.innerHTML=(p.tags||[]).map(tg=>`<span class="tagc">#${tg}</span>`).join('');
-
-  // 통계
-  const statsEl=document.getElementById('pd-stats');
-  if(statsEl)statsEl.innerHTML=`<span>🤍 관심 ${p.likes||0}</span><span>💬 문의 ${p.chats||0}</span><span style="margin-left:auto;font-size:11px">${p.time||''}</span>`;
+  if(tagsEl)tagsEl.innerHTML=(p.tags||[]).map(tg=>'<span class="tagc">#'+tg+'</span>').join('');
 
   // 찜
   updateDetailHeart(p);
@@ -3413,19 +3521,17 @@ function openDetail(id){
   curSellerData=seller;
   showView('detail');
 
-  // 판매자 수정/삭제 버튼
+  // 수정/삭제 버튼
   const ownerBar=document.getElementById('pd-owner-bar');
   if(ownerBar){
     const isOwner=curUser&&(seller.id===curUser.id||p.seller_id===curUser.id||seller.name===curUser.name);
     ownerBar.style.display=isOwner?'flex':'none';
   }
 
-  // pd-hdr 스크롤 감지
+  // 스크롤 헤더 감지
   const scroll=document.getElementById('d-scroll');
   const hdr=document.getElementById('pd-hdr');
-  if(scroll&&hdr){
-    scroll.onscroll=()=>hdr.classList.toggle('scrolled',scroll.scrollTop>20);
-  }
+  if(scroll&&hdr){scroll.onscroll=()=>hdr.classList.toggle('scrolled',scroll.scrollTop>20);}
 }
 function updateDetailHeart(p){
   const btn=document.getElementById('d-heart');
