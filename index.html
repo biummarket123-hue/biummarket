@@ -1914,6 +1914,16 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="market-price-view-content"></div>
 </div>
 
+<!-- ========== TRADE STATS ========== -->
+<div id="view-trade-stats" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">거래 통계 리포트</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;background:#f5f5f5;padding-bottom:40px" id="trade-stats-view-content"></div>
+</div>
+
 <!-- ========== BOARD (업계 게시판) ========== -->
 <div id="view-board" class="view">
   <header class="hdr">
@@ -5340,44 +5350,71 @@ function renderActivity(){
 
 function openTradeStats(){
   const MONTHLY=[
-    {m:'2024-09',cnt:12,cat:'울/모직'},
-    {m:'2024-10',cnt:19,cat:'면/린넨'},
-    {m:'2024-11',cnt:15,cat:'니트/저지'},
-    {m:'2024-12',cnt:28,cat:'울/모직'},
-    {m:'2025-01',cnt:21,cat:'기능성'},
-    {m:'2025-02',cnt:34,cat:'면/린넨'},
+    {m:'10월',cnt:156},
+    {m:'11월',cnt:203},
+    {m:'12월',cnt:245},
+    {m:'1월',cnt:289},
   ];
-  const max=Math.max(...MONTHLY.map(m=>m.cnt));
-  const catColors={'면/린넨':'#6c63ff','울/모직':'#8B4513','니트/저지':'#ff6584','기능성':'#3ec6b8','기타':'#aaaacc'};
+  const MMAX=289;
+  const CAT_COLORS={'면/린넨':'#22c55e','울/모직':'#4A90D9','니트/저지':'#a855f7','기능성':'#f97316','데님':'#ec4899','실크':'#6366f1','기타':'#aaaacc'};
   const catTally={};
   products.forEach(p=>{
     const cat=Object.keys(CATEGORY_MAP).find(k=>CATEGORY_MAP[k].includes(p.type))||'기타';
     catTally[cat]=(catTally[cat]||0)+1;
   });
   const totalP=Object.values(catTally).reduce((s,v)=>s+v,0)||1;
-  document.getElementById('trade-stats-content').innerHTML=`
-    <div style="padding:4px 0">
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">📈 월별 거래 건수</div>
-      ${MONTHLY.map(m=>`
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div style="width:64px;font-size:11px;color:#666677;flex-shrink:0">${m.m}</div>
-          <div style="flex:1;background:#f8f8fa;border-radius:6px;overflow:hidden;height:24px">
-            <div style="height:100%;width:${Math.round(m.cnt/max*100)}%;background:${catColors[m.cat]||'#6c63ff'};border-radius:6px;display:flex;align-items:center;padding:0 8px">
-              <span style="font-size:11px;font-weight:700;color:#fff">${m.cnt}건</span>
+  const cnt=products.length||289;
+  const totalAmt=products.reduce((s,p)=>s+(p.price||0)*(p.qty||1),0)||289000000;
+  const avgAmt=Math.round(totalAmt/(cnt||1));
+  document.getElementById('trade-stats-view-content').innerHTML=`
+    <div style="padding:14px">
+      <div style="background:linear-gradient(135deg,#1a2340 0%,#2d3561 100%);border-radius:16px;padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:14px">2026년 1월 거래 리포트</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px">총 거래</div>
+            <div style="font-size:28px;font-weight:800;color:#f5c518">${cnt}건</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px">총 거래액</div>
+            <div style="font-size:28px;font-weight:800;color:#f5c518">₩${Math.round(totalAmt/1000000)}M</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px">평균 거래액</div>
+            <div style="font-size:28px;font-weight:800;color:#f5c518">₩${Math.round(avgAmt/1000)}K</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px">전월대비</div>
+            <div style="font-size:28px;font-weight:800;color:#4ade80">+18%</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#ffffff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:16px">📊 월별 거래 추이</div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-around;height:120px;padding:0 8px">
+          ${MONTHLY.map(m=>`
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0;flex:1">
+              <div style="font-size:11px;font-weight:700;color:#4A90D9;margin-bottom:4px">${m.cnt}</div>
+              <div style="width:36px;background:#4A90D9;border-radius:6px 6px 0 0;height:${Math.round(m.cnt/MMAX*100)}px"></div>
+              <div style="font-size:11px;color:#888;margin-top:6px">${m.m}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div style="background:#ffffff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">🟠 카테고리별 비중</div>
+        ${Object.entries(catTally).sort((a,b)=>b[1]-a[1]).map(([cat,c])=>`
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[cat]||'#aaaacc'};flex-shrink:0"></div>
+            <div style="width:60px;font-size:12px;color:#1a1a1a;flex-shrink:0">${cat}</div>
+            <div style="flex:1;background:#f5f5f5;border-radius:4px;overflow:hidden;height:8px">
+              <div style="height:100%;width:${Math.round(c/totalP*100)}%;background:${CAT_COLORS[cat]||'#aaaacc'};border-radius:4px"></div>
             </div>
-          </div>
-        </div>`).join('')}
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin:18px 0 10px">🗂️ 카테고리 비중 (등록 상품 기준)</div>
-      ${Object.entries(catTally).sort((a,b)=>b[1]-a[1]).map(([cat,cnt])=>`
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div style="width:72px;font-size:11px;color:#888899;flex-shrink:0">${cat}</div>
-          <div style="flex:1;background:#f8f8fa;border-radius:6px;overflow:hidden;height:22px">
-            <div style="height:100%;width:${Math.round(cnt/totalP*100)}%;background:${catColors[cat]||'#aaaacc'};border-radius:6px"></div>
-          </div>
-          <div style="font-size:11px;color:#666677;width:36px;text-align:right">${Math.round(cnt/totalP*100)}%</div>
-        </div>`).join('')}
+            <div style="width:36px;font-size:12px;font-weight:600;color:#1a1a1a;text-align:right">${Math.round(c/totalP*100)}%</div>
+          </div>`).join('')}
+      </div>
+      <button onclick="showToast('PDF 다운로드 준비중이에요')" style="width:100%;background:linear-gradient(135deg,#c8962a,#f5c518);color:#1a1a1a;font-weight:700;border:none;border-radius:16px;padding:16px;font-size:15px;cursor:pointer">📄 PDF 리포트 다운로드</button>
     </div>`;
-  openModal('modal-trade-stats');
+  showView('trade-stats');
 }
 function openCart(){
   const cart=lsGet('cart',[]);
@@ -5441,21 +5478,21 @@ function renderMarketPrice(){
      data:[7500,7800,8000,7700,7500,7300,7200,7100,7200,7300,7500,7400]},
   ];
   el.innerHTML=`
-    <div style="padding:16px">
-      <div style="font-size:11px;font-weight:700;color:#666677;margin-bottom:16px">📈 주요 원단 12개월 시세</div>
+    <div style="padding:16px;background:#f5f5f5">
+      <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:16px">📈 주요 원단 12개월 시세</div>
       ${STOCKS.map(s=>`
-        <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="background:#ffffff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:16px;font-weight:700;color:#fff">${s.name}</div>
+            <div style="font-size:16px;font-weight:700;color:#1a1a1a">${s.name}</div>
             <div style="text-align:right">
               <div style="font-size:17px;font-weight:800;color:#1a1a1a">₩${s.price.toLocaleString()}</div>
-              <div style="font-size:13px;font-weight:700;color:${s.up?'#4ade80':'#f87171'}">${s.pct}</div>
+              <div style="font-size:13px;font-weight:700;color:${s.up?'#00b386':'#e53935'}">${s.pct}</div>
             </div>
           </div>
-          <div style="margin-bottom:12px">${sparkline(s.data,s.up?'#4ade80':'#f87171')}</div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#666677">
-            <span>52주 최저 <span style="color:#4ade80;font-weight:700">₩${s.lo.toLocaleString()}</span></span>
-            <span>52주 최고 <span style="color:#f87171;font-weight:700">₩${s.hi.toLocaleString()}</span></span>
+          <div style="margin-bottom:12px">${sparkline(s.data,s.up?'#00b386':'#e53935')}</div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#888">
+            <span>52주 최저 <span style="color:#00b386;font-weight:700">₩${s.lo.toLocaleString()}</span></span>
+            <span>52주 최고 <span style="color:#e53935;font-weight:700">₩${s.hi.toLocaleString()}</span></span>
           </div>
         </div>`).join('')}
     </div>`;
