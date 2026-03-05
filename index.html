@@ -1394,27 +1394,39 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="hdr-title">매출 대시보드</div>
     <div style="width:38px"></div>
   </header>
-  <div style="flex:1;overflow-y:auto;padding-bottom:20px">
-    <div class="ana-sec">
-      <h3>이번 달 요약</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="sv">₩2.4M</div><div class="sl">총 매출</div></div>
-        <div class="stat-card"><div class="sv">8건</div><div class="sl">거래 완료</div></div>
-        <div class="stat-card"><div class="sv">340m</div><div class="sl">판매 수량</div></div>
-        <div class="stat-card"><div class="sv">94%</div><div class="sl">응답률</div></div>
+  <div id="analytics-scroll" style="flex:1;overflow-y:auto;padding-bottom:24px;background:#f5f5f5">
+    <!-- 요약 카드 3개 -->
+    <div id="ana-summary-cards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px 12px 0"></div>
+    <!-- 일별 매출 바 차트 -->
+    <div style="background:#fff;border-radius:16px;margin:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:16px">📊 일별 매출</div>
+      <div id="ana-daily-chart" style="display:flex;align-items:flex-end;gap:5px;height:100px"></div>
+    </div>
+    <!-- 조회수·문의수 -->
+    <div style="background:#fff;border-radius:16px;margin:0 12px 12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:700;color:#1a1a1a">👁 조회수·문의수</div>
+        <div style="display:flex;gap:10px;font-size:11px;color:#888">
+          <span><span style="color:#4A90D9;font-size:14px">■</span> 조회</span>
+          <span><span style="color:#c8962a;font-size:14px">■</span> 문의</span>
+        </div>
       </div>
+      <div id="ana-dual-chart" style="display:flex;align-items:flex-end;gap:4px;height:80px"></div>
     </div>
-    <div class="ana-sec">
-      <h3>월별 매출 (최근 6개월)</h3>
-      <div class="bar-chart" id="bar-chart"></div>
-    </div>
-    <div class="ana-sec">
-      <h3>인기 원단 TOP 3</h3>
+    <!-- 인기 원단 TOP 3 -->
+    <div style="background:#fff;border-radius:16px;margin:0 12px 12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:16px">🧵 인기 원단 TOP 3</div>
       <div id="top-fabrics"></div>
     </div>
-    <div class="ana-sec">
-      <h3>실시간 원단 시세</h3>
+    <!-- 실시간 원단 시세 -->
+    <div style="background:#fff;border-radius:16px;margin:0 12px 12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:16px">📈 실시간 원단 시세</div>
       <div id="market-price"></div>
+    </div>
+    <!-- 인사이트 -->
+    <div style="background:#fff;border-radius:16px;margin:0 12px 12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #f5c518">
+      <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:10px">💡 인사이트</div>
+      <div id="ana-insight" style="font-size:13px;color:#1a1a1a;line-height:1.7"></div>
     </div>
   </div>
 </div>
@@ -5747,38 +5759,88 @@ function renderNotices(){
 
 /* ==================== ANALYTICS ==================== */
 function renderAnalytics(){
-  // 월별 매출 바 차트 (모의 데이터 + 실제 상품 수 반영)
-  const months=['8월','9월','10월','11월','12월','1월'];
-  const vals=[1.2,1.8,2.1,1.6,2.4,2.8];
-  const max=Math.max(...vals);
-  const chart=document.getElementById('bar-chart');
-  if(chart)chart.innerHTML=vals.map((v,i)=>`<div class="bar-item"><div class="bar-val">₩${v}M</div><div class="bar" style="height:${(v/max)*68}px;${i===vals.length-1?'background:var(--P)':''}"></div><div class="bar-lbl">${months[i]}</div></div>`).join('');
+  const myProds=curUser?products.filter(p=>p.seller&&(p.seller.name===curUser.name||p.seller_id===curUser.id)):products;
 
-  // 실제 products 배열 기반 인기 원단 TOP 3
+  // ── 요약 카드 3개 ──
+  const totalViews=myProds.reduce((a,p)=>a+(p.views||0),0);
+  const totalChats=myProds.reduce((a,p)=>a+(p.chats||0),0);
+  const weeklySale=myProds.reduce((a,p)=>a+(p.price||0)*(Math.min(p.qty||0,100)),0);
+  const weeklySaleK=weeklySale>=1000?'₩'+(weeklySale/1000).toFixed(0)+'K':'₩'+weeklySale;
+  const cvr=totalViews>0?((totalChats/totalViews)*100).toFixed(1)+'%':'0%';
+  const summaryEl=document.getElementById('ana-summary-cards');
+  if(summaryEl)summaryEl.innerHTML=[
+    {label:'이번주 매출',val:weeklySaleK,bg:'#e8f8f0',vc:'#00b386'},
+    {label:'총 조회수',val:totalViews.toLocaleString(),bg:'#e8f0fb',vc:'#4A90D9'},
+    {label:'전환율',val:cvr,bg:'#fffbeb',vc:'#c8962a'},
+  ].map(c=>`<div style="background:${c.bg};border-radius:16px;padding:16px;text-align:center">
+    <div style="font-size:22px;font-weight:700;color:${c.vc};line-height:1.2">${c.val}</div>
+    <div style="font-size:12px;color:#888;margin-top:5px">${c.label}</div>
+  </div>`).join('');
+
+  // ── 일별 매출 바 차트 ──
+  const dailyVals=[320,480,290,560,720,890,650];
+  const days=['월','화','수','목','금','토','일'];
+  const dMax=Math.max(...dailyVals);
+  const dailyEl=document.getElementById('ana-daily-chart');
+  if(dailyEl)dailyEl.innerHTML=dailyVals.map((v,i)=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="font-size:9px;font-weight:600;color:#888">${v}K</div>
+      <div style="width:100%;border-radius:4px 4px 0 0;background:#22c55e;height:${Math.round((v/dMax)*72)}px;transition:height .5s"></div>
+      <div style="font-size:10px;color:#888">${days[i]}</div>
+    </div>`).join('');
+
+  // ── 조회수·문의수 이중 바 차트 ──
+  const viewData=[45,78,32,89,120,156,98];
+  const chatData=[8,12,5,15,18,24,14];
+  const vMax=Math.max(...viewData);
+  const dualEl=document.getElementById('ana-dual-chart');
+  if(dualEl)dualEl.innerHTML=days.map((d,i)=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:60px">
+        <div style="flex:1;border-radius:3px 3px 0 0;background:#4A90D9;height:${Math.round((viewData[i]/vMax)*56)}px"></div>
+        <div style="flex:1;border-radius:3px 3px 0 0;background:#c8962a;height:${Math.round((chatData[i]/vMax)*56)}px"></div>
+      </div>
+      <div style="font-size:10px;color:#888">${d}</div>
+    </div>`).join('');
+
+  // ── 인기 원단 TOP 3 ──
   const typeCounts={};
-  products.forEach(p=>{typeCounts[p.type]=(typeCounts[p.type]||0)+1;});
-  const total=Math.max(products.length,1);
+  myProds.forEach(p=>{typeCounts[p.type]=(typeCounts[p.type]||0)+1;});
+  const total=Math.max(myProds.length,1);
   const barColors=['#6c63ff','#4A90D9','#7B8FA3'];
   const topTypes=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const tfEl=document.getElementById('top-fabrics');
-  if(tfEl){
-    tfEl.innerHTML=topTypes.length
-      ?topTypes.map(([name,cnt],i)=>{
-          const pct=Math.round(cnt/total*100);
-          return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="color:#fff">${name}</span><span style="font-weight:700;color:#fff">${pct}% (${cnt}개)</span></div><div style="height:8px;background:#eeeeee;border-radius:4px"><div style="height:100%;width:${pct}%;background:${barColors[i]};border-radius:4px;transition:width .6s"></div></div></div>`;
-        }).join('')
-      :'<div style="color:#666677;font-size:13px;padding:10px 0">상품 데이터를 불러오는 중이에요</div>';
-  }
+  if(tfEl)tfEl.innerHTML=topTypes.length
+    ?topTypes.map(([name,cnt],i)=>{
+        const pct=Math.round(cnt/total*100);
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="color:#1a1a1a;font-weight:600">${name}</span>
+            <span style="font-weight:700;color:#1a1a1a">${pct}% (${cnt}개)</span>
+          </div>
+          <div style="height:8px;background:#f0f0f5;border-radius:4px">
+            <div style="height:100%;width:${pct}%;background:${barColors[i]};border-radius:4px;transition:width .6s"></div>
+          </div>
+        </div>`;}).join('')
+    :'<div style="color:#888;font-size:13px;padding:8px 0">등록된 상품이 없어요</div>';
 
-  // 시장 가격 (MARKET_PRICES 배열 재사용)
+  // ── 실시간 원단 시세 ──
   const mpEl=document.getElementById('market-price');
-  if(mpEl)mpEl.innerHTML=MARKET_PRICES.map(p=>
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e0e0ea;font-size:13px">
-      <span style="color:#888899">${p.type}</span>
-      <span style="font-weight:700;color:#fff">${p.range}원/m
-        <span style="color:${p.up===true?'#4ade80':p.up===false?'#f87171':'#8888aa'}">${p.trend}</span>
+  if(mpEl)mpEl.innerHTML=MARKET_PRICES.map((p,i)=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;${i<MARKET_PRICES.length-1?'border-bottom:1px solid #f0f0f0':''}">
+      <span style="font-size:13px;color:#888">${p.type}</span>
+      <span style="font-size:13px;font-weight:700;color:#1a1a1a">${p.range}원/m
+        <span style="color:${p.up===true?'#00b386':p.up===false?'#e53935':'#888'};font-size:12px"> ${p.trend}</span>
       </span>
     </div>`).join('');
+
+  // ── 인사이트 ──
+  const insEl=document.getElementById('ana-insight');
+  const topDay=days[dailyVals.indexOf(Math.max(...dailyVals))];
+  if(insEl)insEl.innerHTML=`
+    ${topDay}요일 매출이 가장 높습니다. 주말 프로모션을 활용하세요.<br>
+    전환율 ${cvr}는 업계 평균(15%) 대비 <strong>${parseFloat(cvr)>=15?'우수합니다 ✅':'개선이 필요합니다'}</strong>.<br>
+    인기 소재 <strong>${topTypes[0]?topTypes[0][0]:'—'}</strong> 재고를 충분히 확보하세요.`;
 }
 
 /* ==================== INIT ==================== */
