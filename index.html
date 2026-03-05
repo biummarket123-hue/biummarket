@@ -3144,7 +3144,7 @@ function renderCatStep1(){
       <span onclick="catGoBack()" style="cursor:pointer;font-size:20px;color:#aaa;margin-right:4px">←</span>
       <span style="font-size:20px">${catData.emoji}</span>
       <div>
-        <div style="font-weight:700;font-size:17px;color:#fff">${catData.id}</div>
+        <div style="font-weight:700;font-size:17px;color:#1a1a1a">${catData.id}</div>
         <div style="font-size:13px;color:#999">${prodCnt}개 상품 · ${catData.sub.length}개 중분류</div>
       </div>
     </div>
@@ -3155,7 +3155,7 @@ function renderCatStep1(){
           style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:${i<catData.sub.length-1?'1px solid #e0e0ea':'none'};cursor:pointer">
           <div style="display:flex;align-items:center;gap:10px">
             <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0"></span>
-            <span style="font-size:15px;color:#fff">${sub.name}</span>
+            <span style="font-size:15px;color:#1a1a1a">${sub.name}</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             ${sub.items.length>0?`<span style="font-size:13px;color:#aaa">${sub.items.length}개 소분류</span><span style="color:#bbb;font-size:16px">›</span>`:''}
@@ -3183,7 +3183,7 @@ function renderCatStep2(){
       <span onclick="catGoBack()" style="cursor:pointer;font-size:20px;color:#aaa;margin-right:4px">←</span>
       <span style="font-size:20px">${catData.emoji}</span>
       <div>
-        <div style="font-weight:700;font-size:17px;color:#fff">${sub.name}</div>
+        <div style="font-weight:700;font-size:17px;color:#1a1a1a">${sub.name}</div>
         <div style="font-size:13px;color:#999">${catData.id} · ${sub.items.length}개 소분류</div>
       </div>
     </div>
@@ -3193,7 +3193,7 @@ function renderCatStep2(){
         <div onclick="applySvSearch('${item}');openSearchOverlay()"
           style="display:flex;align-items:center;padding:14px 20px;border-bottom:${i<sub.items.length-1?'1px solid #e0e0ea':'none'};cursor:pointer">
           <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0;margin-right:10px"></span>
-          <span style="font-size:15px;color:#fff">${item}</span>
+          <span style="font-size:15px;color:#1a1a1a">${item}</span>
         </div>`).join('')}
     </div>`;
 }
