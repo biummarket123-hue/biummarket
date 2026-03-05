@@ -3895,7 +3895,9 @@ function renderCat2Chips(){
   document.getElementById('cat3-wrap').classList.remove('show');
 }
 function selectCat2(idx){
-  formCat2=idx;formCat3='';
+  const catData=CATEGORY_DATA.find(c=>c.id===formCat1);
+  formCat2=catData?catData.sub[idx].name:'';
+  formCat3='';
   document.querySelectorAll('#cat2-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.idx)===idx));
   renderCat3Chips(idx);
 }
@@ -4032,7 +4034,7 @@ async function submitForm(){
   }
   if(image_urls.length>0)image_url=image_urls[0];
   const payload={
-    title,type:formCat1,cat:formCat1,
+    title,type:formCat1,cat:formCat1,cat2:formCat2||null,cat3:formCat3||null,
     material,weight:parseInt(weight)||null,width:null,color:'',qty:parseInt(qty)||0,price:parseInt(price)||0,unit,loc:curUser?.loc||'',
     list_price:parseInt(document.getElementById('f-list-price').value)||null,
     bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
