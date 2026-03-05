@@ -1627,19 +1627,20 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </header>
   <div class="f-scroll">
     <!-- 상단 프로필 카드 -->
-    <div style="background:#f8f8fa;padding:18px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #e0e0ea">
-      <div class="my-av" id="pe-av" style="width:52px;height:52px;font-size:20px;flex-shrink:0">?</div>
+    <div style="margin:14px 14px 0;background:linear-gradient(135deg,#1a2340 0%,#2d3561 100%);border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-40px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
+      <div id="pe-av" style="width:52px;height:52px;border-radius:50%;background:#d4a017;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0">?</div>
       <div style="flex:1;min-width:0">
-        <div id="pe-bizname-preview" style="font-size:15px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">회사명</div>
-        <div style="font-size:11px;color:#666677;margin-top:2px">미니홈피 수정 · 고객에게 보여지는 정보입니다</div>
+        <div id="pe-bizname-preview" style="font-size:15px;font-weight:700;color:#ffffff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">회사명</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px">미니홈피 수정 · 고객에게 보여지는 정보입니다</div>
       </div>
-      <button onclick="showToast('미리보기 준비중이에요')" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">👁 미리보기</button>
+      <button onclick="openMySellerPage()" style="flex-shrink:0;background:transparent;border:1px solid rgba(255,255,255,.4);color:#ffffff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">👁 미리보기</button>
     </div>
     <!-- 기본 정보 -->
-    <div style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
+    <div style="padding:16px 16px 8px;margin-top:14px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">기본 정보</div>
       <div class="fg"><label>회사명 <span class="req">*</span></label>
-        <input type="text" class="fi" id="pe-name" placeholder="회사명 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'회사명'"/>
+        <input type="text" class="fi" id="pe-name" placeholder="회사명 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'회사명'" style="color:#1a1a1a"/>
       </div>
       <div class="fg"><label>대표자</label><input type="text" class="fi" id="pe-ceo" placeholder="대표자명"/></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
