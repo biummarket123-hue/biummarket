@@ -537,7 +537,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .home-cats::-webkit-scrollbar{display:none}
 .home-cat{flex-shrink:0;padding:7px 15px;border-radius:20px;font-size:12px;font-weight:600;background:#eeeeee;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer;transition:all .15s;white-space:nowrap}
 .home-cat.on{background:#1a1a1a;color:#ffffff;border-color:#1a1a1a}
-.premium-banner{margin:14px 14px 0;background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden;cursor:pointer}
+.premium-banner{margin:14px 14px 0;background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden}
 .premium-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(180,150,80,.15)}
 .premium-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;margin-bottom:8px}
 .premium-title{font-size:16px;font-weight:800;color:#ffffff;margin-bottom:4px;position:relative;z-index:1}
@@ -841,7 +841,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div id="filter-chips" style="display:none"></div>
   <div class="home-scroll">
     <!-- 공지 배너 -->
-    <div class="notice-banner" onclick="openNoticeModal()">
+    <div class="notice-banner" onclick="showView('notices')">
       <span>📢</span>
       <span data-i18n="notice_text">[공지] 비움마켓 베타 오픈 안내</span>
       <span class="nb-arrow">›</span>
@@ -850,7 +850,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin:0 14px 8px;display:block">대분류</div>
     <div class="home-cats" id="home-cats"></div>
     <!-- 프리미엄 배너 -->
-    <div class="premium-banner" onclick="showView('form')">
+    <div class="premium-banner">
       <div class="premium-badge">★ PREMIUM</div>
       <div class="premium-title" data-i18n="prem_title">동대문 재고원단 프리미엄 거래</div>
       <div class="premium-sub" data-i18n="prem_sub">검증된 셀러의 고품질 원단을 만나보세요</div>
