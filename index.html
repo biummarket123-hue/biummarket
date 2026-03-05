@@ -3109,7 +3109,7 @@ function filterByCategory(prods,key){
 
 /* ===== CATEGORY VIEW JS ===== */
 const CAT_DEFS=CATEGORY_DATA.map(c=>({key:c.id,icon:c.emoji,label:c.id}));
-let curCatKey='',curCatSort='latest';
+let curCatKey='',curCatSort='latest',curCatSubKey='',curCatItemKey='';
 let catStep=0,catSelId='',catSelSubIdx=-1;
 
 function renderCategoryView(){
@@ -3151,7 +3151,7 @@ function renderCatStep1(){
     <div style="background:#f8f8fa">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">중분류</div>
       ${catData.sub.map((sub,i)=>`
-        <div onclick="${sub.items.length>0?`catGoStep2(${i})`:`catGoProducts('${catSelId}','${sub.name}')`}"
+        <div onclick="${sub.items.length>0?`catGoStep2(${i})`:`catGoProductsBySub('${catSelId}','${sub.name}')`}"
           style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:${i<catData.sub.length-1?'1px solid #e0e0ea':'none'};cursor:pointer">
           <div style="display:flex;align-items:center;gap:10px">
             <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0"></span>
@@ -3190,7 +3190,7 @@ function renderCatStep2(){
     <div style="background:#f8f8fa">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">소분류</div>
       ${sub.items.map((item,i)=>`
-        <div onclick="applySvSearch('${item}');openSearchOverlay()"
+        <div onclick="catGoProductsByItem('${catSelId}','${sub.name}','${item}')"
           style="display:flex;align-items:center;padding:14px 20px;border-bottom:${i<sub.items.length-1?'1px solid #e0e0ea':'none'};cursor:pointer">
           <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0;margin-right:10px"></span>
           <span style="font-size:15px;color:#1a1a1a">${item}</span>
@@ -3204,7 +3204,9 @@ function catGoBack(){
   if(catStep===2){catStep=1;renderCategoryView();}
   else if(catStep===1){catStep=0;renderCategoryView();}
 }
-function catGoProducts(catId,keyword){openCatProducts(catId,keyword);}
+function catGoProducts(catId,keyword){curCatSubKey='';curCatItemKey='';openCatProducts(catId,keyword);}
+function catGoProductsBySub(catId,subName){curCatSubKey=subName;curCatItemKey='';openCatProducts(catId,subName);}
+function catGoProductsByItem(catId,subName,itemName){curCatSubKey=subName;curCatItemKey=itemName;openCatProducts(catId,catId+' › '+subName+' › '+itemName);}
 
 function openCatProducts(key,label){
   curCatKey=key;curCatSort='latest';
@@ -3229,7 +3231,20 @@ function setCatSort(sort){
 function renderCatProducts(){
   const el=document.getElementById('cp-list');
   if(!el)return;
-  let items=filterByCategory(products,curCatKey);
+  let items;
+  if(curCatItemKey){
+    const ik=curCatItemKey.toLowerCase();
+    items=products.filter(p=>
+      p.type===curCatSubKey||
+      (p.tags||[]).some(t=>t.toLowerCase().includes(ik))||
+      (p.title||'').toLowerCase().includes(ik)
+    );
+  }else if(curCatSubKey){
+    items=products.filter(p=>p.type===curCatSubKey);
+    if(!items.length)items=filterByCategory(products,curCatKey);
+  }else{
+    items=filterByCategory(products,curCatKey);
+  }
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
   else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else items=[...items].sort((a,b)=>b.id-a.id);
