@@ -3106,6 +3106,18 @@ function filterByCategory(prods,key){
   }
   return prods.filter(p=>types.includes(p.type)||TYPE_ALIAS[p.type]===key);
 }
+function filterByCat2(prods,cat1Key,cat2Key){
+  if(!cat2Key)return filterByCategory(prods,cat1Key);
+  const base=filterByCategory(prods,cat1Key);
+  const byCat2=base.filter(p=>p.cat2===cat2Key);
+  return byCat2.length?byCat2:base;
+}
+function filterByCat3(prods,cat1Key,cat2Key,cat3Key){
+  if(!cat3Key)return filterByCat2(prods,cat1Key,cat2Key);
+  const base=filterByCat2(prods,cat1Key,cat2Key);
+  const byCat3=base.filter(p=>p.cat3===cat3Key||(p.tags||[]).some(t=>t===cat3Key)||(p.title||'').includes(cat3Key));
+  return byCat3.length?byCat3:base;
+}
 
 /* ===== CATEGORY VIEW JS ===== */
 const CAT_DEFS=CATEGORY_DATA.map(c=>({key:c.id,icon:c.emoji,label:c.id}));
@@ -3233,15 +3245,9 @@ function renderCatProducts(){
   if(!el)return;
   let items;
   if(curCatItemKey){
-    const ik=curCatItemKey.toLowerCase();
-    items=products.filter(p=>
-      p.type===curCatSubKey||
-      (p.tags||[]).some(t=>t.toLowerCase().includes(ik))||
-      (p.title||'').toLowerCase().includes(ik)
-    );
+    items=filterByCat3(products,curCatKey,curCatSubKey,curCatItemKey);
   }else if(curCatSubKey){
-    items=products.filter(p=>p.type===curCatSubKey);
-    if(!items.length)items=filterByCategory(products,curCatKey);
+    items=filterByCat2(products,curCatKey,curCatSubKey);
   }else{
     items=filterByCategory(products,curCatKey);
   }
