@@ -3664,7 +3664,6 @@ function openDetail(id){
     let bhtml='';
     if(p.sample!==undefined&&p.sample!==null)bhtml+='<span class="'+(p.sample?'pd-badge-sample-ok':'pd-badge-sample-no')+'">'+(p.sample?'✅ 샘플 가능':'❌ 샘플 불가')+'</span>';
     bhtml+='<span class="pd-badge-stock">📦 재고 '+p.qty+unit+'</span>';
-    if(p.moq)bhtml+='<span class="pd-badge-moq">MOQ '+p.moq+unit+'</span>';
     if(isUrgent)bhtml+='<span class="pd-badge-urgent2">⚡ 급처</span>';
     badges2.innerHTML=bhtml;
   }
@@ -3715,7 +3714,7 @@ function openDetail(id){
     const aiLow=Math.round(p.price*0.85);
     const aiHigh=Math.round(p.price*1.15);
     const verdict=p.list_price&&p.list_price>p.price?'저렴해요 👍':'시장 적정가 ✅';
-    aiContent.innerHTML='<div class="pd-ai-box"><div class="pd-ai-row"><div class="pd-ai-num">'+fmtPrice(aiLow)+'</div><div class="pd-ai-bar-outer"><div class="pd-ai-bar-inner" style="width:65%"></div><div class="pd-ai-dot"></div></div><div class="pd-ai-num">'+fmtPrice(aiHigh)+'</div></div><div class="pd-ai-verdict">시장 평균 대비 <strong>'+verdict+'</strong></div></div>';
+    aiContent.innerHTML=`<div style="background:#ffffff;border:1px solid #e0e0ea;border-radius:16px;padding:16px;margin:12px 0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:12px"><span style="width:10px;height:10px;background:#f5c518;border-radius:50%;display:inline-block"></span><span style="font-size:15px;font-weight:700;color:#1a1a1a">AI 가격 예측</span></div><div style="background:#f8f8fa;border-radius:12px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div><div style="font-size:11px;color:#888;margin-bottom:4px">현재가</div><div style="font-size:22px;font-weight:800;color:#1a1a1a">${fmtPrice(p.price)}</div></div><div style="font-size:28px">📈</div><div style="text-align:right"><div style="font-size:11px;color:#888;margin-bottom:4px">3개월 후</div><div style="font-size:22px;font-weight:800;color:#e53935">${fmtPrice(aiHigh)}</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="background:#fff0f0;color:#e53935;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">+15% 상승 전망</span><span style="background:#fff9e6;color:#c8962a;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">🎯 신뢰도 75%</span></div><div style="font-size:11px;color:#888">📊 원자재 시세 + 시즌 수요 + 시장 데이터 기반</div></div></div>`;
   }
 
   // 11. 비슷한 원단
