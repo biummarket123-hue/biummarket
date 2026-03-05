@@ -1920,7 +1920,43 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <!-- 게시글 목록 -->
   <div style="flex:1;overflow-y:auto;padding-bottom:80px" id="board-post-list"></div>
   <!-- 글쓰기 FAB -->
-  <button onclick="showToast('글쓰기 기능 준비중이에요')" style="position:fixed;bottom:24px;right:20px;width:52px;height:52px;background:linear-gradient(135deg,#6c63ff,#a89dff);border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,.5);z-index:10">✏️</button>
+  <button onclick="openBoardWrite()" style="position:fixed;bottom:24px;right:20px;width:52px;height:52px;background:linear-gradient(135deg,#6c63ff,#a89dff);border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,.5);z-index:10">✏️</button>
+</div>
+
+<!-- ========== BOARD WRITE ========== -->
+<div id="view-board-write" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">글쓰기</div>
+    <div style="width:38px"></div>
+  </header>
+  <div class="f-scroll">
+    <div style="padding:16px 16px 8px">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:10px">카테고리 <span style="color:#e53935">*</span></div>
+      <div id="board-cat-chips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div style="padding:8px 16px">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:8px">제목 <span style="color:#e53935">*</span></div>
+      <input type="text" id="board-title-input" class="fi" placeholder="제목을 입력하세요" style="color:#1a1a1a"/>
+    </div>
+    <div style="padding:8px 16px 20px">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:8px">내용 <span style="color:#e53935">*</span></div>
+      <textarea id="board-content-input" class="fi" placeholder="내용을 자유롭게 입력하세요" style="min-height:200px;resize:none;color:#1a1a1a"></textarea>
+    </div>
+    <div style="padding:0 16px 20px">
+      <button onclick="submitBoardPost()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.3px">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== BOARD DETAIL ========== -->
+<div id="view-board-detail" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title" id="bd-hdr-cat">게시글</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="bd-content-wrap"></div>
 </div>
 
 </div><!-- #app -->
@@ -2925,6 +2961,8 @@ function showView(name,push=true){
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
   if(name==='board'){boardFilter='전체';renderBoard();}
+  if(name==='board-write')initBoardWrite();
+  if(name==='board-detail'){}/* rendered by openBoardDetail */
   if(name==='activity')renderActivity();
   if(name==='trend')renderTrendReport();
   if(name==='heatmap')renderPriceHeatmap();
@@ -4907,36 +4945,138 @@ const BOARD_POSTS=[
   {id:6,title:'거래처 구합니다 — 면 원단 정기 구매',author:'솜솜공방',date:'2026.03.01',views:34,cat:'거래'},
 ];
 let boardFilter='전체';
+let _boardPosts=[];
 function openBoard(){showView('board');}
-function setBoardFilter(cat){
-  boardFilter=cat;
-  renderBoard();
-}
-function renderBoard(){
+function setBoardFilter(cat){boardFilter=cat;renderBoard();}
+async function renderBoard(){
   const catColor={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8','거래':'#c8a84b'};
-  const filtered=boardFilter==='전체'?BOARD_POSTS:BOARD_POSTS.filter(p=>p.cat===boardFilter);
   const listEl=document.getElementById('board-post-list');
   if(!listEl)return;
-  listEl.innerHTML=filtered.length?filtered.map(p=>`
-    <div style="padding:16px;border-bottom:1px solid #e0e0ea;cursor:pointer" onclick="showToast('게시글 상세 준비중이에요')">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${catColor[p.cat]||'#6c63ff'}22;color:${catColor[p.cat]||'#6c63ff'}">${p.cat}</span>
+  listEl.innerHTML='<div style="padding:40px 20px;text-align:center;color:#6c63ff;font-size:13px">불러오는 중...</div>';
+  let sbPosts=[];
+  if(_sb){
+    try{
+      const{data}=await _sb.from('board_posts').select('*').order('created_at',{ascending:false}).limit(50);
+      if(data&&data.length)sbPosts=data;
+    }catch(e){console.warn('[renderBoard] Supabase 오류',e);}
+  }
+  // Supabase posts를 공통 형식으로 정규화
+  const normalized=sbPosts.map(p=>({
+    id:p.id,_sb:true,
+    title:p.title,
+    content:p.content||'',
+    cat:p.cat||'정보',
+    author:p.author_name||'익명',
+    author_id:p.author_id,
+    date:(p.created_at||'').slice(0,10).replace(/-/g,'.'),
+    views:p.views||0,
+  }));
+  // 하드코딩 fallback: Supabase 게시글이 없을 때만 사용
+  _boardPosts=[...normalized,...(normalized.length?[]:BOARD_POSTS)];
+  const filtered=boardFilter==='전체'?_boardPosts:_boardPosts.filter(p=>p.cat===boardFilter);
+  listEl.innerHTML=filtered.length?filtered.map((p,i)=>{
+    const pidx=_boardPosts.indexOf(p);
+    return `<div style="padding:16px;border-bottom:1px solid #f0f0f0;cursor:pointer;active:background:#f8f8fa" onclick="openBoardDetail(${pidx})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${catColor[p.cat]||'#6c63ff'}18;color:${catColor[p.cat]||'#6c63ff'}">${p.cat}</span>
+        <span style="font-size:11px;color:#bbb">조회 ${p.views}</span>
       </div>
-      <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:6px;line-height:1.4">${p.title}</div>
-      <div style="font-size:11px;color:#666677">${p.author} · ${p.date} · 조회 ${p.views}</div>
-    </div>`).join('')
+      <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:6px;line-height:1.45">${p.title}</div>
+      <div style="font-size:12px;color:#888">${p.author} · ${p.date}</div>
+    </div>`;
+  }).join('')
   :'<div style="padding:60px 20px;text-align:center;color:#666677"><div style="font-size:36px;margin-bottom:12px">📭</div><div>게시글이 없어요</div></div>';
-  // 탭 활성화 동기화
   const cats=['전체','트렌드','정보','Q&A','거래'];
-  const tabs=document.querySelectorAll('#board-filter-tabs button');
-  tabs.forEach((btn,i)=>{
-    const active=cats[i]===boardFilter;
-    btn.style.color=active?'#6c63ff':'#8888aa';
-    btn.style.borderBottom=active?'2px solid #6c63ff':'2px solid transparent';
-    btn.style.fontWeight=active?'700':'600';
+  document.querySelectorAll('#board-filter-tabs button').forEach((btn,i)=>{
+    const on=cats[i]===boardFilter;
+    btn.style.color=on?'#6c63ff':'#8888aa';
+    btn.style.borderBottom=on?'2px solid #6c63ff':'2px solid transparent';
+    btn.style.fontWeight=on?'700':'600';
   });
 }
 
+/* ==================== BOARD WRITE ==================== */
+let _boardWriteCat='정보';
+function openBoardWrite(){
+  if(!curUser){showToast('로그인 후 이용해주세요');return;}
+  showView('board-write');
+}
+function initBoardWrite(){
+  _boardWriteCat='정보';
+  const titleEl=document.getElementById('board-title-input');
+  const contentEl=document.getElementById('board-content-input');
+  if(titleEl)titleEl.value='';
+  if(contentEl)contentEl.value='';
+  const chips=document.getElementById('board-cat-chips');
+  if(!chips)return;
+  const cats=['트렌드','정보','Q&A','거래'];
+  const colors={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8','거래':'#c8a84b'};
+  chips.innerHTML=cats.map(c=>`
+    <button id="bwc-${c}" onclick="selectBoardCat('${c}')"
+      style="padding:8px 18px;border-radius:20px;border:1.5px solid ${c===_boardWriteCat?colors[c]:'#d8d8e8'};
+             background:${c===_boardWriteCat?colors[c]+'18':'#f8f8fa'};
+             color:${c===_boardWriteCat?colors[c]:'#888899'};font-size:13px;font-weight:600;cursor:pointer">${c}</button>`).join('');
+}
+function selectBoardCat(cat){
+  _boardWriteCat=cat;
+  const colors={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8','거래':'#c8a84b'};
+  ['트렌드','정보','Q&A','거래'].forEach(c=>{
+    const btn=document.getElementById('bwc-'+c);if(!btn)return;
+    const on=c===cat;
+    btn.style.border=`1.5px solid ${on?colors[c]:'#d8d8e8'}`;
+    btn.style.background=on?colors[c]+'18':'#f8f8fa';
+    btn.style.color=on?colors[c]:'#888899';
+  });
+}
+async function submitBoardPost(){
+  const title=(document.getElementById('board-title-input')?.value||'').trim();
+  const content=(document.getElementById('board-content-input')?.value||'').trim();
+  if(!title){showToast('제목을 입력해주세요');return;}
+  if(!content){showToast('내용을 입력해주세요');return;}
+  const authorName=curUser?.name||curUser?.email||'익명';
+  if(_sb){
+    try{
+      const{error}=await _sb.from('board_posts').insert({
+        title,content,cat:_boardWriteCat,
+        author_name:authorName,author_id:curUser?.id||null,views:0
+      });
+      if(error){console.error('[submitBoardPost]',error);showToast('등록 실패: '+error.message);return;}
+    }catch(e){console.error('[submitBoardPost] 예외',e);showToast('등록 중 오류가 발생했어요');return;}
+  }else{
+    // localStorage fallback
+    const newP={id:Date.now(),title,content,cat:_boardWriteCat,author:authorName,date:new Date().toISOString().slice(0,10).replace(/-/g,'.'),views:0};
+    BOARD_POSTS.unshift(newP);
+  }
+  showToast('게시글이 등록됐어요! ✅');
+  goBack();
+  setTimeout(()=>renderBoard(),300);
+}
+/* ==================== BOARD DETAIL ==================== */
+function openBoardDetail(idx){
+  const p=_boardPosts[idx];if(!p)return;
+  const catColor={'트렌드':'#ff6584','정보':'#6c63ff','Q&A':'#3ec6b8','거래':'#c8a84b'};
+  const cc=catColor[p.cat]||'#6c63ff';
+  // 조회수 증가
+  if(p._sb&&_sb){
+    _sb.from('board_posts').update({views:(p.views||0)+1}).eq('id',p.id).then();
+    p.views=(p.views||0)+1;
+  }else{
+    const hp=BOARD_POSTS.find(x=>x.id===p.id);if(hp)hp.views=(hp.views||0)+1;
+    p.views=(p.views||0)+1;
+  }
+  const hdr=document.getElementById('bd-hdr-cat');
+  if(hdr)hdr.textContent=p.cat;
+  const wrap=document.getElementById('bd-content-wrap');
+  if(wrap)wrap.innerHTML=`
+    <div style="padding:20px 16px 12px">
+      <div style="display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${cc}18;color:${cc};margin-bottom:14px">${p.cat}</div>
+      <div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1.4;margin-bottom:10px">${p.title}</div>
+      <div style="font-size:12px;color:#888;margin-bottom:20px">${p.author} · ${p.date} · 조회 ${p.views}</div>
+      <hr style="border:none;border-top:1px solid #f0f0f0;margin-bottom:20px"/>
+      <div style="font-size:15px;color:#333;line-height:1.8;white-space:pre-wrap">${p.content||'(내용 없음)'}</div>
+    </div>`;
+  showView('board-detail');
+}
 function openTrendReport(){showView('trend');}
 function renderTrendReport(){
   const el=document.getElementById('trend-view-content');if(!el)return;
