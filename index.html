@@ -3801,7 +3801,7 @@ function submitSuggest(){
   if(!price){showToast('제안 가격을 입력해주세요');return}
   closeModal('modal-suggest');showToast('가격 제안이 전송됐어요! 💰');
   const _sp=products.find(x=>x.id===curProductId);
-  if(_sp)addNotif('💰','rgba(201,168,76,.15)','가격제안 도착',(curUser?.name||'구매자')+'에서 가격제안이 왔습니다');
+  if(_sp){const _ns=lsGet('notifSettings',{});if(_ns.priceChange!==false)addNotif('💰','rgba(201,168,76,.15)','가격제안 도착',(curUser?.name||'구매자')+'에서 가격제안이 왔습니다');}
 }
 function selectRes(type,el){
   curResType=type;
@@ -3828,7 +3828,7 @@ async function submitReservation(){
   }
   closeModal('modal-res');showToast(`${date} ${time} 예약이 신청됐어요! 📅`);
   const _rp=products.find(x=>x.id===curProductId);
-  if(_rp)addNotif('✅','rgba(0,200,100,.15)','구매요청 도착',(curUser?.name||'구매자')+'에서 '+_rp.title+' 구매 요청');
+  if(_rp){const _ns=lsGet('notifSettings',{});if(_ns.reservation!==false)addNotif('✅','rgba(0,200,100,.15)','구매요청 도착',(curUser?.name||'구매자')+'에서 '+_rp.title+' 구매 요청');}
 }
 
 /* ==================== SELLER PAGE ==================== */
@@ -4106,7 +4106,8 @@ async function submitForm(){
       const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
       products.unshift(newP);saveProducts();
       resetForm();showView('list');showToast(t('registered'));
-      addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);
+      {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
+      {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
     }
     return;
   }
@@ -4156,7 +4157,8 @@ async function submitForm(){
       }
       console.log('[submitForm] insert 성공 — id:',inserted.id);
       resetForm();showView('list');showToast(t('registered'));
-      addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);
+      {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
+      {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
       lsDelTTL('products_sb');await loadProductsFromSupabase();
     }
   }catch(e){
@@ -4410,7 +4412,7 @@ function sendChatMsg(){
     room.lastMsg=reply;room.lastTime=rtime;
     lsSet('chatRooms',chatRooms);
     renderChatRoom(curChatRoomId);
-    addNotif('💬','rgba(108,99,255,.15)','새 메시지',(room.sellerName||'판매자')+': '+reply);
+    {const _ns=lsGet('notifSettings',{});if(_ns.newMsg!==false)addNotif('💬','rgba(108,99,255,.15)','새 메시지',(room.sellerName||'판매자')+': '+reply);}
   },800+Math.random()*800);
 }
 function goChatProduct(){
@@ -5538,15 +5540,27 @@ function renderNotifView(){
     el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
     return;
   }
-  el.innerHTML=items.map(item=>`
-    <div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start">
+  const NOTIF_BADGE={
+    '신규 상품 등록':{bg:'#e3f2fd',color:'#1565c0'},
+    '관심 등록':{bg:'#fce4ec',color:'#c62828'},
+    '가격제안 도착':{bg:'#fff8e1',color:'#f57f17'},
+    '구매요청 도착':{bg:'#e8f5e9',color:'#2e7d32'},
+    '새 메시지':{bg:'#f3e5f5',color:'#6a1b9a'},
+    '키워드 알림':{bg:'#fff9e6',color:'#856404'},
+  };
+  el.innerHTML=items.map(item=>{
+    const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
+    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start">
       <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px">${item.title}</div>
-        <div style="font-size:12px;color:#666677">${item.desc||''}</div>
-        <div style="font-size:11px;color:#6666aa;margin-top:4px">${timeAgo(item.ts)}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="font-size:10px;font-weight:700;background:${badge.bg};color:${badge.color};padding:2px 7px;border-radius:10px">${item.title}</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">${item.desc||''}</div>
+        <div style="font-size:11px;color:#999999;margin-top:2px">${timeAgo(item.ts)}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function renderNotices(){
   const el=document.getElementById('notices-list');if(!el)return;
