@@ -3717,6 +3717,19 @@ function editProduct(targetId){
   if(us)us.style.background=urgent?'#ff6b35':'#333';
   if(uth)uth.style.transform=urgent?'translateX(24px)':'translateX(0)';
   if(p.cat||p.type)selectCat1(p.cat||p.type);
+  if(p.cat2){
+    const catData=CATEGORY_DATA.find(c=>c.id===(p.cat||p.type));
+    if(catData){
+      const subIdx=catData.sub.findIndex(s=>s.name===p.cat2);
+      if(subIdx>=0){
+        selectCat2(subIdx);
+        if(p.cat3){
+          const itemIdx=catData.sub[subIdx].items.findIndex(it=>it===p.cat3);
+          if(itemIdx>=0)selectCat3(itemIdx,p.cat3);
+        }
+      }
+    }
+  }
   if(typeof p.sample==='boolean')setSample(p.sample);
   // 이미지 복원
   uploadedImgs=[];
@@ -4081,7 +4094,12 @@ async function submitForm(){
       const upd={...payload};
       delete upd.likes;delete upd.chats;delete upd.time;delete upd.seller;delete upd.imgs;
       console.log('[submitForm] update 시도 id:',formEditId);
+      console.log('[DEBUG] update upd.cat2:',upd.cat2);
+      console.log('[DEBUG] update upd.cat3:',upd.cat3);
+      console.log('[DEBUG] update sending:',JSON.stringify({cat2:upd.cat2,cat3:upd.cat3}));
       const{data:updated,error}=await _sb.from('products').update(upd).eq('id',formEditId).select().single();
+      console.log('[DEBUG] update error:',error);
+      console.log('[DEBUG] update result cat2:',updated?.cat2,'cat3:',updated?.cat3);
       if(error){showToast('수정 실패: '+error.message);return;}
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...upd};
