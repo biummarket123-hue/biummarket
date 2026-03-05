@@ -3109,14 +3109,12 @@ function filterByCategory(prods,key){
 function filterByCat2(prods,cat1Key,cat2Key){
   if(!cat2Key)return filterByCategory(prods,cat1Key);
   const base=filterByCategory(prods,cat1Key);
-  const byCat2=base.filter(p=>p.cat2===cat2Key);
-  return byCat2.length?byCat2:base;
+  return base.filter(p=>p.cat2===cat2Key);
 }
 function filterByCat3(prods,cat1Key,cat2Key,cat3Key){
   if(!cat3Key)return filterByCat2(prods,cat1Key,cat2Key);
   const base=filterByCat2(prods,cat1Key,cat2Key);
-  const byCat3=base.filter(p=>p.cat3===cat3Key||(p.tags||[]).some(t=>t===cat3Key)||(p.title||'').includes(cat3Key));
-  return byCat3.length?byCat3:base;
+  return base.filter(p=>p.cat3===cat3Key||(p.tags||[]).some(t=>t===cat3Key)||(p.title||'').includes(cat3Key));
 }
 
 /* ===== CATEGORY VIEW JS ===== */
@@ -3163,15 +3161,15 @@ function renderCatStep1(){
     <div style="background:#f8f8fa">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">중분류</div>
       ${catData.sub.map((sub,i)=>`
-        <div onclick="${sub.items.length>0?`catGoStep2(${i})`:`catGoProductsBySub('${catSelId}','${sub.name}')`}"
-          style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:${i<catData.sub.length-1?'1px solid #e0e0ea':'none'};cursor:pointer">
-          <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:${i<catData.sub.length-1?'1px solid #e0e0ea':'none'}">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer" onclick="catGoProductsBySub('${catSelId}','${sub.name}')">
             <span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;display:inline-block;flex-shrink:0"></span>
-            <span style="font-size:15px;color:#1a1a1a">${sub.name}</span>
+            <div>
+              <div style="font-size:15px;color:#1a1a1a">${sub.name}</div>
+              ${sub.items.length>0?`<div style="font-size:12px;color:#aaa;margin-top:1px">${sub.items.length}개 소분류</div>`:''}
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            ${sub.items.length>0?`<span style="font-size:13px;color:#aaa">${sub.items.length}개 소분류</span><span style="color:#bbb;font-size:16px">›</span>`:''}
-          </div>
+          ${sub.items.length>0?`<button onclick="event.stopPropagation();catGoStep2(${i})" style="padding:5px 10px;background:#f0f0f0;border:none;border-radius:8px;font-size:12px;color:#555;cursor:pointer;flex-shrink:0">소분류 ›</button>`:''}
         </div>`).join('')}
     </div>
     <div style="margin-top:12px;background:#f8f8fa">
