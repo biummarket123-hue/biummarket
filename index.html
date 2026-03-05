@@ -3325,7 +3325,7 @@ function renderHomeProduct(p){
   const unit=p.unit||'m';
   const seller=p.seller||{};
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const priceColor=(urgent||discPct)?'#e53935':'#1a1a1a';
+  const priceColor='#1a1a1a';
   const metaParts=[seller.name,p.loc?p.loc.split(' ').slice(-1)[0]:'',p.time||''].filter(Boolean);
   const priceHtml=p.bulk_price&&p.price
     ?`<span style="color:${priceColor}">${fmtPrice(p.bulk_price)}</span><span style="color:#999"> - </span><span style="color:${priceColor}">${fmtPrice(p.price)}</span><span class="h-pu">/${unit}</span>`
