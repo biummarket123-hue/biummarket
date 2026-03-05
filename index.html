@@ -429,6 +429,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .sv-recent-del{font-size:11px;color:#aaaaaa;line-height:1;padding:1px 3px;border-radius:4px}
 .sv-recent-del:hover{color:#ff6584}
 .sv-result-hd{padding:10px 14px 4px;font-size:12px;color:#666677;font-weight:600}
+.sv-popular-row{display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 16px}
+.sv-popular-pill{display:inline-flex;align-items:center;gap:6px;background:#fef9e7;border:1px solid #f5c518;color:#92701a;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.sv-popular-pill:hover{background:#fef3c7}
+.sv-popular-pill .sv-pop-num{color:#c8960a;font-weight:800;font-size:13px;min-width:14px}
 
 /* ===================== FORM SECTIONS ===================== */
 .form-sec-hd{display:flex;align-items:center;gap:10px;padding:18px 0 10px}
@@ -1724,6 +1728,15 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
     </div>
     <div class="sv-recent-row" id="sv-recent-chips"></div>
+  </div>
+  <!-- 인기 검색어 -->
+  <div id="sv-popular-section" style="display:none">
+    <div class="sv-section">
+      <div class="sv-section-hd">
+        <span class="sv-section-title">🔥 인기 검색어</span>
+      </div>
+    </div>
+    <div class="sv-popular-row" id="sv-popular-chips"></div>
   </div>
   <!-- 결과 카운트 -->
   <div id="sv-result-hd" class="sv-result-hd" style="display:none"></div>
@@ -4163,9 +4176,20 @@ document.getElementById('btn-alert').addEventListener('click',()=>showView('noti
 updateNotifDot();
 
 /* ==================== SEARCH VIEW ==================== */
+const SV_POPULAR_KEYWORDS=['코마면','린넨','울 서지','기모','실크새틴','셀비지데님','쿨맥스','저지'];
+function renderPopularSearches(){
+  const section=document.getElementById('sv-popular-section');
+  const chips=document.getElementById('sv-popular-chips');
+  if(!section||!chips)return;
+  const q=svSearch.trim();
+  if(q){section.style.display='none';return;}
+  chips.innerHTML=SV_POPULAR_KEYWORDS.map((kw,i)=>`<button class="sv-popular-pill" onclick="applySvSearch('${kw}')"><span class="sv-pop-num">${i+1}</span>${kw}</button>`).join('');
+  section.style.display='block';
+}
 function renderSearchView(){
   renderSvChips();
   renderRecentSearches();
+  renderPopularSearches();
   const list=document.getElementById('sv-list');
   const empty=document.getElementById('sv-empty');
   const resultHd=document.getElementById('sv-result-hd');
@@ -4181,9 +4205,11 @@ function renderSearchView(){
     resultHd.style.display=q?'block':'none';
     if(q)resultHd.textContent=`"${svSearch.trim()}" 검색 결과 ${filtered.length}건`;
   }
-  if(!filtered.length){
+  if(!q){
+    list.innerHTML='';list.style.display='none';empty.style.display='none';
+  }else if(!filtered.length){
     list.innerHTML='';list.style.display='none';empty.style.display='flex';
-    document.getElementById('sv-empty-msg').textContent=q||svFilter!=='전체'?t('empty_msg'):'검색어를 입력하거나 카테고리를 선택하세요';
+    document.getElementById('sv-empty-msg').textContent=t('empty_msg');
   }else{
     empty.style.display='none';list.style.display='grid';
     list.innerHTML=filtered.map(renderCard).join('');
