@@ -213,13 +213,16 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .action-btn.del{border-color:rgba(198,40,40,.3);color:#ef5350;background:rgba(198,40,40,.08)}
 
 /* SELLER PAGE */
-.seller-cover{height:180px;background:linear-gradient(135deg,#e8e4ff 0%,#dddaf8 100%);position:relative;display:flex;align-items:flex-end;padding:16px}
+.seller-cover{height:200px;background:linear-gradient(135deg,#1a2340 0%,#2d3561 100%);position:relative;display:flex;align-items:flex-end;padding:16px;overflow:hidden}
+.seller-cover::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none}
+.seller-cover::after{content:'';position:absolute;bottom:-30px;left:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
 .seller-cover-overlay{position:absolute;inset:0;pointer-events:none}
 .seller-av-row{display:flex;align-items:flex-end;gap:12px;position:relative;z-index:1;width:100%}
-.seller-big-av{width:64px;height:64px;border-radius:50%;border:3px solid #e0e0ea;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.seller-big-av{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.4);background:#d4a017}
 .seller-av-info{flex:1;min-width:0}
-.seller-hero-name{font-size:17px;font-weight:800;color:#1a1a1a;margin-bottom:2px}
-.seller-hero-sub{font-size:12px;color:rgba(0,0,0,.6)}
+.seller-hero-name{font-size:18px;font-weight:800;color:#ffffff;margin-bottom:4px}
+.seller-hero-sub{font-size:12px;color:rgba(255,255,255,0.7)}
+.seller-hero-stars{font-size:13px;color:#f5c518;margin-top:3px}
 .seller-follow-btn{padding:8px 16px;border-radius:20px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
 .seller-stats{display:flex;gap:0;border-bottom:8px solid #f0f0f5;background:#f8f8fa}
 .sstat{flex:1;padding:14px;text-align:center;border-right:1px solid #e0e0ea}
@@ -2090,12 +2093,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 
 <!-- MODAL: TOP SELLERS -->
 <div class="mover" id="modal-top-sellers" onclick="closeModal('modal-top-sellers',event)">
-  <div class="msheet" style="max-height:80vh">
+  <div class="msheet" style="max-height:88vh">
     <div class="mhandle"></div>
-    <div class="mtitle">🏆 TOP 판매자 랭킹</div>
-    <div style="font-size:11px;color:#666677;margin-bottom:12px">거래완료·좋아요 기준 상위 판매자</div>
-    <div id="top-sellers-list" style="display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto"></div>
-    <button class="mclose" onclick="closeModal('modal-top-sellers')" style="margin-top:16px">닫기</button>
+    <div id="top-sellers-list" style="display:flex;flex-direction:column;overflow-y:auto;max-height:calc(88vh - 60px)"></div>
+    <button class="mclose" onclick="closeModal('modal-top-sellers')" style="margin-top:8px">닫기</button>
   </div>
 </div>
 
@@ -3857,20 +3858,27 @@ function switchSellerTab(tab,el){
 }
 function renderSellerPage(seller){
   curSellerData=seller;
-  const bg=getFColor(seller.name,'abc');
   const overlay=document.getElementById('sh-cover-overlay');
-  if(overlay)overlay.style.background=`linear-gradient(135deg,${bg}55,rgba(255,101,132,.2))`;
+  if(overlay)overlay.style.background='none';
   const av=document.getElementById('sh-av');
-  av.textContent=seller.name[0];av.style.background=`linear-gradient(135deg,${bg},#ff9a6c)`;
+  av.textContent=seller.name?seller.name.slice(0,2):'?';
+  av.style.background='#d4a017';
   document.getElementById('sh-name').textContent=seller.name;
-  document.getElementById('sh-loc').textContent='📍 '+(seller.loc||'서울')+'  🌡️ '+(seller.temp||36.5).toFixed(1)+'°C';
+  const temp=seller.temp||36.5;
+  const starsHtml='⭐'.repeat(Math.min(5,Math.round(temp/10)))+'☆'.repeat(Math.max(0,5-Math.round(temp/10)));
+  const locEl=document.getElementById('sh-loc');
+  if(locEl)locEl.innerHTML='<span>📍 '+(seller.loc||'서울')+'</span>';
+  document.querySelectorAll('.seller-hero-stars').forEach(e=>e.remove());
+  const nameEl=document.getElementById('sh-name');
+  if(nameEl)nameEl.insertAdjacentHTML('afterend',`<div class="seller-hero-stars">${starsHtml} ${temp.toFixed(1)}°C</div>`);
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
   curSellerData._intro=userInfo.intro||'재고원단 전문 업체입니다. 다양한 소재의 원단을 합리적인 가격에 공급합니다.';
   const myProds=products.filter(p=>p.seller&&p.seller.name===seller.name);
+  const totalLikes=myProds.reduce((a,p)=>a+p.likes,0);
   document.getElementById('sh-stats').innerHTML=`
     <div class="sstat"><div class="sv">${myProds.length}</div><div class="sl">상품</div></div>
-    <div class="sstat"><div class="sv">${(seller.temp||36.5).toFixed(1)}°C</div><div class="sl">매너온도</div></div>
-    <div class="sstat"><div class="sv">${myProds.reduce((a,p)=>a+p.likes,0)}</div><div class="sl">관심</div></div>
+    <div class="sstat"><div class="sv">${temp.toFixed(1)}°C</div><div class="sl">매너온도</div></div>
+    <div class="sstat"><div class="sv">${totalLikes}</div><div class="sl">❤️ 관심</div></div>
   `;
   document.querySelectorAll('#view-seller .seller-tab').forEach((t,i)=>t.classList.toggle('on',i===0));
   const firstTab=document.querySelector('#view-seller .seller-tab');
@@ -4856,26 +4864,37 @@ function openTopSellers(){
   const sellerMap={};
   products.forEach(p=>{
     const name=(p.seller?.name)||'알수없음';
-    if(!sellerMap[name])sellerMap[name]={name,temp:p.seller?.temp||36.5,loc:p.seller?.loc||'',likes:0,chats:0,cnt:0};
+    if(!sellerMap[name])sellerMap[name]={name,temp:p.seller?.temp||36.5,loc:p.seller?.loc||'',likes:0,chats:0,cnt:0,seller:p.seller||{}};
     sellerMap[name].likes+=(p.likes||0);
     sellerMap[name].chats+=(p.chats||0);
     sellerMap[name].cnt++;
   });
-  const sorted=Object.values(sellerMap).sort((a,b)=>(b.likes+b.chats)-(a.likes+a.chats)).slice(0,10);
+  window._rankSellers=Object.values(sellerMap).sort((a,b)=>(b.likes+b.chats)-(a.likes+a.chats)).slice(0,10);
   const MEDALS=['🥇','🥈','🥉'];
-  document.getElementById('top-sellers-list').innerHTML=sorted.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#eeeeee;border-radius:14px">
-      <div style="font-size:22px;width:28px;text-align:center">${MEDALS[i]||`${i+1}`}</div>
-      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#ff6584);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0">${s.name[0]}</div>
+  const banner=`<div style="background:linear-gradient(135deg,#1a2340 0%,#2d3561 100%);border-radius:16px;padding:32px 20px;text-align:center;margin-bottom:4px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
+    <div style="font-size:48px;margin-bottom:10px">🏆</div>
+    <div style="font-size:18px;font-weight:800;color:#ffffff;margin-bottom:4px">TOP 판매자 랭킹</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7)">거래·리뷰·관심도 종합 순위</div>
+  </div>`;
+  const rows=window._rankSellers.map((s,i)=>{
+    const initials=s.name.slice(0,2);
+    const medal=MEDALS[i]||`<span style="font-size:14px;font-weight:700;color:#aaa;display:inline-block;width:22px;text-align:center">${i+1}</span>`;
+    const stars='⭐'.repeat(Math.min(5,Math.round((s.temp||36.5)/10)));
+    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="closeModal('modal-top-sellers');setTimeout(()=>renderSellerPage(window._rankSellers[${i}].seller||window._rankSellers[${i}]),200)">
+      <div style="font-size:22px;width:28px;text-align:center;flex-shrink:0">${medal}</div>
+      <div style="width:44px;height:44px;border-radius:50%;background:#d4a017;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;color:#1a1a1a">${s.name}</div>
-        <div style="font-size:11px;color:#666677">${s.loc||''}</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:3px">${s.name}</div>
+        <div style="font-size:12px;color:#888">📍${s.loc||'서울'} · 상품 ${s.cnt}개 · ❤️ ${s.likes}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:13px;font-weight:700;color:#6c63ff">❤️ ${s.likes}</div>
-        <div style="font-size:11px;color:#666677">상품 ${s.cnt}개</div>
+        <div style="font-size:13px;color:#c8960a;font-weight:700">${stars}</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">${(s.temp||36.5).toFixed(1)}°C</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  document.getElementById('top-sellers-list').innerHTML=banner+`<div style="padding:0 2px">${rows}</div>`;
   openModal('modal-top-sellers');
 }
 
