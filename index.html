@@ -742,7 +742,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .res-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="app">
@@ -2766,6 +2766,36 @@ try{
 if(window.Kakao&&!window.Kakao.isInitialized()){
   window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
 }
+// 카카오 리다이렉트 코드 처리 (users/curUser 선언 후 실행되도록 DOMContentLoaded에서 호출)
+async function handleKakaoRedirect(){
+  const urlParams=new URLSearchParams(window.location.search);
+  const kakaoCode=urlParams.get('code');
+  if(!kakaoCode)return;
+  try{
+    const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'2a0cb674c93b653e5e51382a15763bf9',redirect_uri:'https://biummarket.vercel.app',code:kakaoCode})
+    }).then(r=>r.json());
+    if(!tokenData.access_token){console.error('Kakao token error:',tokenData);return;}
+    const userInfo=await fetch('https://kapi.kakao.com/v2/user/me',{
+      headers:{Authorization:'Bearer '+tokenData.access_token}
+    }).then(r=>r.json());
+    const kakaoId=userInfo.id;
+    const nickname=userInfo.kakao_account?.profile?.nickname||'카카오사용자';
+    const email=userInfo.kakao_account?.email||(kakaoId+'@kakao.com');
+    let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
+    if(!user){
+      user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+      users.push(user);lsSet('users',users);
+      if(_sb)await _sb.from('users').upsert(user);
+    }
+    curUser=user;lsSet('curUser',curUser);
+    window.history.replaceState({},'','/');
+    showToast('카카오 로그인 성공! 환영합니다 '+nickname);
+    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
+  }catch(e){console.error('Kakao token error:',e);}
+}
 
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
@@ -3178,29 +3208,13 @@ async function doGoogleLogin(){
 }
 function doKakaoLogin(){
   if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
-  window.Kakao.Auth.login({
-    success:async function(authObj){
-      window.Kakao.API.request({
-        url:'/v2/user/me',
-        success:async function(res){
-          const kakaoId=res.id;
-          const nickname=res.kakao_account?.profile?.nickname||'카카오사용자';
-          const email=res.kakao_account?.email||(kakaoId+'@kakao.com');
-          let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
-          if(!user){
-            user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
-            users.push(user);lsSet('users',users);
-            if(_sb)await _sb.from('users').upsert(user);
-          }
-          curUser=user;lsSet('curUser',curUser);
-          showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-          showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
-        },
-        fail:function(err){showToast('사용자 정보를 가져올 수 없어요');console.error(err);}
-      });
-    },
-    fail:function(err){showToast('카카오 로그인 실패: '+JSON.stringify(err));console.error(err);}
-  });
+  if(!window.Kakao.isInitialized()){window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');}
+  try{
+    window.Kakao.Auth.authorize({
+      redirectUri:'https://biummarket.vercel.app',
+      scope:'profile_nickname,account_email'
+    });
+  }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
 }
 function selectType(type,el){
   selectedUserType=type;
@@ -6642,6 +6656,13 @@ function renderAnalytics(){
 
 /* ==================== INIT ==================== */
 (async function init(){
+  // 카카오 리다이렉트 코드가 있으면 먼저 처리 (스플래시 스킵)
+  const _kp=new URLSearchParams(window.location.search);
+  if(_kp.get('code')){
+    showView('splash');
+    await handleKakaoRedirect();
+    return;
+  }
   // 스플래시 화면 표시
   showView('splash');
   const splashStart=Date.now();
