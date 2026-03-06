@@ -3179,7 +3179,7 @@ async function doGoogleLogin(){
 function doKakaoLogin(){
   if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
   if(!Kakao.isInitialized())Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
-  Kakao.Auth.loginForm({
+  Kakao.Auth.login({
     success:function(authObj){
       Kakao.API.request({
         url:'/v2/user/me',
@@ -3200,7 +3200,7 @@ function doKakaoLogin(){
         fail:function(err){console.error('Kakao user info error:',err);showToast('사용자 정보를 가져올 수 없어요');}
       });
     },
-    fail:function(err){console.error('Kakao login error:',err);showToast('카카오 로그인 실패');}
+    fail:function(err){console.error('Kakao login error:',err);showToast('카카오 로그인 실패: '+(err.error_description||''));}
   });
 }
 function selectType(type,el){
