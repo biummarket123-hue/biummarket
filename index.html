@@ -775,7 +775,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           <span style="font-size:18px">💬</span>
           카카오 계정으로 로그인
         </button>
-        <button onclick="showToast('네이버 로그인 준비중이에요')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#03C75A;border:none;font-size:15px;font-weight:600;color:#fff;margin-bottom:10px;cursor:pointer">
+        <button onclick="doNaverLogin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#03C75A;border:none;font-size:15px;font-weight:600;color:#fff;margin-bottom:10px;cursor:pointer">
           <span style="font-size:18px;font-weight:900;color:#fff">N</span>
           네이버 계정으로 로그인
         </button>
@@ -3217,6 +3217,50 @@ async function handleKakaoCode(code){
     showToast('카카오 로그인 성공! 환영합니다 '+nickname);
     showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
   }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
+}
+function doNaverLogin(){
+  const CLIENT_ID='nvcabgkBSUsoLBcwLvKt';
+  const REDIRECT_URI='https://biummarket.vercel.app';
+  const STATE=Math.random().toString(36).substring(2);
+  sessionStorage.setItem('naver_state',STATE);
+  const naverAuthUrl=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${STATE}`;
+  const popup=window.open(naverAuthUrl,'naverLogin','width=500,height=600,scrollbars=yes');
+  const messageHandler=async function(event){
+    if(event.data&&event.data.type==='NAVER_AUTH_CODE'){
+      window.removeEventListener('message',messageHandler);
+      await handleNaverCode(event.data.code,event.data.state);
+    }
+  };
+  window.addEventListener('message',messageHandler);
+  if(!popup){
+    showToast('팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.');
+    window.location.href=naverAuthUrl;
+  }
+}
+async function handleNaverCode(code,state){
+  const savedState=sessionStorage.getItem('naver_state');
+  if(state!==savedState){showToast('보안 오류가 발생했어요');return;}
+  try{
+    const tokenRes=await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=nvcabgkBSUsoLBcwLvKt&client_secret=b3DwMmChOg&code=${code}&state=${state}`)}`,{method:'GET'});
+    const tokenData=await tokenRes.json();
+    if(!tokenData.access_token)throw new Error('토큰 발급 실패');
+    const userData=await fetch('https://corsproxy.io/?https://openapi.naver.com/v1/nid/me',{
+      headers:{Authorization:'Bearer '+tokenData.access_token}
+    }).then(r=>r.json());
+    const profile=userData.response;
+    const naverId=profile.id;
+    const nickname=profile.name||profile.nickname||'네이버사용자';
+    const email=profile.email||('naver_'+naverId+'@naver.com');
+    let user=users.find(u=>u.email===email||u.naverId===String(naverId));
+    if(!user){
+      user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+      users.push(user);lsSet('users',users);
+      if(_sb)await _sb.from('users').upsert(user);
+    }
+    curUser=user;lsSet('curUser',curUser);
+    showToast('네이버 로그인 성공! 환영합니다 '+nickname);
+    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
+  }catch(e){showToast('네이버 로그인 오류: '+e.message);console.error(e);}
 }
 function selectType(type,el){
   selectedUserType=type;
@@ -6658,18 +6702,28 @@ function renderAnalytics(){
 
 /* ==================== INIT ==================== */
 (async function init(){
-  // 카카오 리다이렉트 code 처리
-  const _kUrlParams=new URLSearchParams(window.location.search);
-  const _kCode=_kUrlParams.get('code');
-  if(_kCode){
+  // OAuth 리다이렉트 code 처리 (카카오/네이버)
+  const _oUrlParams=new URLSearchParams(window.location.search);
+  const _oCode=_oUrlParams.get('code');
+  const _oState=_oUrlParams.get('state');
+  if(_oCode){
     window.history.replaceState({},document.title,'/');
     if(window.opener){
-      window.opener.postMessage({type:'KAKAO_AUTH_CODE',code:_kCode},'*');
+      // state 있으면 네이버, 없으면 카카오
+      if(_oState){
+        window.opener.postMessage({type:'NAVER_AUTH_CODE',code:_oCode,state:_oState},'*');
+      }else{
+        window.opener.postMessage({type:'KAKAO_AUTH_CODE',code:_oCode},'*');
+      }
       window.close();
       return;
     }else{
       showView('splash');
-      await handleKakaoCode(_kCode);
+      if(_oState){
+        await handleNaverCode(_oCode,_oState);
+      }else{
+        await handleKakaoCode(_oCode);
+      }
       renderChips();
       return;
     }
