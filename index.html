@@ -537,11 +537,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .home-cats::-webkit-scrollbar{display:none}
 .home-cat{flex-shrink:0;padding:7px 15px;border-radius:20px;font-size:12px;font-weight:600;background:#eeeeee;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer;transition:all .15s;white-space:nowrap}
 .home-cat.on{background:#1a1a1a;color:#ffffff;border-color:#1a1a1a}
-.premium-banner{margin:14px 14px 0;background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden}
+.premium-banner{margin:14px 14px 0;background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:18px;padding:28px 20px;min-height:180px;box-sizing:border-box;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
 .premium-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(180,150,80,.15)}
 .premium-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;margin-bottom:8px}
-.premium-title{font-size:16px;font-weight:800;color:#ffffff;margin-bottom:4px;position:relative;z-index:1}
-.premium-sub{font-size:12px;color:rgba(255,255,255,.65);position:relative;z-index:1}
+.premium-title{font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;position:relative;z-index:1}
+.premium-sub{font-size:14px;color:rgba(255,255,255,.65);position:relative;z-index:1}
 .ai-section{margin:16px 14px 0;background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:none;border-radius:20px;padding:20px 16px;position:relative;overflow:hidden}
 .ai-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .ai-section-title{font-size:14px;font-weight:800;color:#1a1a1a}
@@ -3150,7 +3150,7 @@ function showListSkeleton(){
 }
 
 /* ===== CATEGORY DATA (3단계 대/중/소 구조) ===== */
-const CATEGORY_DATA=[
+let CATEGORY_DATA=[
   {id:'면/린넨',emoji:'🧵',sub:[
     {name:'트월',items:['20수','40수','60수']},
     {name:'옥스포드',items:['셔츠용','두꺼운']},
@@ -3200,6 +3200,8 @@ const CATEGORY_DATA=[
     {name:'비즈/스팽글',items:[]},
   ]},
 ];
+// 저장된 커스텀 카테고리 불러오기 (관리자 수정 내용 반영)
+{const _sc=lsGet('customCategories',null);if(_sc&&Array.isArray(_sc))CATEGORY_DATA=_sc;}
 // 하위 호환용 CATEGORY_MAP 자동 생성 (대분류id → 중분류명 배열)
 const CATEGORY_MAP=Object.fromEntries(CATEGORY_DATA.map(cat=>[cat.id,cat.sub.map(s=>s.name)]));
 // 기존 상품 type 값(단어형)을 새 CATEGORY_DATA id(대분류)에 매핑하는 변환 테이블
@@ -5718,7 +5720,7 @@ function renderAdmin(){
       </div>
       <div class="my-menu-item" onclick="showAdminUsers()">
         <div class="my-icon-box ib-teal">👥</div>
-        <div class="my-menu-info"><div class="my-menu-title">회원 관리</div><div class="my-menu-sub" id="adm-user-sub">${users.length}명 가입</div></div>
+        <div class="my-menu-info"><div class="my-menu-title">회원 관리</div><div class="my-menu-sub" id="adm-user-sub">3명 가입</div></div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showAdminProducts()">
@@ -5755,8 +5757,8 @@ function showAdminCategories(){
             <div style="font-size:11px;color:#666677;margin-top:2px">${cat.sub.length}개 중분류 · ${cnt}개 상품</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="showToast('수정 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#aaa;font-size:14px;cursor:pointer">✏️</button>
-            <button onclick="showToast('삭제 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#ff6584;font-size:14px;cursor:pointer">🗑️</button>
+            <button onclick="adminEditCat('${cat.id}')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#555;font-size:14px;cursor:pointer">✏️</button>
+            <button onclick="adminDeleteCat('${cat.id}')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#ff6584;font-size:14px;cursor:pointer">🗑️</button>
             <button onclick="showAdminSubCategories('${cat.id}')" style="padding:6px 12px;background:#eeeeee;border:1px solid #6c63ff;border-radius:8px;color:#a89dff;font-size:12px;font-weight:600;cursor:pointer">하위 ›</button>
           </div>
         </div>`;
@@ -5783,8 +5785,8 @@ function showAdminSubCategories(catId){
             <div style="font-size:11px;color:#666677;margin-top:2px">${(s.items||[]).length}개 소분류 · ${cnt}개 상품</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="showToast('수정 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#aaa;font-size:14px;cursor:pointer">✏️</button>
-            <button onclick="showToast('삭제 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#ff6584;font-size:14px;cursor:pointer">🗑️</button>
+            <button onclick="adminEditSub('${cat.id}',${subIdx})" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#555;font-size:14px;cursor:pointer">✏️</button>
+            <button onclick="adminDeleteSub('${cat.id}',${subIdx})" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#ff6584;font-size:14px;cursor:pointer">🗑️</button>
             <button onclick="showAdminItems('${cat.id}',${subIdx})" style="padding:6px 12px;background:#eeeeee;border:1px solid #6c63ff;border-radius:8px;color:#a89dff;font-size:12px;font-weight:600;cursor:pointer">하위 ›</button>
           </div>
         </div>`;
@@ -5809,8 +5811,9 @@ function showAdminItems(catId,subIdx){
       </div>
       <div id="adm-items-list">
         ${(sub.items||[]).map(item=>`
-          <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+          <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
             <span style="flex:1;font-size:14px;color:#1a1a1a">${item}</span>
+            <button onclick="adminRenameItem('${catId}',${subIdx},'${item}')" style="background:none;border:1px solid #d8d8e8;border-radius:8px;color:#555;cursor:pointer;font-size:12px;flex-shrink:0;padding:4px 8px">✏️</button>
             <button onclick="adminDeleteItem('${catId}',${subIdx},'${item}')" style="background:none;border:none;color:#ff6584;cursor:pointer;font-size:20px;flex-shrink:0;line-height:1">×</button>
           </div>`).join('')}
         ${!(sub.items||[]).length?'<div style="text-align:center;color:#aaa;padding:40px 0;font-size:14px">등록된 소분류가 없습니다</div>':''}
@@ -5826,7 +5829,7 @@ function adminAddItem(catId,subIdx){
   if(!sub.items)sub.items=[];
   if(sub.items.includes(name)){showToast('이미 있는 소분류예요');return;}
   sub.items.push(name);
-  lsSet('categoryData',CATEGORY_DATA);
+  saveCategoriesToStorage();
   showAdminItems(catId,subIdx);showToast('소분류가 추가됐어요 ✅');
 }
 function adminDeleteItem(catId,subIdx,itemName){
@@ -5834,9 +5837,92 @@ function adminDeleteItem(catId,subIdx,itemName){
   const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
   const sub=cat.sub[subIdx];if(!sub)return;
   sub.items=(sub.items||[]).filter(i=>i!==itemName);
-  lsSet('categoryData',CATEGORY_DATA);
+  saveCategoriesToStorage();
   showAdminItems(catId,subIdx);showToast('삭제됐어요');
 }
+function saveCategoriesToStorage(){lsSet('customCategories',CATEGORY_DATA);}
+function adminEditCat(catId){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminCategories()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">대분류 이름 수정</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">현재 이름</div>
+        <div style="padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:15px;font-weight:700;color:#888">${cat.emoji} ${cat.id}</div></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">새 이름 *</div>
+        <input id="adm-cat-rename" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${cat.id}" placeholder="대분류 이름 입력"/></div>
+      <button onclick="adminSaveCatName('${cat.id}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 저장</button>
+      <button onclick="showAdminCategories()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function adminSaveCatName(oldId){
+  const newName=(document.getElementById('adm-cat-rename')?.value||'').trim();
+  if(!newName){showToast('이름을 입력해주세요');return;}
+  const cat=CATEGORY_DATA.find(c=>c.id===oldId);if(!cat)return;
+  cat.id=newName;saveCategoriesToStorage();
+  showAdminCategories();showToast('대분류 이름이 수정됐어요 ✅');}
+function adminDeleteCat(catId){
+  if(!confirm(`'${catId}' 대분류를 삭제할까요?\n하위 중분류/소분류도 모두 삭제됩니다.`))return;
+  const idx=CATEGORY_DATA.findIndex(c=>c.id===catId);if(idx===-1)return;
+  CATEGORY_DATA.splice(idx,1);saveCategoriesToStorage();
+  showAdminCategories();showToast('삭제됐어요');}
+function adminEditSub(catId,subIdx){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];if(!sub)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminSubCategories('${catId}')" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">중분류 이름 수정</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">현재 이름</div>
+        <div style="padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:700;color:#888">${sub.name}</div></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">새 이름 *</div>
+        <input id="adm-sub-rename" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${sub.name}" placeholder="중분류 이름 입력"/></div>
+      <button onclick="adminSaveSubName('${catId}',${subIdx})" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 저장</button>
+      <button onclick="showAdminSubCategories('${catId}')" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function adminSaveSubName(catId,subIdx){
+  const newName=(document.getElementById('adm-sub-rename')?.value||'').trim();
+  if(!newName){showToast('이름을 입력해주세요');return;}
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  cat.sub[subIdx].name=newName;saveCategoriesToStorage();
+  showAdminSubCategories(catId);showToast('중분류 이름이 수정됐어요 ✅');}
+function adminDeleteSub(catId,subIdx){
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];
+  if(!confirm(`'${sub?.name}' 중분류를 삭제할까요?`))return;
+  cat.sub.splice(subIdx,1);saveCategoriesToStorage();
+  showAdminSubCategories(catId);showToast('삭제됐어요');}
+function adminRenameItem(catId,subIdx,oldName){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminItems('${catId}',${subIdx})" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">소분류 이름 수정</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">현재 이름</div>
+        <div style="padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:700;color:#888">${oldName}</div></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">새 이름 *</div>
+        <input id="adm-item-rename" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${oldName}" placeholder="소분류 이름 입력"/></div>
+      <button onclick="adminSaveItemName('${catId}',${subIdx},'${oldName}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 저장</button>
+      <button onclick="showAdminItems('${catId}',${subIdx})" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function adminSaveItemName(catId,subIdx,oldName){
+  const newName=(document.getElementById('adm-item-rename')?.value||'').trim();
+  if(!newName){showToast('이름을 입력해주세요');return;}
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];if(!sub)return;
+  const idx=(sub.items||[]).indexOf(oldName);if(idx===-1){showToast('소분류를 찾을 수 없어요');return;}
+  sub.items[idx]=newName;saveCategoriesToStorage();
+  showAdminItems(catId,subIdx);showToast('소분류 이름이 수정됐어요 ✅');}
 function showAdminBanners(){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
