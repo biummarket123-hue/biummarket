@@ -742,6 +742,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .res-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="app">
@@ -770,7 +771,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           <img src="https://www.google.com/favicon.ico" style="width:20px;height:20px">
           구글 계정으로 로그인
         </button>
-        <button onclick="showToast('카카오 로그인 준비중이에요')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#FEE500;border:none;font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:10px;cursor:pointer">
+        <button onclick="doKakaoLogin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#FEE500;border:none;font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:10px;cursor:pointer">
           <span style="font-size:18px">💬</span>
           카카오 계정으로 로그인
         </button>
@@ -2762,6 +2763,9 @@ try{
   console.error('Supabase 초기화 오류:',e);
   _sb=null;
 }
+if(window.Kakao&&!window.Kakao.isInitialized()){
+  window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
+}
 
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
@@ -3171,6 +3175,32 @@ async function doGoogleLogin(){
     const{error}=await _sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://biummarket.vercel.app'}});
     if(error)throw error;
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
+}
+function doKakaoLogin(){
+  if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
+  window.Kakao.Auth.login({
+    success:async function(authObj){
+      window.Kakao.API.request({
+        url:'/v2/user/me',
+        success:async function(res){
+          const kakaoId=res.id;
+          const nickname=res.kakao_account?.profile?.nickname||'카카오사용자';
+          const email=res.kakao_account?.email||(kakaoId+'@kakao.com');
+          let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
+          if(!user){
+            user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+            users.push(user);lsSet('users',users);
+            if(_sb)await _sb.from('users').upsert(user);
+          }
+          curUser=user;lsSet('curUser',curUser);
+          showToast('카카오 로그인 성공! 환영합니다 '+nickname);
+          showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
+        },
+        fail:function(err){showToast('사용자 정보를 가져올 수 없어요');console.error(err);}
+      });
+    },
+    fail:function(err){showToast('카카오 로그인 실패: '+JSON.stringify(err));console.error(err);}
+  });
 }
 function selectType(type,el){
   selectedUserType=type;
