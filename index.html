@@ -3177,31 +3177,46 @@ async function doGoogleLogin(){
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
-  if(!Kakao.isInitialized())Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
-  Kakao.Auth.login({
-    success:function(authObj){
-      Kakao.API.request({
-        url:'/v2/user/me',
-        success:async function(res){
-          const kakaoId=res.id;
-          const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
-          const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
-          let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
-          if(!user){
-            user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
-            users.push(user);lsSet('users',users);
-            if(_sb)await _sb.from('users').upsert(user);
-          }
-          curUser=user;lsSet('curUser',curUser);
-          showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-          showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
-        },
-        fail:function(err){console.error('Kakao user info error:',err);showToast('사용자 정보를 가져올 수 없어요');}
-      });
-    },
-    fail:function(err){console.error('Kakao login error:',err);showToast('카카오 로그인 실패: '+(err.error_description||''));}
-  });
+  const REST_API_KEY='e7845a5b848756553feab8191fd4f63b';
+  const REDIRECT_URI='https://biummarket.vercel.app';
+  const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&prompt=login`;
+  const popup=window.open(kakaoAuthUrl,'kakaoLogin','width=500,height=600,scrollbars=yes');
+  const messageHandler=async function(event){
+    if(event.data&&event.data.type==='KAKAO_AUTH_CODE'){
+      window.removeEventListener('message',messageHandler);
+      await handleKakaoCode(event.data.code);
+    }
+  };
+  window.addEventListener('message',messageHandler);
+  if(!popup){
+    showToast('팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.');
+    window.location.href=kakaoAuthUrl;
+  }
+}
+async function handleKakaoCode(code){
+  try{
+    const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code})
+    }).then(r=>r.json());
+    if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
+    const res=await fetch('https://kapi.kakao.com/v2/user/me',{
+      headers:{Authorization:'Bearer '+tokenData.access_token}
+    }).then(r=>r.json());
+    const kakaoId=res.id;
+    const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
+    const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
+    let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
+    if(!user){
+      user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+      users.push(user);lsSet('users',users);
+      if(_sb)await _sb.from('users').upsert(user);
+    }
+    curUser=user;lsSet('curUser',curUser);
+    showToast('카카오 로그인 성공! 환영합니다 '+nickname);
+    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
+  }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
 }
 function selectType(type,el){
   selectedUserType=type;
@@ -6643,6 +6658,22 @@ function renderAnalytics(){
 
 /* ==================== INIT ==================== */
 (async function init(){
+  // 카카오 리다이렉트 code 처리
+  const _kUrlParams=new URLSearchParams(window.location.search);
+  const _kCode=_kUrlParams.get('code');
+  if(_kCode){
+    window.history.replaceState({},document.title,'/');
+    if(window.opener){
+      window.opener.postMessage({type:'KAKAO_AUTH_CODE',code:_kCode},'*');
+      window.close();
+      return;
+    }else{
+      showView('splash');
+      await handleKakaoCode(_kCode);
+      renderChips();
+      return;
+    }
+  }
   // 스플래시 화면 표시
   showView('splash');
   const splashStart=Date.now();
