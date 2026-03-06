@@ -2775,7 +2775,7 @@ async function handleKakaoRedirect(){
     const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'2a0cb674c93b653e5e51382a15763bf9',redirect_uri:'https://biummarket.vercel.app',code:kakaoCode})
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code:kakaoCode})
     }).then(r=>r.json());
     if(!tokenData.access_token){console.error('Kakao token error:',tokenData);return;}
     const userInfo=await fetch('https://kapi.kakao.com/v2/user/me',{
