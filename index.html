@@ -6250,12 +6250,12 @@ function renderAdminProductList(list){
   el.innerHTML=Object.entries(groups).map(([cat,ps])=>`
     <div style="margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:#6c63ff;margin-bottom:8px;padding:6px 10px;background:#f0eeff;border-radius:8px">${emojiMap[cat]||'📦'} ${cat} (${ps.length})</div>
-      ${ps.map(p=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+      ${ps.map(p=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="adminViewProduct(${p.id})">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
           <div style="font-size:11px;color:#888;margin-top:2px">${p.type} · ${p.qty}${p.unit||'m'} · ${fmtPrice(p.price)}/${p.unit||'m'}</div>
         </div>
-        <button onclick="adminDeleteProduct(${p.id})" style="flex-shrink:0;background:none;border:1px solid #ff6584;border-radius:8px;color:#ff6584;font-size:11px;padding:4px 8px;cursor:pointer">삭제</button>
+        <button onclick="event.stopPropagation();adminDeleteProduct(${p.id})" style="flex-shrink:0;background:none;border:1px solid #ff6584;border-radius:8px;color:#ff6584;font-size:11px;padding:4px 8px;cursor:pointer">삭제</button>
       </div>`).join('')}
     </div>`).join('');
 }
@@ -6268,6 +6268,77 @@ async function adminDeleteProduct(id){
   if(!confirm('정말 삭제할까요?'))return;
   if(_sb){const{error}=await _sb.from('products').delete().eq('id',id);if(error)console.error('delete error:',error);}
   products=products.filter(p=>p.id!==id);saveProducts();showAdminProducts();showToast('삭제됐어요');
+}
+function adminViewProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const seller=p.seller||{};
+  const unit=p.unit||'m';
+  const bg=getFColor(p.type,p.color);
+  const discRate=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+  const el=document.getElementById('admin-content');if(!el)return;
+  el.innerHTML=`
+  <div style="padding-bottom:80px">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid #eee">
+      <button onclick="showAdminProducts()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0;color:#444">←</button>
+      <span style="font-size:16px;font-weight:700;flex:1">상품 상세</span>
+      <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:${p.is_urgent?'#fff3cd':'#e8f5e9'};color:${p.is_urgent?'#856404':'#2e7d32'};font-weight:600">${p.is_urgent?'⚡ 급처':'✅ 일반'}</span>
+    </div>
+    <div style="height:200px;background:${bg};position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:48px">🧵</span>`}
+    </div>
+    <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:6px">${p.title}</div>
+      <div style="font-size:12px;color:#888;display:flex;gap:12px;flex-wrap:wrap">
+        ${p.time?`<span>🕐 ${p.time}</span>`:''}
+        <span>👤 ${seller.name||'판매자 미상'}</span>
+        <span>📍 ${p.loc||seller.loc||'위치 미기재'}</span>
+      </div>
+    </div>
+    <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:10px">💰 가격 정보</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#f8f8ff;border-radius:10px;padding:10px">
+          <div style="font-size:11px;color:#888;margin-bottom:3px">판매가</div>
+          <div style="font-size:15px;font-weight:700;color:#6c63ff">${fmtPrice(p.price)}/${unit}</div>
+        </div>
+        ${p.list_price&&p.list_price>p.price?`<div style="background:#fff8f0;border-radius:10px;padding:10px"><div style="font-size:11px;color:#888;margin-bottom:3px">정가 <span style="color:#e74c3c">-${discRate}%</span></div><div style="font-size:14px;color:#aaa;text-decoration:line-through">${fmtPrice(p.list_price)}/${unit}</div></div>`:''}
+        ${p.bulk_price?`<div style="background:#f0fff4;border-radius:10px;padding:10px"><div style="font-size:11px;color:#888;margin-bottom:3px">대량가</div><div style="font-size:14px;font-weight:600;color:#27ae60">${fmtPrice(p.bulk_price)}/${unit}</div></div>`:''}
+        ${p.moq?`<div style="background:#f5f0ff;border-radius:10px;padding:10px"><div style="font-size:11px;color:#888;margin-bottom:3px">최소주문(MOQ)</div><div style="font-size:14px;font-weight:600;color:#8e44ad">${p.moq}${unit}</div></div>`:''}
+      </div>
+    </div>
+    <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:10px">📋 스펙</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+        ${[
+          ['대분류',p.cat||p.type],
+          p.cat2&&['중분류',p.cat2],
+          p.cat3&&['소분류',p.cat3],
+          p.material&&['소재',p.material],
+          p.weight&&['중량',p.weight+'g/㎡'],
+          p.width&&['폭',p.width+'cm'],
+          ['재고',p.qty+unit],
+          (p.loc||seller.loc)&&['위치',p.loc||seller.loc],
+        ].filter(Boolean).map(([k,v])=>`<div style="background:#fafafa;border-radius:8px;padding:8px"><div style="color:#999;font-size:10px;margin-bottom:2px">${k}</div><div style="font-weight:600;color:#333">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:10px">📊 통계</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${[
+          ['👁 조회',p.views||0],
+          ['🤍 관심',p.likes||0],
+          ['💬 채팅',p.chats||0],
+          ['⚡ 급처',p.is_urgent?'Y':'N'],
+          p.sample!==undefined&&p.sample!==null?['🔬 샘플',p.sample?'가능':'불가']:null,
+        ].filter(Boolean).map(([k,v])=>`<div style="background:#f0f4ff;border-radius:20px;padding:6px 12px;font-size:12px"><span style="color:#888">${k}</span> <strong>${v}</strong></div>`).join('')}
+      </div>
+    </div>
+    ${p.description?`<div style="padding:14px 16px;border-bottom:1px solid #f0f0f0"><div style="font-size:13px;font-weight:700;color:#555;margin-bottom:8px">📝 설명</div><div style="font-size:13px;color:#444;line-height:1.6;white-space:pre-wrap">${p.description}</div></div>`:''}
+    <div style="padding:16px;display:flex;gap:10px">
+      <button onclick="curProductId=${p.id};showView('form')" style="flex:1;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">✏️ 상품 수정</button>
+      <button onclick="adminDeleteProduct(${p.id})" style="flex:1;padding:14px;background:#fff0f0;color:#e74c3c;border:1px solid #ffcdd2;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🗑️ 상품 삭제</button>
+    </div>
+  </div>`;
 }
 let _noticeRotTimer=null;
 function initNoticeRotation(){
