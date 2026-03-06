@@ -2767,46 +2767,6 @@ if(window.Kakao&&!window.Kakao.isInitialized()){
   window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
 }
 // 카카오 리다이렉트 코드 처리 (users/curUser 선언 후 실행되도록 DOMContentLoaded에서 호출)
-async function handleKakaoRedirect(){
-  const urlParams=new URLSearchParams(window.location.search);
-  const kakaoCode=urlParams.get('code');
-  if(!kakaoCode)return false;
-  try{
-    const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code:kakaoCode})
-    }).then(r=>r.json());
-    if(!tokenData.access_token){
-      console.error('Kakao token error:',tokenData);
-      showToast('카카오 로그인 실패: 토큰 오류');
-      showView('login');
-      return false;
-    }
-    const userInfo=await fetch('https://kapi.kakao.com/v2/user/me',{
-      headers:{Authorization:'Bearer '+tokenData.access_token}
-    }).then(r=>r.json());
-    const kakaoId=userInfo.id;
-    const nickname=userInfo.kakao_account?.profile?.nickname||'카카오사용자';
-    const email=userInfo.kakao_account?.email||(kakaoId+'@kakao.com');
-    let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
-    if(!user){
-      user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
-      users.push(user);lsSet('users',users);
-      if(_sb)await _sb.from('users').upsert(user);
-    }
-    curUser=user;lsSet('curUser',curUser);
-    window.history.replaceState({},'','/');
-    showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-    return true;
-  }catch(e){
-    console.error('Kakao token error:',e);
-    showToast('카카오 로그인 중 오류가 발생했어요');
-    showView('login');
-    return false;
-  }
-}
-
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
   {id:'admin',name:'관리자',email:'admin',pw:'1234',type:'admin',loc:'서울 동대문구',temp:99.9,joinDate:'2024-01-01'},
@@ -3217,10 +3177,31 @@ async function doGoogleLogin(){
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  const REST_API_KEY='e7845a5b848756553feab8191fd4f63b';
-  const REDIRECT_URI='https://biummarket.vercel.app';
-  const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code`;
-  window.location.href=kakaoAuthUrl;
+  if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
+  if(!Kakao.isInitialized())Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
+  Kakao.Auth.loginForm({
+    success:function(authObj){
+      Kakao.API.request({
+        url:'/v2/user/me',
+        success:async function(res){
+          const kakaoId=res.id;
+          const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
+          const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
+          let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
+          if(!user){
+            user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+            users.push(user);lsSet('users',users);
+            if(_sb)await _sb.from('users').upsert(user);
+          }
+          curUser=user;lsSet('curUser',curUser);
+          showToast('카카오 로그인 성공! 환영합니다 '+nickname);
+          showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
+        },
+        fail:function(err){console.error('Kakao user info error:',err);showToast('사용자 정보를 가져올 수 없어요');}
+      });
+    },
+    fail:function(err){console.error('Kakao login error:',err);showToast('카카오 로그인 실패');}
+  });
 }
 function selectType(type,el){
   selectedUserType=type;
@@ -6662,22 +6643,6 @@ function renderAnalytics(){
 
 /* ==================== INIT ==================== */
 (async function init(){
-  // 카카오 리다이렉트 코드가 있으면 먼저 처리
-  const _kp=new URLSearchParams(window.location.search);
-  if(_kp.get('code')){
-    showView('splash');
-    const kakaoOk=await handleKakaoRedirect();
-    if(curLang!=='ko')setLang(curLang);
-    renderChips();
-    (function populateTypeSelectKakao(){
-      if(!CATEGORY_DATA||!CATEGORY_DATA.length)return;
-      const sel=document.getElementById('f-type');if(!sel||sel.options.length>1)return;
-      CATEGORY_DATA.forEach(cat=>{const grp=document.createElement('optgroup');grp.label=cat.id;if(cat.sub)cat.sub.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;grp.appendChild(o);});sel.appendChild(grp);});
-      const other=document.createElement('option');other.value='기타';other.textContent='기타';sel.appendChild(other);
-    })();
-    if(kakaoOk){showView('list');showListSkeleton();loadProductsFromSupabase();}
-    return;
-  }
   // 스플래시 화면 표시
   showView('splash');
   const splashStart=Date.now();
