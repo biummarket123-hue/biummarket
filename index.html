@@ -2770,14 +2770,19 @@ if(window.Kakao&&!window.Kakao.isInitialized()){
 async function handleKakaoRedirect(){
   const urlParams=new URLSearchParams(window.location.search);
   const kakaoCode=urlParams.get('code');
-  if(!kakaoCode)return;
+  if(!kakaoCode)return false;
   try{
     const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
       body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code:kakaoCode})
     }).then(r=>r.json());
-    if(!tokenData.access_token){console.error('Kakao token error:',tokenData);return;}
+    if(!tokenData.access_token){
+      console.error('Kakao token error:',tokenData);
+      showToast('카카오 로그인 실패: 토큰 오류');
+      showView('login');
+      return false;
+    }
     const userInfo=await fetch('https://kapi.kakao.com/v2/user/me',{
       headers:{Authorization:'Bearer '+tokenData.access_token}
     }).then(r=>r.json());
@@ -2793,8 +2798,13 @@ async function handleKakaoRedirect(){
     curUser=user;lsSet('curUser',curUser);
     window.history.replaceState({},'','/');
     showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
-  }catch(e){console.error('Kakao token error:',e);}
+    return true;
+  }catch(e){
+    console.error('Kakao token error:',e);
+    showToast('카카오 로그인 중 오류가 발생했어요');
+    showView('login');
+    return false;
+  }
 }
 
 /* ==================== USERS ==================== */
@@ -6656,11 +6666,19 @@ function renderAnalytics(){
 
 /* ==================== INIT ==================== */
 (async function init(){
-  // 카카오 리다이렉트 코드가 있으면 먼저 처리 (스플래시 스킵)
+  // 카카오 리다이렉트 코드가 있으면 먼저 처리
   const _kp=new URLSearchParams(window.location.search);
   if(_kp.get('code')){
     showView('splash');
-    await handleKakaoRedirect();
+    const kakaoOk=await handleKakaoRedirect();
+    if(curLang!=='ko')setLang(curLang);
+    renderChips();
+    (function populateTypeSelectKakao(){
+      const sel=document.getElementById('f-type');if(!sel||sel.options.length>1)return;
+      CATEGORY_DATA.forEach(cat=>{const grp=document.createElement('optgroup');grp.label=cat.id;cat.sub.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;grp.appendChild(o);});sel.appendChild(grp);});
+      const other=document.createElement('option');other.value='기타';other.textContent='기타';sel.appendChild(other);
+    })();
+    if(kakaoOk){showView('list');showListSkeleton();loadProductsFromSupabase();}
     return;
   }
   // 스플래시 화면 표시
