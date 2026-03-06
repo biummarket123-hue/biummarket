@@ -5664,7 +5664,6 @@ let adminBanners=lsGet('adminBanners',[]);
 function renderAdmin(){
   const el=document.getElementById('admin-content');
   if(!el)return;
-  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='none';
   const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
   const chatsCnt=products.reduce((a,p)=>a+(p.chats||0),0);
   el.innerHTML=`
@@ -5948,21 +5947,40 @@ function adminDeleteNotice(id){
 function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const TEST_USERS=[
+    {name:'관리자',email:'admin@biummarket.com',type:'admin',joinDate:'2026-01-01'},
+    {name:'로우하이마켓',email:'seller@test.com',type:'seller',joinDate:'2026-02-15'},
+    {name:'테스트구매자',email:'buyer@test.com',type:'user',joinDate:'2026-03-01'}
+  ];
+  const roleLabel=(t)=>t==='admin'?'관리자':t==='seller'?'판매자':'구매자';
+  const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'?'#e6f7ef':'#e8f0fb';
+  const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'?'#00875a':'#3366cc';
   const renderTable=(list)=>`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 관리</span>
       <span style="font-size:13px;color:#6c63ff;font-weight:700">${list.length}명</span>
     </div>
-    <div class="table-wrap"><table class="data-table"><thead><tr><th>이름</th><th>유형</th><th>이메일</th><th>가입일</th></tr></thead><tbody>
-    ${list.map(u=>`<tr><td><b>${u.name||u.email||'-'}</b></td><td><span class="badge badge-${(u.type||'user')==='admin'?'orange':(u.type||'user')==='seller'?'green':'blue'}">${u.type||'user'}</span></td><td style="font-size:11px">${u.email||'-'}</td><td style="font-size:11px">${u.joinDate||u.created_at?.slice(0,10)||'-'}</td></tr>`).join('')}
-    </tbody></table></div>`;
-  el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 회원 데이터 로딩중...</div>';
+    <div style="padding:12px 16px 20px">
+      ${list.map(u=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'}</div>
+          <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.created_at?.slice(0,10)||'-'}</div>
+        </div>
+        <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${roleBg(u.type||'user')};color:${roleColor(u.type||'user')};flex-shrink:0">${roleLabel(u.type||'user')}</span>
+      </div>`).join('')}
+    </div>`;
+  const mergeUsers=(sbList)=>{
+    const sbEmails=new Set((sbList||[]).map(u=>u.email));
+    return [...(sbList||[]),...TEST_USERS.filter(u=>!sbEmails.has(u.email))];
+  };
+  el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
   if(_sb){
     _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
-      el.innerHTML=(!error&&data)?renderTable(data):renderTable(users);
+      el.innerHTML=renderTable(mergeUsers(!error&&data?data:[]));
     });
-  }else{el.innerHTML=renderTable(users);}
+  }else{el.innerHTML=renderTable(mergeUsers([]));}
 }
 function showAdminProducts(){
   const el=document.getElementById('admin-content');if(!el)return;
@@ -5982,15 +6000,18 @@ function showAdminProducts(){
 function renderAdminProductList(list){
   const el=document.getElementById('adm-prod-list');if(!el)return;
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px 0;color:#aaa;font-size:14px">검색 결과가 없습니다</div>';return;}
+  const emojiMap=Object.fromEntries((CATEGORY_DATA||[]).map(c=>[c.id,c.emoji]));
+  emojiMap['기타']='📦';
   const groups={};
   list.forEach(p=>{
-    const catId=Object.keys(CATEGORY_MAP||{}).find(k=>(CATEGORY_MAP[k]||[]).includes(p.type))||'기타';
+    const raw=p.cat||p.type||'기타';
+    const catId=TYPE_ALIAS[raw]||TYPE_ALIAS[p.type]||raw;
     if(!groups[catId])groups[catId]=[];
     groups[catId].push(p);
   });
   el.innerHTML=Object.entries(groups).map(([cat,ps])=>`
     <div style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:#6c63ff;margin-bottom:8px;padding:6px 10px;background:#f0eeff;border-radius:8px">${cat} (${ps.length})</div>
+      <div style="font-size:13px;font-weight:700;color:#6c63ff;margin-bottom:8px;padding:6px 10px;background:#f0eeff;border-radius:8px">${emojiMap[cat]||'📦'} ${cat} (${ps.length})</div>
       ${ps.map(p=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
@@ -6002,7 +6023,7 @@ function renderAdminProductList(list){
 }
 function filterAdminProducts(q){
   const query=(q||'').trim().toLowerCase();
-  const filtered=query?products.filter(p=>p.title?.toLowerCase().includes(query)||p.type?.toLowerCase().includes(query)):products;
+  const filtered=query?products.filter(p=>p.title?.toLowerCase().includes(query)||p.type?.toLowerCase().includes(query)||(p.cat||'').toLowerCase().includes(query)):products;
   renderAdminProductList(filtered);
 }
 async function adminDeleteProduct(id){
