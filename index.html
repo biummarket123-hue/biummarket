@@ -6674,8 +6674,9 @@ function renderAnalytics(){
     if(curLang!=='ko')setLang(curLang);
     renderChips();
     (function populateTypeSelectKakao(){
+      if(!CATEGORY_DATA||!CATEGORY_DATA.length)return;
       const sel=document.getElementById('f-type');if(!sel||sel.options.length>1)return;
-      CATEGORY_DATA.forEach(cat=>{const grp=document.createElement('optgroup');grp.label=cat.id;cat.sub.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;grp.appendChild(o);});sel.appendChild(grp);});
+      CATEGORY_DATA.forEach(cat=>{const grp=document.createElement('optgroup');grp.label=cat.id;if(cat.sub)cat.sub.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;grp.appendChild(o);});sel.appendChild(grp);});
       const other=document.createElement('option');other.value='기타';other.textContent='기타';sel.appendChild(other);
     })();
     if(kakaoOk){showView('list');showListSkeleton();loadProductsFromSupabase();}
