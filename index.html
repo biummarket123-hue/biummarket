@@ -850,10 +850,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin:0 14px 8px;display:block">대분류</div>
     <div class="home-cats" id="home-cats"></div>
     <!-- 프리미엄 배너 -->
-    <div class="premium-banner">
+    <div id="home-premium-banner" class="premium-banner">
       <div class="premium-badge">★ PREMIUM</div>
-      <div class="premium-title" data-i18n="prem_title">동대문 재고원단 프리미엄 거래</div>
-      <div class="premium-sub" data-i18n="prem_sub">검증된 셀러의 고품질 원단을 만나보세요</div>
+      <div class="premium-title">동대문 재고원단 프리미엄 거래</div>
+      <div class="premium-sub">검증된 셀러의 고품질 원단을 만나보세요</div>
     </div>
     <!-- AI 추천 섹션 -->
     <div class="ai-section">
@@ -3566,6 +3566,7 @@ function renderList(){
   renderAiRecs();
   renderHomeSections();
   initNoticeRotation();
+  renderHomeBanners();
 }
 
 function appendListPage(){
@@ -5661,6 +5662,26 @@ function renderMarketPrice(){
 
 /* ==================== ADMIN ==================== */
 let adminBanners=lsGet('adminBanners',[]);
+let _bannerRotTimer=null,_bannerIdx=0;
+function renderHomeBanners(){
+  const wrap=document.getElementById('home-premium-banner');if(!wrap)return;
+  if(_bannerRotTimer){clearInterval(_bannerRotTimer);_bannerRotTimer=null;}
+  adminBanners=lsGet('adminBanners',[]);
+  const active=adminBanners.filter(b=>b.active!==false);
+  const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
+  const all=active.length?active:[DEFAULT];
+  const renderSlide=(b,dots)=>`
+    <div class="premium-badge">★ PREMIUM</div>
+    <div class="premium-title" style="transition:opacity .3s">${b.title}</div>
+    <div class="premium-sub">${b.desc||b.description||''}</div>
+    ${dots}`;
+  const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:10px;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'};transition:.3s"></div>`).join('')}</div>`:'';
+  if(all.length===1){wrap.innerHTML=renderSlide(all[0],'');return;}
+  _bannerIdx=0;
+  const update=()=>{wrap.innerHTML=renderSlide(all[_bannerIdx],makeDots(_bannerIdx));};
+  update();
+  _bannerRotTimer=setInterval(()=>{_bannerIdx=(_bannerIdx+1)%all.length;update();},4000);
+}
 function renderAdmin(){
   const el=document.getElementById('admin-content');
   if(!el)return;
@@ -5687,7 +5708,7 @@ function renderAdmin(){
       </div>
       <div class="my-menu-item" onclick="showAdminBanners()">
         <div class="my-icon-box ib-blue">🖼️</div>
-        <div class="my-menu-info"><div class="my-menu-title">배너 관리</div><div class="my-menu-sub" id="adm-banner-sub">활성 ${adminBanners.filter(b=>b.active).length}개 / 전체 ${adminBanners.length}개</div></div>
+        <div class="my-menu-info"><div class="my-menu-title">배너 관리</div><div class="my-menu-sub" id="adm-banner-sub">활성 ${adminBanners.filter(b=>b.active!==false).length+1}개 / 전체 ${adminBanners.length+1}개</div></div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showAdminNotices()">
@@ -5819,34 +5840,53 @@ function adminDeleteItem(catId,subIdx,itemName){
 function showAdminBanners(){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  adminBanners=lsGet('adminBanners',[]);
+  const activeCnt=adminBanners.filter(b=>b.active!==false).length+1;
+  const totalCnt=adminBanners.length+1;
+  const previewCard=(title,desc)=>`
+    <div style="background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;margin-bottom:8px">
+      <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:rgba(180,150,80,.15)"></div>
+      <div style="display:inline-flex;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:9px;font-weight:800;padding:2px 7px;border-radius:8px;margin-bottom:6px">★ PREMIUM</div>
+      <div style="font-size:13px;font-weight:800;color:#fff;position:relative;z-index:1">${title}</div>
+      ${desc?`<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;position:relative;z-index:1">${desc}</div>`:''}
+    </div>`;
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">🖼 배너 관리</span>
+      <span style="font-size:12px;color:#6c63ff;font-weight:700">활성 ${activeCnt}/${totalCnt}</span>
     </div>
     <div style="padding:16px">
       <button onclick="adminAddBanner()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 배너 추가</button>
-      ${adminBanners.length?adminBanners.map(b=>`
+      <!-- 기본 배너 (삭제 불가) -->
+      <div style="background:#f8f8fa;border:2px solid #e0e0ea;border-radius:14px;overflow:hidden;margin-bottom:12px">
+        ${previewCard('동대문 재고원단 프리미엄 거래','검증된 셀러의 고품질 원단을 만나보세요')}
+        <div style="padding:0 12px 12px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:#1a1a1a">동대문 재고원단 프리미엄 거래</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">기본 배너 · 항상 활성</div>
+          </div>
+          <span style="font-size:10px;background:#f0eeff;color:#6c63ff;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0">기본</span>
+        </div>
+      </div>
+      <!-- 추가 배너 목록 -->
+      ${adminBanners.map(b=>`
         <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;overflow:hidden;margin-bottom:12px">
-          <div style="width:100%;height:90px;background:${b.color||'#eeeeee'};display:flex;align-items:center;justify-content:center;font-size:36px">${b.emoji||'🖼️'}</div>
-          <div style="padding:12px 14px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div style="flex:1;font-size:14px;font-weight:700;color:#1a1a1a">${b.title}</div>
+          ${previewCard(b.title,b.desc||'')}
+          <div style="padding:0 12px 12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div style="flex:1;font-size:13px;font-weight:700;color:#1a1a1a">${b.title}</div>
               <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;cursor:pointer">
-                <input type="checkbox" ${b.active?'checked':''} onchange="adminToggleBanner(${b.id})" style="opacity:0;width:0;height:0;position:absolute"/>
-                <span style="position:absolute;inset:0;background:${b.active?'#6c63ff':'#d8d8e8'};border-radius:22px;transition:.2s">
-                  <span style="position:absolute;top:3px;left:${b.active?'21':'3'}px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;display:block"></span>
+                <input type="checkbox" ${b.active!==false?'checked':''} onchange="adminToggleBanner(${b.id})" style="opacity:0;width:0;height:0;position:absolute"/>
+                <span style="position:absolute;inset:0;background:${b.active!==false?'#6c63ff':'#d8d8e8'};border-radius:22px;transition:.2s">
+                  <span style="position:absolute;top:3px;left:${b.active!==false?'21':'3'}px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;display:block"></span>
                 </span>
               </label>
             </div>
-            ${b.desc?`<div style="font-size:12px;color:#666677;margin-bottom:10px">${b.desc}</div>`:''}
-            <div style="display:flex;gap:8px">
-              <button onclick="showToast('수정 준비중이에요')" style="flex:1;padding:8px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:10px;color:#aaa;font-size:13px;cursor:pointer">✏️ 수정</button>
-              <button onclick="adminDeleteBanner(${b.id})" style="flex:1;padding:8px;background:transparent;border:1px solid #ff6584;border-radius:10px;color:#ff6584;font-size:13px;cursor:pointer">🗑️ 삭제</button>
-            </div>
+            <button onclick="adminDeleteBanner(${b.id})" style="width:100%;padding:8px;background:transparent;border:1px solid #ff6584;border-radius:10px;color:#ff6584;font-size:13px;cursor:pointer">🗑️ 삭제</button>
           </div>
-        </div>`).join('')
-      :'<div style="padding:60px 20px;text-align:center;color:#666677"><div style="font-size:48px;margin-bottom:12px">🖼️</div><div style="font-size:14px">등록된 배너가 없습니다</div><div style="font-size:12px;margin-top:6px">+ 배너 추가 버튼을 눌러 첫 배너를 등록하세요</div></div>'}
+        </div>`).join('')}
+      ${!adminBanners.length?'<div style="text-align:center;color:#aaa;font-size:12px;padding:8px 0">추가 배너 없음 · 위에서 배너를 추가하세요</div>':''}
     </div>`;
 }
 function adminAddBanner(){
@@ -5857,17 +5897,26 @@ function adminAddBanner(){
       <button onclick="showAdminBanners()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">배너 추가</span>
     </div>
-    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
       <div>
-        <div style="font-size:12px;color:#888;margin-bottom:6px">배너 제목 *</div>
-        <input id="adm-banner-title" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="예) 봄 신상 특가 이벤트"/>
+        <div style="font-size:11px;color:#888;font-weight:600;margin-bottom:6px">미리보기</div>
+        <div style="background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(180,150,80,.15)"></div>
+          <div style="display:inline-flex;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:9px;font-weight:800;padding:3px 8px;border-radius:10px;margin-bottom:8px">★ PREMIUM</div>
+          <div id="banner-preview-title" style="font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;position:relative;z-index:1">배너 제목을 입력하세요</div>
+          <div id="banner-preview-desc" style="font-size:12px;color:rgba(255,255,255,.65);position:relative;z-index:1">배너 설명이 여기에 표시됩니다</div>
+        </div>
       </div>
       <div>
-        <div style="font-size:12px;color:#888;margin-bottom:6px">배너 설명 (선택)</div>
-        <input id="adm-banner-desc" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="배너 부제목 입력"/>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">배너 제목 *</div>
+        <input id="adm-banner-title" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="예) 봄 신상 특가 이벤트" oninput="document.getElementById('banner-preview-title').textContent=this.value||'배너 제목을 입력하세요'"/>
       </div>
-      <button onclick="adminSaveBanner()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">저장</button>
-      <button onclick="showAdminBanners()" style="width:100%;padding:14px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">배너 설명 (선택)</div>
+        <input id="adm-banner-desc" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="예) 최대 30% 할인된 가격으로 만나보세요" oninput="document.getElementById('banner-preview-desc').textContent=this.value||'배너 설명이 여기에 표시됩니다'"/>
+      </div>
+      <button onclick="adminSaveBanner()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 등록</button>
+      <button onclick="showAdminBanners()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
     </div>`;
 }
 function adminSaveBanner(){
