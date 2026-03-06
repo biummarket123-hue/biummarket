@@ -1982,6 +1982,47 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="bd-content-wrap"></div>
 </div>
 
+<!-- ========== KEYWORD ALERT ========== -->
+<div id="view-keyword-alert" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">키워드 알림</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding:14px;background:#f5f5f5">
+    <div style="background:#fffbeb;border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;color:#92701a;line-height:1.6">
+      🔔 원하는 원단 키워드를 등록하면 새 상품 등록 시 알림을 보내드립니다
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="kw-input" class="fi" style="flex:1;margin:0" placeholder="예) 울 코트감, 아이보리 면" onkeydown="if(event.key==='Enter')addKeyword()"/>
+      <button onclick="addKeyword()" style="padding:0 18px;background:linear-gradient(135deg,#c8962a,#f5c518);color:#1a1a1a;border-radius:12px;font-size:13px;font-weight:700;white-space:nowrap;border:none;cursor:pointer">등록</button>
+    </div>
+    <div id="kw-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+    <div id="kw-count-text" style="font-size:13px;color:#c8962a;font-weight:600;margin-bottom:20px"></div>
+    <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">추천 키워드</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button onclick="addKeywordDirect('코마 면')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 코마 면</button>
+      <button onclick="addKeywordDirect('실크')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 실크</button>
+      <button onclick="addKeywordDirect('데님 셀비지')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 데님 셀비지</button>
+      <button onclick="addKeywordDirect('울 트위드')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 울 트위드</button>
+      <button onclick="addKeywordDirect('린넨')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 린넨</button>
+      <button onclick="addKeywordDirect('폴리 메쉬')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 폴리 메쉬</button>
+      <button onclick="addKeywordDirect('자카드')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 자카드</button>
+      <button onclick="addKeywordDirect('벨벳')" style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:8px 14px;font-size:13px;color:#555566;cursor:pointer">+ 벨벳</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TOP SELLERS ========== -->
+<div id="view-top-sellers" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">TOP 판매자</div>
+    <div style="width:38px"></div>
+  </header>
+  <div style="flex:1;overflow-y:auto;padding:14px;background:#f5f5f5" id="top-sellers-view-content"></div>
+</div>
+
 </div><!-- #app -->
 
 <!-- TOAST -->
@@ -5003,17 +5044,18 @@ function openMySellerPage(){
 /* ===== MY MENU FEATURES ===== */
 function openKeywordAlert(){
   renderKeywords();
-  openModal('modal-keyword');
+  showView('keyword-alert');
 }
 function renderKeywords(){
   const kws=lsGet('alertKeywords',[]);
   const el=document.getElementById('kw-list');if(!el)return;
-  if(!kws.length){el.innerHTML='<div style="color:#666677;font-size:13px;text-align:center;padding:20px">저장된 키워드가 없어요</div>';return;}
-  el.innerHTML=kws.map((k,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;background:#eeeeee;border-radius:12px;padding:12px 14px">
+  el.innerHTML=kws.length?kws.map((k,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#fffbeb;border:1px solid #f5c518;border-radius:20px;padding:10px 16px">
       <span style="font-size:14px;font-weight:600;color:#1a1a1a">🔔 ${k}</span>
-      <button onclick="removeKeyword(${i})" style="color:#ff6584;font-size:18px;background:none;border:none;padding:0 4px;cursor:pointer">×</button>
-    </div>`).join('');
+      <button onclick="removeKeyword(${i})" style="color:#888;font-size:18px;background:none;border:none;padding:0 4px;cursor:pointer">×</button>
+    </div>`).join(''):'<div style="font-size:13px;color:#888;text-align:center;padding:20px 0">등록된 키워드가 없어요</div>';
+  const countEl=document.getElementById('kw-count-text');
+  if(countEl)countEl.textContent=kws.length?`💡 현재 ${kws.length}개 키워드 알림 활성화`:'';
 }
 function addKeyword(){
   const input=document.getElementById('kw-input');
@@ -5024,6 +5066,13 @@ function addKeyword(){
   if(kws.length>=10){showToast('키워드는 최대 10개까지 저장할 수 있어요');return;}
   kws.push(kw);lsSet('alertKeywords',kws);
   input.value='';renderKeywords();
+  showToast(`"${kw}" 키워드 알림이 등록됐어요 🔔`);
+}
+function addKeywordDirect(kw){
+  const kws=lsGet('alertKeywords',[]);
+  if(kws.includes(kw)){showToast('이미 등록된 키워드예요');return;}
+  if(kws.length>=10){showToast('키워드는 최대 10개까지 저장할 수 있어요');return;}
+  kws.push(kw);lsSet('alertKeywords',kws);renderKeywords();
   showToast(`"${kw}" 키워드 알림이 등록됐어요 🔔`);
 }
 function removeKeyword(i){
@@ -5052,7 +5101,7 @@ function openTopSellers(){
     const initials=s.name.slice(0,2);
     const medal=MEDALS[i]||`<span style="font-size:14px;font-weight:700;color:#aaa;display:inline-block;width:22px;text-align:center">${i+1}</span>`;
     const stars='⭐'.repeat(Math.min(5,Math.round((s.temp||36.5)/10)));
-    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="closeModal('modal-top-sellers');setTimeout(()=>renderSellerPage(window._rankSellers[${i}].seller||window._rankSellers[${i}]),200)">
+    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="goBack();setTimeout(()=>renderSellerPage(window._rankSellers[${i}].seller||window._rankSellers[${i}]),200)">
       <div style="font-size:22px;width:28px;text-align:center;flex-shrink:0">${medal}</div>
       <div style="width:44px;height:44px;border-radius:50%;background:#d4a017;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
@@ -5065,8 +5114,8 @@ function openTopSellers(){
       </div>
     </div>`;
   }).join('');
-  document.getElementById('top-sellers-list').innerHTML=banner+`<div style="padding:0 2px">${rows}</div>`;
-  openModal('modal-top-sellers');
+  document.getElementById('top-sellers-view-content').innerHTML=banner+`<div style="background:#fff;border-radius:16px;padding:0 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
+  showView('top-sellers');
 }
 
 const BOARD_POSTS=[
