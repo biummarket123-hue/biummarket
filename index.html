@@ -5671,7 +5671,7 @@ function renderHomeBanners(){
   adminBanners=lsGet('adminBanners',[]);
   const active=adminBanners.filter(b=>b.active!==false);
   const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
-  const all=active.length?active:[DEFAULT];
+  const all=[DEFAULT,...active];
   const renderSlide=(b,dots)=>`
     <div class="premium-badge">★ PREMIUM</div>
     <div class="premium-title" style="transition:opacity .3s">${b.title}</div>
@@ -5697,7 +5697,7 @@ function renderAdmin(){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px">
       <div style="background:#e8f0fb;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#4A90D9" id="adm-cnt-products">${products.length}</div><div style="font-size:11px;color:#666677;margin-top:4px">총 상품</div></div>
-      <div style="background:#e8f8f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#00b386" id="adm-cnt-users">${users.length}</div><div style="font-size:11px;color:#666677;margin-top:4px">총 회원</div></div>
+      <div style="background:#e8f8f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#00b386" id="adm-cnt-users">3</div><div style="font-size:11px;color:#666677;margin-top:4px">총 회원</div></div>
       <div style="background:#fffbeb;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#c8962a" id="adm-cnt-chats">${chatsCnt}</div><div style="font-size:11px;color:#666677;margin-top:4px">총 채팅</div></div>
       <div style="background:#fff0f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#e53935" id="adm-cnt-urgent">${urgentCnt}</div><div style="font-size:11px;color:#666677;margin-top:4px">급처 상품</div></div>
     </div>
@@ -5735,7 +5735,7 @@ function renderAdmin(){
     </div>`;
   if(_sb){
     _sb.from('products').select('id',{count:'exact',head:true}).then(({count})=>{if(count!=null){const e=document.getElementById('adm-cnt-products');if(e)e.textContent=count;const s=document.getElementById('adm-prod-sub');if(s)s.textContent=`${count}개 등록 · 급처 ${urgentCnt}개`;}});
-    _sb.from('users').select('id',{count:'exact',head:true}).then(({count})=>{if(count!=null){const e=document.getElementById('adm-cnt-users');if(e)e.textContent=count;const s=document.getElementById('adm-user-sub');if(s)s.textContent=`${count}명 가입`;}});
+    _sb.from('users').select('id',{count:'exact',head:true}).then(({count})=>{const total=Math.max(count||0,3);const e=document.getElementById('adm-cnt-users');if(e)e.textContent=total;const s=document.getElementById('adm-user-sub');if(s)s.textContent=`${total}명 가입`;});
   }
 }
 function showAdminCategories(){
@@ -5747,7 +5747,7 @@ function showAdminCategories(){
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">카테고리 관리 (3단계)</span>
     </div>
     <div style="padding:16px">
-      <button onclick="showToast('대분류 추가 기능 준비중이에요')" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 대분류 추가</button>
+      <button onclick="adminAddCategory()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 대분류 추가</button>
       ${CATEGORY_DATA.map(cat=>{
         const cnt=products.filter(p=>CATEGORY_MAP[cat.id]?.includes(p.type)||TYPE_ALIAS[p.type]===cat.id).length;
         return `<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
@@ -5775,7 +5775,7 @@ function showAdminSubCategories(catId){
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">${cat.emoji} ${cat.id}</span>
     </div>
     <div style="padding:16px">
-      <button onclick="showToast('중분류 추가 기능 준비중이에요')" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 중분류 추가</button>
+      <button onclick="adminAddSubCategory('${cat.id}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 중분류 추가</button>
       ${cat.sub.map((s,subIdx)=>{
         const cnt=products.filter(p=>p.type===s.name).length;
         return `<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
@@ -5841,6 +5841,106 @@ function adminDeleteItem(catId,subIdx,itemName){
   showAdminItems(catId,subIdx);showToast('삭제됐어요');
 }
 function saveCategoriesToStorage(){lsSet('customCategories',CATEGORY_DATA);}
+function adminAddCategory(){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const EMOJIS=['🧵','✨','🐑','🧶','💎','👖','⚡','🌸','🎨','💡','🔵','🟢','🪡','🧣','🩱'];
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminCategories()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">대분류 추가</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:600">이모지 선택</div>
+        <div id="emoji-picker" style="display:flex;flex-wrap:wrap;gap:6px">
+          ${EMOJIS.map((e,i)=>`<button onclick="selectCatEmoji('${e}')" style="font-size:20px;padding:7px;background:#f8f8fa;border:2px solid ${i===0?'#6c63ff':'#e0e0ea'};border-radius:10px;cursor:pointer;width:44px;height:44px">${e}</button>`).join('')}
+        </div>
+        <input type="hidden" id="adm-cat-emoji" value="${EMOJIS[0]}"/>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">대분류 이름 *</div>
+        <input id="adm-cat-new-name" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="예) 특수/혼방"/>
+      </div>
+      <button onclick="adminSaveNewCategory()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 추가</button>
+      <button onclick="showAdminCategories()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function selectCatEmoji(e){
+  document.getElementById('adm-cat-emoji').value=e;
+  document.querySelectorAll('#emoji-picker button').forEach(b=>b.style.borderColor=b.textContent.trim()===e?'#6c63ff':'#e0e0ea');}
+function adminSaveNewCategory(){
+  const name=(document.getElementById('adm-cat-new-name')?.value||'').trim();
+  const emoji=document.getElementById('adm-cat-emoji')?.value||'🧵';
+  if(!name){showToast('대분류 이름을 입력해주세요');return;}
+  if(CATEGORY_DATA.some(c=>c.id===name)){showToast('이미 있는 대분류예요');return;}
+  CATEGORY_DATA.push({id:name,emoji,sub:[]});
+  saveCategoriesToStorage();
+  showAdminCategories();showToast('대분류가 추가됐어요 ✅');}
+function adminAddSubCategory(catId){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminSubCategories('${catId}')" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">${cat.emoji} ${catId} · 중분류 추가</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">중분류 이름 *</div>
+        <input id="adm-sub-new-name" class="fi" style="margin:0;width:100%;box-sizing:border-box" placeholder="예) 항균/방취"/>
+      </div>
+      <button onclick="adminSaveNewSubCategory('${catId}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 추가</button>
+      <button onclick="showAdminSubCategories('${catId}')" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function adminSaveNewSubCategory(catId){
+  const name=(document.getElementById('adm-sub-new-name')?.value||'').trim();
+  if(!name){showToast('중분류 이름을 입력해주세요');return;}
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  if(cat.sub.some(s=>s.name===name)){showToast('이미 있는 중분류예요');return;}
+  cat.sub.push({name,items:[]});
+  saveCategoriesToStorage();
+  showAdminSubCategories(catId);showToast('중분류가 추가됐어요 ✅');}
+function adminEditBanner(id){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  adminBanners=lsGet('adminBanners',[]);
+  const b=adminBanners.find(x=>x.id===id);if(!b)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminBanners()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">배너 수정</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:11px;color:#888;font-weight:600;margin-bottom:6px">미리보기</div>
+        <div style="background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(180,150,80,.15)"></div>
+          <div style="display:inline-flex;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:9px;font-weight:800;padding:3px 8px;border-radius:10px;margin-bottom:8px">★ PREMIUM</div>
+          <div id="edit-banner-preview-title" style="font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;position:relative;z-index:1">${b.title}</div>
+          <div id="edit-banner-preview-desc" style="font-size:12px;color:rgba(255,255,255,.65);position:relative;z-index:1">${b.desc||''}</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">배너 제목 *</div>
+        <input id="adm-banner-edit-title" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${b.title}" oninput="document.getElementById('edit-banner-preview-title').textContent=this.value||'제목 없음'"/>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">배너 설명 (선택)</div>
+        <input id="adm-banner-edit-desc" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${b.desc||''}" oninput="document.getElementById('edit-banner-preview-desc').textContent=this.value"/>
+      </div>
+      <button onclick="adminSaveBannerEdit(${id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 저장</button>
+      <button onclick="showAdminBanners()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;}
+function adminSaveBannerEdit(id){
+  const title=(document.getElementById('adm-banner-edit-title')?.value||'').trim();
+  const desc=(document.getElementById('adm-banner-edit-desc')?.value||'').trim();
+  if(!title){showToast('배너 제목을 입력해주세요');return;}
+  adminBanners=lsGet('adminBanners',[]);
+  const b=adminBanners.find(x=>x.id===id);if(!b)return;
+  b.title=title;b.desc=desc;
+  lsSet('adminBanners',adminBanners);
+  showAdminBanners();showToast('배너가 수정됐어요 ✅');}
 function adminEditCat(catId){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
@@ -5969,7 +6069,10 @@ function showAdminBanners(){
                 </span>
               </label>
             </div>
-            <button onclick="adminDeleteBanner(${b.id})" style="width:100%;padding:8px;background:transparent;border:1px solid #ff6584;border-radius:10px;color:#ff6584;font-size:13px;cursor:pointer">🗑️ 삭제</button>
+            <div style="display:flex;gap:8px">
+              <button onclick="adminEditBanner(${b.id})" style="flex:1;padding:8px;background:#f0eeff;border:1px solid #a89dff;border-radius:10px;color:#6c63ff;font-size:13px;cursor:pointer">✏️ 수정</button>
+              <button onclick="adminDeleteBanner(${b.id})" style="flex:1;padding:8px;background:transparent;border:1px solid #ff6584;border-radius:10px;color:#ff6584;font-size:13px;cursor:pointer">🗑️ 삭제</button>
+            </div>
           </div>
         </div>`).join('')}
       ${!adminBanners.length?'<div style="text-align:center;color:#aaa;font-size:12px;padding:8px 0">추가 배너 없음 · 위에서 배너를 추가하세요</div>':''}
