@@ -3057,6 +3057,7 @@ function goBack(){
     showMySales();
     return;
   }
+  if(curViewMode==='my-products')curViewMode='';
   if(viewHistory.length>0){
     const prev=viewHistory.pop();
     if(prev==='search-view'){openSearchOverlay();return;}
@@ -3241,6 +3242,7 @@ function filterByCat3(prods,cat1Key,cat2Key,cat3Key){
 /* ===== CATEGORY VIEW JS ===== */
 const CAT_DEFS=CATEGORY_DATA.map(c=>({key:c.id,icon:c.emoji,label:c.id}));
 let curCatKey='',curCatSort='latest',curCatSubKey='',curCatItemKey='';
+let curViewMode='';
 let catStep=0,catSelId='',catSelSubIdx=-1;
 
 function renderCategoryView(){
@@ -3343,9 +3345,9 @@ function catGoBack(){
   if(catStep===2){catStep=1;renderCategoryView();}
   else if(catStep===1){catStep=0;renderCategoryView();}
 }
-function catGoProducts(catId,keyword){curCatSubKey='';curCatItemKey='';openCatProducts(catId,keyword);}
-function catGoProductsBySub(catId,subName){curCatSubKey=subName;curCatItemKey='';openCatProducts(catId,subName);}
-function catGoProductsByItem(catId,subName,itemName){curCatSubKey=subName;curCatItemKey=itemName;openCatProducts(catId,catId+' › '+subName+' › '+itemName);}
+function catGoProducts(catId,keyword){curViewMode='';curCatSubKey='';curCatItemKey='';openCatProducts(catId,keyword);}
+function catGoProductsBySub(catId,subName){curViewMode='';curCatSubKey=subName;curCatItemKey='';openCatProducts(catId,subName);}
+function catGoProductsByItem(catId,subName,itemName){curViewMode='';curCatSubKey=subName;curCatItemKey=itemName;openCatProducts(catId,catId+' › '+subName+' › '+itemName);}
 
 function openCatProducts(key,label){
   curCatKey=key;curCatSort='latest';
@@ -3367,7 +3369,19 @@ function setCatSort(sort){
   renderCatProducts();
 }
 
+function renderMyProductsSorted(){
+  const u=curUser;if(!u)return;
+  const el=document.getElementById('cp-list');if(!el)return;
+  let items=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name));
+  if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
+  else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
+  else items=[...items].sort((a,b)=>b.id-a.id);
+  if(!items.length){el.innerHTML='<div class="cp-empty">📭<br>등록한 상품이 없어요</div>';return;}
+  el.innerHTML=items.map(p=>renderMyProductCard(p)).join('');
+  const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='내 상품 ('+items.length+'개)';
+}
 function renderCatProducts(){
+  if(curViewMode==='my-products'){renderMyProductsSorted();return;}
   const el=document.getElementById('cp-list');
   if(!el)return;
   let items;
@@ -5033,8 +5047,9 @@ function showMySales(){
   if(!u){showToast('로그인이 필요해요');return;}
   const myP=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name));
   if(!myP.length){showToast('등록한 상품이 없어요');return;}
-  // 내 상품을 카테고리 검색 화면으로 — curFilter 이용
   curCatKey='';
+  curViewMode='my-products';
+  curCatSort='latest';
   const el=document.getElementById('cp-list');
   if(el)el.innerHTML=myP.map(p=>renderMyProductCard(p)).join('');
   document.getElementById('cp-hdr-title').textContent='내 상품 ('+myP.length+'개)';
