@@ -3217,14 +3217,10 @@ async function doGoogleLogin(){
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  if(!window.Kakao){showToast('카카오 SDK 로딩중이에요');return;}
-  if(!window.Kakao.isInitialized()){window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');}
-  try{
-    window.Kakao.Auth.authorize({
-      redirectUri:'https://biummarket.vercel.app',
-      scope:'profile_nickname,account_email'
-    });
-  }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
+  const REST_API_KEY='e7845a5b848756553feab8191fd4f63b';
+  const REDIRECT_URI='https://biummarket.vercel.app';
+  const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code`;
+  window.location.href=kakaoAuthUrl;
 }
 function selectType(type,el){
   selectedUserType=type;
