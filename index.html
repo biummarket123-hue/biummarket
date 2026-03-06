@@ -6139,12 +6139,49 @@ function showAdminNotices(){
       ${notices.map(n=>`
         <div style="border:1px solid #e0e0ea;border-radius:12px;padding:14px;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-            <div style="font-size:14px;font-weight:600;color:#1a1a1a;flex:1">${n.title}</div>
-            <button onclick="adminDeleteNotice(${n.id})" style="background:none;border:none;color:#ff6584;cursor:pointer;font-size:18px;flex-shrink:0">×</button>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:3px">${n.title}</div>
+              <div style="font-size:12px;color:#888;margin-bottom:4px">${n.date||''}${n.author?' · '+n.author:''}</div>
+              ${n.content?`<div style="font-size:12px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.content.slice(0,50)}${n.content.length>50?'…':''}</div>`:''}
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button onclick="adminEditNotice(${n.id})" style="background:#f0f0f0;color:#1a1a1a;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">수정</button>
+              <button onclick="adminDeleteNotice(${n.id})" style="background:#fff0f0;color:#e53935;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">삭제</button>
+            </div>
           </div>
-          <div style="font-size:12px;color:#666677;margin-top:4px">${n.date} · ${n.author}</div>
         </div>`).join('')}
     </div>`;
+}
+function adminEditNotice(id){
+  const notice=notices.find(n=>n.id===id);if(!notice)return;
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminNotices()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">공지 수정</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px">공지 제목 *</div>
+        <input id="adm-edit-notice-title" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${notice.title.replace(/"/g,'&quot;')}"/>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px">내용</div>
+        <textarea id="adm-edit-notice-content" class="fi" style="margin:0;width:100%;box-sizing:border-box;min-height:120px;resize:vertical">${notice.content||''}</textarea>
+      </div>
+      <button onclick="adminSaveNotice(${id})" style="width:100%;padding:14px;background:#6c63ff;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">저장</button>
+      <button onclick="showAdminNotices()" style="width:100%;padding:14px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;
+}
+function adminSaveNotice(id){
+  const title=(document.getElementById('adm-edit-notice-title')?.value||'').trim();
+  const content=(document.getElementById('adm-edit-notice-content')?.value||'').trim();
+  if(!title){showToast('공지 제목을 입력해주세요');return;}
+  const n=notices.find(n=>n.id===id);if(!n)return;
+  n.title=title;n.content=content;
+  lsSet('notices',notices);
+  showAdminNotices();showToast('공지사항이 수정됐어요!');
 }
 function adminAddNotice(){
   const el=document.getElementById('admin-content');if(!el)return;
@@ -6163,11 +6200,11 @@ function adminAddNotice(){
         <div style="font-size:12px;color:#888;margin-bottom:6px">내용 (선택)</div>
         <textarea id="adm-notice-content" class="fi" style="margin:0;width:100%;box-sizing:border-box;min-height:120px;resize:vertical" placeholder="공지 내용 입력"></textarea>
       </div>
-      <button onclick="adminSaveNotice()" style="width:100%;padding:14px;background:#6c63ff;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">등록</button>
+      <button onclick="adminSaveNewNotice()" style="width:100%;padding:14px;background:#6c63ff;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">등록</button>
       <button onclick="showAdminNotices()" style="width:100%;padding:14px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
     </div>`;
 }
-function adminSaveNotice(){
+function adminSaveNewNotice(){
   const title=(document.getElementById('adm-notice-title')?.value||'').trim();
   const content=(document.getElementById('adm-notice-content')?.value||'').trim();
   if(!title){showToast('공지 제목을 입력해주세요');return;}
