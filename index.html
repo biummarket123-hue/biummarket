@@ -761,6 +761,28 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="login-logo">🧵 비움마켓</div>
     <div class="login-logo" style="font-size:13px;font-weight:400;color:var(--g500);margin-bottom:28px">BIUM MARKET — B2B 재고원단 거래 플랫폼</div>
     <div class="login-box">
+      <div style="margin-bottom:20px">
+        <div style="text-align:center;color:#888;font-size:13px;margin-bottom:16px;position:relative">
+          <span style="background:#fff;padding:0 12px;position:relative;z-index:1">간편 로그인</span>
+          <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#e0e0e0"></div>
+        </div>
+        <button onclick="doGoogleLogin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border:1px solid #e0e0e0;border-radius:12px;background:#fff;font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:10px;cursor:pointer">
+          <img src="https://www.google.com/favicon.ico" style="width:20px;height:20px">
+          구글 계정으로 로그인
+        </button>
+        <button onclick="showToast('카카오 로그인 준비중이에요')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#FEE500;border:none;font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:10px;cursor:pointer">
+          <span style="font-size:18px">💬</span>
+          카카오 계정으로 로그인
+        </button>
+        <button onclick="showToast('네이버 로그인 준비중이에요')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#03C75A;border:none;font-size:15px;font-weight:600;color:#fff;margin-bottom:10px;cursor:pointer">
+          <span style="font-size:18px;font-weight:900;color:#fff">N</span>
+          네이버 계정으로 로그인
+        </button>
+        <div style="text-align:center;color:#888;font-size:13px;margin:16px 0;position:relative">
+          <span style="background:#fff;padding:0 12px;position:relative;z-index:1">또는 이메일로 로그인</span>
+          <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#e0e0e0"></div>
+        </div>
+      </div>
       <div class="fg">
         <label data-i18n="login_id_label">아이디 (이메일)</label>
         <input type="email" class="fi" id="l-email" placeholder="example@bium.market" />
@@ -2716,6 +2738,23 @@ try{
         curUser=null;lsSet('curUser',null);showView('login');
       }
     });
+    // OAuth 리다이렉트 후 세션 복구
+    (async()=>{
+      try{
+        const{data:{session}}=await _sb.auth.getSession();
+        if(session&&session.user&&!lsGet('curUser',null)){
+          const u=session.user;
+          const{data:profile}=await _sb.from('users').select('*').eq('id',u.id).single();
+          if(!profile){
+            const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+            await _sb.from('users').insert(newProfile);
+            curUser=newProfile;
+          }else{curUser=profile;}
+          lsSet('curUser',curUser);
+          if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
+        }
+      }catch(e){console.error('OAuth 세션 복구 오류:',e);}
+    })();
   }else{
     console.warn('Supabase SDK 로드 실패 — 로컬 모드로 동작합니다.');
   }
@@ -3125,6 +3164,13 @@ async function doLogout(){
   curUser=null;lsSet('curUser',null);
   if(document.getElementById('view-login'))showView('login');
   else window.location.reload();
+}
+async function doGoogleLogin(){
+  if(!_sb){showToast('소셜 로그인은 온라인에서만 가능해요');return;}
+  try{
+    const{error}=await _sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://biummarket.vercel.app'}});
+    if(error)throw error;
+  }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function selectType(type,el){
   selectedUserType=type;
