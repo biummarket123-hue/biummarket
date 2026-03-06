@@ -2764,7 +2764,7 @@ try{
   _sb=null;
 }
 if(window.Kakao&&!window.Kakao.isInitialized()){
-  window.Kakao.init('7686727617fc3fcc9099844445b4b7a8');
+  window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
 }
 // 카카오 리다이렉트 코드 처리 (users/curUser 선언 후 실행되도록 DOMContentLoaded에서 호출)
 /* ==================== USERS ==================== */
@@ -3177,7 +3177,7 @@ async function doGoogleLogin(){
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  const REST_API_KEY='2a0cb674c93b653e5e51382a15763bf9';
+  const REST_API_KEY='e7845a5b848756553feab8191fd4f63b';
   const REDIRECT_URI='https://biummarket.vercel.app';
   const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&prompt=login`;
   const popup=window.open(kakaoAuthUrl,'kakaoLogin','width=500,height=600,scrollbars=yes');
@@ -3198,7 +3198,7 @@ async function handleKakaoCode(code){
     const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'2a0cb674c93b653e5e51382a15763bf9',redirect_uri:'https://biummarket.vercel.app',code})
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code})
     }).then(r=>r.json());
     if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
     const res=await fetch('https://kapi.kakao.com/v2/user/me',{
