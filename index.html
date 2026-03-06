@@ -843,7 +843,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 공지 배너 -->
     <div class="notice-banner" onclick="showView('notices')">
       <span>📢</span>
-      <span data-i18n="notice_text">[공지] 비움마켓 베타 오픈 안내</span>
+      <span id="notice-banner-text" data-i18n="notice_text">[공지] 비움마켓 베타 오픈 안내</span>
       <span class="nb-arrow">›</span>
     </div>
     <!-- 카테고리 칩 -->
@@ -3565,6 +3565,7 @@ function renderList(){
   renderHomeCats();
   renderAiRecs();
   renderHomeSections();
+  initNoticeRotation();
 }
 
 function appendListPage(){
@@ -5663,6 +5664,7 @@ let adminBanners=lsGet('adminBanners',[]);
 function renderAdmin(){
   const el=document.getElementById('admin-content');
   if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='none';
   const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
   const chatsCnt=products.reduce((a,p)=>a+(p.chats||0),0);
   el.innerHTML=`
@@ -5686,7 +5688,7 @@ function renderAdmin(){
       </div>
       <div class="my-menu-item" onclick="showAdminBanners()">
         <div class="my-icon-box ib-blue">🖼️</div>
-        <div class="my-menu-info"><div class="my-menu-title">배너 관리</div><div class="my-menu-sub" id="adm-banner-sub">홈 메인 배너 · ${adminBanners.length}개</div></div>
+        <div class="my-menu-info"><div class="my-menu-title">배너 관리</div><div class="my-menu-sub" id="adm-banner-sub">활성 ${adminBanners.filter(b=>b.active).length}개 / 전체 ${adminBanners.length}개</div></div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showAdminNotices()">
@@ -5716,6 +5718,7 @@ function renderAdmin(){
 }
 function showAdminCategories(){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -5742,6 +5745,7 @@ function showAdminCategories(){
 }
 function showAdminSubCategories(catId){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
@@ -5750,26 +5754,72 @@ function showAdminSubCategories(catId){
     </div>
     <div style="padding:16px">
       <button onclick="showToast('중분류 추가 기능 준비중이에요')" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 중분류 추가</button>
-      ${cat.sub.map(s=>{
+      ${cat.sub.map((s,subIdx)=>{
         const cnt=products.filter(p=>p.type===s.name).length;
-        const hasItems=s.items&&s.items.length>0;
         return `<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
           <div style="font-size:22px;flex-shrink:0">📁</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:700;color:#1a1a1a">${s.name}</div>
-            <div style="font-size:11px;color:#666677;margin-top:2px">${s.items.length}개 소분류 · ${cnt}개 상품</div>
+            <div style="font-size:11px;color:#666677;margin-top:2px">${(s.items||[]).length}개 소분류 · ${cnt}개 상품</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
             <button onclick="showToast('수정 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#aaa;font-size:14px;cursor:pointer">✏️</button>
             <button onclick="showToast('삭제 준비중이에요')" style="padding:6px 10px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:8px;color:#ff6584;font-size:14px;cursor:pointer">🗑️</button>
-            ${hasItems?`<button onclick="showToast('소분류: ${s.items.join(', ')}')" style="padding:6px 12px;background:#eeeeee;border:1px solid #6c63ff;border-radius:8px;color:#a89dff;font-size:12px;font-weight:600;cursor:pointer">하위 ›</button>`:`<div style="width:58px"></div>`}
+            <button onclick="showAdminItems('${cat.id}',${subIdx})" style="padding:6px 12px;background:#eeeeee;border:1px solid #6c63ff;border-radius:8px;color:#a89dff;font-size:12px;font-weight:600;cursor:pointer">하위 ›</button>
           </div>
         </div>`;
       }).join('')}
     </div>`;
 }
+function showAdminItems(catId,subIdx){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];if(!sub)return;
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminSubCategories('${catId}')" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">${sub.name} 소분류</span>
+      <span style="font-size:13px;color:#6c63ff;font-weight:700">${(sub.items||[]).length}개</span>
+    </div>
+    <div style="padding:16px">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input id="adm-item-input" class="fi" style="flex:1;margin:0" placeholder="소분류명 입력 후 추가"/>
+        <button onclick="adminAddItem('${catId}',${subIdx})" style="padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">추가</button>
+      </div>
+      <div id="adm-items-list">
+        ${(sub.items||[]).map(item=>`
+          <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+            <span style="flex:1;font-size:14px;color:#1a1a1a">${item}</span>
+            <button onclick="adminDeleteItem('${catId}',${subIdx},'${item}')" style="background:none;border:none;color:#ff6584;cursor:pointer;font-size:20px;flex-shrink:0;line-height:1">×</button>
+          </div>`).join('')}
+        ${!(sub.items||[]).length?'<div style="text-align:center;color:#aaa;padding:40px 0;font-size:14px">등록된 소분류가 없습니다</div>':''}
+      </div>
+    </div>`;
+}
+function adminAddItem(catId,subIdx){
+  const input=document.getElementById('adm-item-input');
+  const name=(input?.value||'').trim();
+  if(!name){showToast('소분류명을 입력해주세요');return;}
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];if(!sub)return;
+  if(!sub.items)sub.items=[];
+  if(sub.items.includes(name)){showToast('이미 있는 소분류예요');return;}
+  sub.items.push(name);
+  lsSet('categoryData',CATEGORY_DATA);
+  showAdminItems(catId,subIdx);showToast('소분류가 추가됐어요 ✅');
+}
+function adminDeleteItem(catId,subIdx,itemName){
+  if(!confirm(`'${itemName}' 소분류를 삭제할까요?`))return;
+  const cat=CATEGORY_DATA.find(c=>c.id===catId);if(!cat)return;
+  const sub=cat.sub[subIdx];if(!sub)return;
+  sub.items=(sub.items||[]).filter(i=>i!==itemName);
+  lsSet('categoryData',CATEGORY_DATA);
+  showAdminItems(catId,subIdx);showToast('삭제됐어요');
+}
 function showAdminBanners(){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -5802,6 +5852,7 @@ function showAdminBanners(){
 }
 function adminAddBanner(){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="showAdminBanners()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -5840,6 +5891,7 @@ function adminToggleBanner(id){
 }
 function showAdminNotices(){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -5859,6 +5911,7 @@ function showAdminNotices(){
 }
 function adminAddNotice(){
   const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="showAdminNotices()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -5894,31 +5947,79 @@ function adminDeleteNotice(id){
 }
 function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
-  el.innerHTML=`
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const renderTable=(list)=>`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
-      <span style="font-size:16px;font-weight:700;color:#1a1a1a">회원 관리</span>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 관리</span>
+      <span style="font-size:13px;color:#6c63ff;font-weight:700">${list.length}명</span>
     </div>
-    <div class="table-wrap"><table class="data-table"><thead><tr><th>이름</th><th>유형</th><th>이메일</th><th>가입일</th><th>관리</th></tr></thead><tbody>
-    ${users.map(u=>`<tr><td><b>${u.name}</b></td><td><span class="badge badge-${u.type==='admin'?'orange':u.type==='seller'?'green':'blue'}">${u.type}</span></td><td style="font-size:11px">${u.email}</td><td style="font-size:11px">${u.joinDate||'-'}</td><td><button class="action-btn" onclick="showToast('수정 준비중')">수정</button></td></tr>`).join('')}
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>이름</th><th>유형</th><th>이메일</th><th>가입일</th></tr></thead><tbody>
+    ${list.map(u=>`<tr><td><b>${u.name||u.email||'-'}</b></td><td><span class="badge badge-${(u.type||'user')==='admin'?'orange':(u.type||'user')==='seller'?'green':'blue'}">${u.type||'user'}</span></td><td style="font-size:11px">${u.email||'-'}</td><td style="font-size:11px">${u.joinDate||u.created_at?.slice(0,10)||'-'}</td></tr>`).join('')}
     </tbody></table></div>`;
+  el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 회원 데이터 로딩중...</div>';
+  if(_sb){
+    _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
+      el.innerHTML=(!error&&data)?renderTable(data):renderTable(users);
+    });
+  }else{el.innerHTML=renderTable(users);}
 }
 function showAdminProducts(){
   const el=document.getElementById('admin-content');if(!el)return;
-  const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
-      <span style="font-size:16px;font-weight:700;color:#1a1a1a">상품 관리</span>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">상품 관리</span>
+      <span style="font-size:13px;color:#6c63ff;font-weight:700">${products.length}개</span>
     </div>
-    <div class="table-wrap"><table class="data-table"><thead><tr><th>상품명</th><th>종류</th><th>수량</th><th>단가</th><th>관리</th></tr></thead><tbody>
-    ${products.slice(0,30).map(p=>`<tr><td style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</td><td><span class="badge badge-blue">${p.type}</span></td><td>${p.qty}m</td><td>${fmtPrice(p.price)}</td><td><button class="action-btn del" onclick="adminDeleteProduct(${p.id})">삭제</button></td></tr>`).join('')}
-    </tbody></table></div>`;
+    <div style="padding:12px 16px">
+      <input id="adm-prod-search" class="fi" style="width:100%;margin:0;box-sizing:border-box" placeholder="🔍 상품명, 종류 검색..." oninput="filterAdminProducts(this.value)"/>
+    </div>
+    <div id="adm-prod-list" style="padding:0 16px 20px"></div>`;
+  renderAdminProductList(products);
+}
+function renderAdminProductList(list){
+  const el=document.getElementById('adm-prod-list');if(!el)return;
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px 0;color:#aaa;font-size:14px">검색 결과가 없습니다</div>';return;}
+  const groups={};
+  list.forEach(p=>{
+    const catId=Object.keys(CATEGORY_MAP||{}).find(k=>(CATEGORY_MAP[k]||[]).includes(p.type))||'기타';
+    if(!groups[catId])groups[catId]=[];
+    groups[catId].push(p);
+  });
+  el.innerHTML=Object.entries(groups).map(([cat,ps])=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#6c63ff;margin-bottom:8px;padding:6px 10px;background:#f0eeff;border-radius:8px">${cat} (${ps.length})</div>
+      ${ps.map(p=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${p.type} · ${p.qty}${p.unit||'m'} · ${fmtPrice(p.price)}/${p.unit||'m'}</div>
+        </div>
+        <button onclick="adminDeleteProduct(${p.id})" style="flex-shrink:0;background:none;border:1px solid #ff6584;border-radius:8px;color:#ff6584;font-size:11px;padding:4px 8px;cursor:pointer">삭제</button>
+      </div>`).join('')}
+    </div>`).join('');
+}
+function filterAdminProducts(q){
+  const query=(q||'').trim().toLowerCase();
+  const filtered=query?products.filter(p=>p.title?.toLowerCase().includes(query)||p.type?.toLowerCase().includes(query)):products;
+  renderAdminProductList(filtered);
 }
 async function adminDeleteProduct(id){
   if(!confirm('정말 삭제할까요?'))return;
   if(_sb){const{error}=await _sb.from('products').delete().eq('id',id);if(error)console.error('delete error:',error);}
   products=products.filter(p=>p.id!==id);saveProducts();showAdminProducts();showToast('삭제됐어요');
+}
+let _noticeRotTimer=null;
+function initNoticeRotation(){
+  const el=document.getElementById('notice-banner-text');if(!el)return;
+  if(_noticeRotTimer){clearInterval(_noticeRotTimer);_noticeRotTimer=null;}
+  if(!notices||notices.length<=1)return;
+  let idx=0;
+  _noticeRotTimer=setInterval(()=>{
+    idx=(idx+1)%notices.length;
+    el.textContent='[공지] '+notices[idx].title;
+  },3000);
 }
 function resetCategories(){
   if(!confirm('카테고리 데이터를 초기화할까요?'))return;
