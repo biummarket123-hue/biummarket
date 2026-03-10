@@ -3429,9 +3429,9 @@ function renderCategoryView(){
 function renderCatStep0(){
   const grid=document.getElementById('cat-grid');
   if(!grid)return;
-  const catAds=getActiveAds('카테고리 상단');
+  const catAds=getActiveAds('카테고리 상단').filter(a=>!a.category||a.category==='전체');
   const adHtml=catAds.map(a=>`<div onclick="${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="grid-column:1/-1;cursor:${a.linkUrl?'pointer':'default'};border-radius:14px;overflow:hidden;position:relative">
-    ${a.imageUrl?`<img src="${a.imageUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:14px" onerror="this.parentElement.style.display='none'">`:''}
+    ${(a.image||a.imageUrl)?`<img src="${a.image||a.imageUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:14px" onerror="this.parentElement.style.display='none'">`:''}
     <div style="position:absolute;bottom:8px;left:10px;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px">${a.name}</div>
   </div>`).join('');
   grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 14px 80px';
@@ -3452,6 +3452,10 @@ function renderCatStep1(){
   const grid=document.getElementById('cat-grid');
   const prodCnt=filterByCategory(products,catSelId).length;
   grid.style.cssText='display:block;padding:0 0 80px';
+  const step1Ads=getCategoryAds(catData.id);
+  const step1AdHtml=step1Ads.map(a=>`<div onclick="${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="margin:0 16px 8px;cursor:${a.linkUrl?'pointer':'default'}">
+    <img src="${a.image||a.imageUrl}" alt="${a.name}" style="width:100%;height:120px;object-fit:cover;border-radius:10px" onerror="this.parentElement.style.display='none'">
+  </div>`).join('');
   grid.innerHTML=`
     <div style="background:#f8f8fa;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e0e0ea;margin-bottom:12px">
       <span onclick="catGoBack()" style="cursor:pointer;font-size:20px;color:#aaa;margin-right:4px">←</span>
@@ -3461,6 +3465,7 @@ function renderCatStep1(){
         <div style="font-size:13px;color:#999">${prodCnt}개 상품 · ${catData.sub.length}개 중분류</div>
       </div>
     </div>
+    ${step1AdHtml}
     <div style="background:#f8f8fa">
       <div style="padding:12px 20px 6px;font-size:13px;color:#888;font-weight:500">중분류</div>
       ${catData.sub.map((sub,i)=>`
@@ -5944,11 +5949,11 @@ function renderHomeBanners(){
   const active=adminBanners.filter(b=>b.active!==false);
   const adBanners=getActiveAds('배너 슬라이드');
   const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
-  const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,imageUrl:a.imageUrl,linkUrl:a.linkUrl}))];
+  const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,image:a.image||a.imageUrl,linkUrl:a.linkUrl}))];
   const renderSlide=(b,dots)=>{
-    if(b._ad&&b.imageUrl){
+    if(b._ad&&b.image){
       return `<div onclick="${b.linkUrl?`window.open('${b.linkUrl}','_blank')`:''}" style="cursor:${b.linkUrl?'pointer':'default'};position:relative;z-index:1">
-        <img src="${b.imageUrl}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
+        <img src="${b.image}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
         <div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px">${b.title}</div>
         ${b.linkUrl?'<div style="font-size:10px;color:rgba(255,255,255,.6)">AD · 탭하여 이동</div>':''}
       </div>${dots}`;
@@ -6923,8 +6928,9 @@ function showAdminAds(){
             <div style="font-size:11px;color:#888;margin-top:2px">📍 ${a.position} · ${a.startDate||'-'} ~ ${a.endDate||'-'}</div>
           </div>
         </div>
-        ${a.imageUrl?`<div style="border-radius:8px;overflow:hidden;margin-bottom:8px;max-height:80px"><img src="${a.imageUrl}" style="width:100%;height:80px;object-fit:cover" onerror="this.style.display='none'"></div>`:''}
+        ${(a.image||a.imageUrl)?`<div style="border-radius:8px;overflow:hidden;margin-bottom:8px;max-height:80px"><img src="${a.image||a.imageUrl}" style="width:100%;height:80px;object-fit:cover" onerror="this.style.display='none'"></div>`:''}
         ${a.linkUrl?`<div style="font-size:11px;color:#6c63ff;margin-bottom:8px;word-break:break-all">🔗 ${a.linkUrl}</div>`:''}
+        ${a.category&&a.category!=='전체'?`<div style="font-size:11px;color:#888;margin-bottom:4px">📂 ${a.category}</div>`:''}
         <div style="display:flex;gap:8px">
           <button onclick="showAdminAdForm(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:#6c63ff;cursor:pointer">✏️ 수정</button>
           <button onclick="adminToggleAd(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:${a.active?'#e53935':'#00b386'};cursor:pointer">${a.active?'⏸ 비활성':'▶ 활성화'}</button>
@@ -6937,7 +6943,8 @@ function showAdminAdForm(editIdx){
   if(!isAdmin())return;
   const el=document.getElementById('admin-content');if(!el)return;
   const isEdit=editIdx!==undefined&&adminAds[editIdx];
-  const ad=isEdit?adminAds[editIdx]:{name:'',position:'배너 슬라이드',imageUrl:'',linkUrl:'',startDate:'',endDate:'',active:true};
+  const ad=isEdit?adminAds[editIdx]:{name:'',position:'배너 슬라이드',image:'',linkUrl:'',startDate:'',endDate:'',active:true,category:'전체'};
+  const catOpts=(CATEGORY_DATA||[]).map(c=>`<option value="${c.name}" ${ad.category===c.name?'selected':''}>${c.emoji||''} ${c.name}</option>`).join('');
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="showAdminAds()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
@@ -6947,12 +6954,31 @@ function showAdminAdForm(editIdx){
       <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">광고명 *</div>
         <input id="ad-name" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.name}" placeholder="광고 이름"></div>
       <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">위치 *</div>
-        <select id="ad-position" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
+        <select id="ad-position" onchange="var w=document.getElementById('ad-category-wrap');if(w)w.style.display=this.value==='카테고리 상단'?'block':'none';var s=document.getElementById('ad-category');if(s&&this.value==='카테고리 상단'){s.innerHTML='<option value=전체>전체 카테고리</option>'+(CATEGORY_DATA||[]).map(function(c){return '<option value=&quot;'+c.name+'&quot;>'+( c.emoji||'')+' '+c.name+'</option>'}).join('')}" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
           <option value="배너 슬라이드" ${ad.position==='배너 슬라이드'?'selected':''}>배너 슬라이드</option>
           <option value="카테고리 상단" ${ad.position==='카테고리 상단'?'selected':''}>카테고리 상단</option>
         </select></div>
-      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">이미지 URL</div>
-        <input id="ad-image" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.imageUrl||''}" placeholder="https://..."></div>
+      <div id="ad-category-wrap" style="display:${ad.position==='카테고리 상단'?'block':'none'}">
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">적용 카테고리</div>
+        <select id="ad-category" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
+          <option value="전체" ${(ad.category||'전체')==='전체'?'selected':''}>전체 카테고리</option>
+          ${catOpts}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">광고 이미지 첨부</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px">
+          📐 배너 슬라이드 권장: <strong>1200 × 400px</strong> (3:1)<br>
+          📐 카테고리 상단 권장: <strong>1200 × 300px</strong> (4:1)<br>
+          📁 JPG, PNG, GIF, WebP / 최대 5MB
+        </div>
+        <input type="file" id="ad-image-file" accept="image/*" onchange="previewAdImage(this)"
+          style="width:100%;padding:8px;border:1px dashed #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;box-sizing:border-box">
+        <div id="ad-image-preview" style="margin-top:8px;display:${ad.image?'block':'none'}">
+          <img id="ad-image-preview-img" src="${ad.image||''}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
+          <div style="font-size:11px;color:#6b7280;margin-top:4px">미리보기</div>
+        </div>
+      </div>
       <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">링크 URL</div>
         <input id="ad-link" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.linkUrl||''}" placeholder="https://..."></div>
       <div style="display:flex;gap:10px">
@@ -6972,25 +6998,52 @@ function showAdminAdForm(editIdx){
       <button onclick="showAdminAds()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
     </div>`;
 }
+function previewAdImage(input){
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const preview=document.getElementById('ad-image-preview');
+      const img=document.getElementById('ad-image-preview-img');
+      if(preview&&img){img.src=e.target.result;preview.style.display='block';}
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
 function adminSaveAd(editIdx){
   if(!isAdmin())return;
+  const fileInput=document.getElementById('ad-image-file');
+  if(fileInput&&fileInput.files&&fileInput.files[0]){
+    const file=fileInput.files[0];
+    if(file.size>5*1024*1024){showToast('이미지 파일은 5MB 이하로 첨부해주세요');return;}
+    const reader=new FileReader();
+    reader.onload=function(e){_saveAdWithImage(editIdx,e.target.result);};
+    reader.readAsDataURL(file);
+  }else if(editIdx!==undefined&&adminAds[editIdx]&&(adminAds[editIdx].image||adminAds[editIdx].imageUrl)){
+    _saveAdWithImage(editIdx,adminAds[editIdx].image||adminAds[editIdx].imageUrl);
+  }else{
+    showToast('광고 이미지를 첨부해주세요');
+  }
+}
+function _saveAdWithImage(editIdx,imageData){
   const name=(document.getElementById('ad-name')?.value||'').trim();
   if(!name){showToast('광고명을 입력해주세요');return;}
+  const position=document.getElementById('ad-position')?.value||'배너 슬라이드';
   const ad={
     id:editIdx!==undefined&&adminAds[editIdx]?adminAds[editIdx].id:'ad_'+Date.now(),
-    name,
-    position:document.getElementById('ad-position')?.value||'배너 슬라이드',
-    imageUrl:(document.getElementById('ad-image')?.value||'').trim(),
+    name,position,
+    image:imageData,
     linkUrl:(document.getElementById('ad-link')?.value||'').trim(),
     startDate:document.getElementById('ad-start')?.value||'',
     endDate:document.getElementById('ad-end')?.value||'',
-    active:document.getElementById('ad-active')?.checked??true
+    active:document.getElementById('ad-active')?.checked??true,
+    category:document.getElementById('ad-category')?.value||'전체',
+    createdAt:editIdx!==undefined&&adminAds[editIdx]?adminAds[editIdx].createdAt:new Date().toISOString()
   };
   if(editIdx!==undefined&&adminAds[editIdx]){adminAds[editIdx]=ad;}
   else{adminAds.push(ad);}
   lsSet('ads',adminAds);
   renderHomeBanners();
-  showAdminAds();showToast('광고가 저장됐어요 ✅');
+  showAdminAds();showToast(editIdx!==undefined?'광고가 수정됐어요 ✅':'광고가 등록됐어요 ✅');
 }
 function adminToggleAd(idx){
   if(!isAdmin()||!adminAds[idx])return;
@@ -7008,6 +7061,15 @@ function adminDeleteAd(idx){
 function getActiveAds(position){
   const today=new Date().toISOString().slice(0,10);
   return adminAds.filter(a=>a.active&&a.position===position&&(!a.startDate||a.startDate<=today)&&(!a.endDate||a.endDate>=today));
+}
+function getCategoryAds(categoryName){
+  const now=new Date();
+  return (adminAds||[]).filter(a=>{
+    if(!a.active||a.position!=='카테고리 상단')return false;
+    if(a.startDate&&new Date(a.startDate)>now)return false;
+    if(a.endDate&&new Date(a.endDate)<now)return false;
+    return !a.category||a.category==='전체'||a.category===categoryName;
+  });
 }
 
 function resetCategories(){
