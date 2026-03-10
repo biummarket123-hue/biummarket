@@ -5266,36 +5266,51 @@ function isSellerRejected(){return curUser&&curUser.sellerStatus==='rejected';}
 function canApplySeller(){return curUser&&(isBuyer()||_getRole()==='buyer')&&(!curUser.sellerStatus||curUser.sellerStatus==='none'||curUser.sellerStatus==='rejected');}
 
 function renderSellerApplySection(){
-  const el=document.getElementById('menu-seller-apply-section');
-  if(!el)return;
-  // admin, 승인된 seller는 표시 안 함
-  if(!curUser||isAdmin()||isSeller()){el.style.display='none';el.innerHTML='';return;}
+  const section=document.getElementById('menu-seller-apply-section');
+  if(!section)return;
 
-  if(curUser.sellerStatus==='pending'){
-    el.style.display='';
-    el.innerHTML=`<div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#fffbeb;border:1px solid #fed7aa">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:20px">⏳</span>
-        <div><div style="font-weight:600;color:#d97706">판매자 승인 대기 중</div>
-        <div style="font-size:12px;color:#64748b;margin-top:2px">관리자 검토 후 승인돼요</div></div>
-      </div>
-    </div>`;
+  // Hide for: not logged in, admin
+  if(!curUser||isAdmin()){section.style.display='none';section.innerHTML='';return;}
+
+  // Check seller status directly (don't rely on isSeller())
+  const role=curUser.role||curUser.type||'buyer';
+  const sellerStatus=curUser.sellerStatus||'none';
+  const isApprovedSeller=['seller','seller+buyer','both'].includes(role)&&sellerStatus==='approved';
+
+  if(isApprovedSeller){section.style.display='none';section.innerHTML='';return;}
+
+  section.style.display='block';
+
+  if(sellerStatus==='pending'){
+    section.innerHTML=`
+      <div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#fffbeb;border:1px solid #fed7aa">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⏳</span>
+          <div>
+            <div style="font-weight:600;color:#d97706">판매자 승인 대기 중</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">관리자 검토 후 승인돼요</div>
+          </div>
+        </div>
+      </div>`;
     return;
   }
-  if(!curUser.sellerStatus||curUser.sellerStatus==='none'||curUser.sellerStatus==='rejected'){
-    const rejMsg=curUser.sellerStatus==='rejected'?'<div style="color:#ef4444;font-size:12px;margin-bottom:8px">이전 신청이 거절됐어요. 다시 신청할 수 있어요.</div>':'';
-    el.style.display='';
-    el.innerHTML=`<div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd">
-      ${rejMsg}
+
+  const rejectedMsg=sellerStatus==='rejected'?'<p style="color:#ef4444;font-size:12px;margin:0 0 8px">이전 신청이 거절됐어요. 다시 신청할 수 있어요.</p>':'';
+
+  section.innerHTML=`
+    <div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd">
+      ${rejectedMsg}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-weight:600;color:#0369a1">🏪 판매자 신청</div>
-        <div style="font-size:12px;color:#64748b;margin-top:2px">승인 후 상품을 판매할 수 있어요</div></div>
-        <button onclick="openSellerApplyModal()" style="background:#0ea5e9;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer">신청하기</button>
+        <div>
+          <div style="font-weight:600;color:#0369a1">🏪 판매자 신청</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">승인 후 상품을 판매할 수 있어요</div>
+        </div>
+        <button onclick="openSellerApplyModal()"
+          style="background:#0ea5e9;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer">
+          신청하기
+        </button>
       </div>
     </div>`;
-    return;
-  }
-  el.style.display='none';el.innerHTML='';
 }
 function openSellerApplyModal(){
   if(!curUser)return;
