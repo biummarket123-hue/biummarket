@@ -2735,6 +2735,19 @@ function lsSet(k,v){try{localStorage.setItem('bium_'+k,JSON.stringify(v))}catch{
 const _CACHE_TTL=5*60*1000;
 function lsGetTTL(k){try{const raw=localStorage.getItem('bium_ttl_'+k);if(!raw)return null;const o=JSON.parse(raw);if(Date.now()-o.__t>_CACHE_TTL)return null;return o.__v}catch{return null}}
 function lsSetTTL(k,v){try{localStorage.setItem('bium_ttl_'+k,JSON.stringify({__v:v,__t:Date.now()}))}catch{}}
+function mergeWithLocalUser(sbProfile){
+  if(!sbProfile)return sbProfile;
+  const localUser=users.find(u=>u.id===sbProfile.id||u.email===sbProfile.email);
+  if(!localUser)return sbProfile;
+  return {
+    ...sbProfile,
+    role:localUser.role||localUser.type||sbProfile.type||'buyer',
+    type:localUser.role||localUser.type||sbProfile.type||'buyer',
+    sellerStatus:localUser.sellerStatus||sbProfile.sellerStatus||'none',
+    requestedRole:localUser.requestedRole||sbProfile.requestedRole||'',
+    pw:localUser.pw||sbProfile.pw||''
+  };
+}
 function lsDelTTL(k){try{localStorage.removeItem('bium_ttl_'+k)}catch{}}
 
 /* ==================== SUPABASE ==================== */
@@ -2760,7 +2773,7 @@ try{
             const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
             await _sb.from('users').insert(newProfile);
             curUser=newProfile;
-          }else{curUser=profile;}
+          }else{curUser=mergeWithLocalUser(profile);}
           lsSet('curUser',curUser);
           if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
         }
@@ -3143,7 +3156,7 @@ async function doLogin(){
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pw});
     if(error){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
-    curUser=profile||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    curUser=mergeWithLocalUser(profile)||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);
     showView('list');showListSkeleton();loadProductsFromSupabase();
@@ -7216,7 +7229,7 @@ function renderAnalytics(){
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
         const{data:profile}=await _sb.from('users').select('*').eq('id',session.user.id).single();
-        if(profile){curUser={...profile};lsSet('curUser',curUser);}
+        if(profile){curUser=mergeWithLocalUser({...profile});lsSet('curUser',curUser);}
       }
     }catch(e){console.error('세션 복원 오류:',e);}
   }
