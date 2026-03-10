@@ -1230,7 +1230,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 상품 관리 섹션 -->
     <div class="my-section-wrap">
       <div class="my-section-title" data-i18n="my_sec_products">상품 관리</div>
-      <div class="my-menu-item" onclick="showView('form')">
+      <div class="my-menu-item" id="menu-register" onclick="showView('form')">
         <div class="my-icon-box ib-purple">➕</div>
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_register">상품 등록</div>
@@ -1238,7 +1238,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showMySales()">
+      <div class="my-menu-item" id="menu-my-products" onclick="showMySales()">
         <div class="my-icon-box ib-green">📦</div>
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_my_products">내 상품 관리</div>
@@ -1289,7 +1289,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('admin')">
+      <div class="my-menu-item" id="menu-admin-dashboard" onclick="showView('admin')">
         <div class="my-icon-box ib-purple">🛡️</div>
         <div class="my-menu-info">
           <div class="my-menu-title">관리자 대시보드</div>
@@ -1317,7 +1317,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 커뮤니티 섹션 -->
     <div class="my-section-wrap">
       <div class="my-section-title" data-i18n="my_sec_community">커뮤니티</div>
-      <div class="my-menu-item" onclick="openTopSellers()">
+      <div class="my-menu-item" id="menu-top-sellers" onclick="openTopSellers()">
         <div class="my-icon-box ib-yellow">🏆</div>
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 판매자 랭킹</div>
@@ -1351,7 +1351,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
     </div>
     <!-- 데이터·분석 섹션 -->
-    <div class="my-section-wrap">
+    <div class="my-section-wrap" id="menu-data-section">
       <div class="my-section-title" data-i18n="my_sec_data">데이터·분석</div>
       <div class="my-menu-item" onclick="showView('analytics')">
         <div class="my-icon-box ib-green">💰</div>
@@ -3078,7 +3078,8 @@ function showView(name,push=true){
   if(name==='form')initFormView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
   const fab=document.getElementById('fab-wrap');
-  if(fab)fab.style.display=(name==='list'||name==='home')?'block':'none';
+  const fabRole=curUser?.type||'buyer';
+  if(fab)fab.style.display=((name==='list'||name==='home')&&fabRole!=='buyer')?'block':'none';
 }
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
@@ -5174,6 +5175,34 @@ function renderMypage(){
     _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',u.id)
       .then(({count})=>{if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}});
   }
+
+  // 권한별 메뉴 표시/숨김
+  applyRoleVisibility(u.type);
+}
+function applyRoleVisibility(role){
+  const show=(id)=>{const el=document.getElementById(id);if(el)el.style.display='';};
+  const hide=(id)=>{const el=document.getElementById(id);if(el)el.style.display='none';};
+
+  // admin: 모든 메뉴 표시
+  if(role==='admin'){
+    show('menu-register');show('menu-my-products');
+    show('menu-admin-dashboard');show('menu-top-sellers');
+    show('menu-data-section');show('fab-wrap');
+    return;
+  }
+
+  // seller: 관리자 대시보드, TOP 판매자 랭킹, 데이터·분석 섹션 숨김
+  if(role==='seller'){
+    show('menu-register');show('menu-my-products');
+    hide('menu-admin-dashboard');hide('menu-top-sellers');
+    hide('menu-data-section');
+    return;
+  }
+
+  // buyer(및 기타): seller 숨김 + 상품등록, 내 상품 관리, FAB 버튼 숨김
+  hide('menu-register');hide('menu-my-products');
+  hide('menu-admin-dashboard');hide('menu-top-sellers');
+  hide('menu-data-section');
 }
 function showMySales(){
   const u=curUser;
