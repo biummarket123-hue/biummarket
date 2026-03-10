@@ -6689,62 +6689,96 @@ function adminSaveUserMemo(idx){
   }
   showToast('메모가 저장됐어요 📝');
 }
-function adminApproveSeller(idx){
-  if(!isAdmin())return;
-  const u=_adminUserList[idx];if(!u)return;
-  const uid=u.id||u.email;
-  const rr=u.requestedRole||u.requested_role||'seller';
+async function adminApproveSeller(idx){
+  const u = _adminUserList[idx];
+  if(!u){ showToast('회원 정보를 찾을 수 없어요'); return; }
 
-  // 1. _adminUserList 엔트리 업데이트
-  u.type=rr;u.role=rr;u.sellerStatus='approved';u.seller_status='approved';
+  const requestedRole = u.requestedRole || u.requested_role || 'seller';
 
-  // 2. users 배열 업데이트
-  const li=users.findIndex(x=>x.id===uid||x.email===u.email);
-  if(li!==-1){users[li].type=rr;users[li].role=rr;users[li].sellerStatus='approved';}
-  lsSet('users',users);
+  // 1. _adminUserList 직접 업데이트
+  _adminUserList[idx].role = requestedRole;
+  _adminUserList[idx].type = requestedRole;
+  _adminUserList[idx].sellerStatus = 'approved';
+  _adminUserList[idx].seller_status = 'approved';
 
-  // 3. curUser 동기화 (승인된 유저가 현재 로그인 유저인 경우)
-  if(curUser&&(curUser.id===uid||curUser.email===u.email)){
-    curUser.type=rr;curUser.role=rr;curUser.sellerStatus='approved';
-    lsSet('curUser',curUser);
+  // 2. users 배열에서 찾아서 업데이트 (id 또는 email로 매칭)
+  const li = users.findIndex(x =>
+    (u.id && x.id === u.id) ||
+    (u.email && x.email === u.email)
+  );
+
+  if(li !== -1){
+    users[li].role = requestedRole;
+    users[li].type = requestedRole;
+    users[li].sellerStatus = 'approved';
+    users[li].seller_status = 'approved';
+    lsSet('users', users);
+  } else {
+    // users 배열에 없으면 추가
+    const newUser = {...u, role: requestedRole, type: requestedRole, sellerStatus: 'approved'};
+    users.push(newUser);
+    lsSet('users', users);
+  }
+
+  // 3. Supabase 업데이트
+  if(_sb && u.id){
+    const {error} = await _sb.from('users').update({
+      role: requestedRole,
+      type: requestedRole,
+      sellerStatus: 'approved',
+      seller_status: 'approved'
+    }).eq('id', u.id);
+    if(error) console.error('Supabase 승인 오류:', error);
+  }
+
+  // 4. 현재 로그인 유저가 승인된 경우 curUser 즉시 업데이트
+  if(curUser && (curUser.id === u.id || curUser.email === u.email)){
+    curUser.role = requestedRole;
+    curUser.type = requestedRole;
+    curUser.sellerStatus = 'approved';
+    lsSet('curUser', curUser);
     applyRoleVisibility();
   }
 
-  // 4. Supabase
-  if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').update({type:rr,seller_status:'approved',requested_role:rr}).eq('id',u.id).then(({error})=>{
-      if(error)console.error('승인 Supabase 오류:',error);
-    });
-  }
+  showToast('✅ 판매자 승인 완료!');
 
-  showToast('판매자 승인 완료! ✅');
-  showAdminUserDetail(idx);
+  // 5. 목록 전체 새로고침
+  showAdminUsers && showAdminUsers();
 }
-function adminRejectSeller(idx){
-  if(!isAdmin())return;
-  const u=_adminUserList[idx];if(!u)return;
-  const uid=u.id||u.email;
+async function adminRejectSeller(idx){
+  const u = _adminUserList[idx];
+  if(!u){ showToast('회원 정보를 찾을 수 없어요'); return; }
 
-  u.sellerStatus='rejected';u.seller_status='rejected';
+  _adminUserList[idx].sellerStatus = 'rejected';
+  _adminUserList[idx].seller_status = 'rejected';
 
-  const li=users.findIndex(x=>x.id===uid||x.email===u.email);
-  if(li!==-1)users[li].sellerStatus='rejected';
-  lsSet('users',users);
+  const li = users.findIndex(x =>
+    (u.id && x.id === u.id) ||
+    (u.email && x.email === u.email)
+  );
 
-  if(curUser&&(curUser.id===uid||curUser.email===u.email)){
-    curUser.sellerStatus='rejected';
-    lsSet('curUser',curUser);
+  if(li !== -1){
+    users[li].sellerStatus = 'rejected';
+    users[li].seller_status = 'rejected';
+    lsSet('users', users);
+  }
+
+  if(_sb && u.id){
+    const {error} = await _sb.from('users').update({
+      sellerStatus: 'rejected',
+      seller_status: 'rejected'
+    }).eq('id', u.id);
+    if(error) console.error('Supabase 거절 오류:', error);
+  }
+
+  if(curUser && (curUser.id === u.id || curUser.email === u.email)){
+    curUser.sellerStatus = 'rejected';
+    lsSet('curUser', curUser);
     applyRoleVisibility();
   }
 
-  if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').update({seller_status:'rejected'}).eq('id',u.id).then(({error})=>{
-      if(error)console.error('거절 Supabase 오류:',error);
-    });
-  }
-
-  showToast('판매자 신청 거절 완료');
-  showAdminUserDetail(idx);
+  showToast('❌ 판매자 신청 거절');
+  showAdminUsers && showAdminUsers();
 }
 function showAdminProducts(){
   const el=document.getElementById('admin-content');if(!el)return;
