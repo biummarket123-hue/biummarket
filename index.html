@@ -2332,6 +2332,18 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 <script>
+// 첫 접속 시 랜딩페이지로 이동
+(function(){
+  const hasVisited = sessionStorage.getItem('bium_from_landing') || location.search.includes('from=landing');
+  const isDirectLogin = location.search.includes('login') || location.hash.includes('login');
+  if(location.search.includes('from=landing')){
+    sessionStorage.setItem('bium_from_landing', '1');
+  }
+  if(!hasVisited && !isDirectLogin){
+    location.replace('./landing.html');
+  }
+})();
+
 /* ==================== CONFIG ==================== */
 const CLAUDE_API_KEY=''; // 사용하지 않음 — API 키는 Vercel 환경변수로 서버에서 처리
 
