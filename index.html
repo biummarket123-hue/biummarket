@@ -1299,14 +1299,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" id="menu-ad-manage" onclick="showView('admin');setTimeout(showAdminAds,100)">
-        <div class="my-icon-box ib-orange">📺</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title">광고 관리</div>
-          <div class="my-menu-sub">배너·카테고리 광고 관리</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
       <div class="my-menu-item" onclick="showView('profile-edit')">
         <div class="my-icon-box ib-green">🏠</div>
         <div class="my-menu-info">
@@ -5291,19 +5283,19 @@ function applyRoleVisibility(){
 
   // Admin: 모든 메뉴 표시
   if(isAdmin()){
-    showIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section','menu-register','menu-my-products']);
+    showIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
     setFab(true);
     return;
   }
   // Seller/both: 관리자전용 숨김, 상품관리 표시
   if(isSeller()){
-    hideIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section']);
+    hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
     showIds(['menu-register','menu-my-products']);
     setFab(true);
     return;
   }
   // Buyer: 관리자+판매자 전용 모두 숨김
-  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section','menu-register','menu-my-products']);
+  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
   setFab(false);
 }
 function showMySales(){
