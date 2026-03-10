@@ -3533,17 +3533,14 @@ function renderCatProducts(){
 }
 
 /* ===== HOME REDESIGN JS ===== */
-// HOME_CATS: CATEGORY_DATA에서 자동 생성
-const HOME_CATS=[
-  {key:'전체',label:'전체'},
-  ...CATEGORY_DATA.map(c=>({key:c.id,label:c.id})),
-  {key:'기타',label:'기타'},
-];
-// HOME_SECTIONS: CATEGORY_DATA에서 자동 생성
-const HOME_SECTIONS=[
-  ...CATEGORY_DATA.map(c=>({key:c.id,label:`${c.emoji} ${c.id}`})),
-  {key:'기타',label:'📦 기타'},
-];
+// HOME_CATS / HOME_SECTIONS: CATEGORY_DATA에서 자동 생성 (rebuildHomeCats로 갱신)
+let HOME_CATS=[];
+let HOME_SECTIONS=[];
+function rebuildHomeCats(){
+  HOME_CATS=[{key:'전체',label:'전체'},...CATEGORY_DATA.map(c=>({key:c.id,label:c.id})),{key:'기타',label:'기타'}];
+  HOME_SECTIONS=[...CATEGORY_DATA.map(c=>({key:c.id,label:`${c.emoji} ${c.id}`})),{key:'기타',label:'📦 기타'}];
+}
+rebuildHomeCats();
 let homeCurCat='전체';
 
 function getProductsByHomeCat(cat){
@@ -6026,7 +6023,7 @@ function adminDeleteItem(catId,subIdx,itemName){
   saveCategoriesToStorage();
   showAdminItems(catId,subIdx);showToast('삭제됐어요');
 }
-function saveCategoriesToStorage(){lsSet('customCategories',CATEGORY_DATA);}
+function saveCategoriesToStorage(){lsSet('customCategories',CATEGORY_DATA);rebuildHomeCats();renderHomeCats();renderHomeSections();}
 function adminAddCategory(){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
