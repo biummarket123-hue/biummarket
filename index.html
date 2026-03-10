@@ -3078,8 +3078,7 @@ function showView(name,push=true){
   if(name==='form')initFormView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
   const fab=document.getElementById('fab-wrap');
-  const fabRole=curUser?.type||'buyer';
-  if(fab)fab.style.display=((name==='list'||name==='home')&&fabRole!=='buyer')?'block':'none';
+  if(fab)fab.style.display=((name==='list'||name==='home')&&!isBuyer())?'block':'none';
 }
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
@@ -5177,32 +5176,26 @@ function renderMypage(){
   }
 
   // 권한별 메뉴 표시/숨김
-  applyRoleVisibility(u.type);
+  applyRoleVisibility();
 }
-function applyRoleVisibility(role){
+
+/* ===== 역할 판별 헬퍼 ===== */
+function isAdmin(){return curUser&&curUser.type==='admin';}
+function isSeller(){return curUser&&(curUser.type==='seller'||curUser.type==='both');}
+function isBuyer(){return !curUser||curUser.type==='buyer'||curUser.type==='guest';}
+
+function applyRoleVisibility(){
   const show=(id)=>{const el=document.getElementById(id);if(el)el.style.display='';};
   const hide=(id)=>{const el=document.getElementById(id);if(el)el.style.display='none';};
 
-  // admin: 모든 메뉴 표시
-  if(role==='admin'){
-    show('menu-register');show('menu-my-products');
-    show('menu-admin-dashboard');show('menu-top-sellers');
-    show('menu-data-section');show('fab-wrap');
-    return;
-  }
+  // TOP 판매자 랭킹 · 관리자 대시보드 · 데이터분석: admin만
+  (isAdmin()?show:hide)('menu-top-sellers');
+  (isAdmin()?show:hide)('menu-admin-dashboard');
+  (isAdmin()?show:hide)('menu-data-section');
 
-  // seller: 관리자 대시보드, TOP 판매자 랭킹, 데이터·분석 섹션 숨김
-  if(role==='seller'){
-    show('menu-register');show('menu-my-products');
-    hide('menu-admin-dashboard');hide('menu-top-sellers');
-    hide('menu-data-section');
-    return;
-  }
-
-  // buyer(및 기타): seller 숨김 + 상품등록, 내 상품 관리, FAB 버튼 숨김
-  hide('menu-register');hide('menu-my-products');
-  hide('menu-admin-dashboard');hide('menu-top-sellers');
-  hide('menu-data-section');
+  // 상품등록 · 내 상품 관리: buyer이면 숨김
+  (isBuyer()?hide:show)('menu-register');
+  (isBuyer()?hide:show)('menu-my-products');
 }
 function showMySales(){
   const u=curUser;
