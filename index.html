@@ -3128,7 +3128,7 @@ async function doLogin(){
   if(email==='admin'){
     const admin=DEFAULT_USERS.find(u=>u.email==='admin'&&u.pw===pw);
     if(!admin){showToast('비밀번호가 틀렸어요');return;}
-    curUser=admin;lsSet('curUser',curUser);showView('admin');return;
+    curUser=admin;lsSet('curUser',curUser);showView('list');showListSkeleton();return;
   }
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
@@ -5224,8 +5224,12 @@ function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
 function isSeller(){
   if(!curUser)return false;
-  if(_getRole()==='admin')return true;
-  return ['seller','seller+buyer','both'].includes(_getRole())&&curUser.sellerStatus==='approved';
+  const role=_getRole();
+  if(role==='admin')return false;
+  if(!['seller','seller+buyer','both'].includes(role))return false;
+  // sellerStatus 필드가 있으면 approved여야 함, 없으면 기존 판매자로 간주
+  if(curUser.sellerStatus&&curUser.sellerStatus!=='approved')return false;
+  return true;
 }
 function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||!curUser;}
 function isSellerPending(){return curUser&&curUser.sellerStatus==='pending';}
@@ -6698,6 +6702,12 @@ function adminApproveSeller(idx){
   const localUser=users.find(x=>x.id===u.id||x.email===u.email);
   if(localUser){localUser.type=rr;localUser.sellerStatus='approved';}
   lsSet('users',users);
+  // 현재 로그인한 유저가 승인 대상이면 curUser도 동기화
+  if(curUser&&(curUser.id===u.id||curUser.email===u.email)){
+    curUser.type=rr;curUser.sellerStatus='approved';
+    lsSet('curUser',curUser);
+    applyRoleVisibility();
+  }
   if(_sb&&u.id&&u.id!=='admin'){
     _sb.from('users').update({type:rr,seller_status:'approved'}).eq('id',u.id).then(()=>{});
   }
@@ -6711,6 +6721,11 @@ function adminRejectSeller(idx){
   const localUser=users.find(x=>x.id===u.id||x.email===u.email);
   if(localUser)localUser.sellerStatus='rejected';
   lsSet('users',users);
+  if(curUser&&(curUser.id===u.id||curUser.email===u.email)){
+    curUser.sellerStatus='rejected';
+    lsSet('curUser',curUser);
+    applyRoleVisibility();
+  }
   if(_sb&&u.id&&u.id!=='admin'){
     _sb.from('users').update({seller_status:'rejected'}).eq('id',u.id).then(()=>{});
   }
