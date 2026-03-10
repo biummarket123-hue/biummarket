@@ -1297,6 +1297,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <div class="my-menu-item" id="menu-ad-manage" onclick="showView('admin');setTimeout(showAdminAds,100)">
+        <div class="my-icon-box ib-orange">📺</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">광고 관리</div>
+          <div class="my-menu-sub">배너·카테고리 광고 관리</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
       <div class="my-menu-item" onclick="showView('profile-edit')">
         <div class="my-icon-box ib-green">🏠</div>
         <div class="my-menu-info">
@@ -3124,6 +3132,7 @@ async function doLogin(){
   if(!_sb){
     const user=findUser(email,pw);
     if(!user){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
+    if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
     curUser=user;lsSet('curUser',curUser);
     showView('list');showListSkeleton();
     return;
@@ -3133,6 +3142,7 @@ async function doLogin(){
     if(error){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
     curUser=profile||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);
     showView('list');showListSkeleton();loadProductsFromSupabase();
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
@@ -3387,8 +3397,13 @@ function renderCategoryView(){
 function renderCatStep0(){
   const grid=document.getElementById('cat-grid');
   if(!grid)return;
+  const catAds=getActiveAds('카테고리 상단');
+  const adHtml=catAds.map(a=>`<div onclick="${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="grid-column:1/-1;cursor:${a.linkUrl?'pointer':'default'};border-radius:14px;overflow:hidden;position:relative">
+    ${a.imageUrl?`<img src="${a.imageUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:14px" onerror="this.parentElement.style.display='none'">`:''}
+    <div style="position:absolute;bottom:8px;left:10px;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px">${a.name}</div>
+  </div>`).join('');
   grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 14px 80px';
-  grid.innerHTML=CATEGORY_DATA.map(cat=>{
+  grid.innerHTML=adHtml+CATEGORY_DATA.map(cat=>{
     const prodCnt=filterByCategory(products,cat.id).length;
     const subCnt=cat.sub.length;
     return `<div class="cat-grid-item" onclick="catGoStep1('${cat.id}')">
@@ -5195,19 +5210,19 @@ function applyRoleVisibility(){
 
   // Admin: 모든 메뉴 표시
   if(isAdmin()){
-    showIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
+    showIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section','menu-register','menu-my-products']);
     setFab(true);
     return;
   }
   // Seller/both: 관리자전용 숨김, 상품관리 표시
   if(isSeller()){
-    hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
+    hideIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section']);
     showIds(['menu-register','menu-my-products']);
     setFab(true);
     return;
   }
   // Buyer: 관리자+판매자 전용 모두 숨김
-  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
+  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-ad-manage','menu-data-section','menu-register','menu-my-products']);
   setFab(false);
 }
 function showMySales(){
@@ -5853,13 +5868,22 @@ function renderHomeBanners(){
   if(_bannerRotTimer){clearInterval(_bannerRotTimer);_bannerRotTimer=null;}
   adminBanners=lsGet('adminBanners',[]);
   const active=adminBanners.filter(b=>b.active!==false);
+  const adBanners=getActiveAds('배너 슬라이드');
   const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
-  const all=[DEFAULT,...active];
-  const renderSlide=(b,dots)=>`
-    <div class="premium-badge">★ PREMIUM</div>
+  const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,imageUrl:a.imageUrl,linkUrl:a.linkUrl}))];
+  const renderSlide=(b,dots)=>{
+    if(b._ad&&b.imageUrl){
+      return `<div onclick="${b.linkUrl?`window.open('${b.linkUrl}','_blank')`:''}" style="cursor:${b.linkUrl?'pointer':'default'};position:relative;z-index:1">
+        <img src="${b.imageUrl}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px">${b.title}</div>
+        ${b.linkUrl?'<div style="font-size:10px;color:rgba(255,255,255,.6)">AD · 탭하여 이동</div>':''}
+      </div>${dots}`;
+    }
+    return `<div class="premium-badge">★ PREMIUM</div>
     <div class="premium-title" style="transition:opacity .3s">${b.title}</div>
     <div class="premium-sub">${b.desc||b.description||''}</div>
     ${dots}`;
+  };
   const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:10px;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'};transition:.3s"></div>`).join('')}</div>`:'';
   if(all.length===1){wrap.innerHTML=renderSlide(all[0],'');return;}
   _bannerIdx=0;
@@ -5899,6 +5923,11 @@ function renderAdmin(){
       <div class="my-menu-item" onclick="showAdminNotices()">
         <div class="my-icon-box ib-orange">📢</div>
         <div class="my-menu-info"><div class="my-menu-title">공지사항 관리</div><div class="my-menu-sub" id="adm-notice-sub">${notices.length}개 공지</div></div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="showAdminAds()">
+        <div class="my-icon-box ib-orange">📺</div>
+        <div class="my-menu-info"><div class="my-menu-title">광고 관리</div><div class="my-menu-sub">배너·카테고리 광고</div></div>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showAdminUsers()">
@@ -6402,43 +6431,132 @@ function adminDeleteNotice(id){
   lsSet('notices',notices);
   showAdminNotices();showToast('공지가 삭제됐어요');
 }
+let _adminUserList=[];
 function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
+  if(!isAdmin()){showToast('관리자만 접근 가능');return;}
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
-  const TEST_USERS=[
-    {name:'관리자',email:'admin@biummarket.com',type:'admin',joinDate:'2026-01-01'},
-    {name:'로우하이마켓',email:'seller@test.com',type:'seller',joinDate:'2026-02-15'},
-    {name:'테스트구매자',email:'buyer@test.com',type:'user',joinDate:'2026-03-01'}
-  ];
-  const roleLabel=(t)=>t==='admin'?'관리자':t==='seller'?'판매자':'구매자';
-  const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'?'#e6f7ef':'#e8f0fb';
-  const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'?'#00875a':'#3366cc';
-  const renderTable=(list)=>`
+  const roleLabel=(t)=>({admin:'관리자',seller:'판매자','seller+buyer':'판매자+구매자',both:'겸업',buyer:'구매자',guest:'게스트'})[t]||'구매자';
+  const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'||t==='both'||t==='seller+buyer'?'#e6f7ef':'#e8f0fb';
+  const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'||t==='both'||t==='seller+buyer'?'#00875a':'#3366cc';
+  const renderList=(list)=>{
+    _adminUserList=list;
+    el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 관리</span>
       <span style="font-size:13px;color:#6c63ff;font-weight:700">${list.length}명</span>
     </div>
     <div style="padding:12px 16px 20px">
-      ${list.map(u=>`<div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
-        <div style="width:38px;height:38px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
+      ${list.map((u,i)=>`<div onclick="showAdminUserDetail(${i})" style="background:${u.status==='suspended'?'#fff5f5':'#f8f8fa'};border:1px solid ${u.status==='suspended'?'#ffcdd2':'#e0e0ea'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+        <div style="width:38px;height:38px;border-radius:50%;background:${u.status==='suspended'?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'}</div>
-          <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.created_at?.slice(0,10)||'-'}</div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'} ${u.adminMemo?'📝':''}${u.status==='suspended'?'<span style="color:#e53935;font-size:11px;font-weight:700;margin-left:4px">정지</span>':''}</div>
+          <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
         </div>
         <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${roleBg(u.type||'user')};color:${roleColor(u.type||'user')};flex-shrink:0">${roleLabel(u.type||'user')}</span>
       </div>`).join('')}
     </div>`;
+  };
   const mergeUsers=(sbList)=>{
-    const sbEmails=new Set((sbList||[]).map(u=>u.email));
-    return [...(sbList||[]),...TEST_USERS.filter(u=>!sbEmails.has(u.email))];
+    const sbIds=new Set((sbList||[]).map(u=>u.id||u.email));
+    const localOnly=users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
+    return [...(sbList||[]),...localOnly];
   };
   el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
   if(_sb){
     _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
-      el.innerHTML=renderTable(mergeUsers(!error&&data?data:[]));
+      renderList(mergeUsers(!error&&data?data:[]));
     });
-  }else{el.innerHTML=renderTable(mergeUsers([]));}
+  }else{renderList(mergeUsers([]));}
+}
+function showAdminUserDetail(idx){
+  if(!isAdmin())return;
+  const u=_adminUserList[idx];if(!u)return;
+  const el=document.getElementById('admin-content');if(!el)return;
+  const roleLabel=(t)=>({admin:'관리자',seller:'판매자','seller+buyer':'판매자+구매자',both:'겸업',buyer:'구매자',guest:'게스트'})[t]||'구매자';
+  const isSuspended=u.status==='suspended';
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminUsers()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 상세</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
+        <div style="width:50px;height:50px;border-radius:50%;background:${isSuspended?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff">${(u.name||'?')[0]}</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:#1a1a1a">${u.name||'-'} ${isSuspended?'<span style="color:#e53935;font-size:12px">🚫 정지됨</span>':''}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${u.email||'-'}</div>
+          <div style="font-size:11px;color:#aaa;margin-top:2px">가입일: ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">역할 변경</div>
+        <select id="adm-user-role" onchange="adminChangeUserRole(${idx},this.value)" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
+          ${['admin','seller','seller+buyer','buyer','guest'].map(r=>`<option value="${r}" ${(u.type||'buyer')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">관리자 메모</div>
+        <textarea id="adm-user-memo" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;color:#1a1a1a;resize:vertical;min-height:60px;box-sizing:border-box" placeholder="메모 입력...">${u.adminMemo||''}</textarea>
+        <button onclick="adminSaveUserMemo(${idx})" style="margin-top:6px;padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 메모 저장</button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="adminToggleUserStatus(${idx})" style="flex:1;padding:14px;background:${isSuspended?'#e8f5e9':'#fff5f5'};border:1px solid ${isSuspended?'#c8e6c9':'#ffcdd2'};border-radius:14px;font-size:14px;font-weight:700;color:${isSuspended?'#2e7d32':'#e53935'};cursor:pointer">${isSuspended?'✅ 활성화':'🚫 정지'}</button>
+        <button onclick="adminDeleteUser(${idx})" style="flex:1;padding:14px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;font-size:14px;font-weight:700;color:#e53935;cursor:pointer">🗑️ 강제 탈퇴</button>
+      </div>
+    </div>`;
+}
+function adminChangeUserRole(idx,newRole){
+  if(!isAdmin())return;
+  const u=_adminUserList[idx];if(!u)return;
+  u.type=newRole;
+  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
+  if(localUser)localUser.type=newRole;
+  lsSet('users',users);
+  if(_sb&&u.id&&u.id!=='admin'){
+    _sb.from('users').update({type:newRole}).eq('id',u.id).then(()=>{});
+  }
+  showToast('역할이 변경됐어요 ✅');
+}
+function adminToggleUserStatus(idx){
+  if(!isAdmin())return;
+  const u=_adminUserList[idx];if(!u)return;
+  const newStatus=u.status==='suspended'?'active':'suspended';
+  u.status=newStatus;
+  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
+  if(localUser)localUser.status=newStatus;
+  lsSet('users',users);
+  if(_sb&&u.id&&u.id!=='admin'){
+    _sb.from('users').update({status:newStatus}).eq('id',u.id).then(()=>{});
+  }
+  showToast(newStatus==='suspended'?'회원이 정지됐어요 🚫':'회원이 활성화됐어요 ✅');
+  showAdminUserDetail(idx);
+}
+function adminDeleteUser(idx){
+  if(!isAdmin())return;
+  const u=_adminUserList[idx];if(!u)return;
+  if(!confirm(`'${u.name||u.email}' 회원을 정말 탈퇴시키겠습니까?`))return;
+  users=users.filter(x=>x.id!==u.id&&x.email!==u.email);
+  lsSet('users',users);
+  if(_sb&&u.id&&u.id!=='admin'){
+    _sb.from('users').delete().eq('id',u.id).then(()=>{});
+  }
+  showToast('회원이 탈퇴 처리됐어요');
+  showAdminUsers();
+}
+function adminSaveUserMemo(idx){
+  if(!isAdmin())return;
+  const u=_adminUserList[idx];if(!u)return;
+  const memo=(document.getElementById('adm-user-memo')?.value||'').trim();
+  u.adminMemo=memo;
+  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
+  if(localUser)localUser.adminMemo=memo;
+  lsSet('users',users);
+  if(_sb&&u.id&&u.id!=='admin'){
+    _sb.from('users').update({admin_memo:memo}).eq('id',u.id).then(()=>{});
+  }
+  showToast('메모가 저장됐어요 📝');
 }
 function showAdminProducts(){
   const el=document.getElementById('admin-content');if(!el)return;
@@ -6571,6 +6689,116 @@ function initNoticeRotation(){
     el.textContent='[공지] '+notices[idx].title;
   },3000);
 }
+/* ===== 광고 관리 ===== */
+let adminAds=lsGet('ads',[]);
+function showAdminAds(){
+  if(!isAdmin()){showToast('관리자만 접근 가능');return;}
+  const el=document.getElementById('admin-content');if(!el)return;
+  const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
+  const active=adminAds.filter(a=>a.active);
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">광고 관리</span>
+      <span style="font-size:13px;color:#6c63ff;font-weight:700">${active.length}/${adminAds.length}개 활성</span>
+    </div>
+    <div style="padding:12px 16px">
+      <button onclick="showAdminAdForm()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px">➕ 광고 추가</button>
+      ${adminAds.length===0?'<div style="text-align:center;color:#aaa;font-size:13px;padding:30px 0">등록된 광고가 없어요</div>':''}
+      ${adminAds.map((a,i)=>`<div style="background:${a.active?'#f8f8fa':'#fff5f5'};border:1px solid ${a.active?'#e0e0ea':'#ffcdd2'};border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#1a1a1a">${a.name} ${a.active?'<span style="color:#00b386;font-size:11px">● 활성</span>':'<span style="color:#e53935;font-size:11px">● 비활성</span>'}</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">📍 ${a.position} · ${a.startDate||'-'} ~ ${a.endDate||'-'}</div>
+          </div>
+        </div>
+        ${a.imageUrl?`<div style="border-radius:8px;overflow:hidden;margin-bottom:8px;max-height:80px"><img src="${a.imageUrl}" style="width:100%;height:80px;object-fit:cover" onerror="this.style.display='none'"></div>`:''}
+        ${a.linkUrl?`<div style="font-size:11px;color:#6c63ff;margin-bottom:8px;word-break:break-all">🔗 ${a.linkUrl}</div>`:''}
+        <div style="display:flex;gap:8px">
+          <button onclick="showAdminAdForm(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:#6c63ff;cursor:pointer">✏️ 수정</button>
+          <button onclick="adminToggleAd(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:${a.active?'#e53935':'#00b386'};cursor:pointer">${a.active?'⏸ 비활성':'▶ 활성화'}</button>
+          <button onclick="adminDeleteAd(${i})" style="flex:1;padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;font-size:12px;font-weight:600;color:#e53935;cursor:pointer">🗑️ 삭제</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+function showAdminAdForm(editIdx){
+  if(!isAdmin())return;
+  const el=document.getElementById('admin-content');if(!el)return;
+  const isEdit=editIdx!==undefined&&adminAds[editIdx];
+  const ad=isEdit?adminAds[editIdx]:{name:'',position:'배너 슬라이드',imageUrl:'',linkUrl:'',startDate:'',endDate:'',active:true};
+  el.innerHTML=`
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
+      <button onclick="showAdminAds()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">${isEdit?'광고 수정':'광고 추가'}</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">광고명 *</div>
+        <input id="ad-name" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.name}" placeholder="광고 이름"></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">위치 *</div>
+        <select id="ad-position" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
+          <option value="배너 슬라이드" ${ad.position==='배너 슬라이드'?'selected':''}>배너 슬라이드</option>
+          <option value="카테고리 상단" ${ad.position==='카테고리 상단'?'selected':''}>카테고리 상단</option>
+        </select></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">이미지 URL</div>
+        <input id="ad-image" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.imageUrl||''}" placeholder="https://..."></div>
+      <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">링크 URL</div>
+        <input id="ad-link" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.linkUrl||''}" placeholder="https://..."></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">시작일</div>
+          <input id="ad-start" type="date" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.startDate||''}"></div>
+        <div style="flex:1"><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">종료일</div>
+          <input id="ad-end" type="date" class="fi" style="margin:0;width:100%;box-sizing:border-box" value="${ad.endDate||''}"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+        <span style="font-size:13px;font-weight:600;color:#1a1a1a">활성화</span>
+        <label style="position:relative;display:inline-block;width:44px;height:24px">
+          <input id="ad-active" type="checkbox" ${ad.active?'checked':''} style="opacity:0;width:0;height:0">
+          <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked" style="position:absolute;cursor:pointer;inset:0;background:${ad.active?'#6c63ff':'#ccc'};border-radius:24px;transition:.3s"></span>
+        </label>
+      </div>
+      <button onclick="adminSaveAd(${isEdit?editIdx:'undefined'})" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer">✅ 저장</button>
+      <button onclick="showAdminAds()" style="width:100%;padding:12px;background:#fff;border:1px solid #d8d8e8;border-radius:14px;font-size:14px;font-weight:600;color:#888;cursor:pointer">취소</button>
+    </div>`;
+}
+function adminSaveAd(editIdx){
+  if(!isAdmin())return;
+  const name=(document.getElementById('ad-name')?.value||'').trim();
+  if(!name){showToast('광고명을 입력해주세요');return;}
+  const ad={
+    id:editIdx!==undefined&&adminAds[editIdx]?adminAds[editIdx].id:'ad_'+Date.now(),
+    name,
+    position:document.getElementById('ad-position')?.value||'배너 슬라이드',
+    imageUrl:(document.getElementById('ad-image')?.value||'').trim(),
+    linkUrl:(document.getElementById('ad-link')?.value||'').trim(),
+    startDate:document.getElementById('ad-start')?.value||'',
+    endDate:document.getElementById('ad-end')?.value||'',
+    active:document.getElementById('ad-active')?.checked??true
+  };
+  if(editIdx!==undefined&&adminAds[editIdx]){adminAds[editIdx]=ad;}
+  else{adminAds.push(ad);}
+  lsSet('ads',adminAds);
+  renderHomeBanners();
+  showAdminAds();showToast('광고가 저장됐어요 ✅');
+}
+function adminToggleAd(idx){
+  if(!isAdmin()||!adminAds[idx])return;
+  adminAds[idx].active=!adminAds[idx].active;
+  lsSet('ads',adminAds);renderHomeBanners();
+  showAdminAds();showToast(adminAds[idx].active?'광고 활성화 ✅':'광고 비활성화 ⏸');
+}
+function adminDeleteAd(idx){
+  if(!isAdmin()||!adminAds[idx])return;
+  if(!confirm(`'${adminAds[idx].name}' 광고를 삭제할까요?`))return;
+  adminAds.splice(idx,1);
+  lsSet('ads',adminAds);renderHomeBanners();
+  showAdminAds();showToast('광고가 삭제됐어요');
+}
+function getActiveAds(position){
+  const today=new Date().toISOString().slice(0,10);
+  return adminAds.filter(a=>a.active&&a.position===position&&(!a.startDate||a.startDate<=today)&&(!a.endDate||a.endDate>=today));
+}
+
 function resetCategories(){
   if(!confirm('카테고리 데이터를 초기화할까요?'))return;
   lsDelTTL('categories');showToast('카테고리가 초기화됐어요 ♻️');
