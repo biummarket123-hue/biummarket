@@ -1,1209 +1,366 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>비움마켓 - 프리미엄 재고원단 거래 플랫폼</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --black: #0a0a0a;
-    --white: #ffffff;
-    --cream: #f8f5f0;
-    --gold: #c9a84c;
-    --gold-light: #e8cc80;
-    --gray: #6b6b6b;
-    --light-gray: #e8e8e8;
-    --accent: #1a3a2a;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--cream);
-    color: var(--black);
-    overflow-x: hidden;
-  }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 48px;
-    background: rgba(248,245,240,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(201,168,76,0.2);
-    transition: padding 0.3s;
-  }
-
-  .nav-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-  }
-
-  .nav-logo-mark {
-    width: 36px; height: 36px;
-    background: var(--black);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gold);
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    font-weight: 400;
-  }
-
-  .nav-logo-text {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--black);
-    letter-spacing: -0.5px;
-  }
-
-  .nav-logo-sub {
-    font-size: 10px;
-    color: var(--gold);
-    letter-spacing: 2px;
-    font-weight: 500;
-    text-transform: uppercase;
-    display: block;
-    margin-top: -2px;
-  }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 36px;
-    list-style: none;
-  }
-
-  .nav-links a {
-    text-decoration: none;
-    color: var(--gray);
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--black); }
-
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .btn-login {
-    padding: 10px 24px;
-    border: 1.5px solid var(--black);
-    background: transparent;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--black);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-
-  .btn-login:hover {
-    background: var(--black);
-    color: var(--white);
-  }
-
-  .btn-apply-nav {
-    padding: 10px 24px;
-    background: var(--gold);
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--black);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-
-  .btn-apply-nav:hover { background: var(--gold-light); }
-
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 120px 24px 80px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(26,58,42,0.06) 0%, transparent 60%);
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--white);
-    border: 1px solid rgba(201,168,76,0.4);
-    border-radius: 100px;
-    padding: 8px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--gray);
-    margin-bottom: 32px;
-    animation: fadeUp 0.8s ease both;
-  }
-
-  .hero-badge span {
-    width: 6px; height: 6px;
-    background: var(--gold);
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .hero-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(42px, 7vw, 80px);
-    line-height: 1.1;
-    color: var(--black);
-    margin-bottom: 8px;
-    animation: fadeUp 0.8s 0.1s ease both;
-  }
-
-  .hero-title-ko {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: clamp(28px, 4.5vw, 52px);
-    font-weight: 900;
-    line-height: 1.2;
-    color: var(--black);
-    margin-bottom: 24px;
-    animation: fadeUp 0.8s 0.15s ease both;
-  }
-
-  .hero-title-ko em {
-    font-style: normal;
-    color: var(--gold);
-  }
-
-  .hero-desc {
-    font-size: clamp(15px, 2vw, 18px);
-    color: var(--gray);
-    line-height: 1.7;
-    max-width: 520px;
-    margin: 0 auto 40px;
-    font-weight: 400;
-    animation: fadeUp 0.8s 0.2s ease both;
-  }
-
-  .hero-cta {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    animation: fadeUp 0.8s 0.3s ease both;
-  }
-
-  .btn-primary {
-    padding: 16px 36px;
-    background: var(--black);
-    color: var(--white);
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.25s;
-    font-family: 'Noto Sans KR', sans-serif;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-primary:hover {
-    background: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  }
-
-  .btn-secondary {
-    padding: 16px 36px;
-    background: transparent;
-    color: var(--black);
-    border: 1.5px solid var(--black);
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.25s;
-    font-family: 'Noto Sans KR', sans-serif;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-secondary:hover {
-    background: var(--black);
-    color: var(--white);
-    transform: translateY(-2px);
-  }
-
-  .hero-fabrics {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 56px;
-    animation: fadeUp 0.8s 0.4s ease both;
-  }
-
-  .fabric-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--white);
-    border: 1px solid var(--light-gray);
-    border-radius: 100px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--black);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-
-  /* ── STATS ── */
-  .stats-section {
-    background: var(--black);
-    padding: 80px 48px;
-  }
-
-  .stats-section h2 {
-    text-align: center;
-    color: var(--white);
-    font-size: clamp(22px, 3vw, 32px);
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .stats-section p {
-    text-align: center;
-    color: rgba(255,255,255,0.5);
-    font-size: 14px;
-    margin-bottom: 56px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: rgba(255,255,255,0.1);
-    max-width: 960px;
-    margin: 0 auto 48px;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  .stat-item {
-    background: rgba(255,255,255,0.04);
-    padding: 36px 24px;
-    text-align: center;
-  }
-
-  .stat-icon {
-    font-size: 28px;
-    margin-bottom: 12px;
-    display: block;
-  }
-
-  .stat-label {
-    font-size: 12px;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .stat-value {
-    font-size: clamp(28px, 4vw, 42px);
-    font-weight: 900;
-    color: var(--white);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .stat-value .unit {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--gold);
-  }
-
-  .stat-note {
-    font-size: 12px;
-    color: var(--gold);
-  }
-
-  .mini-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  .mini-stat {
-    text-align: center;
-  }
-
-  .mini-stat-value {
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--gold);
-    margin-bottom: 4px;
-  }
-
-  .mini-stat-label {
-    font-size: 13px;
-    color: rgba(255,255,255,0.6);
-  }
-
-  /* ── STORY ── */
-  .story-section {
-    padding: 100px 48px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  .section-label {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-
-  .section-title {
-    font-size: clamp(26px, 3.5vw, 40px);
-    font-weight: 800;
-    color: var(--black);
-    margin-bottom: 56px;
-    line-height: 1.3;
-  }
-
-  .story-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 32px;
-    align-items: center;
-  }
-
-  .story-card {
-    background: var(--white);
-    border-radius: 20px;
-    padding: 36px;
-    border: 1px solid var(--light-gray);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-  }
-
-  .story-card.after {
-    background: var(--black);
-    border-color: var(--black);
-  }
-
-  .story-icon {
-    font-size: 36px;
-    margin-bottom: 20px;
-    display: block;
-  }
-
-  .story-card h4 {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 16px;
-    color: var(--black);
-  }
-
-  .story-card.after h4 { color: var(--white); }
-
-  .story-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .story-list li {
-    font-size: 14px;
-    color: var(--gray);
-    padding-left: 16px;
-    position: relative;
-  }
-
-  .story-list li::before {
-    content: '—';
-    position: absolute;
-    left: 0;
-    color: var(--light-gray);
-  }
-
-  .story-card.after .story-list li { color: rgba(255,255,255,0.7); }
-  .story-card.after .story-list li::before { color: var(--gold); }
-
-  .story-meter {
-    margin-top: 24px;
-    background: rgba(0,0,0,0.06);
-    border-radius: 100px;
-    height: 6px;
-    overflow: hidden;
-  }
-
-  .story-card.after .story-meter { background: rgba(255,255,255,0.1); }
-
-  .story-meter-fill {
-    height: 100%;
-    border-radius: 100px;
-    background: var(--light-gray);
-    width: 85%;
-  }
-
-  .story-card.after .story-meter-fill {
-    background: var(--gold);
-    width: 98%;
-  }
-
-  .story-meter-label {
-    font-size: 12px;
-    color: var(--gray);
-    margin-top: 8px;
-  }
-
-  .story-card.after .story-meter-label { color: var(--gold); }
-
-  .story-arrow {
-    font-size: 32px;
-    color: var(--gold);
-    text-align: center;
-  }
-
-  .testimonial {
-    margin-top: 48px;
-    background: var(--white);
-    border-radius: 20px;
-    padding: 36px 40px;
-    border: 1px solid var(--light-gray);
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-  }
-
-  .testimonial-quote {
-    font-size: 48px;
-    color: var(--gold);
-    line-height: 1;
-    font-family: 'DM Serif Display', serif;
-    flex-shrink: 0;
-  }
-
-  .testimonial-stars {
-    color: var(--gold);
-    font-size: 16px;
-    margin-bottom: 8px;
-  }
-
-  .testimonial-text {
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--black);
-    font-weight: 500;
-    margin-bottom: 12px;
-  }
-
-  .testimonial-author {
-    font-size: 13px;
-    color: var(--gray);
-  }
-
-  /* ── SERVICES ── */
-  .services-section {
-    background: var(--white);
-    padding: 100px 48px;
-  }
-
-  .services-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  .services-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    margin-bottom: 32px;
-  }
-
-  .service-card {
-    background: var(--cream);
-    border-radius: 20px;
-    padding: 36px 28px;
-    border: 1px solid rgba(0,0,0,0.06);
-    transition: all 0.25s;
-  }
-
-  .service-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-    background: var(--white);
-  }
-
-  .service-icon {
-    font-size: 32px;
-    margin-bottom: 20px;
-    display: block;
-  }
-
-  .service-card h4 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: var(--black);
-  }
-
-  .service-card p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--gray);
-  }
-
-  .services-mini {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .service-mini-card {
-    background: var(--black);
-    border-radius: 16px;
-    padding: 28px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .service-mini-icon {
-    font-size: 24px;
-    flex-shrink: 0;
-  }
-
-  .service-mini-card h5 {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 4px;
-  }
-
-  .service-mini-card p {
-    font-size: 13px;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.5;
-  }
-
-  /* ── CTA ── */
-  .cta-section {
-    padding: 100px 48px;
-    text-align: center;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-
-  .cta-section h2 {
-    font-size: clamp(28px, 4vw, 48px);
-    font-weight: 900;
-    color: var(--black);
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
-
-  .cta-section p {
-    font-size: 16px;
-    color: var(--gray);
-    margin-bottom: 48px;
-    line-height: 1.6;
-  }
-
-  .apply-form {
-    background: var(--white);
-    border-radius: 20px;
-    padding: 40px;
-    border: 1px solid var(--light-gray);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-    text-align: left;
-  }
-
-  .apply-form h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1.5px solid var(--light-gray);
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: 'Noto Sans KR', sans-serif;
-    color: var(--black);
-    background: var(--cream);
-    transition: border-color 0.2s;
-    outline: none;
-  }
-
-  .form-group input:focus {
-    border-color: var(--gold);
-    background: var(--white);
-  }
-
-  .form-group input::placeholder { color: #aaa; }
-
-  .form-check {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 24px;
-    font-size: 13px;
-    color: var(--gray);
-    cursor: pointer;
-  }
-
-  .form-check input { width: auto; }
-
-  .btn-submit {
-    width: 100%;
-    padding: 16px;
-    background: var(--black);
-    color: var(--white);
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Noto Sans KR', sans-serif;
-    transition: all 0.25s;
-  }
-
-  .btn-submit:hover {
-    background: var(--accent);
-    transform: translateY(-1px);
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    background: var(--black);
-    padding: 40px 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .footer-logo-mark {
-    width: 32px; height: 32px;
-    background: var(--gold);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--black);
-    font-family: 'DM Serif Display', serif;
-    font-size: 16px;
-  }
-
-  .footer-logo-text {
-    color: var(--white);
-    font-size: 16px;
-    font-weight: 700;
-  }
-
-  .footer-links {
-    display: flex;
-    gap: 24px;
-    list-style: none;
-  }
-
-  .footer-links a {
-    color: rgba(255,255,255,0.5);
-    text-decoration: none;
-    font-size: 13px;
-    transition: color 0.2s;
-  }
-
-  .footer-links a:hover { color: var(--white); }
-
-  .footer-copy {
-    color: rgba(255,255,255,0.4);
-    font-size: 12px;
-  }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-
-  .modal-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .modal {
-    background: var(--white);
-    border-radius: 20px;
-    padding: 48px 40px;
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-    transform: translateY(20px);
-    transition: transform 0.25s;
-  }
-
-  .modal-overlay.active .modal {
-    transform: translateY(0);
-  }
-
-  .modal-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
-
-  .modal h3 {
-    font-size: 22px;
-    font-weight: 800;
-    margin-bottom: 8px;
-  }
-
-  .modal p {
-    font-size: 14px;
-    color: var(--gray);
-    margin-bottom: 32px;
-    line-height: 1.6;
-  }
-
-  .modal-btn {
-    width: 100%;
-    padding: 16px;
-    background: var(--black);
-    color: var(--white);
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Noto Sans KR', sans-serif;
-    transition: all 0.2s;
-  }
-
-  .modal-btn:hover { background: var(--accent); }
-
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .reveal {
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
-    .nav-links { display: none; }
-
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .mini-stats { grid-template-columns: repeat(2, 1fr); }
-    .story-grid { grid-template-columns: 1fr; }
-    .story-arrow { transform: rotate(90deg); }
-    .services-grid { grid-template-columns: 1fr; }
-    .services-mini { grid-template-columns: 1fr; }
-    .stats-section, .story-section, .services-section { padding: 64px 20px; }
-    .cta-section { padding: 64px 20px; }
-    footer { padding: 32px 20px; flex-direction: column; text-align: center; }
-    .testimonial { flex-direction: column; gap: 12px; padding: 24px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비움마켓 - 프리미엄 재고원단 거래 플랫폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Noto Sans KR', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        body { background-color: #0F172A; color: #F1F5F9; }
+        .grid-pattern {
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .fabric-texture { position: relative; overflow: hidden; }
+        .fabric-texture::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,.02) 2px, rgba(255,255,255,.02) 4px), repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,.02) 2px, rgba(255,255,255,.02) 4px);
+            pointer-events: none;
+        }
+        .glow-cyan { box-shadow: 0 0 30px rgba(34,211,238,0.3); }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .btn-primary { background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .btn-primary::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%,-50%); transition: width 0.6s, height 0.6s; }
+        .btn-primary:hover::before { width: 300px; height: 300px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(6,182,212,0.4); }
+        .impact-number { background: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .fabric-card { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); border: 1px solid rgba(255,255,255,0.1); }
+        .fabric-card:hover { transform: translateY(-8px); border-color: rgba(34,211,238,0.5); box-shadow: 0 20px 60px rgba(34,211,238,0.2); }
+        .modal-backdrop { backdrop-filter: blur(10px); background-color: rgba(15,23,42,0.8); }
+        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+        .floating { animation: float 6s ease-in-out infinite; }
+        .gradient-text { background: linear-gradient(135deg, #22D3EE 0%, #3B82F6 50%, #8B5CF6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .before-card { background: linear-gradient(135deg, #1E293B 0%, #334155 100%); filter: saturate(0.3); transition: all 0.5s ease; }
+        .after-card { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 2px solid rgba(34,211,238,0.3); transition: all 0.5s ease; }
+        .before-card:hover { filter: saturate(0.5); transform: scale(1.02); }
+        .after-card:hover { border-color: rgba(34,211,238,0.6); transform: scale(1.02); box-shadow: 0 20px 50px rgba(34,211,238,0.3); }
+        @keyframes countUp { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        .count-animation { animation: countUp 1s ease-out; }
+    </style>
 </head>
-<body>
+<body class="antialiased" style="overflow:auto;">
 
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-mark">B</div>
-    <div>
-      <div class="nav-logo-text">비움마켓</div>
-      <span class="nav-logo-sub">Fabric Stock Platform</span>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[#0F172A]/90 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 lg:px-12 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">B</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">비움마켓</h1>
+                    <p class="text-xs text-cyan-400">Fabric Stock Platform</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#about" class="text-slate-300 hover:text-cyan-400 transition-colors text-sm">원단소개</a>
+                <a href="#impact" class="text-slate-300 hover:text-cyan-400 transition-colors text-sm">거래현황</a>
+                <a href="#story" class="text-slate-300 hover:text-cyan-400 transition-colors text-sm">성공사례</a>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="https://biummarket.vercel.app?from=landing" class="px-6 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-all text-sm font-medium border border-slate-600">로그인</a>
+                <button onclick="openModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all text-sm font-medium">입점문의</button>
+            </div>
+        </div>
     </div>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#about">원단소개</a></li>
-    <li><a href="#impact">거래현황</a></li>
-    <li><a href="#story">성공사례</a></li>
-  </ul>
-  <div class="nav-actions">
-    <a href="https://biummarket.vercel.app?from=landing" class="btn-login">로그인</a>
-    <button class="btn-apply-nav" onclick="scrollToApply()">입점문의</button>
-  </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-badge">
-    <span></span>
-    🧵 Professional Fabric Stock Trading
-  </div>
-  <div class="hero-title">Fabric. Value. Trade.</div>
-  <div class="hero-title-ko">재고원단, <em>새로운 가치</em>로 거래하세요</div>
-  <p class="hero-desc">
-    패션 브랜드와 제조사를 위한 프리미엄 재고원단 거래 플랫폼<br>
-    잠자는 원단에 생명을 불어넣습니다
-  </p>
-  <div class="hero-cta">
-    <a href="#apply" class="btn-primary" onclick="scrollToApply()">입점 신청하기 →</a>
-    <a href="https://biummarket.vercel.app?from=landing" class="btn-secondary">원단 둘러보기 ↗</a>
-  </div>
-  <div class="hero-fabrics">
-    <div class="fabric-chip">🧶 Cotton</div>
-    <div class="fabric-chip">✨ Silk</div>
-    <div class="fabric-chip">🌿 Linen</div>
-  </div>
-</section>
-
-<!-- STATS -->
-<section class="stats-section" id="impact">
-  <h2>실시간 거래 현황</h2>
-  <p>매일 업데이트되는 원단 거래 통계</p>
-  <div class="stats-grid reveal">
-    <div class="stat-item">
-      <span class="stat-icon">📦</span>
-      <div class="stat-label">거래 완료 원단</div>
-      <div class="stat-value"><span id="count-rolls">0</span><span class="unit"> 롤</span></div>
-      <div class="stat-note">💡 지난 달보다 +32% 증가</div>
-    </div>
-    <div class="stat-item">
-      <span class="stat-icon">🏭</span>
-      <div class="stat-label">재고 공간 절감</div>
-      <div class="stat-value"><span id="count-sqm">0</span><span class="unit"> ㎡</span></div>
-      <div class="stat-note">✨ 약 328개 업체의 공간 확보</div>
-    </div>
-    <div class="stat-item">
-      <span class="stat-icon">🤝</span>
-      <div class="stat-label">누적 거래건</div>
-      <div class="stat-value"><span id="count-deals">0</span><span class="unit"> 건</span></div>
-      <div class="stat-note">📈 월 평균 47건 성사</div>
-    </div>
-    <div class="stat-item">
-      <span class="stat-icon">⭐</span>
-      <div class="stat-label">거래 만족도</div>
-      <div class="stat-value"><span id="count-rate">0</span><span class="unit">%</span></div>
-      <div class="stat-note">🏆 업계 최고 수준</div>
-    </div>
-  </div>
-  <div class="mini-stats reveal">
-    <div class="mini-stat">
-      <div class="mini-stat-value">98%</div>
-      <div class="mini-stat-label">만족도</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-value">24시간</div>
-      <div class="mini-stat-label">평균 거래시간</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-value">523</div>
-      <div class="mini-stat-label">입점 업체</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-value">Zero</div>
-      <div class="mini-stat-label">중개 수수료</div>
-    </div>
-  </div>
-</section>
-
-<!-- STORY -->
-<section class="story-section" id="story">
-  <div class="section-label">변화의 스토리</div>
-  <div class="section-title">재고원단 거래<br>전과 후의 차이</div>
-  <div class="story-grid reveal">
-    <div class="story-card">
-      <span class="story-icon">📦</span>
-      <h4>Before</h4>
-      <ul class="story-list">
-        <li>쌓여만 가는 재고원단</li>
-        <li>차지하는 창고 공간</li>
-        <li>부담스러운 재고 관리비</li>
-      </ul>
-      <div class="story-meter">
-        <div class="story-meter-fill"></div>
-      </div>
-      <div class="story-meter-label">😔 창고 공간 부족 85%</div>
-    </div>
-    <div class="story-arrow">→</div>
-    <div class="story-card after">
-      <span class="story-icon">✨</span>
-      <h4>After</h4>
-      <ul class="story-list">
-        <li>빠르게 판매되는 원단</li>
-        <li>확보된 창고 공간</li>
-        <li>새로운 수익 창출</li>
-      </ul>
-      <div class="story-meter">
-        <div class="story-meter-fill"></div>
-      </div>
-      <div class="story-meter-label">😊 공간 활용 만족도 98%</div>
-    </div>
-  </div>
-  <div class="testimonial reveal">
-    <div class="testimonial-quote">"</div>
-    <div>
-      <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text">5년간 쌓여있던 재고원단을 2주 만에 모두 판매했습니다.<br>창고 공간도 확보하고 추가 수익까지 얻었어요.</div>
-      <div class="testimonial-author">— ㈜한양텍스타일 김대표</div>
-    </div>
-  </div>
-</section>
-
-<!-- SERVICES -->
-<section class="services-section" id="about">
-  <div class="services-inner">
-    <div class="section-label">비움마켓의 특별한 서비스</div>
-    <div class="section-title">재고원단 거래의<br>새로운 기준</div>
-    <div class="services-grid reveal">
-      <div class="service-card">
-        <span class="service-icon">🎯</span>
-        <h4>정확한 원단 정보</h4>
-        <p>원단 종류, 색상, 수량, 단가까지 상세하게 등록하여 정확한 매칭이 가능합니다.</p>
-      </div>
-      <div class="service-card">
-        <span class="service-icon">🤝</span>
-        <h4>검증된 B2B 네트워크</h4>
-        <p>패션 브랜드, 제조사, 바이어들로 구성된 전문 거래 네트워크를 제공합니다.</p>
-      </div>
-      <div class="service-card">
-        <span class="service-icon">⚡</span>
-        <h4>빠른 거래 성사</h4>
-        <p>AI 추천 시스템으로 최적의 구매자를 찾아 평균 24시간 내 거래가 완료됩니다.</p>
-      </div>
-    </div>
-    <div class="services-mini reveal">
-      <div class="service-mini-card">
-        <span class="service-mini-icon">🌱</span>
-        <div>
-          <h5>지속가능한 패션</h5>
-          <p>버려지는 원단을 재활용하여 환경을 보호합니다</p>
+<section class="pt-32 pb-24 px-6 lg:px-12 grid-pattern relative overflow-hidden">
+    <div class="absolute top-20 right-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div class="max-w-7xl mx-auto relative z-10">
+        <div class="text-center max-w-4xl mx-auto fade-up">
+            <div class="mb-6">
+                <span class="inline-block px-5 py-2 bg-cyan-500/10 text-cyan-400 rounded-full text-sm font-medium border border-cyan-500/20">🧵 Professional Fabric Stock Trading</span>
+            </div>
+            <h2 class="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+                재고원단,<br><span class="gradient-text">새로운 가치로 거래하세요</span>
+            </h2>
+            <p class="text-xl md:text-2xl text-slate-400 mb-12 leading-relaxed">
+                패션 브랜드와 제조사를 위한 프리미엄 재고원단 거래 플랫폼<br>잠자는 원단에 생명을 불어넣습니다
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button onclick="openModal()" class="btn-primary px-10 py-4 text-white rounded-xl text-lg font-semibold shadow-2xl relative z-10">입점 신청하기</button>
+                <a href="https://biummarket.vercel.app?from=landing" class="px-10 py-4 bg-slate-800/80 text-white rounded-xl text-lg font-semibold hover:bg-slate-700 transition-all shadow-xl border border-slate-600">원단 둘러보기</a>
+            </div>
         </div>
-      </div>
-      <div class="service-mini-card">
-        <span class="service-mini-icon">🔒</span>
-        <div>
-          <h5>안전한 거래</h5>
-          <p>에스크로 시스템으로 안전하게 거래를 보장합니다</p>
+        <div class="mt-20 fade-up" style="transition-delay:0.2s;">
+            <div class="relative max-w-5xl mx-auto">
+                <div class="fabric-texture bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-3xl p-12 md:p-20 shadow-2xl border border-slate-700/50 glow-cyan">
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-2xl p-6 aspect-square flex items-center justify-center border border-red-500/30 floating" style="animation-delay:0s;">
+                            <div class="text-center"><div class="text-3xl mb-2">🧶</div><p class="text-sm text-slate-300">Cotton</p></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 aspect-square flex items-center justify-center border border-blue-500/30 floating" style="animation-delay:0.5s;">
+                            <div class="text-center"><div class="text-3xl mb-2">✨</div><p class="text-sm text-slate-300">Silk</p></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl p-6 aspect-square flex items-center justify-center border border-purple-500/30 floating" style="animation-delay:1s;">
+                            <div class="text-center"><div class="text-3xl mb-2">🌿</div><p class="text-sm text-slate-300">Linen</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </section>
 
-<!-- CTA / APPLY -->
-<section class="cta-section" id="apply">
-  <div class="section-label">지금 바로 시작하세요</div>
-  <h2>입점 신청을 남겨주시면<br>담당자가 연락드립니다</h2>
-  <p>입점 신청을 남겨주시면 담당자가 24시간 내 연락드립니다</p>
-  <div class="apply-form reveal">
-    <h3>🧵 입점 신청</h3>
-    <div class="form-group">
-      <input type="email" id="apply-email" placeholder="이메일" required>
+<section id="impact" class="py-24 px-6 lg:px-12 bg-slate-900/50">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16 fade-up">
+            <h3 class="text-4xl md:text-5xl font-bold text-white mb-6">실시간 거래 현황</h3>
+            <p class="text-lg md:text-xl text-slate-400">매일 업데이트되는 원단 거래 통계</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div class="fabric-card bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 shadow-2xl backdrop-blur-sm fade-up" style="transition-delay:0.1s;">
+                <div class="text-center">
+                    <div class="text-5xl mb-6">📦</div>
+                    <p class="text-slate-400 text-lg mb-4 font-medium">거래 완료 원단</p>
+                    <div class="count-animation">
+                        <h4 class="text-6xl md:text-7xl font-bold impact-number mb-2"><span class="counter" data-target="12847">0</span></h4>
+                        <p class="text-2xl text-slate-300 font-light">롤</p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="text-sm text-slate-400">💡 지난 달보다 <span class="text-cyan-400 font-semibold">+32%</span> 증가</p>
+                    </div>
+                </div>
+            </div>
+            <div class="fabric-card bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 shadow-2xl backdrop-blur-sm fade-up" style="transition-delay:0.2s;">
+                <div class="text-center">
+                    <div class="text-5xl mb-6">🏭</div>
+                    <p class="text-slate-400 text-lg mb-4 font-medium">재고 공간 절감</p>
+                    <div class="count-animation">
+                        <h4 class="text-6xl md:text-7xl font-bold impact-number mb-2"><span class="counter" data-target="3284">0</span></h4>
+                        <p class="text-2xl text-slate-300 font-light">㎡</p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="text-sm text-slate-400">✨ 약 <span class="text-cyan-400 font-semibold">328개 업체</span>의 공간 확보</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto fade-up" style="transition-delay:0.3s;">
+            <div class="text-center p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p class="text-3xl font-bold text-cyan-400 mb-2">98%</p><p class="text-sm text-slate-400">만족도</p></div>
+            <div class="text-center p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p class="text-3xl font-bold text-cyan-400 mb-2">24시간</p><p class="text-sm text-slate-400">평균 거래시간</p></div>
+            <div class="text-center p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p class="text-3xl font-bold text-cyan-400 mb-2">523</p><p class="text-sm text-slate-400">입점 업체</p></div>
+            <div class="text-center p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p class="text-3xl font-bold text-cyan-400 mb-2">Zero</p><p class="text-sm text-slate-400">중개 수수료</p></div>
+        </div>
     </div>
-    <div class="form-group">
-      <input type="text" id="apply-company" placeholder="회사명 / 대표자명" required>
-    </div>
-    <label class="form-check">
-      <input type="checkbox" id="apply-agree">
-      입점 안내 및 개인정보 처리에 동의합니다
-    </label>
-    <button class="btn-submit" onclick="submitApply()">입점 신청하기 →</button>
-  </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-logo">
-    <div class="footer-logo-mark">B</div>
-    <div class="footer-logo-text">비움마켓</div>
-  </div>
-  <ul class="footer-links">
-    <li><a href="#">이용약관</a></li>
-    <li><a href="#">개인정보처리방침</a></li>
-    <li><a href="#">고객센터</a></li>
-    <li><a href="https://biummarket.vercel.app?from=landing">서비스 바로가기</a></li>
-  </ul>
-  <div class="footer-copy">© 2026 비움마켓. Professional Fabric Stock Trading Platform.</div>
+<section id="story" class="py-24 px-6 lg:px-12 grid-pattern">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16 fade-up">
+            <h3 class="text-4xl md:text-5xl font-bold text-white mb-6">변화의 스토리</h3>
+            <p class="text-lg md:text-xl text-slate-400">재고원단 거래 전과 후의 차이</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div class="fade-up" style="transition-delay:0.1s;">
+                <div class="before-card rounded-3xl overflow-hidden shadow-2xl cursor-pointer p-12 md:p-16">
+                    <div class="text-center">
+                        <div class="text-6xl mb-8 opacity-60">📦</div>
+                        <h4 class="text-3xl font-bold text-slate-300 mb-4">Before</h4>
+                        <p class="text-slate-400 text-lg leading-relaxed mb-6">쌓여만 가는 재고원단<br>차지하는 창고 공간<br>부담스러운 재고 관리비</p>
+                        <div class="mt-8 pt-8 border-t border-slate-600">
+                            <div class="flex items-center justify-center space-x-2 text-slate-400"><span>😔</span><span class="text-sm">창고 공간 부족 85%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fade-up" style="transition-delay:0.2s;">
+                <div class="after-card rounded-3xl overflow-hidden shadow-2xl cursor-pointer p-12 md:p-16">
+                    <div class="text-center">
+                        <div class="text-6xl mb-8">✨</div>
+                        <h4 class="text-3xl font-bold text-cyan-400 mb-4">After</h4>
+                        <p class="text-slate-300 text-lg leading-relaxed mb-6">빠르게 판매되는 원단<br>확보된 창고 공간<br>새로운 수익 창출</p>
+                        <div class="mt-8 pt-8 border-t border-cyan-500/30">
+                            <div class="flex items-center justify-center space-x-2 text-cyan-400"><span>😊</span><span class="text-sm font-medium">공간 활용 만족도 98%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-20 fade-up" style="transition-delay:0.3s;">
+            <div class="max-w-3xl mx-auto bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 md:p-14 shadow-2xl border border-slate-700/50">
+                <div class="text-center mb-8">
+                    <div class="text-4xl mb-4">💬</div>
+                    <div class="flex justify-center mb-4"><span class="text-cyan-400 text-2xl">★★★★★</span></div>
+                </div>
+                <blockquote class="text-xl md:text-2xl text-slate-200 text-center leading-relaxed font-light mb-6">"5년간 쌓여있던 재고원단을 2주 만에 모두 판매했습니다. 창고 공간도 확보하고 추가 수익까지 얻었어요."</blockquote>
+                <p class="text-center text-cyan-400 font-medium">- ㈜한양텍스타일 김대표</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="about" class="py-24 px-6 lg:px-12 bg-slate-900/50">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16 fade-up">
+            <h3 class="text-4xl md:text-5xl font-bold text-white mb-6">비움마켓의 특별한 서비스</h3>
+            <p class="text-lg md:text-xl text-slate-400">재고원단 거래의 새로운 기준</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="fabric-card bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 fade-up backdrop-blur-sm" style="transition-delay:0.1s;">
+                <div class="text-5xl mb-6">🎯</div>
+                <h4 class="text-2xl font-bold text-white mb-4">정확한 원단 정보</h4>
+                <p class="text-slate-400 leading-relaxed">원단 종류, 색상, 수량, 단가까지 상세하게 등록하여 정확한 매칭이 가능합니다.</p>
+            </div>
+            <div class="fabric-card bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 fade-up backdrop-blur-sm" style="transition-delay:0.2s;">
+                <div class="text-5xl mb-6">🤝</div>
+                <h4 class="text-2xl font-bold text-white mb-4">검증된 B2B 네트워크</h4>
+                <p class="text-slate-400 leading-relaxed">패션 브랜드, 제조사, 바이어들로 구성된 전문 거래 네트워크를 제공합니다.</p>
+            </div>
+            <div class="fabric-card bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-3xl p-10 fade-up backdrop-blur-sm" style="transition-delay:0.3s;">
+                <div class="text-5xl mb-6">⚡</div>
+                <h4 class="text-2xl font-bold text-white mb-4">빠른 거래 성사</h4>
+                <p class="text-slate-400 leading-relaxed">AI 추천 시스템으로 최적의 구매자를 찾아 평균 24시간 내 거래가 완료됩니다.</p>
+            </div>
+        </div>
+        <div class="mt-16 grid md:grid-cols-2 gap-8 fade-up" style="transition-delay:0.4s;">
+            <div class="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl p-8 border border-cyan-500/20">
+                <div class="flex items-start space-x-4">
+                    <div class="text-4xl">🌱</div>
+                    <div><h5 class="text-xl font-bold text-white mb-2">지속가능한 패션</h5><p class="text-slate-400">버려지는 원단을 재활용하여 환경을 보호합니다</p></div>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-8 border border-purple-500/20">
+                <div class="flex items-start space-x-4">
+                    <div class="text-4xl">🔒</div>
+                    <div><h5 class="text-xl font-bold text-white mb-2">안전한 거래</h5><p class="text-slate-400">에스크로 시스템으로 안전하게 거래를 보장합니다</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-24 px-6 lg:px-12 bg-gradient-to-br from-cyan-600 to-blue-600 relative overflow-hidden">
+    <div class="absolute inset-0 grid-pattern opacity-30"></div>
+    <div class="max-w-4xl mx-auto text-center relative z-10 fade-up">
+        <div class="text-6xl mb-8">🧵</div>
+        <h3 class="text-4xl md:text-5xl font-bold text-white mb-6">지금 바로 시작하세요</h3>
+        <p class="text-xl text-white/90 mb-10 leading-relaxed">입점 신청을 남겨주시면 담당자가 24시간 내 연락드립니다</p>
+        <button onclick="openModal()" class="px-12 py-5 bg-white text-blue-600 rounded-xl text-lg font-bold hover:bg-slate-100 transition-all shadow-2xl transform hover:scale-105">입점 신청하기 →</button>
+    </div>
+</section>
+
+<footer class="py-12 px-6 lg:px-12 bg-slate-950 text-slate-400 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center"><span class="text-white font-bold text-xl">B</span></div>
+                <span class="text-xl font-bold text-white">비움마켓</span>
+            </div>
+            <div class="flex space-x-6 text-sm">
+                <a href="#" class="hover:text-cyan-400 transition-colors">이용약관</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">개인정보처리방침</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">고객센터</a>
+                <a href="https://biummarket.vercel.app?from=landing" class="hover:text-cyan-400 transition-colors">서비스 바로가기</a>
+            </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-slate-800 text-center text-sm"><p>© 2026 비움마켓. Professional Fabric Stock Trading Platform.</p></div>
+    </div>
 </footer>
 
-<!-- SUCCESS MODAL -->
-<div class="modal-overlay" id="success-modal">
-  <div class="modal">
-    <div class="modal-icon">✅</div>
-    <h3>신청이 완료되었습니다!</h3>
-    <p>담당자가 24시간 내 입력하신 이메일로 연락드리겠습니다. 비움마켓에 관심 가져주셔서 감사합니다.</p>
-    <button class="modal-btn" onclick="closeModal()">확인</button>
-  </div>
+<div id="subscribeModal" class="fixed inset-0 z-50 items-center justify-center modal-backdrop px-6 hidden" onclick="closeModalOnBackdrop(event)">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-10 md:p-14 max-w-md w-full shadow-2xl transform transition-all scale-95 relative" onclick="event.stopPropagation()">
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-4">🧵</div>
+            <h4 class="text-3xl font-bold text-white mb-3">입점 신청</h4>
+            <p class="text-slate-400">담당자가 24시간 내 연락드립니다</p>
+        </div>
+        <form id="subscribeForm" onsubmit="handleSubmit(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">이메일</label>
+                <input type="email" name="email" id="email" required placeholder="company@example.com" class="w-full px-5 py-4 bg-slate-800 border-2 border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors text-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">회사명 / 대표자명</label>
+                <input type="text" name="name" id="name" required placeholder="㈜비움패브릭 / 홍길동" class="w-full px-5 py-4 bg-slate-800 border-2 border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors text-white">
+            </div>
+            <div class="flex items-start space-x-2 pt-2">
+                <input type="checkbox" id="agree" required class="mt-1 w-4 h-4 text-cyan-500 rounded focus:ring-cyan-500">
+                <label for="agree" class="text-sm text-slate-400">입점 안내 및 개인정보 처리에 동의합니다</label>
+            </div>
+            <button type="submit" class="w-full btn-primary py-4 text-white rounded-xl font-bold text-lg shadow-lg mt-6">신청 완료</button>
+        </form>
+        <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white text-2xl transition-colors">×</button>
+    </div>
+</div>
+
+<div id="successToast" class="fixed bottom-8 right-8 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-y-32 transition-transform z-50">
+    <div class="flex items-center space-x-3"><span class="text-2xl">✅</span><p class="font-medium">신청이 완료되었습니다!</p></div>
 </div>
 
 <script>
-  // 숫자 카운트업 애니메이션
-  function countUp(id, target, duration=2000, suffix='') {
-    const el = document.getElementById(id);
-    if(!el) return;
-    const start = performance.now();
-    function update(now) {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(eased * target).toLocaleString();
-      if(progress < 1) requestAnimationFrame(update);
-      else el.textContent = target.toLocaleString();
+    function handleScrollAnimation() {
+        document.querySelectorAll('.fade-up').forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight - 100) el.classList.add('visible');
+        });
     }
-    requestAnimationFrame(update);
-  }
 
-  // 스크롤 reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        // 통계 섹션 카운트업
-        if(entry.target.closest('#impact') || entry.target.parentElement?.id === 'impact') {
-          triggerCountUp();
+    function animateCounters() {
+        const counters = document.querySelectorAll('.counter');
+        let hasAnimated = false;
+        function updateCounter(counter) {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const increment = target / (2000 / 16);
+            let current = 0;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) { counter.textContent = target.toLocaleString(); clearInterval(timer); }
+                else counter.textContent = Math.floor(current).toLocaleString();
+            }, 16);
         }
-      }
-    });
-  }, { threshold: 0.15 });
-
-  reveals.forEach(el => observer.observe(el));
-
-  let counted = false;
-  function triggerCountUp() {
-    if(counted) return;
-    counted = true;
-    setTimeout(() => {
-      countUp('count-rolls', 1240);
-      countUp('count-sqm', 38500);
-      countUp('count-deals', 892);
-      countUp('count-rate', 98);
-    }, 300);
-  }
-
-  // 통계 섹션 별도 observe
-  const statsSection = document.getElementById('impact');
-  const statsObserver = new IntersectionObserver((entries) => {
-    if(entries[0].isIntersecting) triggerCountUp();
-  }, { threshold: 0.2 });
-  if(statsSection) statsObserver.observe(statsSection);
-
-  // 입점 신청
-  function scrollToApply() {
-    document.getElementById('apply').scrollIntoView({ behavior: 'smooth' });
-  }
-
-  function submitApply() {
-    const email = document.getElementById('apply-email').value.trim();
-    const company = document.getElementById('apply-company').value.trim();
-    const agree = document.getElementById('apply-agree').checked;
-
-    if(!email || !email.includes('@')) {
-      alert('올바른 이메일을 입력해주세요');
-      return;
-    }
-    if(!company) {
-      alert('회사명 / 대표자명을 입력해주세요');
-      return;
-    }
-    if(!agree) {
-      alert('개인정보 처리에 동의해주세요');
-      return;
+        function checkCounters() {
+            if (hasAnimated) return;
+            counters.forEach(counter => {
+                if (counter.getBoundingClientRect().top < window.innerHeight - 100) {
+                    hasAnimated = true;
+                    counters.forEach(c => updateCounter(c));
+                }
+            });
+        }
+        window.addEventListener('scroll', checkCounters);
+        checkCounters();
     }
 
-    // 저장
-    const applications = JSON.parse(localStorage.getItem('bium_applications') || '[]');
-    applications.push({ email, company, date: new Date().toISOString() });
-    localStorage.setItem('bium_applications', JSON.stringify(applications));
+    function openModal() {
+        const modal = document.getElementById('subscribeModal');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => { modal.querySelector('.transform').classList.remove('scale-95'); modal.querySelector('.transform').classList.add('scale-100'); }, 10);
+    }
 
-    document.getElementById('apply-email').value = '';
-    document.getElementById('apply-company').value = '';
-    document.getElementById('apply-agree').checked = false;
-    document.getElementById('success-modal').classList.add('active');
-  }
+    function closeModal() {
+        const modal = document.getElementById('subscribeModal');
+        modal.querySelector('.transform').classList.remove('scale-100'); modal.querySelector('.transform').classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = 'auto'; }, 200);
+    }
 
-  function closeModal() {
-    document.getElementById('success-modal').classList.remove('active');
-  }
+    function closeModalOnBackdrop(event) { if (event.target === event.currentTarget) closeModal(); }
 
-  document.getElementById('success-modal').addEventListener('click', function(e) {
-    if(e.target === this) closeModal();
-  });
+    function handleSubmit(event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const name = document.getElementById('name').value;
+        const applications = JSON.parse(localStorage.getItem('bium_applications') || '[]');
+        applications.push({ email, name, date: new Date().toISOString() });
+        localStorage.setItem('bium_applications', JSON.stringify(applications));
+        closeModal();
+        const toast = document.getElementById('successToast');
+        toast.style.transform = 'translateY(0)';
+        setTimeout(() => { toast.style.transform = 'translateY(8rem)'; }, 3000);
+        document.getElementById('subscribeForm').reset();
+    }
 
-  // 첫 방문 체크 - 비움마켓에서 돌아온 경우 자동 redirect 없음
-  // 직접 접속시만 랜딩 표시
+    window.addEventListener('scroll', handleScrollAnimation);
+    window.addEventListener('load', () => { handleScrollAnimation(); animateCounters(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 </script>
 </body>
 </html>
