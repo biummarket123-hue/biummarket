@@ -5157,32 +5157,42 @@ async function doChangeLoc(loc){
   closeModal('modal-change-loc');
   showToast('지역이 변경됐어요 📍');
 }
-async function doChangeType(type){
+async function doChangeType(newType){
   if(!curUser)return;
-  // 판매자 전환은 승인 시스템 통해서
-  const wantsSeller=['seller','seller+buyer','both'].includes(type);
-  if(wantsSeller&&!isAdmin()&&curUser.sellerStatus!=='approved'){
-    curUser.sellerStatus='pending';curUser.requestedRole=type;
-    lsSet('curUser',curUser);
-    const localUser=users.find(u=>u.id===curUser.id||u.email===curUser.email);
-    if(localUser){localUser.sellerStatus='pending';localUser.requestedRole=type;lsSet('users',users);}
-    if(_sb&&curUser.id&&curUser.id!=='admin'){
-      _sb.from('users').update({type:'buyer'}).eq('id',curUser.id).then(()=>{});
-    }
-    renderSettings();renderMypage();
-    closeModal('modal-change-type');
+
+  const isSelling=['seller','seller+buyer','both'].includes(newType);
+
+  if(isSelling){
+    // 판매자로 변경 시 승인 필요
+    curUser.requestedRole=newType;
+    curUser.sellerStatus='pending';
     showToast('판매자 신청이 완료됐어요! 관리자 승인을 기다려주세요 😊');
-    return;
+  }else{
+    // 구매자로 변경 시 즉시 적용
+    curUser.role=newType;
+    curUser.type=newType;
+    curUser.sellerStatus='none';
+    curUser.requestedRole='';
+    const labels={buyer:'구매자',guest:'게스트'};
+    showToast(`${labels[newType]||newType}으로 변경됐어요`);
   }
-  curUser.type=type;lsSet('curUser',curUser);
+
+  // users 배열 업데이트
+  const idx=users.findIndex(u=>u.id===curUser.id||u.email===curUser.email);
+  if(idx!==-1){
+    Object.assign(users[idx],{role:curUser.role,type:curUser.type,sellerStatus:curUser.sellerStatus,requestedRole:curUser.requestedRole});
+    lsSet('users',users);
+  }
+  lsSet('curUser',curUser);
+
+  // Supabase 업데이트 (type 컬럼만)
   if(_sb&&curUser.id&&curUser.id!=='admin'){
-    try{await _sb.from('users').update({type}).eq('id',curUser.id);}
-    catch(e){console.error('유형 업데이트 오류:',e);}
+    await _sb.from('users').update({type:isSelling?'buyer':newType}).eq('id',curUser.id);
   }
+
+  applyRoleVisibility();
   renderSettings();renderMypage();
   closeModal('modal-change-type');
-  const labels={seller:'판매자',buyer:'구매자',both:'겸업'};
-  showToast(`${labels[type]||type}으로 변경됐어요 ✅`);
 }
 
 /* ==================== MYPAGE ==================== */
@@ -5243,11 +5253,11 @@ function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
 function isSeller(){
   if(!curUser)return false;
-  const role=_getRole();
+  const role=curUser.role||curUser.type||'';
   if(role==='admin')return false;
   if(!['seller','seller+buyer','both'].includes(role))return false;
-  // sellerStatus 필드가 있으면 approved여야 함, 없으면 기존 판매자로 간주
-  if(curUser.sellerStatus&&curUser.sellerStatus!=='approved')return false;
+  // sellerStatus가 반드시 approved여야 함
+  if(!curUser.sellerStatus||curUser.sellerStatus!=='approved')return false;
   return true;
 }
 function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||!curUser;}
@@ -6674,14 +6684,38 @@ function showAdminUserDetail(idx){
 function adminChangeUserRole(idx,newRole){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
-  u.type=newRole;
-  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
-  if(localUser)localUser.type=newRole;
-  lsSet('users',users);
-  if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').update({type:newRole}).eq('id',u.id).then(()=>{});
+
+  const isSelling=['seller','seller+buyer','both'].includes(newRole);
+  const updates=isSelling?{
+    role:newRole,type:newRole,sellerStatus:'approved'
+  }:{
+    role:newRole,type:newRole,sellerStatus:'none',requestedRole:''
+  };
+
+  // _adminUserList 업데이트
+  Object.assign(_adminUserList[idx],updates);
+
+  // users 배열 업데이트
+  const li=users.findIndex(x=>x.id===u.id||x.email===u.email);
+  if(li!==-1){
+    Object.assign(users[li],updates);
+    lsSet('users',users);
   }
-  showToast('역할이 변경됐어요 ✅');
+
+  // curUser 동기화
+  if(curUser&&(curUser.id===u.id||curUser.email===u.email)){
+    Object.assign(curUser,updates);
+    lsSet('curUser',curUser);
+    applyRoleVisibility();
+  }
+
+  // Supabase
+  if(_sb&&u.id&&u.id.length>5){
+    _sb.from('users').update({type:updates.type}).eq('id',u.id);
+  }
+
+  showToast('역할이 변경됐어요');
+  showAdminUsers&&showAdminUsers();
 }
 function adminToggleUserStatus(idx){
   if(!isAdmin())return;
