@@ -2736,13 +2736,13 @@ const _CACHE_TTL=5*60*1000;
 function lsGetTTL(k){try{const raw=localStorage.getItem('bium_ttl_'+k);if(!raw)return null;const o=JSON.parse(raw);if(Date.now()-o.__t>_CACHE_TTL)return null;return o.__v}catch{return null}}
 function lsSetTTL(k,v){try{localStorage.setItem('bium_ttl_'+k,JSON.stringify({__v:v,__t:Date.now()}))}catch{}}
 function mergeWithLocalUser(sbProfile){
-  if(!sbProfile)return sbProfile;
+  if(!sbProfile)return null;
   const localUser=users.find(u=>u.id===sbProfile.id||u.email===sbProfile.email);
   if(!localUser)return sbProfile;
   return {
     ...sbProfile,
-    role:localUser.role||localUser.type||sbProfile.type||'buyer',
-    type:localUser.role||localUser.type||sbProfile.type||'buyer',
+    type:sbProfile.type||localUser.type||'buyer',
+    role:localUser.role||sbProfile.type||'buyer',
     sellerStatus:localUser.sellerStatus||sbProfile.sellerStatus||'none',
     requestedRole:localUser.requestedRole||sbProfile.requestedRole||'',
     pw:localUser.pw||sbProfile.pw||''
@@ -2799,11 +2799,11 @@ if(window.Kakao&&!window.Kakao.isInitialized()){
 // 카카오 리다이렉트 코드 처리 (users/curUser 선언 후 실행되도록 DOMContentLoaded에서 호출)
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
-  {id:'admin',name:'관리자',email:'admin',pw:'1234',type:'admin',loc:'서울 동대문구',temp:99.9,joinDate:'2024-01-01'},
-  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'seller',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
+  {id:'admin',name:'관리자',email:'admin',pw:'1234',type:'admin',role:'admin',loc:'서울 동대문구',temp:99.9,joinDate:'2024-01-01'},
+  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'seller',role:'seller',sellerStatus:'approved',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
    intro:'동대문 20년 경력 원단 도매업체입니다. 면/폴리 중심으로 재고원단을 합리적인 가격에 공급합니다.',
    bizName:'(주)에이원텍스타일',ceo:'김에이원',tel:'02-1234-5678'},
-  {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'buyer',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
+  {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'buyer',role:'buyer',sellerStatus:'none',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
 ];
 let users=lsGet('users',DEFAULT_USERS);
 const DEFAULT_NOTICES=[
@@ -6075,6 +6075,7 @@ function renderAdmin(){
     </div>
     <div style="padding:0 16px 20px;display:flex;flex-direction:column;gap:10px">
       <button onclick="resetCategories()" style="padding:14px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:14px;color:#888899;font-size:14px;font-weight:600;cursor:pointer;width:100%">카테고리 초기화</button>
+      <button onclick="resetTestData()" style="padding:14px;background:#ef4444;border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%">🔄 테스트 데이터 초기화</button>
       <button onclick="resetAll()" style="padding:14px;background:transparent;border:1.5px solid #ff6584;border-radius:14px;color:#ff6584;font-size:14px;font-weight:600;cursor:pointer;width:100%">전체 초기화</button>
     </div>`;
   if(_sb){
@@ -7040,6 +7041,16 @@ function getActiveAds(position){
 function resetCategories(){
   if(!confirm('카테고리 데이터를 초기화할까요?'))return;
   lsDelTTL('categories');showToast('카테고리가 초기화됐어요 ♻️');
+}
+function resetTestData(){
+  if(!confirm('localStorage의 users 데이터를 초기화할까요?\n테스트 계정들이 기본값으로 돌아갑니다.'))return;
+  localStorage.removeItem('bium_users');
+  localStorage.removeItem('bium_curUser');
+  users.length=0;
+  DEFAULT_USERS.forEach(u=>users.push({...u}));
+  lsSet('users',users);
+  showToast('✅ 테스트 데이터가 초기화됐어요. 다시 로그인해주세요.');
+  setTimeout(()=>{curUser=null;showView('login');},1500);
 }
 function resetAll(){
   if(!confirm('모든 로컬 데이터를 초기화할까요?\n로그인 정보도 삭제됩니다.'))return;
