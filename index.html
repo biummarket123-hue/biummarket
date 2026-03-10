@@ -5147,7 +5147,7 @@ async function doChangeType(type){
     const localUser=users.find(u=>u.id===curUser.id||u.email===curUser.email);
     if(localUser){localUser.sellerStatus='pending';localUser.requestedRole=type;lsSet('users',users);}
     if(_sb&&curUser.id&&curUser.id!=='admin'){
-      _sb.from('users').update({seller_status:'pending',requested_role:type}).eq('id',curUser.id).then(()=>{});
+      _sb.from('users').update({type:'buyer'}).eq('id',curUser.id).then(()=>{});
     }
     renderSettings();renderMypage();
     closeModal('modal-change-type');
@@ -5297,7 +5297,7 @@ function submitSellerApply(){
   const localUser=users.find(u=>u.id===curUser.id||u.email===curUser.email);
   if(localUser){localUser.sellerStatus='pending';localUser.requestedRole=requestedRole;lsSet('users',users);}
   if(_sb&&curUser.id&&curUser.id!=='admin'){
-    _sb.from('users').update({seller_status:'pending',requested_role:requestedRole}).eq('id',curUser.id).then(()=>{});
+    _sb.from('users').update({type:'buyer'}).eq('id',curUser.id).then(()=>{});
   }
   const m=document.getElementById('modal-seller-apply');if(m)m.remove();
   renderMypage();
@@ -6572,9 +6572,22 @@ function showAdminUsers(){
     </div>`;
   };
   const mergeUsers=(sbList)=>{
-    const sbIds=new Set((sbList||[]).map(u=>u.id||u.email));
-    const localOnly=users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
-    return [...(sbList||[]),...localOnly];
+    const result = (sbList||[]).map(sbUser => {
+      const localUser = users.find(u => u.id === sbUser.id || u.email === sbUser.email);
+      if(localUser){
+        return {
+          ...sbUser,
+          role: localUser.role || sbUser.type || 'buyer',
+          sellerStatus: localUser.sellerStatus || 'none',
+          requestedRole: localUser.requestedRole || '',
+          pw: localUser.pw || ''
+        };
+      }
+      return {...sbUser, role: sbUser.type || 'buyer'};
+    });
+    const sbIds = new Set((sbList||[]).map(u=>u.id||u.email));
+    const localOnly = users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
+    return [...result, ...localOnly];
   };
   el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
   if(_sb){
@@ -6690,82 +6703,58 @@ function adminSaveUserMemo(idx){
   showToast('메모가 저장됐어요 📝');
 }
 async function adminApproveSeller(idx){
-  console.log('=== adminApproveSeller 시작 ===');
-  console.log('idx:', idx);
-  console.log('_adminUserList[idx]:', JSON.stringify(_adminUserList[idx]));
-
   const u = _adminUserList[idx];
   if(!u){ showToast('회원 정보를 찾을 수 없어요'); return; }
 
   const requestedRole = u.requestedRole || u.requested_role || 'seller';
-  console.log('requestedRole:', requestedRole);
-  console.log('users 배열 전체:', JSON.stringify(users));
 
-  // users 배열에서 찾기
+  // 1. _adminUserList 직접 업데이트
+  _adminUserList[idx].role = requestedRole;
+  _adminUserList[idx].type = requestedRole;
+  _adminUserList[idx].sellerStatus = 'approved';
+
+  // 2. users 배열에서 찾아서 업데이트
   const li = users.findIndex(x =>
     (u.id && x.id === u.id) ||
     (u.email && x.email === u.email)
   );
-  console.log('findIndex 결과 li:', li);
 
   if(li !== -1){
-    console.log('찾은 users[li]:', JSON.stringify(users[li]));
     users[li].role = requestedRole;
     users[li].type = requestedRole;
     users[li].sellerStatus = 'approved';
-    console.log('업데이트 후 users[li]:', JSON.stringify(users[li]));
     lsSet('users', users);
-    console.log('lsSet 완료');
-
-    // lsSet 확인
-    const saved = lsGet('users', []);
-    const savedUser = saved.find(x => x.id === u.id || x.email === u.email);
-    console.log('localStorage 저장 확인:', JSON.stringify(savedUser));
   } else {
-    console.log('❌ users 배열에서 유저를 찾지 못함!');
-    console.log('찾으려는 id:', u.id, '/ email:', u.email);
-    console.log('users 배열의 id 목록:', users.map(x => x.id));
-    console.log('users 배열의 email 목록:', users.map(x => x.email));
+    const newUser = {...u, role: requestedRole, type: requestedRole, sellerStatus: 'approved'};
+    users.push(newUser);
+    lsSet('users', users);
   }
 
-  // curUser 확인
-  console.log('curUser:', JSON.stringify(curUser));
-  console.log('curUser.id === u.id:', curUser?.id === u.id);
-  console.log('curUser.email === u.email:', curUser?.email === u.email);
+  // 3. Supabase 업데이트 (type 컬럼만 사용)
+  if(_sb && u.id && u.id.length > 5){
+    const {error} = await _sb.from('users').update({
+      type: requestedRole
+    }).eq('id', u.id);
+    if(error) console.error('Supabase 승인 오류:', error);
+  }
 
+  // 4. curUser 동기화
   if(curUser && (curUser.id === u.id || curUser.email === u.email)){
     curUser.role = requestedRole;
     curUser.type = requestedRole;
     curUser.sellerStatus = 'approved';
     lsSet('curUser', curUser);
-    console.log('curUser 업데이트 완료:', JSON.stringify(curUser));
     applyRoleVisibility();
-  }
-
-  _adminUserList[idx].role = requestedRole;
-  _adminUserList[idx].type = requestedRole;
-  _adminUserList[idx].sellerStatus = 'approved';
-
-  if(_sb && u.id){
-    console.log('Supabase 업데이트 시도...');
-    const {error} = await _sb.from('users').update({
-      role: requestedRole,
-      type: requestedRole,
-      sellerStatus: 'approved'
-    }).eq('id', u.id);
-    console.log('Supabase 결과 error:', error);
   }
 
   showToast('✅ 판매자 승인 완료!');
   showAdminUsers && showAdminUsers();
-  console.log('=== adminApproveSeller 완료 ===');
 }
 async function adminRejectSeller(idx){
   const u = _adminUserList[idx];
   if(!u){ showToast('회원 정보를 찾을 수 없어요'); return; }
 
   _adminUserList[idx].sellerStatus = 'rejected';
-  _adminUserList[idx].seller_status = 'rejected';
 
   const li = users.findIndex(x =>
     (u.id && x.id === u.id) ||
@@ -6774,17 +6763,10 @@ async function adminRejectSeller(idx){
 
   if(li !== -1){
     users[li].sellerStatus = 'rejected';
-    users[li].seller_status = 'rejected';
     lsSet('users', users);
   }
 
-  if(_sb && u.id){
-    const {error} = await _sb.from('users').update({
-      sellerStatus: 'rejected',
-      seller_status: 'rejected'
-    }).eq('id', u.id);
-    if(error) console.error('Supabase 거절 오류:', error);
-  }
+  // Supabase에는 sellerStatus 컬럼 없으므로 로컬만 업데이트
 
   if(curUser && (curUser.id === u.id || curUser.email === u.email)){
     curUser.sellerStatus = 'rejected';
