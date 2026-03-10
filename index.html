@@ -5238,40 +5238,35 @@ function canApplySeller(){return curUser&&(isBuyer()||_getRole()==='buyer')&&(!c
 
 function renderSellerApplySection(){
   const el=document.getElementById('menu-seller-apply-section');
-  if(!el||!curUser||isAdmin()){{el.style.display='none';return;}}
-  if(isSellerPending()){
+  if(!el)return;
+  // admin, 승인된 seller는 표시 안 함
+  if(!curUser||isAdmin()||isSeller()){el.style.display='none';el.innerHTML='';return;}
+
+  if(curUser.sellerStatus==='pending'){
     el.style.display='';
-    el.innerHTML=`<div class="my-section-wrap"><div style="background:#fffbeb;border:1px solid #ffe082;border-radius:14px;padding:14px 16px;margin:0 16px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:24px">⏳</span>
-      <div><div style="font-size:14px;font-weight:700;color:#c8962a">판매자 승인 대기 중</div>
-      <div style="font-size:12px;color:#888;margin-top:2px">관리자 승인 후 판매자 기능을 이용할 수 있어요</div></div>
-    </div></div>`;
-    return;
-  }
-  if(isSellerRejected()){
-    el.style.display='';
-    el.innerHTML=`<div class="my-section-wrap"><div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;padding:14px 16px;margin:0 16px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:24px">😢</span>
-        <div><div style="font-size:14px;font-weight:700;color:#e53935">판매자 신청이 거절됐어요</div>
-        <div style="font-size:12px;color:#888;margin-top:2px">다시 신청할 수 있어요</div></div>
-      </div>
-      <button onclick="openSellerApplyModal()" style="width:100%;padding:12px;background:#6c63ff;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">🏭 판매자 다시 신청하기</button>
-    </div></div>`;
-    return;
-  }
-  if(canApplySeller()){
-    el.style.display='';
-    el.innerHTML=`<div class="my-section-wrap">
-      <div class="my-menu-item" onclick="openSellerApplyModal()">
-        <div class="my-icon-box ib-teal">🏭</div>
-        <div class="my-menu-info"><div class="my-menu-title">판매자 신청</div><div class="my-menu-sub">판매자로 전환하여 상품을 등록하세요</div></div>
-        <span class="my-menu-arrow">›</span>
+    el.innerHTML=`<div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#fffbeb;border:1px solid #fed7aa">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">⏳</span>
+        <div><div style="font-weight:600;color:#d97706">판매자 승인 대기 중</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">관리자 검토 후 승인돼요</div></div>
       </div>
     </div>`;
     return;
   }
-  el.style.display='none';
+  if(!curUser.sellerStatus||curUser.sellerStatus==='none'||curUser.sellerStatus==='rejected'){
+    const rejMsg=curUser.sellerStatus==='rejected'?'<div style="color:#ef4444;font-size:12px;margin-bottom:8px">이전 신청이 거절됐어요. 다시 신청할 수 있어요.</div>':'';
+    el.style.display='';
+    el.innerHTML=`<div style="margin:12px 16px;padding:14px 16px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd">
+      ${rejMsg}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-weight:600;color:#0369a1">🏪 판매자 신청</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">승인 후 상품을 판매할 수 있어요</div></div>
+        <button onclick="openSellerApplyModal()" style="background:#0ea5e9;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer">신청하기</button>
+      </div>
+    </div>`;
+    return;
+  }
+  el.style.display='none';el.innerHTML='';
 }
 function openSellerApplyModal(){
   if(!curUser)return;
@@ -6697,38 +6692,57 @@ function adminSaveUserMemo(idx){
 function adminApproveSeller(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
+  const uid=u.id||u.email;
   const rr=u.requestedRole||u.requested_role||'seller';
-  u.type=rr;u.sellerStatus='approved';u.seller_status='approved';
-  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
-  if(localUser){localUser.type=rr;localUser.sellerStatus='approved';}
+
+  // 1. _adminUserList 엔트리 업데이트
+  u.type=rr;u.role=rr;u.sellerStatus='approved';u.seller_status='approved';
+
+  // 2. users 배열 업데이트
+  const li=users.findIndex(x=>x.id===uid||x.email===u.email);
+  if(li!==-1){users[li].type=rr;users[li].role=rr;users[li].sellerStatus='approved';}
   lsSet('users',users);
-  // 현재 로그인한 유저가 승인 대상이면 curUser도 동기화
-  if(curUser&&(curUser.id===u.id||curUser.email===u.email)){
-    curUser.type=rr;curUser.sellerStatus='approved';
+
+  // 3. curUser 동기화 (승인된 유저가 현재 로그인 유저인 경우)
+  if(curUser&&(curUser.id===uid||curUser.email===u.email)){
+    curUser.type=rr;curUser.role=rr;curUser.sellerStatus='approved';
     lsSet('curUser',curUser);
     applyRoleVisibility();
   }
+
+  // 4. Supabase
   if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').update({type:rr,seller_status:'approved'}).eq('id',u.id).then(()=>{});
+    _sb.from('users').update({type:rr,seller_status:'approved',requested_role:rr}).eq('id',u.id).then(({error})=>{
+      if(error)console.error('승인 Supabase 오류:',error);
+    });
   }
+
   showToast('판매자 승인 완료! ✅');
   showAdminUserDetail(idx);
 }
 function adminRejectSeller(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
+  const uid=u.id||u.email;
+
   u.sellerStatus='rejected';u.seller_status='rejected';
-  const localUser=users.find(x=>x.id===u.id||x.email===u.email);
-  if(localUser)localUser.sellerStatus='rejected';
+
+  const li=users.findIndex(x=>x.id===uid||x.email===u.email);
+  if(li!==-1)users[li].sellerStatus='rejected';
   lsSet('users',users);
-  if(curUser&&(curUser.id===u.id||curUser.email===u.email)){
+
+  if(curUser&&(curUser.id===uid||curUser.email===u.email)){
     curUser.sellerStatus='rejected';
     lsSet('curUser',curUser);
     applyRoleVisibility();
   }
+
   if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').update({seller_status:'rejected'}).eq('id',u.id).then(()=>{});
+    _sb.from('users').update({seller_status:'rejected'}).eq('id',u.id).then(({error})=>{
+      if(error)console.error('거절 Supabase 오류:',error);
+    });
   }
+
   showToast('판매자 신청 거절 완료');
   showAdminUserDetail(idx);
 }
