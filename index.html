@@ -3125,7 +3125,7 @@ async function doLogin(){
     const user=findUser(email,pw);
     if(!user){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     curUser=user;lsSet('curUser',curUser);
-    if(user.type==='admin')showView('admin');else{showView('list');showListSkeleton();}
+    if(isAdmin())showView('admin');else{showView('list');showListSkeleton();}
     return;
   }
   try{
@@ -3134,7 +3134,7 @@ async function doLogin(){
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
     curUser=profile||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     lsSet('curUser',curUser);
-    if(curUser.type==='admin')showView('admin');else{showView('list');showListSkeleton();loadProductsFromSupabase();}
+    if(isAdmin())showView('admin');else{showView('list');showListSkeleton();loadProductsFromSupabase();}
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
 }
 async function doSignup(){
@@ -5180,22 +5180,31 @@ function renderMypage(){
 }
 
 /* ===== 역할 판별 헬퍼 ===== */
-function isAdmin(){return curUser&&curUser.type==='admin';}
-function isSeller(){return curUser&&(curUser.type==='seller'||curUser.type==='both');}
-function isBuyer(){return !curUser||curUser.type==='buyer'||curUser.type==='guest';}
+function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
+function isAdmin(){return _getRole()==='admin';}
+function isSeller(){return ['seller','seller+buyer','both'].includes(_getRole());}
+function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||!curUser;}
 
 function applyRoleVisibility(){
   const show=(id)=>{const el=document.getElementById(id);if(el)el.style.display='';};
   const hide=(id)=>{const el=document.getElementById(id);if(el)el.style.display='none';};
 
-  // TOP 판매자 랭킹 · 관리자 대시보드 · 데이터분석: admin만
+  // TOP 판매자 랭킹 · 관리자 대시보드 · 데이터분석 섹션(6개): admin만
   (isAdmin()?show:hide)('menu-top-sellers');
   (isAdmin()?show:hide)('menu-admin-dashboard');
   (isAdmin()?show:hide)('menu-data-section');
 
-  // 상품등록 · 내 상품 관리: buyer이면 숨김
+  // 상품등록 · 내 상품 관리: buyer이면 숨김 (admin/seller/both는 표시)
   (isBuyer()?hide:show)('menu-register');
   (isBuyer()?hide:show)('menu-my-products');
+
+  // FAB(+) 버튼: buyer이면 숨김
+  const fab=document.getElementById('fab-wrap');
+  if(fab){
+    const cv=document.querySelector('.view.active');
+    const vn=cv?cv.id.replace('view-',''):'';
+    fab.style.display=((vn==='list'||vn==='home')&&!isBuyer())?'block':'none';
+  }
 }
 function showMySales(){
   const u=curUser;
@@ -6764,7 +6773,7 @@ function renderAnalytics(){
   const elapsed=Date.now()-splashStart;
   if(elapsed<2000)await new Promise(r=>setTimeout(r,2000-elapsed));
   if(curUser){
-    if(curUser.type==='admin')showView('admin');
+    if(isAdmin())showView('admin');
     else{showView('list');showListSkeleton();loadProductsFromSupabase();}
   }else{
     showView('login');
