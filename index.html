@@ -3430,7 +3430,8 @@ function renderCatStep0(){
   const grid=document.getElementById('cat-grid');
   if(!grid)return;
   const catAds=getActiveAds('카테고리 상단').filter(a=>!a.category||a.category==='전체');
-  const adHtml=catAds.map(a=>`<div onclick="${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="grid-column:1/-1;cursor:${a.linkUrl?'pointer':'default'};border-radius:14px;overflow:hidden;position:relative">
+  catAds.forEach(a=>trackAdImpression(a.id));
+  const adHtml=catAds.map(a=>`<div onclick="trackAdClick('${a.id}');${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="grid-column:1/-1;cursor:${a.linkUrl?'pointer':'default'};border-radius:14px;overflow:hidden;position:relative">
     ${(a.image||a.imageUrl)?`<img src="${a.image||a.imageUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:14px" onerror="this.parentElement.style.display='none'">`:''}
     <div style="position:absolute;bottom:8px;left:10px;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px">${a.name}</div>
   </div>`).join('');
@@ -3453,7 +3454,8 @@ function renderCatStep1(){
   const prodCnt=filterByCategory(products,catSelId).length;
   grid.style.cssText='display:block;padding:0 0 80px';
   const step1Ads=getCategoryAds(catData.id);
-  const step1AdHtml=step1Ads.map(a=>`<div onclick="${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="margin:0 16px 8px;cursor:${a.linkUrl?'pointer':'default'}">
+  step1Ads.forEach(a=>trackAdImpression(a.id));
+  const step1AdHtml=step1Ads.map(a=>`<div onclick="trackAdClick('${a.id}');${a.linkUrl?`window.open('${a.linkUrl}','_blank')`:''}" style="margin:0 16px 8px;cursor:${a.linkUrl?'pointer':'default'}">
     <img src="${a.image||a.imageUrl}" alt="${a.name}" style="width:100%;height:120px;object-fit:cover;border-radius:10px" onerror="this.parentElement.style.display='none'">
   </div>`).join('');
   grid.innerHTML=`
@@ -5949,10 +5951,11 @@ function renderHomeBanners(){
   const active=adminBanners.filter(b=>b.active!==false);
   const adBanners=getActiveAds('배너 슬라이드');
   const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
-  const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,image:a.image||a.imageUrl,linkUrl:a.linkUrl}))];
+  const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,_adId:a.id,image:a.image||a.imageUrl,linkUrl:a.linkUrl}))];
   const renderSlide=(b,dots)=>{
     if(b._ad&&b.image){
-      return `<div onclick="${b.linkUrl?`window.open('${b.linkUrl}','_blank')`:''}" style="cursor:${b.linkUrl?'pointer':'default'};position:relative;z-index:1">
+      if(b._adId)trackAdImpression(b._adId);
+      return `<div onclick="trackAdClick('${b._adId||''}');${b.linkUrl?`window.open('${b.linkUrl}','_blank')`:''}" style="cursor:${b.linkUrl?'pointer':'default'};position:relative;z-index:1">
         <img src="${b.image}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
         <div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px">${b.title}</div>
         ${b.linkUrl?'<div style="font-size:10px;color:rgba(255,255,255,.6)">AD · 탭하여 이동</div>':''}
@@ -6907,6 +6910,30 @@ function initNoticeRotation(){
 }
 /* ===== 광고 관리 ===== */
 let adminAds=lsGet('ads',[]);
+let adStats=lsGet('adStats',{});
+function trackAdImpression(adId){
+  if(!adId)return;
+  const today=new Date().toISOString().split('T')[0];
+  if(!adStats[adId])adStats[adId]={impressions:0,clicks:0,daily:{}};
+  adStats[adId].impressions++;
+  if(!adStats[adId].daily[today])adStats[adId].daily[today]={impressions:0,clicks:0};
+  adStats[adId].daily[today].impressions++;
+  lsSet('adStats',adStats);
+}
+function trackAdClick(adId){
+  if(!adId)return;
+  const today=new Date().toISOString().split('T')[0];
+  if(!adStats[adId])adStats[adId]={impressions:0,clicks:0,daily:{}};
+  adStats[adId].clicks++;
+  if(!adStats[adId].daily[today])adStats[adId].daily[today]={impressions:0,clicks:0};
+  adStats[adId].daily[today].clicks++;
+  lsSet('adStats',adStats);
+}
+function getAdCTR(adId){
+  const stat=adStats[adId];
+  if(!stat||stat.impressions===0)return '0.0';
+  return((stat.clicks/stat.impressions)*100).toFixed(1);
+}
 function showAdminAds(){
   if(!isAdmin()){showToast('관리자만 접근 가능');return;}
   const el=document.getElementById('admin-content');if(!el)return;
@@ -6921,22 +6948,28 @@ function showAdminAds(){
     <div style="padding:12px 16px">
       <button onclick="showAdminAdForm()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a89dff);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px">➕ 광고 추가</button>
       ${adminAds.length===0?'<div style="text-align:center;color:#aaa;font-size:13px;padding:30px 0">등록된 광고가 없어요</div>':''}
-      ${adminAds.map((a,i)=>`<div style="background:${a.active?'#f8f8fa':'#fff5f5'};border:1px solid ${a.active?'#e0e0ea':'#ffcdd2'};border-radius:12px;padding:12px 14px;margin-bottom:8px">
+      ${adminAds.map((a,i)=>{const st=adStats[a.id]||{impressions:0,clicks:0};const ctr=getAdCTR(a.id);return`<div style="background:${a.active?'#f8f8fa':'#fff5f5'};border:1px solid ${a.active?'#e0e0ea':'#ffcdd2'};border-radius:12px;padding:12px 14px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:700;color:#1a1a1a">${a.name} ${a.active?'<span style="color:#00b386;font-size:11px">● 활성</span>':'<span style="color:#e53935;font-size:11px">● 비활성</span>'}</div>
             <div style="font-size:11px;color:#888;margin-top:2px">📍 ${a.position} · ${a.startDate||'-'} ~ ${a.endDate||'-'}</div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:12px;color:#6b7280">
+              <span>👁 ${st.impressions.toLocaleString()}</span>
+              <span>🖱 ${st.clicks.toLocaleString()}</span>
+              <span>📊 CTR ${ctr}%</span>
+            </div>
           </div>
         </div>
         ${(a.image||a.imageUrl)?`<div style="border-radius:8px;overflow:hidden;margin-bottom:8px;max-height:80px"><img src="${a.image||a.imageUrl}" style="width:100%;height:80px;object-fit:cover" onerror="this.style.display='none'"></div>`:''}
         ${a.linkUrl?`<div style="font-size:11px;color:#6c63ff;margin-bottom:8px;word-break:break-all">🔗 ${a.linkUrl}</div>`:''}
         ${a.category&&a.category!=='전체'?`<div style="font-size:11px;color:#888;margin-bottom:4px">📂 ${a.category}</div>`:''}
         <div style="display:flex;gap:8px">
+          <button onclick="showAdStats('${a.id}')" style="flex:1;padding:8px;background:#f0f0ff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:#6366f1;cursor:pointer">📊 통계</button>
           <button onclick="showAdminAdForm(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:#6c63ff;cursor:pointer">✏️ 수정</button>
-          <button onclick="adminToggleAd(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:${a.active?'#e53935':'#00b386'};cursor:pointer">${a.active?'⏸ 비활성':'▶ 활성화'}</button>
-          <button onclick="adminDeleteAd(${i})" style="flex:1;padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;font-size:12px;font-weight:600;color:#e53935;cursor:pointer">🗑️ 삭제</button>
+          <button onclick="adminToggleAd(${i})" style="flex:1;padding:8px;background:#fff;border:1px solid #d8d8e8;border-radius:10px;font-size:12px;font-weight:600;color:${a.active?'#e53935':'#00b386'};cursor:pointer">${a.active?'⏸':'▶'}</button>
+          <button onclick="adminDeleteAd(${i})" style="flex:1;padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;font-size:12px;font-weight:600;color:#e53935;cursor:pointer">🗑️</button>
         </div>
-      </div>`).join('')}
+      </div>`}).join('')}
     </div>`;
 }
 function showAdminAdForm(editIdx){
@@ -7070,6 +7103,85 @@ function getCategoryAds(categoryName){
     if(a.endDate&&new Date(a.endDate)<now)return false;
     return !a.category||a.category==='전체'||a.category===categoryName;
   });
+}
+function showAdStats(adId){
+  const ad=adminAds.find(a=>String(a.id)===String(adId));
+  if(!ad)return;
+  const stat=adStats[adId]||{impressions:0,clicks:0,daily:{}};
+  const ctr=getAdCTR(adId);
+  const days=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const key=d.toISOString().split('T')[0];
+    const label=(d.getMonth()+1)+'/'+d.getDate();
+    days.push({key,label,impressions:stat.daily[key]?.impressions||0,clicks:stat.daily[key]?.clicks||0});
+  }
+  const maxVal=Math.max(...days.map(d=>Math.max(d.impressions,d.clicks)),1);
+  const barsHtml=days.map(d=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
+      <div style="display:flex;gap:1px;align-items:flex-end;height:80px">
+        <div style="width:8px;background:#6366f1;border-radius:2px 2px 0 0;height:${Math.max((d.impressions/maxVal)*80,1)}px" title="노출 ${d.impressions}"></div>
+        <div style="width:8px;background:#f59e0b;border-radius:2px 2px 0 0;height:${Math.max((d.clicks/maxVal)*80,1)}px" title="클릭 ${d.clicks}"></div>
+      </div>
+      <span style="font-size:9px;color:#9ca3af;transform:rotate(-45deg);margin-top:4px">${d.label}</span>
+    </div>`).join('');
+  const tableHtml=days.slice(-7).reverse().map(d=>{
+    const dc=d.impressions>0?((d.clicks/d.impressions)*100).toFixed(1):'0.0';
+    return`<tr style="border-top:1px solid #f3f4f6">
+      <td style="padding:8px;color:#374151">${d.key}</td>
+      <td style="padding:8px;text-align:right;color:#6366f1">${d.impressions}</td>
+      <td style="padding:8px;text-align:right;color:#f59e0b">${d.clicks}</td>
+      <td style="padding:8px;text-align:right;color:#22c55e">${dc}%</td>
+    </tr>`;
+  }).join('');
+  const html=`
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()">
+      <div style="background:white;border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-size:16px;font-weight:700">📊 ${ad.name} 통계</div>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">×</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+          <div style="background:#f0f0ff;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#6366f1">${stat.impressions.toLocaleString()}</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:2px">총 노출수</div>
+          </div>
+          <div style="background:#fffbeb;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#f59e0b">${stat.clicks.toLocaleString()}</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:2px">총 클릭수</div>
+          </div>
+          <div style="background:#f0fdf4;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#22c55e">${ctr}%</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:2px">CTR</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:12px">최근 14일 추이</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;padding:0 4px">${barsHtml}</div>
+          <div style="display:flex;gap:16px;margin-top:16px;justify-content:center">
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280">
+              <div style="width:10px;height:10px;background:#6366f1;border-radius:2px"></div> 노출수
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280">
+              <div style="width:10px;height:10px;background:#f59e0b;border-radius:2px"></div> 클릭수
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">최근 7일 상세</div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tr style="background:#f9fafb">
+              <th style="padding:8px;text-align:left;color:#6b7280;font-weight:500">날짜</th>
+              <th style="padding:8px;text-align:right;color:#6b7280;font-weight:500">노출</th>
+              <th style="padding:8px;text-align:right;color:#6b7280;font-weight:500">클릭</th>
+              <th style="padding:8px;text-align:right;color:#6b7280;font-weight:500">CTR</th>
+            </tr>
+            ${tableHtml}
+          </table>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 
 function resetCategories(){
