@@ -2769,11 +2769,18 @@ try{
         if(session&&session.user&&!lsGet('curUser',null)){
           const u=session.user;
           const{data:profile}=await _sb.from('users').select('*').eq('id',u.id).single();
-          if(!profile){
-            const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
-            await _sb.from('users').insert(newProfile);
-            curUser=newProfile;
-          }else{curUser=mergeWithLocalUser(profile);}
+          if(profile){
+            curUser=mergeWithLocalUser(profile);
+          }else{
+            const localMatch=users.find(x=>x.id===u.id||x.email===u.email);
+            if(localMatch){
+              curUser=localMatch;
+            }else{
+              const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+              await _sb.from('users').insert(newProfile);
+              curUser=newProfile;
+            }
+          }
           lsSet('curUser',curUser);
           if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
         }
@@ -3156,7 +3163,8 @@ async function doLogin(){
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pw});
     if(error){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
-    curUser=mergeWithLocalUser(profile)||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
+    curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);
     showView('list');showListSkeleton();loadProductsFromSupabase();
@@ -5053,10 +5061,9 @@ function renderSettings(){
   if(prodEl){
     const cnt=u.name?products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)).length:0;
     prodEl.textContent=cnt+'개';
-    if(_sb&&u.id){
-      _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',u.id)
-        .then(({count})=>{if(count!=null&&prodEl)prodEl.textContent=count+'개';});
-    }
+    // 로컬 products 배열에서 카운트 (seller_id 컬럼 없음)
+    const localProdCnt=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)||p.seller_id===u.id).length;
+    if(localProdCnt>cnt)prodEl.textContent=localProdCnt+'개';
   }
 
   // 저장 공간
@@ -5221,10 +5228,9 @@ function renderMypage(){
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
   // Supabase 실시간 카운트 (연결 시)
-  if(_sb&&u.id){
-    _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',u.id)
-      .then(({count})=>{if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}});
-  }
+  // 로컬 products 배열에서 카운트 (Supabase에 seller_id 컬럼 없음)
+  const myProdCnt=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)||p.seller_id===u.id).length;
+  if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
 
   // 판매자 신청/상태 섹션 렌더
   renderSellerApplySection();
@@ -7229,7 +7235,15 @@ function renderAnalytics(){
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
         const{data:profile}=await _sb.from('users').select('*').eq('id',session.user.id).single();
-        if(profile){curUser=mergeWithLocalUser({...profile});lsSet('curUser',curUser);}
+        const localUser=users.find(u=>u.id===session.user.id||u.email===session.user.email);
+        if(profile){
+          curUser=mergeWithLocalUser({...profile});
+        }else if(localUser){
+          curUser=localUser;
+        }else{
+          curUser=lsGet('curUser',null);
+        }
+        if(curUser)lsSet('curUser',curUser);
       }
     }catch(e){console.error('세션 복원 오류:',e);}
   }
