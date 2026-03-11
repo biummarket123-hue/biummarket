@@ -785,7 +785,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
       </div>
       <div class="fg">
-        <label data-i18n="login_id_label">아이디 (이메일)</label>
+        <label data-i18n="login_id_label">아이디</label>
         <input type="email" class="fi" id="l-email" placeholder="example@bium.market" />
       </div>
       <div class="fg">
@@ -828,19 +828,18 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           <div class="tc-name" data-i18n="type_buyer">구매자</div>
           <div class="tc-desc" data-i18n="type_buyer_sub">원단 소싱 · 구매</div>
         </div>
-        <div class="type-card" data-type="brand" onclick="selectType('brand',this)">
-          <div class="tc-icon">👗</div>
-          <div class="tc-name" data-i18n="type_brand">브랜드</div>
-          <div class="tc-desc" data-i18n="type_brand_sub">패션 브랜드 · 제조사</div>
-        </div>
         <div class="type-card" data-type="both" onclick="selectType('both',this)">
           <div class="tc-icon">🔄</div>
           <div class="tc-name" data-i18n="type_both">겸업</div>
           <div class="tc-desc" data-i18n="type_both_sub">판매 + 구매 모두</div>
         </div>
       </div>
+      <div id="seller-notice" style="display:block; margin-top:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:13px; color:#1d4ed8; line-height:1.5;">
+        📋 판매자 회원가입 후 <strong>관리자 승인</strong>이 완료되면 상품 등록이 가능해요.<br>
+        승인은 보통 <strong>1~2 영업일</strong> 내에 처리됩니다.
+      </div>
     </div>
-    <div class="fg"><label><span data-i18n="login_id_label">아이디 (이메일)</span> <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
+    <div class="fg"><label><span data-i18n="signup_name_label">아이디</span> <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
     <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="s-email" placeholder="example@bium.market"/></div>
     <div class="fg"><label><span data-i18n="login_pw_label">비밀번호</span> <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
     <div class="fg"><label>사업장 위치</label><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동"/></div>
@@ -2366,12 +2365,11 @@ const LANGS={
     res_swatch:'스와치',res_swatch_sub:'샘플 발송',
     res_inspect:'출장감별',res_inspect_sub:'전문가 방문',
     btn_reserve:'예약하기',btn_suggest:'가격제안',btn_chat:'채팅',
-    login_id_label:'아이디 (이메일)',login_pw_label:'비밀번호',
+    login_id_label:'아이디',login_pw_label:'비밀번호',
     btn_login:'로그인',btn_to_signup:'회원가입',test_account:'테스트 계정',
     signup_type_label:'회원 유형 선택',
     type_seller:'판매자',type_seller_sub:'원단 도매 · 재고 판매',
     type_buyer:'구매자',type_buyer_sub:'원단 소싱 · 구매',
-    type_brand:'브랜드',type_brand_sub:'패션 브랜드 · 제조사',
     type_both:'겸업',type_both_sub:'판매 + 구매 모두',
     btn_join:'가입하기',
     form_photo:'사진 첨부',form_photo_add:'사진추가',
@@ -2437,7 +2435,6 @@ const LANGS={
     signup_type_label:'Select Member Type',
     type_seller:'Seller',type_seller_sub:'Wholesale · Stock',
     type_buyer:'Buyer',type_buyer_sub:'Sourcing · Purchase',
-    type_brand:'Brand',type_brand_sub:'Fashion Brand',
     type_both:'Both',type_both_sub:'Buy & Sell',
     btn_join:'Join Now',
     form_photo:'Photos',form_photo_add:'Add Photo',
@@ -2503,7 +2500,6 @@ const LANGS={
     signup_type_label:'会員タイプを選択',
     type_seller:'販売者',type_seller_sub:'卸売り・在庫販売',
     type_buyer:'購入者',type_buyer_sub:'生地調達・購入',
-    type_brand:'ブランド',type_brand_sub:'ファッションブランド',
     type_both:'兼業',type_both_sub:'販売＋購入',
     btn_join:'登録する',
     form_photo:'写真添付',form_photo_add:'写真追加',
@@ -2569,7 +2565,6 @@ const LANGS={
     signup_type_label:'选择会员类型',
     type_seller:'卖家',type_seller_sub:'批发·库存销售',
     type_buyer:'买家',type_buyer_sub:'面料采购',
-    type_brand:'品牌',type_brand_sub:'时尚品牌·制造商',
     type_both:'兼营',type_both_sub:'买卖兼营',
     btn_join:'立即注册',
     form_photo:'上传图片',form_photo_add:'添加图片',
@@ -2635,7 +2630,6 @@ const LANGS={
     signup_type_label:'Chọn loại tài khoản',
     type_seller:'Người bán',type_seller_sub:'Bán sỉ · Thanh lý',
     type_buyer:'Người mua',type_buyer_sub:'Tìm nguồn · Mua',
-    type_brand:'Thương hiệu',type_brand_sub:'Thương hiệu thời trang',
     type_both:'Kiêm nhiệm',type_both_sub:'Vừa mua vừa bán',
     btn_join:'Đăng ký ngay',
     form_photo:'Ảnh sản phẩm',form_photo_add:'Thêm ảnh',
@@ -3307,6 +3301,8 @@ function selectType(type,el){
   selectedUserType=type;
   document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
+  const notice=document.getElementById('seller-notice');
+  if(notice) notice.style.display=['seller','both','seller+buyer'].includes(type)?'block':'none';
 }
 
 /* ==================== FILTER CHIPS ==================== */
@@ -5034,7 +5030,7 @@ const TYPE_OPTIONS=[
 function renderSettings(){
   const u=curUser||{};
   const lang=LANGS[curLang]||LANGS.ko;
-  const typeMap={seller:'판매자',buyer:'구매자',brand:'브랜드',both:'겸업',admin:'관리자',guest:'게스트'};
+  const typeMap={seller:'판매자',buyer:'구매자',both:'겸업',admin:'관리자',guest:'게스트'};
 
   // 프로필
   const avEl=document.getElementById('sett-av');
@@ -5207,7 +5203,7 @@ async function doChangeType(newType){
 /* ==================== MYPAGE ==================== */
 function renderMypage(){
   const u=curUser||{name:t('my_guest'),type:'guest',loc:''};
-  const types={seller:t('type_seller'),buyer:t('type_buyer'),brand:t('type_brand'),both:t('type_both'),admin:t('type_admin'),guest:t('my_guest')};
+  const types={seller:t('type_seller'),buyer:t('type_buyer'),both:t('type_both'),admin:t('type_admin'),guest:t('my_guest')};
 
   // 아바타
   const avEl=document.getElementById('my-av');
