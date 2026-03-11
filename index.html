@@ -2910,6 +2910,7 @@ let svSearch='';
 let svFilter='전체';
 let recentSearches=lsGet('recentSearches',[]);
 let chatRooms=lsGet('chatRooms',{});
+let appNotifications=lsGet('appNotifications',[]);
 let curChatRoomId=null;
 let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
 let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
@@ -3080,6 +3081,7 @@ function showView(name,push=true){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const target=document.getElementById('view-'+name);
   if(target){target.classList.add('active');window.scrollTo(0,0)}
+  updateNotifDot();
   if(name==='list')renderList();
   if(name==='mypage')renderMypage();
   if(name==='admin')renderAdmin();
@@ -3144,14 +3146,14 @@ async function doLogin(){
   if(email==='admin'){
     const admin=DEFAULT_USERS.find(u=>u.email==='admin'&&u.pw===pw);
     if(!admin){showToast('비밀번호가 틀렸어요');return;}
-    curUser=admin;lsSet('curUser',curUser);showView('list');showListSkeleton();return;
+    curUser=admin;lsSet('curUser',curUser);updateNotifDot();showView('list');showListSkeleton();return;
   }
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
     const user=findUser(email,pw);
     if(!user){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
-    curUser=user;lsSet('curUser',curUser);
+    curUser=user;lsSet('curUser',curUser);updateNotifDot();
     showView('list');showListSkeleton();
     return;
   }
@@ -3162,7 +3164,7 @@ async function doLogin(){
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
-    lsSet('curUser',curUser);
+    lsSet('curUser',curUser);updateNotifDot();
     showView('list');showListSkeleton();loadProductsFromSupabase();
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
 }
@@ -3184,8 +3186,10 @@ async function doSignup(){
     const newUser={id:'u'+Date.now(),name,email,pw,type:actualType,loc,temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus,requestedRole};
     users.push(newUser);lsSet('users',users);
     curUser=newUser;lsSet('curUser',curUser);
-    if(wantsSeller)showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
-    else showToast('가입 완료! 환영해요 🎉');
+    if(wantsSeller){
+      showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
+      addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:newUser.id,email,requestedRole});
+    } else showToast('가입 완료! 환영해요 🎉');
     showView('list');return;
   }
   try{
@@ -3195,8 +3199,10 @@ async function doSignup(){
     await _sb.from('users').insert(newProfile);
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole};
     lsSet('curUser',curUser);
-    if(wantsSeller)showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
-    else showToast('가입 완료! 환영해요 🎉');
+    if(wantsSeller){
+      showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
+      addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:curUser.id,email,requestedRole});
+    } else showToast('가입 완료! 환영해요 🎉');
     showView('list');showListSkeleton();loadProductsFromSupabase();
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
@@ -5172,6 +5178,7 @@ async function doChangeType(newType){
     curUser.requestedRole=newType;
     curUser.sellerStatus='pending';
     showToast('판매자 신청이 완료됐어요! 관리자 승인을 기다려주세요 😊');
+    addAppNotification('admin','seller_request',`📋 ${curUser.name||curUser.email}님이 판매자 전환을 신청했어요`,{userId:curUser.id,email:curUser.email,requestedRole:newType});
   }else{
     // 구매자로 변경 시 즉시 적용
     curUser.role=newType;
@@ -6745,6 +6752,7 @@ async function adminApproveSeller(idx){
     applyRoleVisibility();
   }
 
+  addAppNotification(u.id||u.email,'seller_approved','✅ 판매자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
   showToast('✅ 판매자 승인 완료!');
   showAdminUsers && showAdminUsers();
 }
@@ -6772,6 +6780,7 @@ async function adminRejectSeller(idx){
     applyRoleVisibility();
   }
 
+  addAppNotification(u.id||u.email,'seller_rejected','❌ 판매자 신청이 거절됐어요. MY 메뉴에서 재신청할 수 있어요.',{});
   showToast('❌ 판매자 신청 거절');
   showAdminUsers && showAdminUsers();
 }
@@ -7220,15 +7229,43 @@ function addNotif(icon,bg,title,desc){
 function updateNotifDot(){
   const items=lsGet('notifHistory',[]);
   const dot=document.getElementById('notif-dot');
-  if(dot)dot.style.display=items.length?'block':'none';
+  const hasGeneric=items.length>0;
+  const hasTargeted=curUser?getUnreadAppNotifications(curUser.id||curUser.email).length>0:false;
+  if(dot)dot.style.display=(hasGeneric||hasTargeted)?'block':'none';
+}
+function addAppNotification(targetUserId,type,message,data){
+  const notif={id:Date.now(),targetUserId,type,message,data:data||{},read:false,createdAt:new Date().toISOString()};
+  appNotifications.push(notif);
+  lsSet('appNotifications',appNotifications);
+  updateNotifDot();
+}
+function getUnreadAppNotifications(userId){
+  return appNotifications.filter(n=>n.targetUserId===userId&&!n.read);
+}
+function markAllAppNotificationsRead(userId){
+  appNotifications.forEach(n=>{if(n.targetUserId===userId)n.read=true;});
+  lsSet('appNotifications',appNotifications);
+  updateNotifDot();
 }
 function renderNotifView(){
   const el=document.getElementById('notif-items-list');if(!el)return;
   const items=lsGet('notifHistory',[]);
-  // 알림 화면 열면 빨간 점 제거
+  // 타겟 알림도 합치기
+  const userId=curUser?.id||curUser?.email;
+  const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>({
+    icon:n.type==='seller_request'?'📋':n.type==='seller_approved'?'✅':'❌',
+    bg:n.type==='seller_request'?'rgba(201,168,76,.15)':n.type==='seller_approved'?'rgba(0,200,100,.15)':'rgba(229,57,53,.15)',
+    title:n.type==='seller_request'?'판매자 신청':n.type==='seller_approved'?'판매자 승인':'판매자 거절',
+    desc:n.message,
+    ts:new Date(n.createdAt).getTime(),
+    _type:n.type
+  })):[];
+  const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  // 알림 화면 열면 빨간 점 제거 + 읽음 처리
   const dot=document.getElementById('notif-dot');
   if(dot)dot.style.display='none';
-  if(!items.length){
+  if(userId)markAllAppNotificationsRead(userId);
+  if(!allItems.length){
     el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
     return;
   }
@@ -7239,10 +7276,14 @@ function renderNotifView(){
     '구매요청 도착':{bg:'#e8f5e9',color:'#2e7d32'},
     '새 메시지':{bg:'#f3e5f5',color:'#6a1b9a'},
     '키워드 알림':{bg:'#fff9e6',color:'#856404'},
+    '판매자 신청':{bg:'#fffbeb',color:'#c8962a'},
+    '판매자 승인':{bg:'#e8f5e9',color:'#2e7d32'},
+    '판매자 거절':{bg:'#fff5f5',color:'#e53935'},
   };
-  el.innerHTML=items.map(item=>{
+  el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
-    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start">
+    const onclick=item._type==='seller_request'?"onclick=\"showView('admin');showAdminUsers&&showAdminUsers();\"":"";
+    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer" ${onclick}>
       <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
