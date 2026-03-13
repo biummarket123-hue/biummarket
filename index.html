@@ -2873,7 +2873,13 @@ syncSellerInfoToProducts();
 async function loadProductsFromSupabase(){
   if(!_sb)return;
   const cached=lsGetTTL('products_sb');
-  if(cached&&cached.length){products=cached;renderList();return;}
+  if(cached&&cached.length){
+    // 캐시된 Supabase 상품과 로컬 전용 상품 병합
+    const cachedIds=new Set(cached.map(p=>String(p.id)));
+    const localOnly=products.filter(p=>!cachedIds.has(String(p.id))&&p.id>10);
+    products=[...cached,...localOnly];
+    renderList();return;
+  }
   showListSkeleton();
   try{
     const{data,error}=await _sb.from('products').select('*').order('created_at',{ascending:false});
@@ -2889,27 +2895,30 @@ async function loadProductsFromSupabase(){
         }));
         console.log('[loadProducts] 샘플 데이터 10개 Supabase insert 시작...');
         const{data:inserted,error:insertErr}=await _sb.from('products').insert(samplePayloads).select();
+        const prevLocal=products.filter(p=>p.id>10);
         if(insertErr){
           console.error('[loadProducts] 샘플 insert 오류:',insertErr);
-          products=DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]}));
+          products=[...DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]})),...prevLocal];
         }else{
           console.log('[loadProducts] 샘플 insert 완료:', inserted?.length,'개');
-          products=(inserted||[]).map(p=>({
+          const sbSamples=(inserted||[]).map(p=>({
             ...p,
             seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
             tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
             liked:false,time:p.time||'방금 전',likes:p.likes||0,chats:p.chats||0,imgs:p.imgs||1,
           }));
+          products=[...sbSamples,...prevLocal];
         }
       }catch(insertEx){
         console.error('[loadProducts] 샘플 insert 예외:',insertEx);
-        products=DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]}));
+        const prevLocal=products.filter(p=>p.id>10);
+        products=[...DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]})),...prevLocal];
       }
-      lsSet('products',products);lsSetTTL('products_sb',products);
+      lsSet('products',products);lsSetTTL('products_sb',products.filter(p=>p.id<=10));
       renderList();
       return;
     }
-    products=data.map(p=>({
+    const sbProducts=data.map(p=>({
       ...p,
       seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
       tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
@@ -2919,7 +2928,11 @@ async function loadProductsFromSupabase(){
       chats:p.chats||0,
       imgs:p.imgs||1,
     }));
-    lsSet('products',products);lsSetTTL('products_sb',products);
+    // 로컬에만 있는 상품 보존 (Supabase에 없는 것)
+    const sbIds=new Set(sbProducts.map(p=>String(p.id)));
+    const localOnly=products.filter(p=>!sbIds.has(String(p.id))&&p.id>10);
+    products=[...sbProducts,...localOnly];
+    lsSet('products',products);lsSetTTL('products_sb',sbProducts);
     console.log('products categories:',products.map(p=>p.type));
     renderList();
   }catch(e){console.error('[loadProducts] 예외:',e);}
@@ -4563,6 +4576,8 @@ async function submitForm(){
       saveProducts();resetForm();showMySales();showToast('수정 완료!');
     }else{
       const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
+      // 로컬 전용 상품 표시
+      newP._localOnly=true;
       products.unshift(newP);saveProducts();
       resetForm();showView('list');showToast(t('registered'));
       {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
