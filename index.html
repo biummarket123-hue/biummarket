@@ -4169,8 +4169,8 @@ function renderMyOffers(){
   const offers=lsGet('priceOffers',[]);
   const isSell=isSeller()||isAdmin();
   const myOffers=isSell
-    ? offers.filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name)
-    : offers.filter(o=>o.buyerId===curUser?.id);
+    ? offers.filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name||o.sellerName===curUser?.email)
+    : offers.filter(o=>o.buyerId===curUser?.id||o.buyerName===curUser?.name||o.buyerName===curUser?.email);
   const el=document.getElementById('my-offers-list');
   if(!el)return;
   if(!myOffers.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888;font-size:13px">제안 내역이 없어요</div>';return;}
