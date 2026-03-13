@@ -2921,6 +2921,7 @@ async function loadProductsFromSupabase(){
     const sbProducts=data.map(p=>({
       ...p,
       seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
+      seller_id:p.seller_id||(p.seller&&p.seller.id)||'',
       tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
       liked:!!likedMap[p.id],
       time:p.time||'방금 전',
