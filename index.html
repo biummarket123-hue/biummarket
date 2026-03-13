@@ -2112,6 +2112,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <textarea class="fi" id="suggest-msg" placeholder="제안 이유나 거래 조건을 입력하세요" style="min-height:70px"></textarea>
       </div>
     </div>
+    <div class="suggest-form" style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0ea">
+      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (거래 성사 시 공개돼요)</div>
+      <div class="fg"><label>이름 / 업체명</label><input type="text" class="fi" id="offer-contact-name" placeholder="예) 홍길동 / (주)패션하우스"/></div>
+      <div class="fg"><label>전화번호</label><input type="text" class="fi" id="offer-contact-tel" placeholder="예) 010-1234-5678"/></div>
+      <div class="fg"><label>주소</label><input type="text" class="fi" id="offer-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
+    </div>
     <button class="mclose" onclick="submitSuggest()">제안 보내기</button>
   </div>
 </div>
@@ -2219,6 +2225,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <label>메모 · 요청 사항</label>
         <textarea class="fi" id="res-note" placeholder="특이사항이 있으면 입력해주세요" style="min-height:72px"></textarea>
       </div>
+    </div>
+    <div class="suggest-form" style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0ea">
+      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (판매자에게 전달돼요)</div>
+      <div class="fg"><label>이름 / 업체명</label><input type="text" class="fi" id="res-contact-name" placeholder="예) 홍길동 / (주)패션하우스"/></div>
+      <div class="fg"><label>전화번호</label><input type="text" class="fi" id="res-contact-tel" placeholder="예) 010-1234-5678"/></div>
+      <div class="fg"><label>주소 (샘플 배송지)</label><input type="text" class="fi" id="res-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
     </div>
     <button class="submit-btn" onclick="submitReservation()" style="margin-top:4px">예약하기</button>
   </div>
@@ -4209,6 +4221,13 @@ function renderMyOffers(){
         ${o.counterPrice?`<span style="color:#888">역제안 <b style="color:#ff6584">${o.counterPrice.toLocaleString()}원/m</b></span>`:''}
       </div>
       ${o.msg?`<div style="font-size:12px;color:#666;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${o.msg}"</div>`:''}
+      ${(o.status==='accepted'||o.status==='counter')&&o.buyerContact?`
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px">
+          <div style="font-weight:700;color:#15803d;margin-bottom:6px">📋 ${isSell?'구매자':'판매자'} 연락처</div>
+          <div style="color:#1a1a1a">👤 ${isSell?(o.buyerContact.name||'-'):(o.sellerName||'-')}</div>
+          <div style="color:#1a1a1a">📞 ${isSell?(o.buyerContact.tel||'-'):(o.sellerTel||'-')}</div>
+          <div style="color:#1a1a1a">📍 ${isSell?(o.buyerContact.addr||'-'):(o.sellerAddr||'-')}</div>
+        </div>`:''}
       ${isSell&&o.status==='pending'?`
         <div style="display:flex;gap:8px">
           <button onclick="respondOffer('${o.id}','accepted')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
@@ -4303,6 +4322,13 @@ function renderMyReservations(){
         <span style="color:#888">📅 ${r.date} ${r.time}</span>
       </div>
       ${r.note?`<div style="font-size:12px;color:#666;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${r.note}"</div>`:''}
+      ${r.status==='confirmed'&&r.buyerContact?`
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px">
+          <div style="font-weight:700;color:#15803d;margin-bottom:6px">📋 ${isSell?'구매자':'판매자'} 연락처</div>
+          <div style="color:#1a1a1a">👤 ${isSell?(r.buyerContact.name||'-'):(r.sellerTel?r.sellerName:r.sellerName)}</div>
+          <div style="color:#1a1a1a">📞 ${isSell?(r.buyerContact.tel||'-'):(r.sellerTel||'-')}</div>
+          <div style="color:#1a1a1a">📍 ${isSell?(r.buyerContact.addr||'-'):(r.sellerAddr||'-')}</div>
+        </div>`:''}
       ${isSell&&r.status==='pending'?`
         <div style="display:flex;gap:8px">
           <button onclick="respondReservation('${r.id}','confirmed')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
@@ -4337,6 +4363,9 @@ function submitSuggest(){
   if(!curUser){showToast('로그인이 필요해요');return;}
   const prod=products.find(x=>x.id===curProductId);
   if(!prod){return;}
+  const offerContactName=document.getElementById('offer-contact-name')?.value.trim()||curUser.name||'';
+  const offerContactTel=document.getElementById('offer-contact-tel')?.value.trim()||curUser.tel||'';
+  const offerContactAddr=document.getElementById('offer-contact-addr')?.value.trim()||curUser.loc||'';
   const offer={
     id:'offer_'+Date.now(),
     productId:prod.id,
@@ -4349,6 +4378,9 @@ function submitSuggest(){
     buyerName:curUser.name||curUser.email,
     sellerId:prod.seller_id||(prod.seller&&prod.seller.id)||'',
     sellerName:prod.seller?.name||'판매자',
+    sellerTel:prod.seller?.tel||'',
+    sellerAddr:prod.seller?.loc||'',
+    buyerContact:{name:offerContactName,tel:offerContactTel,addr:offerContactAddr},
     status:'pending',
     createdAt:new Date().toISOString(),
   };
@@ -4389,6 +4421,9 @@ async function submitReservation(){
   if(!date){showToast('희망 날짜를 선택해주세요');return;}
   if(!curUser){showToast('로그인이 필요해요');return;}
   const prod=products.find(x=>x.id===curProductId);
+  const contactName=document.getElementById('res-contact-name')?.value.trim()||curUser.name||'';
+  const contactTel=document.getElementById('res-contact-tel')?.value.trim()||curUser.tel||'';
+  const contactAddr=document.getElementById('res-contact-addr')?.value.trim()||curUser.loc||'';
   const resv={
     id:'resv_'+Date.now(),
     productId:curProductId,
@@ -4400,6 +4435,9 @@ async function submitReservation(){
     buyerName:curUser.name||curUser.email,
     sellerId:prod?.seller_id||(prod?.seller&&prod.seller.id)||'',
     sellerName:prod?.seller?.name||'판매자',
+    sellerTel:prod?.seller?.tel||'',
+    sellerAddr:prod?.seller?.loc||'',
+    buyerContact:{name:contactName,tel:contactTel,addr:contactAddr},
     status:'pending',
     createdAt:new Date().toISOString(),
   };
