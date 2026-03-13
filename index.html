@@ -2814,16 +2814,16 @@ function findUser(email,pw){return users.find(u=>u.email===email&&u.pw===pw)}
 
 /* ==================== PRODUCTS ==================== */
 const SELLERS_SAMPLE=[
-  {id:'s1',name:'광장섬유',temp:37.2,loc:'서울 중구 동대문'},
-  {id:'s2',name:'에코텍스코리아',temp:36.8,loc:'서울 성동구 성수동'},
-  {id:'s3',name:'명성모직',temp:38.0,loc:'서울 중구 동대문'},
-  {id:'s4',name:'대한니트',temp:37.5,loc:'서울 중구 신당동'},
-  {id:'s5',name:'JS스트레치',temp:36.5,loc:'서울 동대문구 답십리'},
-  {id:'s6',name:'금성실크',temp:37.8,loc:'서울 중구 동대문'},
-  {id:'s7',name:'청일직물',temp:37.1,loc:'서울 종로구 창신동'},
-  {id:'s8',name:'한일섬유',temp:36.9,loc:'서울 중구 동대문'},
-  {id:'s9',name:'고려모직',temp:37.6,loc:'서울 중구 을지로'},
-  {id:'s10',name:'스포텍',temp:38.0,loc:'서울 성동구 성수동'},
+  {id:'sample_s1',name:'광장섬유',temp:37.2,loc:'서울 중구 동대문'},
+  {id:'sample_s2',name:'에코텍스코리아',temp:36.8,loc:'서울 성동구 성수동'},
+  {id:'sample_s3',name:'명성모직',temp:38.0,loc:'서울 중구 동대문'},
+  {id:'sample_s4',name:'대한니트',temp:37.5,loc:'서울 중구 신당동'},
+  {id:'sample_s5',name:'JS스트레치',temp:36.5,loc:'서울 동대문구 답십리'},
+  {id:'sample_s6',name:'금성실크',temp:37.8,loc:'서울 중구 동대문'},
+  {id:'sample_s7',name:'청일직물',temp:37.1,loc:'서울 종로구 창신동'},
+  {id:'sample_s8',name:'한일섬유',temp:36.9,loc:'서울 중구 동대문'},
+  {id:'sample_s9',name:'고려모직',temp:37.6,loc:'서울 중구 을지로'},
+  {id:'sample_s10',name:'스포텍',temp:38.0,loc:'서울 성동구 성수동'},
 ];
 const DEFAULT_PRODUCTS=[
   {id:1,title:'코마 면 트윌 60수 오트밀',type:'면',color:'베이지',width:150,weight:185,qty:500,price:2800,loc:'서울 중구 동대문',cat:'천연섬유',description:'60수 코마 면 트윌 소재입니다. 세밀한 조직감과 부드러운 손감이 특징이며 여름 셔츠, 블라우스, 홈웨어에 적합합니다. 대량 구매 시 협의 가능합니다.',tags:['면트윌','60수','오트밀','코마면','대량가능'],seller:SELLERS_SAMPLE[0],imgs:2,likes:8,chats:3,time:'1시간 전',liked:false},
@@ -2839,13 +2839,29 @@ const DEFAULT_PRODUCTS=[
 ];
 let products=lsGet('products',DEFAULT_PRODUCTS);
 function saveProducts(){lsSet('products',products)}
+// 오염된 샘플 상품 seller 복구
+function repairSampleProducts(){
+  const firstP=products.find(p=>p.id===1);
+  if(firstP&&firstP.seller&&firstP.seller.name!=='광장섬유'){
+    const sampleIds=DEFAULT_PRODUCTS.map(p=>p.id);
+    const userProds=products.filter(p=>!sampleIds.includes(p.id));
+    products=[...DEFAULT_PRODUCTS,...userProds];
+    lsSet('products',products);
+    console.log('샘플 상품 데이터 복구 완료');
+  }
+}
+repairSampleProducts();
 function syncSellerInfoToProducts(){
   let changed=false;
   users.forEach(u=>{
     products.forEach(p=>{
-      if(p.seller&&p.seller.id===u.id&&p.seller.name!==u.name){
+      if(!p.seller||!p.seller.id)return;
+      // 샘플 데이터 ID는 건드리지 않음
+      if(String(p.seller.id).startsWith('sample_'))return;
+      if(p.seller.id===u.id&&p.seller.name!==u.name){
         p.seller.name=u.name;
         p.seller.loc=u.loc||p.seller.loc;
+        p.seller.temp=u.temp||p.seller.temp;
         p.seller_id=u.id;
         changed=true;
       }
