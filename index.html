@@ -2839,6 +2839,21 @@ const DEFAULT_PRODUCTS=[
 ];
 let products=lsGet('products',DEFAULT_PRODUCTS);
 function saveProducts(){lsSet('products',products)}
+function syncSellerInfoToProducts(){
+  let changed=false;
+  users.forEach(u=>{
+    products.forEach(p=>{
+      if(p.seller&&p.seller.id===u.id&&p.seller.name!==u.name){
+        p.seller.name=u.name;
+        p.seller.loc=u.loc||p.seller.loc;
+        p.seller_id=u.id;
+        changed=true;
+      }
+    });
+  });
+  if(changed){lsSet('products',products);console.log('판매자 정보 자동 보정 완료');}
+}
+syncSellerInfoToProducts();
 async function loadProductsFromSupabase(){
   if(!_sb)return;
   const cached=lsGetTTL('products_sb');
@@ -4146,7 +4161,7 @@ function switchSellerTab(tab,el){
   el.classList.add('on');
   const content=document.getElementById('sh-tab-content');
   const seller=curSellerData||{};
-  const myProds=products.filter(p=>p.seller&&p.seller.name===seller.name);
+  const myProds=products.filter(p=>isMyProduct(p,seller));
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
   if(tab==='home'){
     const top3=[...myProds].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,3);
@@ -4291,7 +4306,7 @@ function renderSellerPage(seller){
   if(nameEl)nameEl.insertAdjacentHTML('afterend',
     `<div class="seller-hero-stars">${sinceHtml}<div style="font-size:12px;color:#f5c518;margin-top:2px">★★★★½ ${rating} (${reviewCount})</div></div>`
   );
-  const myProds=products.filter(p=>p.seller&&p.seller.name===seller.name);
+  const myProds=products.filter(p=>isMyProduct(p,seller));
   const totalLikes=myProds.reduce((a,p)=>a+(p.likes||0),0);
   document.getElementById('sh-stats').innerHTML=`
     <div class="sstat"><div class="sv">${myProds.length}</div><div class="sl">상품</div></div>
@@ -5014,6 +5029,18 @@ async function saveProfile(){
     curUser.name=name;curUser.intro=intro;curUser.loc=loc;
     curUser.tel=profileData.tel;
     curUser.profile={...((curUser.profile)||{}),...profileData};
+    // 기존 등록 상품의 seller 정보 동기화
+    let productsUpdated=false;
+    products.forEach(p=>{
+      if(p.seller&&(p.seller.id===curUser.id||p.seller_id===curUser.id)){
+        p.seller.name=name;
+        p.seller.loc=loc||p.seller.loc;
+        p.seller.temp=curUser.temp||p.seller.temp;
+        p.seller_id=curUser.id;
+        productsUpdated=true;
+      }
+    });
+    if(productsUpdated)lsSet('products',products);
     lsSet('curUser',curUser);
     if(_sb&&curUser.id&&curUser.id!=='admin'){
       try{await _sb.from('users').update({name,intro,loc,profile:curUser.profile}).eq('id',curUser.id);}
