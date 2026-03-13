@@ -5308,12 +5308,14 @@ function renderMypage(){
 function isMyProduct(p,u){
   if(!p||!u)return false;
   const uid=u.id||u.email;
+  const uemail=u.email||'';
   const uname=u.name;
   return(
     (p.seller&&p.seller.id&&p.seller.id===uid)||
     (p.seller&&p.seller.name&&p.seller.name===uname)||
     (p.seller_id&&p.seller_id===uid)||
-    (p.sellerId&&p.sellerId===uid)
+    (p.sellerId&&p.sellerId===uid)||
+    (uemail&&p.seller&&p.seller.name&&p.seller.name===uemail)
   );
 }
 /* ===== 역할 판별 헬퍼 ===== */
