@@ -1247,6 +1247,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <div class="my-menu-item" onclick="showView('my-offers');renderMyOffers()">
+        <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">가격제안 내역</div>
+          <div class="my-menu-sub">제안/수락/역제안 관리</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
       <div class="my-menu-item" onclick="showView('wishlist')">
         <div class="my-icon-box ib-pink">❤️</div>
         <div class="my-menu-info">
@@ -1801,6 +1809,15 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="ei">🤍</div>
     <p>관심 상품이 없어요</p>
   </div>
+</div>
+
+<!-- ========== MY OFFERS ========== -->
+<div id="view-my-offers" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">💰 가격제안 내역</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px" id="my-offers-list"></div>
 </div>
 
 <!-- ========== CHAT LIST ========== -->
@@ -4147,13 +4164,141 @@ slider.addEventListener('touchend',e=>{if(Math.abs(e.changedTouches[0].clientX-t
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)document.getElementById(id).classList.remove('open')}
 function openSuggestModal(){openModal('modal-suggest')}
+
+function renderMyOffers(){
+  const offers=lsGet('priceOffers',[]);
+  const isSell=isSeller()||isAdmin();
+  const myOffers=isSell
+    ? offers.filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name)
+    : offers.filter(o=>o.buyerId===curUser?.id);
+  const el=document.getElementById('my-offers-list');
+  if(!el)return;
+  if(!myOffers.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888;font-size:13px">제안 내역이 없어요</div>';return;}
+  const statusLabel={pending:'⏳ 대기중',accepted:'✅ 수락',rejected:'❌ 거절',counter:'🔄 역제안'};
+  const statusColor={pending:'#f59e0b',accepted:'#10b981',rejected:'#ef4444',counter:'#6c63ff'};
+  el.innerHTML=[...myOffers].reverse().map(o=>`
+    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        ${o.productImg?`<img src="${o.productImg}" style="width:44px;height:44px;border-radius:8px;object-fit:cover">`:'<div style="width:44px;height:44px;border-radius:8px;background:#e0e0ea;display:flex;align-items:center;justify-content:center;font-size:20px">🧵</div>'}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.productTitle}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${isSell?'구매자: '+o.buyerName:'판매자: '+o.sellerName}</div>
+        </div>
+        <span style="font-size:11px;font-weight:700;color:${statusColor[o.status]||'#888'}">${statusLabel[o.status]||o.status}</span>
+      </div>
+      <div style="display:flex;gap:12px;font-size:13px;margin-bottom:10px">
+        <span style="color:#888">원가 <b style="color:#1a1a1a">${(o.originalPrice||0).toLocaleString()}원/m</b></span>
+        <span style="color:#888">제안 <b style="color:#6c63ff">${(o.offerPrice||0).toLocaleString()}원/m</b></span>
+        ${o.counterPrice?`<span style="color:#888">역제안 <b style="color:#ff6584">${o.counterPrice.toLocaleString()}원/m</b></span>`:''}
+      </div>
+      ${o.msg?`<div style="font-size:12px;color:#666;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${o.msg}"</div>`:''}
+      ${isSell&&o.status==='pending'?`
+        <div style="display:flex;gap:8px">
+          <button onclick="respondOffer('${o.id}','accepted')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
+          <button onclick="showCounterOffer('${o.id}')" style="flex:1;padding:10px;background:#6c63ff;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔄 역제안</button>
+          <button onclick="respondOffer('${o.id}','rejected')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
+        </div>`:''}
+      ${!isSell&&o.status==='rejected'?`
+        <button onclick="reOffer('${o.id}')" style="width:100%;padding:10px;background:#f5f0e8;border:1.5px solid #c8a84b;color:#c8a84b;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔁 재제안하기</button>`:''}
+      ${!isSell&&o.status==='accepted'?`
+        <button onclick="openResModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">📅 예약하기</button>`:''}
+      ${o.status==='counter'&&!isSell?`
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button onclick="respondOffer('${o.id}','accepted')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 역제안 수락</button>
+          <button onclick="respondOffer('${o.id}','rejected')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
+        </div>`:''}
+    </div>
+  `).join('');
+}
+
+function respondOffer(offerId,status){
+  const offers=lsGet('priceOffers',[]);
+  const idx=offers.findIndex(o=>o.id===offerId);
+  if(idx<0)return;
+  offers[idx].status=status;
+  lsSet('priceOffers',offers);
+  const o=offers[idx];
+  if(status==='accepted'){
+    addAppNotification(o.buyerId,'offer_accepted',`✅ 가격제안이 수락됐어요!`,{offerId,productTitle:o.productTitle,offerPrice:o.counterPrice||o.offerPrice});
+    showToast('제안을 수락했어요! ✅');
+  }else if(status==='rejected'){
+    addAppNotification(o.buyerId,'offer_rejected',`❌ 가격제안이 거절됐어요`,{offerId,productTitle:o.productTitle});
+    showToast('제안을 거절했어요');
+  }
+  renderMyOffers();
+}
+
+function showCounterOffer(offerId){
+  const price=prompt('역제안할 가격을 입력하세요 (원/m)');
+  if(!price||isNaN(parseInt(price)))return;
+  const offers=lsGet('priceOffers',[]);
+  const idx=offers.findIndex(o=>o.id===offerId);
+  if(idx<0)return;
+  offers[idx].status='counter';
+  offers[idx].counterPrice=parseInt(price);
+  lsSet('priceOffers',offers);
+  const o=offers[idx];
+  addAppNotification(o.buyerId,'offer_counter',`🔄 판매자가 역제안했어요: ${parseInt(price).toLocaleString()}원/m`,{offerId,productTitle:o.productTitle,counterPrice:parseInt(price)});
+  showToast('역제안을 보냈어요! 🔄');
+  renderMyOffers();
+}
+
+function reOffer(offerId){
+  const offers=lsGet('priceOffers',[]);
+  const idx=offers.findIndex(o=>o.id===offerId);
+  if(idx<0)return;
+  offers[idx].status='pending';
+  const newPrice=prompt('새로운 제안 가격을 입력하세요 (원/m)');
+  if(!newPrice||isNaN(parseInt(newPrice)))return;
+  offers[idx].offerPrice=parseInt(newPrice);
+  lsSet('priceOffers',offers);
+  const o=offers[idx];
+  addAppNotification(o.sellerId,'price_offer',`💰 ${o.buyerName}님이 재제안했어요`,{offerId,productTitle:o.productTitle,offerPrice:parseInt(newPrice)});
+  showToast('재제안을 보냈어요! 💰');
+  renderMyOffers();
+}
 function openResModal(){openModal('modal-res')}
 function submitSuggest(){
-  const price=document.getElementById('suggest-price').value;
-  if(!price){showToast('제안 가격을 입력해주세요');return}
-  closeModal('modal-suggest');showToast('가격 제안이 전송됐어요! 💰');
-  const _sp=products.find(x=>x.id===curProductId);
-  if(_sp){const _ns=lsGet('notifSettings',{});if(_ns.priceChange!==false)addNotif('💰','rgba(201,168,76,.15)','가격제안 도착',(curUser?.name||'구매자')+'에서 가격제안이 왔습니다');}
+  const price=parseInt(document.getElementById('suggest-price').value);
+  const msg=document.getElementById('suggest-msg').value.trim();
+  if(!price){showToast('제안 가격을 입력해주세요');return;}
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  const prod=products.find(x=>x.id===curProductId);
+  if(!prod){return;}
+  const offer={
+    id:'offer_'+Date.now(),
+    productId:prod.id,
+    productTitle:prod.title,
+    productImg:prod.image_url||null,
+    originalPrice:prod.price,
+    offerPrice:price,
+    msg,
+    buyerId:curUser.id,
+    buyerName:curUser.name||curUser.email,
+    sellerId:prod.seller_id||(prod.seller&&prod.seller.id)||'',
+    sellerName:prod.seller?.name||'판매자',
+    status:'pending',
+    createdAt:new Date().toISOString(),
+  };
+  const offers=lsGet('priceOffers',[]);
+  offers.push(offer);
+  lsSet('priceOffers',offers);
+  addAppNotification(offer.sellerId,'price_offer',`💰 ${offer.buyerName}님이 가격을 제안했어요`,{offerId:offer.id,productTitle:offer.productTitle,offerPrice:offer.offerPrice});
+  closeModal('modal-suggest');
+  showToast('가격 제안이 전송됐어요! 💰');
+  setTimeout(()=>{
+    openChatRoom(prod.id);
+    const room=chatRooms[`${curUser.id}_${prod.id}`];
+    if(room){
+      const time=formatChatTime(new Date());
+      room.messages.push({from:'me',senderId:curUser.id,text:`💰 가격 제안: ${price.toLocaleString()}원/m\n${msg?'메시지: '+msg:''}`,time});
+      room.lastMsg=`💰 가격제안 ${price.toLocaleString()}원/m`;
+      room.lastTime=time;
+      lsSet('chatRooms',chatRooms);
+      renderChatRoom(`${curUser.id}_${prod.id}`);
+    }
+    showView('chat-room');
+  },300);
 }
 function selectRes(type,el){
   curResType=type;
