@@ -4855,7 +4855,7 @@ function renderChatRoom(roomId){
     :'🧵';
   const body=document.getElementById('cr-body');
   body.innerHTML=room.messages.map(m=>{
-    const isMe=m.from==='me'||(isSeller()&&m.from==='seller');
+    const isMe=m.senderId&&curUser?m.senderId===curUser.id:m.from==='me';
     return `<div class="msg-row ${isMe?'me':'other'}">
       ${!isMe?`<div class="msg-av" style="background:${room.bgColor||'#6c63ff'}">${(room.sellerName||'?')[0]}</div>`:''}
       <div class="msg-col">
@@ -4872,7 +4872,7 @@ function sendChatMsg(){
   if(!text||!curChatRoomId)return;
   const room=chatRooms[curChatRoomId];if(!room)return;
   const time=formatChatTime(new Date());
-  room.messages.push({from:'me',text,time});
+  room.messages.push({from:'me',senderId:curUser?.id||'guest',text,time});
   room.lastMsg=text;room.lastTime=time;room.unread=0;
   input.value='';lsSet('chatRooms',chatRooms);
   renderChatRoom(curChatRoomId);
