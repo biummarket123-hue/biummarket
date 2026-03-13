@@ -3452,14 +3452,12 @@ function filterByCategory(prods,key){
 function filterByCat2(prods,cat1Key,cat2Key){
   if(!cat2Key)return filterByCategory(prods,cat1Key);
   const base=filterByCategory(prods,cat1Key);
-  const byCat2=base.filter(p=>p.cat2===cat2Key);
-  return byCat2.length?byCat2:base;
+  return base.filter(p=>p.cat2===cat2Key);
 }
 function filterByCat3(prods,cat1Key,cat2Key,cat3Key){
   if(!cat3Key)return filterByCat2(prods,cat1Key,cat2Key);
   const base=filterByCat2(prods,cat1Key,cat2Key);
-  const byCat3=base.filter(p=>p.cat3===cat3Key||(p.tags||[]).some(t=>t===cat3Key)||(p.title||'').includes(cat3Key));
-  return byCat3.length?byCat3:base;
+  return base.filter(p=>p.cat3===cat3Key||(p.tags||[]).some(t=>t===cat3Key));
 }
 
 /* ===== CATEGORY VIEW JS ===== */
