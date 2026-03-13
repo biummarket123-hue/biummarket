@@ -3563,7 +3563,7 @@ function setCatSort(sort){
 function renderMyProductsSorted(){
   const u=curUser;if(!u)return;
   const el=document.getElementById('cp-list');if(!el)return;
-  let items=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name));
+  let items=products.filter(p=>isMyProduct(p,u));
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
   else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else items=[...items].sort((a,b)=>b.id-a.id);
@@ -3996,7 +3996,7 @@ function openDetail(id){
   if(ownerBar)ownerBar.style.display='none';
   const hdEdit=document.getElementById('pd-hdr-edit');
   const hdDel=document.getElementById('pd-hdr-delete');
-  const isOwner=curUser&&(seller.id===curUser.id||p.seller_id===curUser.id||seller.name===curUser.name);
+  const isOwner=isMyProduct(p,curUser);
   const showOwner=fromMyProducts&&isOwner;
   if(hdEdit)hdEdit.style.display=showOwner?'':'none';
   if(hdDel)hdDel.style.display=showOwner?'':'none';
@@ -4509,6 +4509,7 @@ async function submitForm(){
     sample:formSample,is_urgent:urgent,
     description,
     seller:sellerInfo,
+    seller_id:curUser?.id||'',
     imgs:Math.max(1,uploadedImgs.length),
     likes:0,chats:0,time:'방금 전'
   };
@@ -5070,11 +5071,8 @@ function renderSettings(){
   // 등록 상품 수
   const prodEl=document.getElementById('sett-prod-count');
   if(prodEl){
-    const cnt=u.name?products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)).length:0;
+    const cnt=u.name?products.filter(p=>isMyProduct(p,u)).length:0;
     prodEl.textContent=cnt+'개';
-    // 로컬 products 배열에서 카운트 (seller_id 컬럼 없음)
-    const localProdCnt=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)||p.seller_id===u.id).length;
-    if(localProdCnt>cnt)prodEl.textContent=localProdCnt+'개';
   }
 
   // 저장 공간
@@ -5232,7 +5230,7 @@ function renderMypage(){
   }
 
   // 통계 계산
-  const myProducts=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name));
+  const myProducts=products.filter(p=>isMyProduct(p,u));
   const wishes=lsGet('wishlist',[]).length||Object.values(lsGet('likedMap',{})).filter(Boolean).length;
   const reservations=lsGet('reservations',[]);
   const done=reservations.filter(r=>r.status==='confirmed'||r.status==='done').length;
@@ -5250,8 +5248,7 @@ function renderMypage(){
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
   // Supabase 실시간 카운트 (연결 시)
-  // 로컬 products 배열에서 카운트 (Supabase에 seller_id 컬럼 없음)
-  const myProdCnt=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name)||p.seller_id===u.id).length;
+  const myProdCnt=products.filter(p=>isMyProduct(p,u)).length;
   if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
 
   // 판매자 신청/상태 섹션 렌더
@@ -5260,6 +5257,18 @@ function renderMypage(){
   applyRoleVisibility();
 }
 
+/* ===== 상품 소유자 확인 헬퍼 ===== */
+function isMyProduct(p,u){
+  if(!p||!u)return false;
+  const uid=u.id||u.email;
+  const uname=u.name;
+  return(
+    (p.seller&&p.seller.id&&p.seller.id===uid)||
+    (p.seller&&p.seller.name&&p.seller.name===uname)||
+    (p.seller_id&&p.seller_id===uid)||
+    (p.sellerId&&p.sellerId===uid)
+  );
+}
 /* ===== 역할 판별 헬퍼 ===== */
 function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
@@ -5314,7 +5323,7 @@ function applyRoleVisibility(){
 function showMySales(){
   const u=curUser;
   if(!u){showToast('로그인이 필요해요');return;}
-  const myP=products.filter(p=>p.seller&&(p.seller.id===u.id||p.seller.name===u.name));
+  const myP=products.filter(p=>isMyProduct(p,u));
   if(!myP.length){showToast('등록한 상품이 없어요');return;}
   curCatKey='';
   curViewMode='my-products';
@@ -7310,7 +7319,7 @@ function renderNotices(){
 
 /* ==================== ANALYTICS ==================== */
 function renderAnalytics(){
-  const myProds=curUser?products.filter(p=>p.seller&&(p.seller.name===curUser.name||p.seller_id===curUser.id)):products;
+  const myProds=curUser?products.filter(p=>isMyProduct(p,curUser)):products;
 
   // ── 요약 카드 3개 ──
   const totalViews=myProds.reduce((a,p)=>a+(p.views||0),0);
