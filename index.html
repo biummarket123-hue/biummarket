@@ -7541,9 +7541,7 @@ function timeAgo(ts){
 }
 function addNotif(icon,bg,title,desc,productId){
   const items=lsGet('notifHistory',[]);
-  const entry={icon,bg,title,desc,ts:Date.now()};
-  if(productId)entry.productId=productId;
-  items.unshift(entry);
+  items.unshift({icon,bg,title,desc,ts:Date.now(),productId:productId||null});
   if(items.length>50)items.pop();
   lsSet('notifHistory',items);
   const dot=document.getElementById('notif-dot');
@@ -7624,9 +7622,6 @@ function renderNotifView(){
       onclickAttr=`onclick="${item._action}"`;
     }else if(item.productId){
       onclickAttr=`onclick="openDetail(${item.productId})"`;
-    }else if(item.title==='관심 등록'&&item.desc){
-      const match=item.desc.match(/\d+/);
-      if(match)onclickAttr=`onclick="openDetail(${match[0]})"`;
     }
     return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s" ${onclickAttr} onmouseenter="this.style.background='#f8f8fa'" onmouseleave="this.style.background=''">
       <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
