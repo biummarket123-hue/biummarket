@@ -3906,6 +3906,7 @@ function toggleLike(id){
   _sb.from('products').update({likes:p.likes}).eq('id',id).then();
   renderList();
   showToast(p.liked?t('like_add'):t('like_remove'));
+  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',id);
 }
 
 /* ==================== DETAIL ==================== */
@@ -4101,7 +4102,7 @@ function toggleDetailLike(){
   _sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
   updateDetailHeart(p);
   showToast(p.liked?t('like_add'):t('like_remove'));
-  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다');
+  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',p.id);
 }
 function editProduct(targetId){
   if(targetId!==undefined)curProductId=targetId;
@@ -7538,9 +7539,11 @@ function timeAgo(ts){
   const h=Math.floor(m/60);if(h<24)return h+'시간 전';
   return Math.floor(h/24)+'일 전';
 }
-function addNotif(icon,bg,title,desc){
+function addNotif(icon,bg,title,desc,productId){
   const items=lsGet('notifHistory',[]);
-  items.unshift({icon,bg,title,desc,ts:Date.now()});
+  const entry={icon,bg,title,desc,ts:Date.now()};
+  if(productId)entry.productId=productId;
+  items.unshift(entry);
   if(items.length>50)items.pop();
   lsSet('notifHistory',items);
   const dot=document.getElementById('notif-dot');
