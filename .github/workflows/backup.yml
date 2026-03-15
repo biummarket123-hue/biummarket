@@ -16,10 +16,12 @@ jobs:
       - name: Node.js 설치
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Supabase CLI 설치
-        run: npm install -g supabase
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/supabase
 
       - name: 백업 폴더 생성
         run: mkdir -p backups
