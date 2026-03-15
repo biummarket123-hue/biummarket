@@ -7637,10 +7637,35 @@ function renderNotices(){
     return;
   }
   el.innerHTML=notices.map(n=>`
-    <div style="padding:18px 16px;border-bottom:1px solid #e0e0ea;cursor:pointer" onclick="showToast('${n.date} · ${n.author}')">
-      <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:5px">${n.title}</div>
+    <div style="padding:18px 16px;border-bottom:1px solid #e0e0ea;cursor:pointer;transition:background .15s" onmouseenter="this.style.background='#f8f8fa'" onmouseleave="this.style.background=''" onclick="openNoticeDetail(${n.id})">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db;padding:2px 8px;border-radius:10px">공지</span>
+        <div style="font-size:14px;font-weight:600;color:#1a1a1a">${n.title}</div>
+      </div>
       <div style="font-size:12px;color:#666677">${n.date} · ${n.author}</div>
     </div>`).join('');
+}
+
+function openNoticeDetail(id){
+  const n=notices.find(x=>x.id===id);if(!n)return;
+  const existing=document.getElementById('modal-notice-detail');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='modal-notice-detail';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML=`
+    <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:20px;max-height:80vh;overflow-y:auto">
+      <div style="width:36px;height:4px;background:#e0e0ea;border-radius:2px;margin:0 auto 16px"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db;padding:2px 8px;border-radius:10px">공지</span>
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;flex:1">${n.title}</div>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:16px">${n.date} · ${n.author}</div>
+      <div style="font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;border-top:1px solid #e0e0ea;padding-top:16px">${n.content||'내용이 없어요.'}</div>
+      <button onclick="document.getElementById('modal-notice-detail').remove()" style="width:100%;margin-top:20px;padding:14px;background:#6c63ff;color:#fff;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">확인</button>
+    </div>`;
+  modal.onclick=function(e){if(e.target===modal)modal.remove();};
+  document.body.appendChild(modal);
 }
 
 /* ==================== ANALYTICS ==================== */
