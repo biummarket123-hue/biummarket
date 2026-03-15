@@ -1733,7 +1733,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:6px">회사 사진</div>
       <div style="font-size:12px;color:#666677;margin-bottom:12px">회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 6장)</div>
       <div id="pe-photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
-      <button onclick="showToast('사진 등록 기능 준비중이에요')" style="padding:10px 18px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:12px;color:#888899;font-size:13px;font-weight:600;cursor:pointer">+ 사진 추가</button>
+      <input type="file" id="pe-photo-input" accept="image/*" multiple style="display:none" onchange="addCompanyPhotos(this)"/>
+      <button onclick="document.getElementById('pe-photo-input').click()" style="padding:10px 18px;background:#f5f0e8;border:1px solid #c8a84b;border-radius:12px;color:#c8a84b;font-size:13px;font-weight:600;cursor:pointer">+ 사진 추가</button>
     </div>
     <!-- 하단 저장 -->
     <div style="padding:20px 16px">
@@ -5279,10 +5280,41 @@ function renderProfileEdit(){
   peShipSel=[...(profile.ship||[])];
   pePaySel=[...(profile.pay||[])];
   renderPeChips();
+  renderCompanyPhotos();
   const instaEl=document.getElementById('pe-insta');
   if(instaEl)instaEl.value=profile.insta||'';
   const blogEl=document.getElementById('pe-blog');
   if(blogEl)blogEl.value=profile.blog||'';
+}
+function addCompanyPhotos(input){
+  const files=Array.from(input.files);
+  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  if(photos.length+files.length>6){showToast('사진은 최대 6장까지 등록할 수 있어요');return;}
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      photos.push(e.target.result);
+      localStorage.setItem('companyPhotos',JSON.stringify(photos));
+      renderCompanyPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function renderCompanyPhotos(){
+  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  const el=document.getElementById('pe-photos');if(!el)return;
+  el.innerHTML=photos.map((src,i)=>`
+    <div style="position:relative;width:80px;height:80px">
+      <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #e0e0ea"/>
+      <button onclick="removeCompanyPhoto(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#ef4444;color:#fff;border-radius:50%;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none">×</button>
+    </div>`).join('');
+}
+function removeCompanyPhoto(idx){
+  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  photos.splice(idx,1);
+  localStorage.setItem('companyPhotos',JSON.stringify(photos));
+  renderCompanyPhotos();
 }
 async function saveProfile(){
   const name=document.getElementById('pe-name').value.trim();
