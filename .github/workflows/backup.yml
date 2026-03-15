@@ -1,6 +1,8 @@
 name: Supabase DB 자동 백업
 
 on:
+permissions:
+  contents: write
   schedule:
     - cron: '0 18 * * *'
   workflow_dispatch:
