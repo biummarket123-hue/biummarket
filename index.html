@@ -2086,16 +2086,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- MODAL: CHAT -->
-<div class="mover" id="modal-chat" onclick="closeModal('modal-chat',event)">
-  <div class="msheet">
-    <div class="mhandle"></div>
-    <div style="font-size:40px;text-align:center;margin-bottom:10px">💬</div>
-    <div class="mtitle">채팅하기</div>
-    <div class="mdesc">실시간 채팅 기능은 준비 중입니다.<br>빠른 시일 내에 오픈할게요!</div>
-    <button class="mclose" onclick="closeModal('modal-chat')">확인</button>
-  </div>
-</div>
 
 <!-- MODAL: PRICE SUGGEST -->
 <div class="mover" id="modal-suggest" onclick="closeModal('modal-suggest',event)">
@@ -7580,18 +7570,25 @@ function markAllAppNotificationsRead(userId){
 function renderNotifView(){
   const el=document.getElementById('notif-items-list');if(!el)return;
   const items=lsGet('notifHistory',[]);
-  // 타겟 알림도 합치기
   const userId=curUser?.id||curUser?.email;
-  const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>({
-    icon:n.type==='seller_request'?'📋':n.type==='seller_approved'?'✅':'❌',
-    bg:n.type==='seller_request'?'rgba(201,168,76,.15)':n.type==='seller_approved'?'rgba(0,200,100,.15)':'rgba(229,57,53,.15)',
-    title:n.type==='seller_request'?'판매자 신청':n.type==='seller_approved'?'판매자 승인':'판매자 거절',
-    desc:n.message,
-    ts:new Date(n.createdAt).getTime(),
-    _type:n.type
-  })):[];
+  // 타입별 아이콘/색상/제목/클릭액션 매핑
+  const TYPE_META={
+    seller_request:{icon:'📋',bg:'rgba(201,168,76,.15)',title:'판매자 신청',action:"showView('admin')"},
+    seller_approved:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'판매자 승인',action:"showView('mypage')"},
+    seller_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'판매자 거절',action:"showView('mypage')"},
+    price_offer:{icon:'💰',bg:'rgba(201,168,76,.15)',title:'가격제안 도착',action:"showView('my-offers');renderMyOffers()"},
+    offer_accepted:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'가격제안 수락',action:"showView('my-offers');renderMyOffers()"},
+    offer_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'가격제안 거절',action:"showView('my-offers');renderMyOffers()"},
+    offer_counter:{icon:'🔄',bg:'rgba(108,99,255,.15)',title:'역제안 도착',action:"showView('my-offers');renderMyOffers()"},
+    reservation_request:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 신청',action:"showView('my-reservations');renderMyReservations()"},
+    resv_confirmed:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'예약 확정',action:"showView('my-reservations');renderMyReservations()"},
+    resv_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'예약 거절',action:"showView('my-reservations');renderMyReservations()"},
+  };
+  const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
+    const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
+    return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data};
+  }):[];
   const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
-  // 알림 화면 열면 빨간 점 제거 + 읽음 처리
   const dot=document.getElementById('notif-dot');
   if(dot)dot.style.display='none';
   if(userId)markAllAppNotificationsRead(userId);
@@ -7603,7 +7600,13 @@ function renderNotifView(){
     '신규 상품 등록':{bg:'#e3f2fd',color:'#1565c0'},
     '관심 등록':{bg:'#fce4ec',color:'#c62828'},
     '가격제안 도착':{bg:'#fff8e1',color:'#f57f17'},
+    '가격제안 수락':{bg:'#e8f5e9',color:'#2e7d32'},
+    '가격제안 거절':{bg:'#fff5f5',color:'#e53935'},
+    '역제안 도착':{bg:'#ede9fe',color:'#6c63ff'},
     '구매요청 도착':{bg:'#e8f5e9',color:'#2e7d32'},
+    '예약 신청':{bg:'#e0f7fa',color:'#00838f'},
+    '예약 확정':{bg:'#e8f5e9',color:'#2e7d32'},
+    '예약 거절':{bg:'#fff5f5',color:'#e53935'},
     '새 메시지':{bg:'#f3e5f5',color:'#6a1b9a'},
     '키워드 알림':{bg:'#fff9e6',color:'#856404'},
     '판매자 신청':{bg:'#fffbeb',color:'#c8962a'},
@@ -7612,8 +7615,17 @@ function renderNotifView(){
   };
   el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
-    const onclick=item._type==='seller_request'?"onclick=\"showView('admin');showAdminUsers&&showAdminUsers();\"":"";
-    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer" ${onclick}>
+    // 클릭 액션 결정
+    let onclickAttr='';
+    if(item._action){
+      onclickAttr=`onclick="${item._action}"`;
+    }else if(item.productId){
+      onclickAttr=`onclick="openDetail(${item.productId})"`;
+    }else if(item.title==='관심 등록'&&item.desc){
+      const match=item.desc.match(/\d+/);
+      if(match)onclickAttr=`onclick="openDetail(${match[0]})"`;
+    }
+    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s" ${onclickAttr} onmouseenter="this.style.background='#f8f8fa'" onmouseleave="this.style.background=''">
       <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
@@ -7622,6 +7634,7 @@ function renderNotifView(){
         <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">${item.desc||''}</div>
         <div style="font-size:11px;color:#999999;margin-top:2px">${timeAgo(item.ts)}</div>
       </div>
+      <div style="font-size:16px;color:#cccccc;align-self:center">›</div>
     </div>`;
   }).join('');
 }
