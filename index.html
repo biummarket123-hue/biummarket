@@ -6294,6 +6294,7 @@ function renderHomeBanners(){
   _bannerRotTimer=setInterval(()=>{_bannerIdx=(_bannerIdx+1)%all.length;update();},4000);
 }
 function renderAdmin(){
+  if(!isAdmin()){showToast('관리자만 접근할 수 있어요');showView('mypage');return;}
   const el=document.getElementById('admin-content');
   if(!el)return;
   const urgentCnt=products.filter(p=>(p.tags||[]).includes('급처')).length;
