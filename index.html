@@ -446,7 +446,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .img-upload-icon{font-size:30px;opacity:.55}
 .img-upload-text{font-size:13px;font-weight:600;color:#888899}
 .img-upload-sub{font-size:11px;color:#666677}
-.ai-price-box{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:12px;padding:10px 12px;font-size:12px;color:#66bb6a;line-height:1.6}
 
 /* ===== FORM v2 — CHIP CATEGORY / AI / TOGGLE ===== */
 /* 사진 업로드 영역 */
@@ -979,11 +978,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="pd-section" id="pd-desc-section">
       <div class="pd-section-title">상품 설명</div>
       <div class="pd-desc" id="pd-desc"></div>
-    </div>
-    <!-- 10. AI 가격 예측 -->
-    <div class="pd-section" id="pd-ai-section">
-      <div class="pd-section-title">✨ AI 가격 예측</div>
-      <div id="pd-ai-content"></div>
     </div>
     <!-- 11. 비슷한 원단 -->
     <div class="pd-section" id="pd-similar-section">
@@ -4031,14 +4025,6 @@ function openDetail(id){
   set('pd-desc',p.description||'');
   if(descSection)descSection.style.display=p.description?'':' none';
 
-  // 10. AI 가격 예측
-  const aiContent=document.getElementById('pd-ai-content');
-  if(aiContent){
-    const aiLow=Math.round(p.price*0.85);
-    const aiHigh=Math.round(p.price*1.15);
-    const verdict=p.list_price&&p.list_price>p.price?'저렴해요 👍':'시장 적정가 ✅';
-    aiContent.innerHTML=`<div style="background:#ffffff;border:1px solid #e0e0ea;border-radius:16px;padding:16px;margin:12px 0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:12px"><span style="width:10px;height:10px;background:#f5c518;border-radius:50%;display:inline-block"></span><span style="font-size:15px;font-weight:700;color:#1a1a1a">AI 가격 예측</span></div><div style="background:#f8f8fa;border-radius:12px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div><div style="font-size:11px;color:#888;margin-bottom:4px">현재가</div><div style="font-size:22px;font-weight:800;color:#1a1a1a">${fmtPrice(p.price)}</div></div><div style="font-size:28px">📈</div><div style="text-align:right"><div style="font-size:11px;color:#888;margin-bottom:4px">3개월 후</div><div style="font-size:22px;font-weight:800;color:#e53935">${fmtPrice(aiHigh)}</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="background:#fff0f0;color:#e53935;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">+15% 상승 전망</span><span style="background:#fff9e6;color:#c8962a;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">🎯 신뢰도 75%</span></div><div style="font-size:11px;color:#888">📊 원자재 시세 + 시즌 수요 + 시장 데이터 기반</div></div></div>`;
-  }
 
   // 11. 비슷한 원단
   const simSection=document.getElementById('pd-similar-section');
