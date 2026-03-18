@@ -2796,8 +2796,8 @@ function mergeWithLocalUser(sbProfile){
     ...sbProfile,
     type:sbProfile.type||localUser.type||'buyer',
     role:localUser.role||sbProfile.type||'buyer',
-    sellerStatus:localUser.sellerStatus||sbProfile.sellerStatus||'none',
-    requestedRole:localUser.requestedRole||sbProfile.requestedRole||'',
+    sellerStatus:sbProfile.seller_status||localUser.sellerStatus||sbProfile.sellerStatus||'none',
+    requestedRole:sbProfile.requested_role||localUser.requestedRole||sbProfile.requestedRole||'',
     pw:localUser.pw||sbProfile.pw||''
   };
 }
@@ -7267,10 +7267,12 @@ async function adminApproveSeller(idx){
     lsSet('users', users);
   }
 
-  // 3. Supabase 업데이트 (type 컬럼만 사용)
+  // 3. Supabase 업데이트
   if(_sb && u.id && u.id.length > 5){
     const {error} = await _sb.from('users').update({
-      type: requestedRole
+      type: requestedRole,
+      seller_status: 'approved',
+      requested_role: requestedRole
     }).eq('id', u.id);
     if(error) console.error('Supabase 승인 오류:', error);
   }
