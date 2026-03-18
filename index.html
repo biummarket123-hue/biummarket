@@ -7136,7 +7136,7 @@ function showAdminUserDetail(idx){
         const bizfileHtml=extra.bizfile?`
           <div style="margin-top:10px">
             <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">📎 사업자등록증</div>
-            <img src="${extra.bizfile}" style="width:100%;border-radius:10px;border:1px solid #e0e0ea;cursor:pointer" onclick="window.open(this.src)" alt="사업자등록증"/>
+            <img src="${extra.bizfile}" style="width:100%;border-radius:10px;border:1px solid #e0e0ea;cursor:pointer;transition:opacity .15s" onclick="openBizfileViewer(this.src)" alt="사업자등록증"/>
           </div>`:'';
         return `
           <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
@@ -7146,6 +7146,23 @@ function showAdminUserDetail(idx){
           </div>`;
       })()}
     </div>`;
+}
+function openBizfileViewer(src){
+  const existing=document.getElementById('bizfile-viewer');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='bizfile-viewer';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML=`
+    <div style="position:relative;max-width:100%;max-height:100%">
+      <button onclick="document.getElementById('bizfile-viewer').remove()" style="position:absolute;top:-40px;right:0;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:24px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+      <img src="${src}" style="max-width:90vw;max-height:85vh;border-radius:12px;object-fit:contain" alt="사업자등록증"/>
+      <div style="text-align:center;margin-top:10px">
+        <a href="${src}" download="사업자등록증" style="color:#fff;font-size:13px;text-decoration:underline">⬇️ 다운로드</a>
+      </div>
+    </div>`;
+  overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 function adminChangeUserRole(idx,newRole){
   if(!isAdmin())return;
