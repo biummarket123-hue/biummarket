@@ -3325,7 +3325,19 @@ async function doSignup(){
   try{
     const{data,error}=await _sb.auth.signUp({email,password:pw});
     if(error){showToast(error.message||'회원가입에 실패했어요');return;}
-    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify({...sellerExtra,...companyExtra})};
+    // 사업자등록증 base64 변환
+    let bizfileBase64='';
+    const bizfileInput=document.getElementById('s-bizfile');
+    if(bizfileInput&&bizfileInput.files[0]){
+      bizfileBase64=await new Promise(res=>{
+        const reader=new FileReader();
+        reader.onload=e=>res(e.target.result);
+        reader.readAsDataURL(bizfileInput.files[0]);
+      });
+    }
+    const extraData={...sellerExtra,...companyExtra};
+    if(bizfileBase64)extraData.bizfile=bizfileBase64;
+    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     await _sb.from('users').insert(newProfile);
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
@@ -7085,20 +7097,47 @@ function showAdminUserDetail(idx){
         <textarea id="adm-user-memo" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;color:#1a1a1a;resize:vertical;min-height:60px;box-sizing:border-box" placeholder="메모 입력...">${u.adminMemo||''}</textarea>
         <button onclick="adminSaveUserMemo(${idx})" style="margin-top:6px;padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 메모 저장</button>
       </div>
-      ${(()=>{
-        let extra=null;try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
-        const tel=u.tel||'';
-        if(!tel&&(!extra||!Object.keys(extra).length))return '';
-        const labelMap={intro:'인사말',tags:'전문 태그',hours:'영업시간',moq:'최소 주문량(MOQ)',ship:'배송방법',pay:'결제방법',bizName:'회사명',ceo:'대표자명',biznum:'사업자등록번호',address:'사업장 주소',founded:'설립년도'};
-        let rows='';
-        if(tel)rows+=`<tr><td style="padding:6px 10px;font-size:12px;color:#888;white-space:nowrap;vertical-align:top">전화번호</td><td style="padding:6px 10px;font-size:13px;color:#1a1a1a">${tel}</td></tr>`;
-        if(extra){Object.entries(extra).forEach(([k,v])=>{if(v&&v!=='null'){const val=Array.isArray(v)?v.join(', '):v;if(val)rows+=`<tr><td style="padding:6px 10px;font-size:12px;color:#888;white-space:nowrap;vertical-align:top">${labelMap[k]||k}</td><td style="padding:6px 10px;font-size:13px;color:#1a1a1a">${val}</td></tr>`;}});}
-        return rows?`<div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">추가 정보</div><div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden"><table style="width:100%;border-collapse:collapse">${rows}</table></div></div>`:'';
-      })()}
       <div style="display:flex;gap:10px">
         <button onclick="adminToggleUserStatus(${idx})" style="flex:1;padding:14px;background:${isSuspended?'#e8f5e9':'#fff5f5'};border:1px solid ${isSuspended?'#c8e6c9':'#ffcdd2'};border-radius:14px;font-size:14px;font-weight:700;color:${isSuspended?'#2e7d32':'#e53935'};cursor:pointer">${isSuspended?'✅ 활성화':'🚫 정지'}</button>
         <button onclick="adminDeleteUser(${idx})" style="flex:1;padding:14px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;font-size:14px;font-weight:700;color:#e53935;cursor:pointer">🗑️ 강제 탈퇴</button>
       </div>
+      ${(()=>{
+        // extra_info 파싱
+        let extra={};
+        try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
+        const tel=u.tel||extra.tel||'';
+        const hasExtra=Object.keys(extra).some(k=>extra[k]);
+        if(!hasExtra&&!tel)return '';
+        const rows=[];
+        if(tel)rows.push(['📞 전화번호',tel]);
+        if(extra.intro||u.intro)rows.push(['💬 인사말',extra.intro||u.intro||'']);
+        if(extra.address||u.loc)rows.push(['📍 주소',extra.address||u.loc||'']);
+        if(extra.bizName)rows.push(['🏢 회사명',extra.bizName]);
+        if(extra.ceo)rows.push(['👤 대표자',extra.ceo]);
+        if(extra.biznum)rows.push(['📄 사업자번호',extra.biznum]);
+        if(extra.founded)rows.push(['📅 설립년도',extra.founded]);
+        if(extra.hours)rows.push(['🕐 영업시간',extra.hours]);
+        if(extra.moq)rows.push(['📦 최소주문량',extra.moq]);
+        if(extra.ship)rows.push(['🚚 배송방법',extra.ship]);
+        if(extra.pay)rows.push(['💳 결제방법',extra.pay]);
+        if(extra.tags&&extra.tags.length)rows.push(['🏷️ 태그',Array.isArray(extra.tags)?extra.tags.join(', '):extra.tags]);
+        const tableHtml=rows.map(([k,v])=>`
+          <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f5">
+            <span style="font-size:12px;color:#888;min-width:90px;flex-shrink:0">${k}</span>
+            <span style="font-size:12px;color:#1a1a1a;flex:1;word-break:break-all">${v}</span>
+          </div>`).join('');
+        const bizfileHtml=extra.bizfile?`
+          <div style="margin-top:10px">
+            <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">📎 사업자등록증</div>
+            <img src="${extra.bizfile}" style="width:100%;border-radius:10px;border:1px solid #e0e0ea;cursor:pointer" onclick="window.open(this.src)" alt="사업자등록증"/>
+          </div>`:'';
+        return `
+          <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
+            <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">📋 추가 정보</div>
+            ${tableHtml}
+            ${bizfileHtml}
+          </div>`;
+      })()}
     </div>`;
 }
 function adminChangeUserRole(idx,newRole){
