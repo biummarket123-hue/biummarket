@@ -5473,19 +5473,29 @@ async function doChangePw(){
   if(!cur){showToast('현재 비밀번호를 입력해주세요');return;}
   if(nw.length<6){showToast('새 비밀번호는 6자 이상이어야 해요');return;}
   if(nw!==cf){showToast('새 비밀번호가 일치하지 않아요');return;}
+  if(nw===cur){showToast('새 비밀번호가 현재 비밀번호와 같아요');return;}
   // 로컬 계정(admin 등) 처리
   if(!_sb||curUser?.email==='admin'){
     if(curUser?.pw!==cur){showToast('현재 비밀번호가 틀렸어요');return;}
     if(curUser){curUser.pw=nw;lsSet('curUser',curUser);}
     closeModal('modal-change-pw');showToast('비밀번호가 변경됐어요 ✅');return;
   }
-  // Supabase Auth
+  // 소셜 로그인 계정 체크 (구글/카카오/네이버)
+  const provider=curUser?.provider||curUser?.loginType||'';
+  if(provider&&provider!=='email'){
+    showToast(`${provider} 로그인 계정은 비밀번호 변경이 불가해요`);return;
+  }
+  // 현재 비밀번호 확인 (재로그인으로 검증)
   try{
-    const {error}=await _sb.auth.updateUser({password:nw});
+    const{error:signInErr}=await _sb.auth.signInWithPassword({email:curUser.email,password:cur});
+    if(signInErr){showToast('현재 비밀번호가 틀렸어요');return;}
+    // 새 비밀번호로 변경
+    const{error}=await _sb.auth.updateUser({password:nw});
     if(error)throw error;
-    closeModal('modal-change-pw');showToast('비밀번호가 변경됐어요 ✅');
+    closeModal('modal-change-pw');
+    showToast('비밀번호가 변경됐어요 ✅');
   }catch(e){
-    showToast('비밀번호 변경 실패. 재로그인 후 시도해주세요');
+    showToast('비밀번호 변경 실패: '+(e.message||'다시 시도해주세요'));
     console.error(e);
   }
 }
