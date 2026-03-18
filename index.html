@@ -6377,7 +6377,7 @@ function renderAdmin(){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px">
       <div style="background:#e8f0fb;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#4A90D9" id="adm-cnt-products">${products.length}</div><div style="font-size:11px;color:#666677;margin-top:4px">총 상품</div></div>
-      <div style="background:#e8f8f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#00b386" id="adm-cnt-users">3</div><div style="font-size:11px;color:#666677;margin-top:4px">총 회원</div></div>
+      <div style="background:#e8f8f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#00b386" id="adm-cnt-users">-</div><div style="font-size:11px;color:#666677;margin-top:4px">총 회원</div></div>
       <div style="background:#fffbeb;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#c8962a" id="adm-cnt-chats">${chatsCnt}</div><div style="font-size:11px;color:#666677;margin-top:4px">총 채팅</div></div>
       <div style="background:#fff0f0;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#e53935" id="adm-cnt-urgent">${urgentCnt}</div><div style="font-size:11px;color:#666677;margin-top:4px">급처 상품</div></div>
     </div>
@@ -6427,7 +6427,7 @@ function renderAdmin(){
     </div>`;
   if(_sb){
     _sb.from('products').select('id',{count:'exact',head:true}).then(({count})=>{if(count!=null){const e=document.getElementById('adm-cnt-products');if(e)e.textContent=count;const s=document.getElementById('adm-prod-sub');if(s)s.textContent=`${count}개 등록 · 급처 ${urgentCnt}개`;}});
-    _sb.from('users').select('id',{count:'exact',head:true}).then(({count})=>{const total=Math.max(count||0,3);const e=document.getElementById('adm-cnt-users');if(e)e.textContent=total;const s=document.getElementById('adm-user-sub');if(s)s.textContent=`${total}명 가입`;});
+    _sb.from('users').select('id',{count:'exact',head:true}).then(({count})=>{const total=count||0;const e=document.getElementById('adm-cnt-users');if(e)e.textContent=total;const s=document.getElementById('adm-user-sub');if(s)s.textContent=`${total}명 가입`;});
   }
 }
 function showAdminCategories(){
