@@ -1769,17 +1769,17 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
     </div>
     <!-- 인사말·소개 -->
-    <div style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
-      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">인사말·소개</div>
-      <div class="fg"><label>인사말 <span style="font-size:11px;color:#666677;font-weight:400">(미니홈피에 표시)</span></label>
-        <textarea class="fi" id="pe-intro" placeholder="예) 20년 경력 동대문 원단 도매업체입니다. 면/린넨 전문으로 OEM 납품도 가능합니다." style="min-height:90px"></textarea>
+    <div id="pe-intro-section" style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px" id="pe-intro-title">인사말·소개</div>
+      <div class="fg"><label>인사말</label>
+        <textarea class="fi" id="pe-intro" placeholder="예) 안녕하세요! 원단 소싱 전문 구매자입니다." style="min-height:90px"></textarea>
       </div>
-      <div class="fg"><label>태그 <span style="font-size:11px;color:#666677;font-weight:400">(쉼표로 구분)</span></label>
-        <input type="text" class="fi" id="pe-tags" placeholder="예) 면/린넨 전문, 25년 경력, OEM 납품"/>
+      <div class="fg" id="pe-tags-wrap"><label>관심 태그 <span style="font-size:11px;color:#666677;font-weight:400">(쉼표로 구분)</span></label>
+        <input type="text" class="fi" id="pe-tags" placeholder="예) 면, 린넨, 니트"/>
       </div>
     </div>
     <!-- 영업·거래 조건 -->
-    <div style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
+    <div id="pe-trade-section" style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">영업·거래 조건</div>
       <div class="fg"><label>영업시간</label><input type="text" class="fi" id="pe-hours" placeholder="예) 월-토 08:00-19:00 | 일요일 휴무"/></div>
       <div class="fg"><label>최소주문량</label><input type="text" class="fi" id="pe-moq" placeholder="예) 100야드"/></div>
@@ -1791,15 +1791,15 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
     </div>
     <!-- SNS·홍보 -->
-    <div style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
+    <div id="pe-sns-section" style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">SNS·홍보</div>
       <div class="fg"><label>인스타그램</label><input type="text" class="fi" id="pe-insta" placeholder="@계정명 또는 URL"/></div>
       <div class="fg"><label>블로그</label><input type="text" class="fi" id="pe-blog" placeholder="블로그 URL"/></div>
     </div>
-    <!-- 회사 사진 -->
-    <div style="padding:16px;border-bottom:1px solid #e0e0ea">
-      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:6px">회사 사진</div>
-      <div style="font-size:12px;color:#666677;margin-bottom:12px">회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 6장)</div>
+    <!-- 프로필/회사 사진 -->
+    <div id="pe-photos-section" style="padding:16px;border-bottom:1px solid #e0e0ea">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:6px" id="pe-photos-title">프로필 사진</div>
+      <div style="font-size:12px;color:#666677;margin-bottom:12px" id="pe-photos-desc">프로필 사진을 등록하세요 (최대 1장)</div>
       <div id="pe-photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <input type="file" id="pe-photo-input" accept="image/*" multiple style="display:none" onchange="addCompanyPhotos(this)"/>
       <button onclick="document.getElementById('pe-photo-input').click()" style="padding:10px 18px;background:#f5f0e8;border:1px solid #c8a84b;border-radius:12px;color:#c8a84b;font-size:13px;font-weight:600;cursor:pointer">+ 사진 추가</button>
@@ -1807,7 +1807,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 하단 저장 -->
     <div style="padding:20px 16px">
       <button onclick="saveProfile()" style="width:100%;padding:16px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.3px">💾 저장하기</button>
-      <div style="text-align:center;font-size:12px;color:#666677;margin-top:10px">저장 후 미니홈피에 즉시 반영됩니다</div>
+      <div style="text-align:center;font-size:12px;color:#666677;margin-top:10px" id="pe-save-desc">저장 후 미니홈피에 즉시 반영됩니다</div>
     </div>
   </div>
 </div>
@@ -5474,11 +5474,40 @@ function renderProfileEdit(){
 
   // 유형별 섹션 표시/숨김
   const companySection=document.getElementById('pe-company-section');
-  const sellerSection=document.getElementById('pe-seller-section');
-  const buyerSection=document.getElementById('pe-buyer-section');
   if(companySection)companySection.style.display=role==='both'?'block':'none';
-  if(sellerSection)sellerSection.style.display=role==='seller'?'block':'none';
-  if(buyerSection)buyerSection.style.display=(role==='buyer'||role==='')?'block':'none';
+  const isBuyerRole=role==='buyer'||role===''||role==='guest';
+  const isSellerRole=role==='seller'||role==='both';
+  // 영업·거래 조건 - 판매자만
+  const tradeSection=document.getElementById('pe-trade-section');
+  if(tradeSection)tradeSection.style.display=isSellerRole?'block':'none';
+  // SNS·홍보 - 판매자만
+  const snsSection=document.getElementById('pe-sns-section');
+  if(snsSection)snsSection.style.display=isSellerRole?'block':'none';
+  // 인사말 placeholder 변경
+  const introEl2=document.getElementById('pe-intro');
+  if(introEl2&&isBuyerRole)introEl2.placeholder='예) 안녕하세요! 패션 의류 소싱 전문 구매자입니다.';
+  else if(introEl2&&role==='seller')introEl2.placeholder='예) 안녕하세요! 동대문 원단 개인 판매자입니다.';
+  else if(introEl2)introEl2.placeholder='예) 20년 경력 동대문 원단 도매업체입니다.';
+  // 태그 placeholder 변경
+  const tagsEl2=document.getElementById('pe-tags');
+  if(tagsEl2&&isBuyerRole)tagsEl2.placeholder='예) 면, 린넨, 니트, 데님';
+  else if(tagsEl2)tagsEl2.placeholder='예) 면/린넨 전문, 25년 경력, OEM 납품';
+  // 사진 섹션 텍스트 변경
+  const photosTitle=document.getElementById('pe-photos-title');
+  const photosDesc=document.getElementById('pe-photos-desc');
+  if(isBuyerRole){
+    if(photosTitle)photosTitle.textContent='프로필 사진';
+    if(photosDesc)photosDesc.textContent='프로필 사진을 등록하세요 (최대 1장)';
+  }else{
+    if(photosTitle)photosTitle.textContent='회사 사진';
+    if(photosDesc)photosDesc.textContent='회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 6장)';
+  }
+  // 이름 라벨 변경
+  const nameLabelEl=document.getElementById('pe-name-label');
+  if(nameLabelEl)nameLabelEl.innerHTML=isBuyerRole?'이름 <span class="req">*</span>':'회사명 <span class="req">*</span>';
+  // 저장 후 안내 텍스트 변경
+  const saveDesc=document.getElementById('pe-save-desc');
+  if(saveDesc)saveDesc.textContent=isBuyerRole?'저장 후 프로필에 즉시 반영됩니다':'저장 후 미니홈피에 즉시 반영됩니다';
 
   // 공통 필드
   const nameEl=document.getElementById('pe-name');
