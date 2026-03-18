@@ -866,9 +866,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="home-cats" id="home-cats"></div>
     <!-- 프리미엄 배너 -->
     <div id="home-premium-banner" class="premium-banner">
-      <div class="premium-badge">★ PREMIUM</div>
+      <div class="premium-badge">★ BIUM MARKET</div>
       <div class="premium-title">동대문 재고원단 프리미엄 거래</div>
       <div class="premium-sub">검증된 셀러의 고품질 원단을 만나보세요</div>
+      <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;position:relative;z-index:1">
+        <button onclick="showView('category')" style="flex:1;padding:11px 0;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer">🧵 지금 둘러보기</button>
+        <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 판매자 입점</button>
+      </div>
     </div>
     <!-- AI 추천 섹션 -->
     <div class="ai-section">
@@ -3839,6 +3844,7 @@ function renderList(){
   renderHomeSections();
   initNoticeRotation();
   renderHomeBanners();
+  updateBannerStats();
 }
 
 function appendListPage(){
@@ -6299,9 +6305,14 @@ function renderHomeBanners(){
         ${b.linkUrl?'<div style="font-size:10px;color:rgba(255,255,255,.6)">AD · 탭하여 이동</div>':''}
       </div>${dots}`;
     }
-    return `<div class="premium-badge">★ PREMIUM</div>
+    return `<div class="premium-badge">★ BIUM MARKET</div>
     <div class="premium-title" style="transition:opacity .3s">${b.title}</div>
     <div class="premium-sub">${b.desc||b.description||''}</div>
+    <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;position:relative;z-index:1">
+      <button onclick="showView('category')" style="flex:1;padding:11px 0;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer">🧵 지금 둘러보기</button>
+      <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 판매자 입점</button>
+    </div>
     ${dots}`;
   };
   const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:10px;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'};transition:.3s"></div>`).join('')}</div>`:'';
@@ -6309,7 +6320,32 @@ function renderHomeBanners(){
   _bannerIdx=0;
   const update=()=>{wrap.innerHTML=renderSlide(all[_bannerIdx],makeDots(_bannerIdx));};
   update();
-  _bannerRotTimer=setInterval(()=>{_bannerIdx=(_bannerIdx+1)%all.length;update();},4000);
+  _bannerRotTimer=setInterval(()=>{_bannerIdx=(_bannerIdx+1)%all.length;update();updateBannerStats();},4000);
+}
+function updateBannerStats(){
+  const el=document.getElementById('banner-stats');if(!el)return;
+  const totalProducts=products.length;
+  const totalQty=products.reduce((a,p)=>a+(p.qty||0),0);
+  const totalSellers=new Set(products.map(p=>p.seller?.name||p.seller_id).filter(Boolean)).size;
+  const urgentCount=products.filter(p=>p.is_urgent||(p.tags||[]).includes('급처')).length;
+  const todayCount=products.filter(p=>{
+    if(!p.created_at)return p.time&&p.time.includes('방금')||p.time&&p.time.includes('1시간');
+    const d=new Date(p.created_at);
+    return(Date.now()-d.getTime())<86400000;
+  }).length;
+  const stats=[
+    {label:'총 상품',value:totalProducts+'개',icon:'🧵'},
+    {label:'총 재고',value:totalQty.toLocaleString()+'마',icon:'📦'},
+    {label:'판매자',value:totalSellers+'명',icon:'🏪'},
+    {label:'급처',value:urgentCount+'개',icon:'⚡'},
+    {label:'오늘 신규',value:todayCount+'개',icon:'🆕'},
+  ];
+  el.innerHTML=stats.map(s=>`
+    <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;text-align:center;min-width:60px">
+      <div style="font-size:16px;margin-bottom:2px">${s.icon}</div>
+      <div style="font-size:15px;font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px">${s.label}</div>
+    </div>`).join('');
 }
 function renderAdmin(){
   if(!isAdmin()){showToast('관리자만 접근할 수 있어요');showView('mypage');return;}
