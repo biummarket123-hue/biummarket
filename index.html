@@ -2853,7 +2853,7 @@ if(window.Kakao&&!window.Kakao.isInitialized()){
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
   {id:'admin',name:'관리자',email:'admin',pw:'1234',type:'admin',role:'admin',loc:'서울 동대문구',temp:99.9,joinDate:'2024-01-01'},
-  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'seller',role:'seller',sellerStatus:'approved',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
+  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'both',role:'both',sellerStatus:'approved',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
    intro:'동대문 20년 경력 원단 도매업체입니다. 면/폴리 중심으로 재고원단을 합리적인 가격에 공급합니다.',
    bizName:'(주)에이원텍스타일',ceo:'김에이원',tel:'02-1234-5678'},
   {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'buyer',role:'buyer',sellerStatus:'none',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
@@ -3306,7 +3306,7 @@ async function doSignup(){
   }
   if(pw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
   // 판매자 선택 시 → buyer + pending 처리
-  const wantsSeller=['seller','seller+buyer','both'].includes(selectedUserType);
+  const wantsSeller=['seller','both'].includes(selectedUserType);
   const actualType=wantsSeller?'buyer':selectedUserType;
   const sellerStatus=wantsSeller?'pending':'none';
   const requestedRole=wantsSeller?selectedUserType:'';
@@ -3445,7 +3445,7 @@ function selectType(type,el){
   el.classList.add('sel');
   // 판매자 안내 표시
   const notice=document.getElementById('seller-notice');
-  if(notice)notice.style.display=['seller','both','seller+buyer'].includes(type)?'block':'none';
+  if(notice)notice.style.display=['seller','both'].includes(type)?'block':'none';
   // 유형별 폼 토글
   const sellerFields=document.getElementById('signup-seller-fields');
   const companyFields=document.getElementById('signup-company-fields');
@@ -5430,9 +5430,9 @@ const LOCATION_OPTIONS=[
   '서울 종로구 창신동','서울 중구 신당동','서울 동대문구 답십리',
 ];
 const TYPE_OPTIONS=[
-  {key:'seller',label:'판매자',sub:'원단 도매 · 재고 판매',icon:'🏭'},
+  {key:'seller',label:'개인 판매자',sub:'개인 원단 도매·재고 판매',icon:'👤'},
   {key:'buyer',label:'구매자',sub:'원단 소싱 · 구매',icon:'🛒'},
-  {key:'both',label:'겸업',sub:'판매 + 구매 모두',icon:'🔄'},
+  {key:'both',label:'업체 판매자',sub:'법인·사업자 등록 업체',icon:'🏭'},
 ];
 function renderSettings(){
   const u=curUser||{};
@@ -5579,7 +5579,7 @@ async function doChangeLoc(loc){
 async function doChangeType(newType){
   if(!curUser)return;
 
-  const isSelling=['seller','seller+buyer','both'].includes(newType);
+  const isSelling=['seller','both'].includes(newType);
 
   if(isSelling){
     // 판매자로 변경 시 승인 필요
@@ -5618,7 +5618,7 @@ async function doChangeType(newType){
 /* ==================== MYPAGE ==================== */
 function renderMypage(){
   const u=curUser||{name:t('my_guest'),type:'guest',loc:''};
-  const types={seller:t('type_seller'),buyer:t('type_buyer'),both:t('type_both'),admin:t('type_admin'),guest:t('my_guest')};
+  const types={seller:'개인 판매자',buyer:'구매자',both:'업체 판매자',admin:'관리자',guest:'구매자'};
 
   // 아바타
   const avEl=document.getElementById('my-av');
@@ -5688,12 +5688,12 @@ function isSeller(){
   if(!curUser)return false;
   const role=curUser.role||curUser.type||'';
   if(role==='admin')return false;
-  if(!['seller','seller+buyer','both'].includes(role))return false;
+  if(!['seller','both'].includes(role))return false;
   // sellerStatus가 반드시 approved여야 함
   if(!curUser.sellerStatus||curUser.sellerStatus!=='approved')return false;
   return true;
 }
-function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||!curUser;}
+function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||_getRole()===''||!curUser;}
 function isSellerPending(){return curUser&&curUser.sellerStatus==='pending';}
 function isSellerRejected(){return curUser&&curUser.sellerStatus==='rejected';}
 function canApplySeller(){return curUser&&(isBuyer()||_getRole()==='buyer')&&(!curUser.sellerStatus||curUser.sellerStatus==='none'||curUser.sellerStatus==='rejected');}
@@ -6982,7 +6982,7 @@ function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
   if(!isAdmin()){showToast('관리자만 접근 가능');return;}
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
-  const roleLabel=(t)=>({admin:'관리자',seller:'판매자','seller+buyer':'판매자+구매자',both:'겸업',buyer:'구매자',guest:'게스트'})[t]||'구매자';
+  const roleLabel=(t)=>({admin:'관리자',seller:'개인 판매자','seller+buyer':'업체 판매자',both:'업체 판매자',buyer:'구매자',guest:'구매자'})[t]||'구매자';
   const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'||t==='both'||t==='seller+buyer'?'#e6f7ef':'#e8f0fb';
   const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'||t==='both'||t==='seller+buyer'?'#00875a':'#3366cc';
   const renderList=(list)=>{
@@ -7040,7 +7040,7 @@ function showAdminUserDetail(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
   const el=document.getElementById('admin-content');if(!el)return;
-  const roleLabel=(t)=>({admin:'관리자',seller:'판매자','seller+buyer':'판매자+구매자',both:'겸업',buyer:'구매자',guest:'게스트'})[t]||'구매자';
+  const roleLabel=(t)=>({admin:'관리자',seller:'개인 판매자','seller+buyer':'업체 판매자',both:'업체 판매자',buyer:'구매자',guest:'구매자'})[t]||'구매자';
   const isSuspended=u.status==='suspended';
   const ss=u.sellerStatus||u.seller_status||'none';
   const rr=u.requestedRole||u.requested_role||'';
@@ -7077,7 +7077,7 @@ function showAdminUserDetail(idx){
       <div>
         <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">역할 변경</div>
         <select id="adm-user-role" onchange="adminChangeUserRole(${idx},this.value)" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
-          ${['admin','seller','seller+buyer','buyer','guest'].map(r=>`<option value="${r}" ${(u.type||'buyer')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
+          ${['admin','seller','both','buyer'].map(r=>`<option value="${r}" ${(u.type||'buyer')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
         </select>
       </div>
       <div>
@@ -7105,7 +7105,7 @@ function adminChangeUserRole(idx,newRole){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
 
-  const isSelling=['seller','seller+buyer','both'].includes(newRole);
+  const isSelling=['seller','both'].includes(newRole);
   const updates=isSelling?{
     role:newRole,type:newRole,sellerStatus:'approved'
   }:{
