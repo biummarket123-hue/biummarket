@@ -760,6 +760,34 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
+<!-- ========== FIND ID / PW ========== -->
+<div id="view-find-id" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">아이디 찾기</div>
+  </div>
+  <div style="padding:24px">
+    <div style="font-size:14px;color:#666677;margin-bottom:20px;line-height:1.6">가입 시 등록한 정보로 이메일(아이디)을 찾을 수 있어요.</div>
+    <div class="fg"><label>이름 <span class="req">*</span></label><input type="text" class="fi" id="find-id-name" placeholder="가입 시 입력한 이름"/></div>
+    <div class="fg"><label>전화번호 <span class="req">*</span></label><input type="tel" class="fi" id="find-id-tel" placeholder="가입 시 입력한 전화번호"/></div>
+    <button class="submit-btn" onclick="doFindId()" style="margin-top:8px">아이디 찾기</button>
+    <div id="find-id-result" style="margin-top:16px;display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px 16px;font-size:14px;color:#15803d;text-align:center"></div>
+  </div>
+</div>
+
+<div id="view-find-pw" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">비밀번호 찾기</div>
+  </div>
+  <div style="padding:24px">
+    <div style="font-size:14px;color:#666677;margin-bottom:20px;line-height:1.6">가입한 이메일로 비밀번호 재설정 링크를 보내드려요.</div>
+    <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="find-pw-email" placeholder="가입 시 입력한 이메일"/></div>
+    <button class="submit-btn" onclick="doFindPw()" style="margin-top:8px">재설정 링크 보내기</button>
+    <div id="find-pw-result" style="margin-top:16px;display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;font-size:14px;color:#1d4ed8;text-align:center"></div>
+  </div>
+</div>
+
 <!-- ========== LOGIN ========== -->
 <div id="view-login" class="view">
   <div style="padding:48px 24px 0;width:100%">
@@ -798,6 +826,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
       <button class="btn-primary" data-i18n="btn_login" onclick="doLogin()" style="margin-bottom:12px">로그인</button>
       <button class="btn-secondary" data-i18n="btn_to_signup" onclick="showView('signup')">회원가입</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="showView('find-id')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">아이디 찾기</button>
+        <button onclick="showView('find-pw')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">비밀번호 찾기</button>
+      </div>
     </div>
   </div>
   <div style="margin-top:auto;padding:20px;text-align:center;font-size:11px;color:var(--g500)">
@@ -841,6 +873,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="fg"><label>이름 <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
     <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="s-email" placeholder="example@bium.market"/></div>
     <div class="fg"><label>비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
+    <div class="fg"><label>비밀번호 확인 <span class="req">*</span></label><input type="password" class="fi" id="s-pw-confirm" placeholder="비밀번호 재입력"/></div>
     <div class="fg"><label>전화번호 <span class="req">*</span></label><input type="tel" class="fi" id="s-tel" placeholder="예) 010-1234-5678"/></div>
     <div class="fg"><label>위치</label><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동"/></div>
     <!-- 개인 판매자 전용 필드 -->
@@ -3247,6 +3280,47 @@ function goBack(){
 }
 
 /* ==================== AUTH ==================== */
+async function doFindId(){
+  const name=document.getElementById('find-id-name').value.trim();
+  const tel=document.getElementById('find-id-tel').value.trim();
+  if(!name||!tel){showToast('이름과 전화번호를 입력해주세요');return;}
+  const result=document.getElementById('find-id-result');
+  // 로컬 users에서 먼저 검색
+  const localMatch=users.find(u=>u.name===name&&(u.tel===tel||u.phone===tel));
+  if(localMatch){
+    result.style.display='block';
+    result.innerHTML=`✅ 찾은 이메일(아이디): <b>${localMatch.email}</b>`;
+    return;
+  }
+  // Supabase에서 검색
+  if(_sb){
+    const{data}=await _sb.from('users').select('email,name,tel').eq('name',name).eq('tel',tel);
+    if(data&&data.length){
+      result.style.display='block';
+      result.innerHTML=`✅ 찾은 이메일(아이디): <b>${data[0].email}</b>`;
+      return;
+    }
+  }
+  showToast('일치하는 회원 정보를 찾을 수 없어요');
+}
+
+async function doFindPw(){
+  const email=document.getElementById('find-pw-email').value.trim();
+  if(!email){showToast('이메일을 입력해주세요');return;}
+  const result=document.getElementById('find-pw-result');
+  if(!_sb){showToast('이메일 찾기는 Supabase 연결이 필요해요');return;}
+  try{
+    const{error}=await _sb.auth.resetPasswordForEmail(email,{
+      redirectTo:'https://biummarket.vercel.app'
+    });
+    if(error)throw error;
+    result.style.display='block';
+    result.innerHTML=`📧 <b>${email}</b>로 비밀번호 재설정 링크를 보냈어요!<br><small style="color:#666">메일함을 확인해주세요 (스팸함도 확인)</small>`;
+  }catch(e){
+    showToast('이메일 전송 실패: '+e.message);
+  }
+}
+
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim();
   const pw=document.getElementById('l-pw').value;
@@ -3318,6 +3392,8 @@ async function doSignup(){
     if(!document.getElementById('s-bizfile')?.files[0]){showToast('사업자등록증을 첨부해주세요');return;}
   }
   if(pw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
+  const pwConfirm=document.getElementById('s-pw-confirm')?.value;
+  if(pw!==pwConfirm){showToast('비밀번호가 일치하지 않아요 🔑');return;}
   // 판매자 선택 시 → buyer + pending 처리
   const wantsSeller=['seller','both'].includes(selectedUserType);
   const actualType=wantsSeller?'buyer':selectedUserType;
