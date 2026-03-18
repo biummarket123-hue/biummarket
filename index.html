@@ -7215,11 +7215,14 @@ function adminChangeUserRole(idx,newRole){
       type:updates.type,
       seller_status:updates.sellerStatus||'none',
       requested_role:updates.requestedRole||''
-    }).eq('id',u.id);
+    }).eq('id',u.id).then(({error})=>{
+        if(error)console.error('역할 변경 오류:',error);
+        else console.log('역할 변경 Supabase 완료:', updates.type, updates.sellerStatus);
+      });
   }
 
   showToast('역할이 변경됐어요');
-  showAdminUsers&&showAdminUsers();
+  setTimeout(()=>{showAdminUsers&&showAdminUsers();},500);
 }
 function adminToggleUserStatus(idx){
   if(!isAdmin())return;
