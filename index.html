@@ -7211,7 +7211,11 @@ function adminChangeUserRole(idx,newRole){
 
   // Supabase
   if(_sb&&u.id&&u.id.length>5){
-    _sb.from('users').update({type:updates.type}).eq('id',u.id);
+    _sb.from('users').update({
+      type:updates.type,
+      seller_status:updates.sellerStatus||'none',
+      requested_role:updates.requestedRole||''
+    }).eq('id',u.id);
   }
 
   showToast('역할이 변경됐어요');
