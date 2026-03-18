@@ -3261,7 +3261,14 @@ async function doLogin(){
   }
   try{
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pw});
-    if(error){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
+    if(error){
+      if(error.message&&error.message.toLowerCase().includes('email not confirmed')){
+        showToast('이메일 인증이 필요해요. 가입 시 받은 이메일을 확인해주세요 📧');
+      }else{
+        showToast('이메일 또는 비밀번호가 틀렸어요');
+      }
+      return;
+    }
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
