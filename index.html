@@ -1268,7 +1268,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           </div>
         </div>
       </div>
-      <div class="my-edit-btn" onclick="showView('profile-edit')" data-i18n="my_edit_profile">✏️ 프로필 수정</div>
+      <div class="my-edit-btn" onclick="openProfileEditByType()">✏️ 프로필 수정</div>
     </div>
     <!-- 통계 카드 -->
     <div class="my-stats">
@@ -1373,11 +1373,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('profile-edit')">
-        <div class="my-icon-box ib-green">🏠</div>
+      <div class="my-menu-item" onclick="openProfileEditByType()" id="menu-profile-edit">
+        <div class="my-icon-box ib-green" id="menu-profile-edit-icon">✏️</div>
         <div class="my-menu-info">
-          <div class="my-menu-title">회사정보 수정</div>
-          <div class="my-menu-sub">미니홈피 · 인사말 · 영업시간 · 거래조건</div>
+          <div class="my-menu-title" id="menu-profile-edit-title">프로필 수정</div>
+          <div class="my-menu-sub" id="menu-profile-edit-sub">개인정보 · 연락처 수정</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -1562,7 +1562,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <div id="sett-uname" style="font-size:16px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">로그인이 필요해요</div>
         <div id="sett-uinfo" style="font-size:12px;color:#666677;margin-top:3px">–</div>
       </div>
-      <button onclick="showView('profile-edit')" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">프로필 수정</button>
+      <button onclick="openProfileEditByType()" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">프로필 수정</button>
     </div>
     <!-- 알림 설정 -->
     <div class="my-section-wrap">
@@ -1737,7 +1737,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-profile-edit" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">회사정보 수정</div>
+    <div class="hdr-title" id="view-profile-edit-title">프로필 수정</div>
     <div style="width:38px"></div>
   </header>
   <div class="f-scroll">
@@ -1754,16 +1754,19 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <!-- 기본 정보 -->
     <div style="padding:16px 16px 8px;margin-top:14px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">기본 정보</div>
-      <div class="fg"><label>회사명 <span class="req">*</span></label>
-        <input type="text" class="fi" id="pe-name" placeholder="회사명 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'회사명'" style="color:#1a1a1a"/>
+      <div class="fg"><label id="pe-name-label">이름 <span class="req">*</span></label>
+        <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'이름'" style="color:#1a1a1a"/>
       </div>
-      <div class="fg"><label>대표자</label><input type="text" class="fi" id="pe-ceo" placeholder="대표자명"/></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fg" style="margin:0"><label>설립년도</label><input type="text" class="fi" id="pe-founded" placeholder="예) 1999"/></div>
-        <div class="fg" style="margin:0"><label>사업자번호</label><input type="text" class="fi" id="pe-biznum" placeholder="000-00-00000"/></div>
+      <div class="fg"><label>전화번호</label><input type="text" class="fi" id="pe-tel" placeholder="예) 010-1234-5678"/></div>
+      <div class="fg"><label>위치</label><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문"/></div>
+      <!-- 업체 판매자 전용 -->
+      <div id="pe-company-section" style="display:none">
+        <div class="fg"><label>대표자</label><input type="text" class="fi" id="pe-ceo" placeholder="대표자명"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg" style="margin:0"><label>설립년도</label><input type="text" class="fi" id="pe-founded" placeholder="예) 1999"/></div>
+          <div class="fg" style="margin:0"><label>사업자번호</label><input type="text" class="fi" id="pe-biznum" placeholder="000-00-00000"/></div>
+        </div>
       </div>
-      <div class="fg" style="margin-top:10px"><label>전화번호</label><input type="text" class="fi" id="pe-tel" placeholder="예) 02-1234-5678"/></div>
-      <div class="fg"><label>주소</label><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문"/></div>
     </div>
     <!-- 인사말·소개 -->
     <div style="padding:16px 16px 8px;border-bottom:1px solid #e0e0ea">
@@ -5434,41 +5437,91 @@ function togglePeChip(type,val){
   else{const i=pePaySel.indexOf(val);if(i>-1)pePaySel.splice(i,1);else pePaySel.push(val);}
   renderPeChips();
 }
+function openProfileEditByType(){
+  const role=curUser?.role||curUser?.type||'';
+  if(role==='both'){
+    showView('profile-edit');
+    document.getElementById('view-profile-edit-title') && (document.getElementById('view-profile-edit-title').textContent='회사정보 수정');
+  } else {
+    showView('profile-edit');
+    document.getElementById('view-profile-edit-title') && (document.getElementById('view-profile-edit-title').textContent='프로필 수정');
+  }
+  // MY메뉴 타이틀 업데이트
+  const menuTitle=document.getElementById('menu-profile-edit-title');
+  const menuSub=document.getElementById('menu-profile-edit-sub');
+  if(role==='both'){
+    if(menuTitle)menuTitle.textContent='회사정보 수정';
+    if(menuSub)menuSub.textContent='회사명 · 사업자정보 · 거래조건';
+  } else if(role==='seller'){
+    if(menuTitle)menuTitle.textContent='프로필 수정';
+    if(menuSub)menuSub.textContent='인사말 · 태그 · 거래조건';
+  } else {
+    if(menuTitle)menuTitle.textContent='프로필 수정';
+    if(menuSub)menuSub.textContent='개인정보 · 연락처 수정';
+  }
+}
 function renderProfileEdit(){
   const u=curUser||{};
   const profile=u.profile||{};
+  const role=u.role||u.type||'';
+  // extra_info 파싱 (회원가입 시 저장된 추가 정보)
+  let extra={};
+  try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
+
+  // 헤더 타이틀 변경
+  const titleEl=document.getElementById('view-profile-edit-title');
+  if(titleEl)titleEl.textContent=role==='both'?'회사정보 수정':'프로필 수정';
+
+  // 유형별 섹션 표시/숨김
+  const companySection=document.getElementById('pe-company-section');
+  const sellerSection=document.getElementById('pe-seller-section');
+  const buyerSection=document.getElementById('pe-buyer-section');
+  if(companySection)companySection.style.display=role==='both'?'block':'none';
+  if(sellerSection)sellerSection.style.display=role==='seller'?'block':'none';
+  if(buyerSection)buyerSection.style.display=(role==='buyer'||role==='')?'block':'none';
+
+  // 공통 필드
   const nameEl=document.getElementById('pe-name');
   if(nameEl){nameEl.value=u.name||'';}
   const avEl=document.getElementById('pe-av');
   if(avEl)avEl.textContent=(u.name||'?')[0];
   const previewEl=document.getElementById('pe-bizname-preview');
   if(previewEl)previewEl.textContent=u.name||'회사명';
-  const ceoEl=document.getElementById('pe-ceo');
-  if(ceoEl)ceoEl.value=profile.ceo||'';
-  const foundedEl=document.getElementById('pe-founded');
-  if(foundedEl)foundedEl.value=profile.founded||'';
-  const biznumEl=document.getElementById('pe-biznum');
-  if(biznumEl)biznumEl.value=profile.biznum||'';
   const telEl=document.getElementById('pe-tel');
-  if(telEl)telEl.value=u.tel||profile.tel||'';
+  if(telEl)telEl.value=u.tel||extra.tel||profile.tel||'';
   const locEl=document.getElementById('pe-loc');
-  if(locEl)locEl.value=u.loc||'';
+  if(locEl)locEl.value=u.loc||extra.address||'';
+
+  // 업체 판매자 전용
+  const ceoEl=document.getElementById('pe-ceo');
+  if(ceoEl)ceoEl.value=profile.ceo||extra.ceo||'';
+  const foundedEl=document.getElementById('pe-founded');
+  if(foundedEl)foundedEl.value=profile.founded||extra.founded||'';
+  const biznumEl=document.getElementById('pe-biznum');
+  if(biznumEl)biznumEl.value=profile.biznum||extra.biznum||'';
+
+  // 공통 판매자 필드
   const introEl=document.getElementById('pe-intro');
-  if(introEl)introEl.value=u.intro||'';
+  if(introEl)introEl.value=u.intro||extra.intro||'';
   const tagsEl=document.getElementById('pe-tags');
-  if(tagsEl)tagsEl.value=(profile.tags||[]).join(', ');
+  if(tagsEl)tagsEl.value=(profile.tags||extra.tags||[]).join?.(', ')||(profile.tags||extra.tags||'');
   const hoursEl=document.getElementById('pe-hours');
-  if(hoursEl)hoursEl.value=profile.hours||'';
+  if(hoursEl)hoursEl.value=profile.hours||extra.hours||'';
   const moqEl=document.getElementById('pe-moq');
-  if(moqEl)moqEl.value=profile.moq||'';
-  peShipSel=[...(profile.ship||[])];
-  pePaySel=[...(profile.pay||[])];
+  if(moqEl)moqEl.value=profile.moq||extra.moq||'';
+
+  // 배송/결제 칩
+  const shipData=profile.ship||extra.ship?.split?.(',')||[];
+  const payData=profile.pay||extra.pay?.split?.(',')||[];
+  peShipSel=Array.isArray(shipData)?shipData:[];
+  pePaySel=Array.isArray(payData)?payData:[];
   renderPeChips();
-  renderCompanyPhotos();
+
   const instaEl=document.getElementById('pe-insta');
   if(instaEl)instaEl.value=profile.insta||'';
   const blogEl=document.getElementById('pe-blog');
   if(blogEl)blogEl.value=profile.blog||'';
+  renderCompanyPhotos();
 }
 function addCompanyPhotos(input){
   const files=Array.from(input.files);
