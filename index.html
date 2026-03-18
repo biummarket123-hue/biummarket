@@ -3273,11 +3273,17 @@ async function doSignup(){
     const newProfile={id:data.user.id,name,email,type:actualType,loc,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole};
     await _sb.from('users').insert(newProfile);
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole};
+    // users 로컬 배열에도 추가
+    users.push({...curUser});
+    lsSet('users',users);
     lsSet('curUser',curUser);
     if(wantsSeller){
       showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
       addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:curUser.id,email,requestedRole});
-    } else showToast('가입 완료! 환영해요 🎉');
+    } else {
+      showToast('가입 완료! 환영해요 🎉');
+      addAppNotification('admin','new_user',`👤 ${name}님이 새로 가입했어요`,{userId:curUser.id,email});
+    }
     showView('list');showListSkeleton();loadProductsFromSupabase();
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
@@ -6925,16 +6931,23 @@ function showAdminUsers(){
   const mergeUsers=(sbList)=>{
     const result = (sbList||[]).map(sbUser => {
       const localUser = users.find(u => u.id === sbUser.id || u.email === sbUser.email);
+      // sellerStatus: localUser 우선, 없으면 Supabase seller_status 사용
+      const sellerStatus = (localUser?.sellerStatus) || sbUser.seller_status || 'none';
+      const requestedRole = (localUser?.requestedRole) || sbUser.requested_role || '';
       if(localUser){
         return {
           ...sbUser,
-          role: localUser.role || sbUser.type || 'buyer',
-          sellerStatus: localUser.sellerStatus || 'none',
-          requestedRole: localUser.requestedRole || '',
-          pw: localUser.pw || ''
+          ...localUser,
+          sellerStatus,
+          requestedRole,
         };
       }
-      return {...sbUser, role: sbUser.type || 'buyer'};
+      return {
+        ...sbUser,
+        role: sbUser.type || 'buyer',
+        sellerStatus,
+        requestedRole,
+      };
     });
     const sbIds = new Set((sbList||[]).map(u=>u.id||u.email));
     const localOnly = users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
