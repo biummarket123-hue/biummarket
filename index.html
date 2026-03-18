@@ -811,20 +811,20 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div style="margin-bottom:16px">
       <div class="fg"><label><span data-i18n="signup_type_label">회원 유형 선택</span> <span class="req">*</span></label></div>
       <div class="type-grid">
-        <div class="type-card sel" data-type="seller" onclick="selectType('seller',this)">
-          <div class="tc-icon">🏭</div>
-          <div class="tc-name" data-i18n="type_seller">판매자</div>
-          <div class="tc-desc" data-i18n="type_seller_sub">원단 도매 · 재고 판매</div>
-        </div>
-        <div class="type-card" data-type="buyer" onclick="selectType('buyer',this)">
+        <div class="type-card sel" data-type="buyer" onclick="selectType('buyer',this)">
           <div class="tc-icon">🛒</div>
-          <div class="tc-name" data-i18n="type_buyer">구매자</div>
-          <div class="tc-desc" data-i18n="type_buyer_sub">원단 소싱 · 구매</div>
+          <div class="tc-name">구매자</div>
+          <div class="tc-desc">원단 소싱 · 구매</div>
+        </div>
+        <div class="type-card" data-type="seller" onclick="selectType('seller',this)">
+          <div class="tc-icon">👤</div>
+          <div class="tc-name">개인 판매자</div>
+          <div class="tc-desc">개인 원단 도매 · 재고 판매</div>
         </div>
         <div class="type-card" data-type="both" onclick="selectType('both',this)">
-          <div class="tc-icon">🔄</div>
-          <div class="tc-name" data-i18n="type_both">겸업</div>
-          <div class="tc-desc" data-i18n="type_both_sub">판매 + 구매 모두</div>
+          <div class="tc-icon">🏭</div>
+          <div class="tc-name">업체 판매자</div>
+          <div class="tc-desc">법인 · 사업자 등록 업체</div>
         </div>
       </div>
       <div id="seller-notice" style="display:block; margin-top:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:13px; color:#1d4ed8; line-height:1.5;">
@@ -832,11 +832,38 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         승인은 보통 <strong>1~2 영업일</strong> 내에 처리됩니다.
       </div>
     </div>
-    <div class="fg"><label><span data-i18n="signup_name_label">아이디</span> <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
+    <!-- 공통 필드 -->
+    <div class="fg"><label>이름 <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
     <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="s-email" placeholder="example@bium.market"/></div>
-    <div class="fg"><label><span data-i18n="login_pw_label">비밀번호</span> <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
-    <div class="fg"><label>사업장 위치</label><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동"/></div>
-    <button class="submit-btn" data-i18n="btn_join" onclick="doSignup()">가입하기</button>
+    <div class="fg"><label>비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
+    <div class="fg"><label>전화번호 <span class="req">*</span></label><input type="tel" class="fi" id="s-tel" placeholder="예) 010-1234-5678"/></div>
+    <div class="fg"><label>위치</label><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동"/></div>
+    <!-- 개인 판매자 전용 필드 -->
+    <div id="signup-seller-fields" style="display:none">
+      <div style="font-size:12px;font-weight:700;color:#6c63ff;margin:12px 0 8px;padding:8px 12px;background:rgba(108,99,255,.08);border-radius:8px">👤 개인 판매자 정보</div>
+      <div class="fg"><label>인사말</label><textarea class="fi" id="s-intro" placeholder="예) 안녕하세요. 동대문 원단 전문 판매자입니다." style="min-height:70px"></textarea></div>
+      <div class="fg"><label>전문 태그</label><input type="text" class="fi" id="s-tags" placeholder="예) 면, 린넨, 폴리 (쉼표로 구분)"/></div>
+      <div class="fg"><label>영업시간</label><input type="text" class="fi" id="s-hours" placeholder="예) 평일 09:00 ~ 18:00"/></div>
+      <div class="fg"><label>최소 주문량(MOQ)</label><input type="text" class="fi" id="s-moq" placeholder="예) 50마 이상"/></div>
+      <div class="fg"><label>배송방법</label><input type="text" class="fi" id="s-ship" placeholder="예) 택배, 직거래"/></div>
+      <div class="fg"><label>결제방법</label><input type="text" class="fi" id="s-pay" placeholder="예) 계좌이체, 카드"/></div>
+    </div>
+    <!-- 업체 판매자 전용 필드 -->
+    <div id="signup-company-fields" style="display:none">
+      <div style="font-size:12px;font-weight:700;color:#c8a84b;margin:12px 0 8px;padding:8px 12px;background:rgba(200,168,75,.08);border-radius:8px">🏭 업체 판매자 정보</div>
+      <div class="fg"><label>회사명 <span class="req">*</span></label><input type="text" class="fi" id="s-bizname" placeholder="예) (주)비움텍스타일"/></div>
+      <div class="fg"><label>대표자명 <span class="req">*</span></label><input type="text" class="fi" id="s-ceo" placeholder="대표자 이름"/></div>
+      <div class="fg"><label>사업자등록번호 <span class="req">*</span></label><input type="text" class="fi" id="s-biznum" placeholder="예) 123-45-67890"/></div>
+      <div class="fg"><label>사업장 주소 <span class="req">*</span></label><input type="text" class="fi" id="s-address" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
+      <div class="fg"><label>설립년도</label><input type="text" class="fi" id="s-founded" placeholder="예) 2010"/></div>
+      <div class="fg"><label>인사말</label><textarea class="fi" id="s-bizintro" placeholder="예) 20년 경력의 원단 도매 전문 업체입니다." style="min-height:70px"></textarea></div>
+      <div class="fg"><label>사업자등록증 첨부 <span class="req">*</span></label>
+        <input type="file" id="s-bizfile" accept="image/*,.pdf" style="display:none" onchange="previewBizFile(this)"/>
+        <button onclick="document.getElementById('s-bizfile').click()" style="width:100%;padding:10px;background:#f5f5f5;border:1.5px dashed #d8d8e8;border-radius:10px;color:#666677;font-size:13px;cursor:pointer">📎 파일 첨부 (이미지 또는 PDF)</button>
+        <div id="s-bizfile-preview" style="margin-top:6px;font-size:12px;color:#6c63ff"></div>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="doSignup()">가입하기</button>
   </div>
 </div>
 
@@ -3247,8 +3274,36 @@ async function doSignup(){
   const name=document.getElementById('s-name').value.trim();
   const email=document.getElementById('s-email').value.trim();
   const pw=document.getElementById('s-pw').value;
-  const loc=document.getElementById('s-loc').value.trim();
+  const tel=document.getElementById('s-tel')?.value.trim()||'';
+  const loc=document.getElementById('s-loc')?.value.trim()||'';
   if(!name||!email||!pw){showToast('필수 항목을 입력해주세요');return;}
+  if(!tel){showToast('전화번호를 입력해주세요');return;}
+  // 개인 판매자 추가 정보
+  const sellerExtra=selectedUserType==='seller'?{
+    intro:document.getElementById('s-intro')?.value.trim()||'',
+    tags:document.getElementById('s-tags')?.value.split(',').map(t=>t.trim()).filter(Boolean)||[],
+    hours:document.getElementById('s-hours')?.value.trim()||'',
+    moq:document.getElementById('s-moq')?.value.trim()||'',
+    ship:document.getElementById('s-ship')?.value.trim()||'',
+    pay:document.getElementById('s-pay')?.value.trim()||'',
+  }:null;
+  // 업체 판매자 추가 정보
+  const companyExtra=selectedUserType==='both'?{
+    bizName:document.getElementById('s-bizname')?.value.trim()||'',
+    ceo:document.getElementById('s-ceo')?.value.trim()||'',
+    biznum:document.getElementById('s-biznum')?.value.trim()||'',
+    address:document.getElementById('s-address')?.value.trim()||'',
+    founded:document.getElementById('s-founded')?.value.trim()||'',
+    intro:document.getElementById('s-bizintro')?.value.trim()||'',
+  }:null;
+  // 업체 판매자 필수값 체크
+  if(selectedUserType==='both'){
+    if(!companyExtra.bizName){showToast('회사명을 입력해주세요');return;}
+    if(!companyExtra.ceo){showToast('대표자명을 입력해주세요');return;}
+    if(!companyExtra.biznum){showToast('사업자등록번호를 입력해주세요');return;}
+    if(!companyExtra.address){showToast('사업장 주소를 입력해주세요');return;}
+    if(!document.getElementById('s-bizfile')?.files[0]){showToast('사업자등록증을 첨부해주세요');return;}
+  }
   if(pw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
   // 판매자 선택 시 → buyer + pending 처리
   const wantsSeller=['seller','seller+buyer','both'].includes(selectedUserType);
@@ -3270,9 +3325,9 @@ async function doSignup(){
   try{
     const{data,error}=await _sb.auth.signUp({email,password:pw});
     if(error){showToast(error.message||'회원가입에 실패했어요');return;}
-    const newProfile={id:data.user.id,name,email,type:actualType,loc,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole};
+    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify({...sellerExtra,...companyExtra})};
     await _sb.from('users').insert(newProfile);
-    curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole};
+    curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
     users.push({...curUser});
     lsSet('users',users);
@@ -3388,8 +3443,19 @@ function selectType(type,el){
   selectedUserType=type;
   document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
+  // 판매자 안내 표시
   const notice=document.getElementById('seller-notice');
-  if(notice) notice.style.display=['seller','both','seller+buyer'].includes(type)?'block':'none';
+  if(notice)notice.style.display=['seller','both','seller+buyer'].includes(type)?'block':'none';
+  // 유형별 폼 토글
+  const sellerFields=document.getElementById('signup-seller-fields');
+  const companyFields=document.getElementById('signup-company-fields');
+  if(sellerFields)sellerFields.style.display=type==='seller'?'block':'none';
+  if(companyFields)companyFields.style.display=type==='both'?'block':'none';
+}
+function previewBizFile(input){
+  const file=input.files[0];if(!file)return;
+  const preview=document.getElementById('s-bizfile-preview');
+  if(preview)preview.textContent='✅ '+file.name;
 }
 
 /* ==================== FILTER CHIPS ==================== */
@@ -7019,6 +7085,16 @@ function showAdminUserDetail(idx){
         <textarea id="adm-user-memo" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;color:#1a1a1a;resize:vertical;min-height:60px;box-sizing:border-box" placeholder="메모 입력...">${u.adminMemo||''}</textarea>
         <button onclick="adminSaveUserMemo(${idx})" style="margin-top:6px;padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 메모 저장</button>
       </div>
+      ${(()=>{
+        let extra=null;try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
+        const tel=u.tel||'';
+        if(!tel&&(!extra||!Object.keys(extra).length))return '';
+        const labelMap={intro:'인사말',tags:'전문 태그',hours:'영업시간',moq:'최소 주문량(MOQ)',ship:'배송방법',pay:'결제방법',bizName:'회사명',ceo:'대표자명',biznum:'사업자등록번호',address:'사업장 주소',founded:'설립년도'};
+        let rows='';
+        if(tel)rows+=`<tr><td style="padding:6px 10px;font-size:12px;color:#888;white-space:nowrap;vertical-align:top">전화번호</td><td style="padding:6px 10px;font-size:13px;color:#1a1a1a">${tel}</td></tr>`;
+        if(extra){Object.entries(extra).forEach(([k,v])=>{if(v&&v!=='null'){const val=Array.isArray(v)?v.join(', '):v;if(val)rows+=`<tr><td style="padding:6px 10px;font-size:12px;color:#888;white-space:nowrap;vertical-align:top">${labelMap[k]||k}</td><td style="padding:6px 10px;font-size:13px;color:#1a1a1a">${val}</td></tr>`;}});}
+        return rows?`<div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">추가 정보</div><div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden"><table style="width:100%;border-collapse:collapse">${rows}</table></div></div>`:'';
+      })()}
       <div style="display:flex;gap:10px">
         <button onclick="adminToggleUserStatus(${idx})" style="flex:1;padding:14px;background:${isSuspended?'#e8f5e9':'#fff5f5'};border:1px solid ${isSuspended?'#c8e6c9':'#ffcdd2'};border-radius:14px;font-size:14px;font-weight:700;color:${isSuspended?'#2e7d32':'#e53935'};cursor:pointer">${isSuspended?'✅ 활성화':'🚫 정지'}</button>
         <button onclick="adminDeleteUser(${idx})" style="flex:1;padding:14px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;font-size:14px;font-weight:700;color:#e53935;cursor:pointer">🗑️ 강제 탈퇴</button>
