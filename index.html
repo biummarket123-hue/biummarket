@@ -848,24 +848,19 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div style="margin-bottom:16px">
       <div class="fg"><label><span data-i18n="signup_type_label">회원 유형 선택</span> <span class="req">*</span></label></div>
       <div class="type-grid">
-        <div class="type-card sel" data-type="buyer" onclick="selectType('buyer',this)">
-          <div class="tc-icon">🛒</div>
-          <div class="tc-name">구매자</div>
-          <div class="tc-desc">원단 소싱 · 구매</div>
-        </div>
-        <div class="type-card" data-type="seller" onclick="selectType('seller',this)">
+        <div class="type-card sel" data-type="member" onclick="selectType('member',this)">
           <div class="tc-icon">👤</div>
-          <div class="tc-name">개인 판매자</div>
-          <div class="tc-desc">개인 원단 도매 · 재고 판매</div>
+          <div class="tc-name">일반 회원</div>
+          <div class="tc-desc">구매 · 소량 판매 가능</div>
         </div>
-        <div class="type-card" data-type="both" onclick="selectType('both',this)">
-          <div class="tc-icon">🏭</div>
-          <div class="tc-name">업체 판매자</div>
-          <div class="tc-desc">법인 · 사업자 등록 업체</div>
+        <div class="type-card" data-type="business" onclick="selectType('business',this)">
+          <div class="tc-icon">🏢</div>
+          <div class="tc-name">사업자 회원</div>
+          <div class="tc-desc">사업자 인증 · 무제한 판매</div>
         </div>
       </div>
-      <div id="seller-notice" style="display:block; margin-top:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:13px; color:#1d4ed8; line-height:1.5;">
-        📋 판매자 회원가입 후 <strong>관리자 승인</strong>이 완료되면 상품 등록이 가능해요.<br>
+      <div id="seller-notice" style="display:none; margin-top:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:13px; color:#1d4ed8; line-height:1.5;">
+        📋 사업자 회원가입 후 <strong>관리자 승인</strong>이 완료되면 사업자 혜택을 이용할 수 있어요.<br>
         승인은 보통 <strong>1~2 영업일</strong> 내에 처리됩니다.
       </div>
     </div>
@@ -2895,10 +2890,10 @@ if(window.Kakao&&!window.Kakao.isInitialized()){
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
   {id:'admin',name:'관리자',email:'admin',pw:'1234',type:'admin',role:'admin',loc:'서울 동대문구',temp:99.9,joinDate:'2024-01-01'},
-  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'both',role:'both',sellerStatus:'approved',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
+  {id:'s1',name:'에이원원단',email:'seller@test.com',pw:'1234',type:'business',role:'business',bizStatus:'approved',loc:'서울 성동구 성수동',temp:38.2,joinDate:'2024-02-15',
    intro:'동대문 20년 경력 원단 도매업체입니다. 면/폴리 중심으로 재고원단을 합리적인 가격에 공급합니다.',
    bizName:'(주)에이원텍스타일',ceo:'김에이원',tel:'02-1234-5678'},
-  {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'buyer',role:'buyer',sellerStatus:'none',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
+  {id:'b1',name:'패션구매팀',email:'buyer@test.com',pw:'1234',type:'member',role:'member',bizStatus:'none',loc:'서울 강남구 역삼동',temp:36.5,joinDate:'2024-03-10'},
 ];
 let users=lsGet('users',DEFAULT_USERS);
 const DEFAULT_NOTICES=[
@@ -3398,18 +3393,19 @@ async function doSignup(){
   const pwConfirm=document.getElementById('s-pw-confirm')?.value;
   if(pw!==pwConfirm){showToast('비밀번호가 일치하지 않아요 🔑');return;}
   // 판매자 선택 시 → buyer + pending 처리
-  const wantsSeller=['seller','both'].includes(selectedUserType);
-  const actualType=wantsSeller?'buyer':selectedUserType;
-  const sellerStatus=wantsSeller?'pending':'none';
-  const requestedRole=wantsSeller?selectedUserType:'';
+  const wantsBusiness=selectedUserType==='business';
+  const actualType=selectedUserType||'member';
+  const sellerStatus=wantsBusiness?'pending':'none';
+  const bizStatus=wantsBusiness?'pending':'none';
+  const requestedRole=wantsBusiness?'business':'';
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
     if(users.find(u=>u.email===email)){showToast('이미 사용 중인 이메일이에요');return;}
     const newUser={id:'u'+Date.now(),name,email,pw,type:actualType,loc,temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus,requestedRole};
     users.push(newUser);lsSet('users',users);
     curUser=newUser;lsSet('curUser',curUser);
-    if(wantsSeller){
-      showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
+    if(wantsBusiness){
+      showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
       addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:newUser.id,email,requestedRole});
     } else showToast('가입 완료! 환영해요 🎉');
     showView('list');return;
@@ -3436,8 +3432,8 @@ async function doSignup(){
     users.push({...curUser});
     lsSet('users',users);
     lsSet('curUser',curUser);
-    if(wantsSeller){
-      showToast('판매자 신청이 완료됐어요! 관리자 승인 후 판매자 기능을 이용할 수 있어요 😊');
+    if(wantsBusiness){
+      showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
       addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:curUser.id,email,requestedRole});
     } else {
       showToast('가입 완료! 환영해요 🎉');
@@ -3547,14 +3543,12 @@ function selectType(type,el){
   selectedUserType=type;
   document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
-  // 판매자 안내 표시
   const notice=document.getElementById('seller-notice');
-  if(notice)notice.style.display=['seller','both'].includes(type)?'block':'none';
-  // 유형별 폼 토글
+  if(notice)notice.style.display=type==='business'?'block':'none';
   const sellerFields=document.getElementById('signup-seller-fields');
   const companyFields=document.getElementById('signup-company-fields');
-  if(sellerFields)sellerFields.style.display=type==='seller'?'block':'none';
-  if(companyFields)companyFields.style.display=type==='both'?'block':'none';
+  if(sellerFields)sellerFields.style.display='none';
+  if(companyFields)companyFields.style.display=type==='business'?'block':'none';
 }
 function previewBizFile(input){
   const file=input.files[0];if(!file)return;
@@ -5886,19 +5880,23 @@ function isMyProduct(p,u){
 /* ===== 역할 판별 헬퍼 ===== */
 function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
-function isSeller(){
+function isBusiness(){
   if(!curUser)return false;
   const role=curUser.role||curUser.type||'';
   if(role==='admin')return false;
-  if(!['seller','both'].includes(role))return false;
-  // sellerStatus가 반드시 approved여야 함
-  if(!curUser.sellerStatus||curUser.sellerStatus!=='approved')return false;
+  if(!['business','both','seller'].includes(role))return false;
+  if(!curUser.bizStatus&&!curUser.sellerStatus)return false;
+  if((curUser.bizStatus||curUser.sellerStatus)!=='approved')return false;
   return true;
 }
-function isBuyer(){return _getRole()==='buyer'||_getRole()==='guest'||_getRole()===''||!curUser;}
-function isSellerPending(){return curUser&&curUser.sellerStatus==='pending';}
-function isSellerRejected(){return curUser&&curUser.sellerStatus==='rejected';}
-function canApplySeller(){return curUser&&(isBuyer()||_getRole()==='buyer')&&(!curUser.sellerStatus||curUser.sellerStatus==='none'||curUser.sellerStatus==='rejected');}
+function isSeller(){return isBusiness();}
+function isMember(){return !isAdmin()&&!isBusiness();}
+function isBuyer(){return isMember();}
+function isBizPending(){return curUser&&(curUser.bizStatus||curUser.sellerStatus)==='pending';}
+function isBizRejected(){return curUser&&(curUser.bizStatus||curUser.sellerStatus)==='rejected';}
+function isSellerPending(){return isBizPending();}
+function isSellerRejected(){return isBizRejected();}
+function canApplySeller(){return curUser&&isMember()&&(!(curUser.bizStatus||curUser.sellerStatus)||curUser.bizStatus==='none'||curUser.bizStatus==='rejected');}
 
 function renderSellerApplySection(){
   const section=document.getElementById('menu-seller-apply-section');
@@ -5923,16 +5921,17 @@ function applyRoleVisibility(){
     setFab(true);
     return;
   }
-  // Seller/both: 관리자전용 숨김, 상품관리 표시
-  if(isSeller()){
+  // 사업자 회원: 관리자전용 숨김, 상품관리 표시
+  if(isBusiness()){
     hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
     showIds(['menu-register','menu-my-products']);
     setFab(true);
     return;
   }
-  // Buyer: 관리자+판매자 전용 모두 숨김
-  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
-  setFab(false);
+  // 일반 회원: 상품등록/내상품관리 표시 (하루 3개 제한은 submitForm에서 처리)
+  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
+  showIds(['menu-register','menu-my-products']);
+  setFab(true);
 }
 function showMySales(){
   const u=curUser;
@@ -7184,7 +7183,7 @@ function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
   if(!isAdmin()){showToast('관리자만 접근 가능');return;}
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
-  const roleLabel=(t)=>({admin:'관리자',seller:'개인 판매자','seller+buyer':'업체 판매자',both:'업체 판매자',buyer:'구매자',guest:'구매자'})[t]||'구매자';
+  const roleLabel=(t)=>({admin:'관리자',business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원','seller+buyer':'사업자 회원',buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'})[t]||'일반 회원';
   const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'||t==='both'||t==='seller+buyer'?'#e6f7ef':'#e8f0fb';
   const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'||t==='both'||t==='seller+buyer'?'#00875a':'#3366cc';
   const renderList=(list)=>{
@@ -7242,7 +7241,7 @@ function showAdminUserDetail(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
   const el=document.getElementById('admin-content');if(!el)return;
-  const roleLabel=(t)=>({admin:'관리자',seller:'개인 판매자','seller+buyer':'업체 판매자',both:'업체 판매자',buyer:'구매자',guest:'구매자'})[t]||'구매자';
+  const roleLabel=(t)=>({admin:'관리자',business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원','seller+buyer':'사업자 회원',buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'})[t]||'일반 회원';
   const isSuspended=u.status==='suspended';
   const ss=u.sellerStatus||u.seller_status||'none';
   const rr=u.requestedRole||u.requested_role||'';
@@ -7279,7 +7278,7 @@ function showAdminUserDetail(idx){
       <div>
         <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">역할 변경</div>
         <select id="adm-user-role" onchange="adminChangeUserRole(${idx},this.value)" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
-          ${['admin','seller','both','buyer'].map(r=>`<option value="${r}" ${(u.type||'buyer')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
+          ${['admin','business','member'].map(r=>`<option value="${r}" ${(u.type||'member')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
         </select>
       </div>
       <div>
@@ -7351,7 +7350,7 @@ function adminChangeUserRole(idx,newRole){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
 
-  const isSelling=['seller','both'].includes(newRole);
+  const isSelling=newRole==='business';
   const updates=isSelling?{
     role:newRole,type:newRole,sellerStatus:'approved'
   }:{
