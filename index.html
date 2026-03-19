@@ -4725,22 +4725,81 @@ function switchSellerTab(tab,el){
     const hours=userInfo.profile?.hours||extra.hours||'';
     const intro=userInfo.intro||extra.intro||'재고원단 전문 업체입니다.';
     const insta=userInfo.profile?.insta||extra.insta||'';
+    const address=extra.address||userInfo.loc||seller.loc||'';
+
+    // 기본 정보 rows
     const rows=[];
-    if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">🕐</span><div><div style="font-size:14px;color:#1a1a1a">${hours}</div></div></div>`);
+    if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">🕐</span><div style="font-size:14px;color:#1a1a1a">${hours}</div></div>`);
     if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">📞</span><div style="font-size:14px;color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">복사</button></div>`);
     if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">🌐</span><div style="font-size:14px;color:#1565c0">${insta}</div></div>`);
-    const address=extra.address||userInfo.loc||seller.loc||'';
     if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">📍</span><div style="font-size:14px;color:#1a1a1a">${address}</div></div>`);
-    const tags=seller.tags||userInfo.tags||['재고원단','면/린넨','B2B'];
+
+    // 통계 (MY 기능 연동)
+    const myOffers=lsGet('priceOffers',[]).filter(o=>o.sellerId===seller.id||o.sellerName===seller.name||o.sellerName===seller.email);
+    const myResvs=lsGet('reservationList',[]).filter(r=>r.sellerId===seller.id||r.sellerName===seller.name);
+    const myFollowers=lsGet('sellerFollowers',{})[seller.id||seller.name]||0;
+    const pendingOffers=myOffers.filter(o=>o.status==='pending').length;
+    const pendingResvs=myResvs.filter(r=>r.status==='pending').length;
+    const totalLikes=myProds.reduce((a,p)=>a+(p.likes||0),0);
+    const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
+
     content.innerHTML=`
-      <div style="padding:0 16px">${rows.join('')}</div>
-      <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:8px">
-        <div style="font-size:16px;font-weight:700;margin-bottom:8px">소개</div>
-        <div style="font-size:14px;color:#444;line-height:1.7">${intro}</div>
-        ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:13px;color:#1565c0;cursor:pointer">🛡️ 사업자등록증 및 인증 정보</div>':''}
+      <!-- 통계 카드 (본인일 때만 표시) -->
+      ${isMine?`
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:8px solid #f5f5f5">
+        <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5">
+          <div style="font-size:20px;font-weight:800;color:#ff6f00">${myProds.length}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">상품</div>
+        </div>
+        <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5;cursor:pointer" onclick="showView('my-offers');renderMyOffers()">
+          <div style="font-size:20px;font-weight:800;color:${pendingOffers>0?'#e53935':'#1a1a1a'}">${pendingOffers}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">가격제안</div>
+        </div>
+        <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5;cursor:pointer" onclick="showView('my-reservations');renderMyReservations()">
+          <div style="font-size:20px;font-weight:800;color:${pendingResvs>0?'#e53935':'#1a1a1a'}">${pendingResvs}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">예약</div>
+        </div>
+        <div style="padding:16px 8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#1a1a1a">${myFollowers}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">단골</div>
+        </div>
       </div>
+      <!-- 빠른 메뉴 (본인일 때만) -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:16px 0;border-bottom:8px solid #f5f5f5">
+        <div onclick="showView('form')" style="text-align:center;cursor:pointer">
+          <div style="font-size:28px;margin-bottom:4px">➕</div>
+          <div style="font-size:11px;color:#666">상품 등록</div>
+        </div>
+        <div onclick="showView('biz-news')" style="text-align:center;cursor:pointer">
+          <div style="font-size:28px;margin-bottom:4px">📢</div>
+          <div style="font-size:11px;color:#666">소식 올리기</div>
+        </div>
+        <div onclick="showView('biz-stats')" style="text-align:center;cursor:pointer">
+          <div style="font-size:28px;margin-bottom:4px">📊</div>
+          <div style="font-size:11px;color:#666">거래 통계</div>
+        </div>
+        <div onclick="openProfileEditByType()" style="text-align:center;cursor:pointer">
+          <div style="font-size:28px;margin-bottom:4px">✏️</div>
+          <div style="font-size:11px;color:#666">정보 수정</div>
+        </div>
+      </div>`:''}
+
+      <!-- 기본 정보 -->
+      ${rows.length?`<div style="padding:0 16px">${rows.join('')}</div>`:''}
+
+      <!-- 소개 -->
+      <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:${rows.length?8:0}px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">소개</div>
+        <div style="font-size:14px;color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100)+'...<span onclick="document.getElementById(\'sh-intro-text\').innerHTML=\''+intro.replace(/'/g,"\\'").replace(/\n/g,'<br>')+'\';" style="color:#ff6f00;cursor:pointer;font-weight:600"> 더보기</span>':intro}</div>
+        ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:13px;color:#1565c0">🛡️ 사업자등록증 및 인증 정보</div>':''}
+      </div>
+
+      <!-- 등록 상품 -->
       <div style="padding:16px;border-top:8px solid #f5f5f5">
-        <div style="font-size:16px;font-weight:700;margin-bottom:12px">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:16px;font-weight:700">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
+          ${myProds.length>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:13px;color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
+        </div>
         ${myProds.slice(0,3).map(p=>`
           <div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;align-items:center">
             <div style="width:60px;height:60px;border-radius:8px;background:#eee;flex-shrink:0;overflow:hidden">
@@ -4748,11 +4807,30 @@ function switchSellerTab(tab,el){
             </div>
             <div style="flex:1;min-width:0">
               <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-              <div style="font-size:13px;color:#ff6f00;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''} · ${p.qty||0}m</div>
+              <div style="font-size:14px;color:#ff6f00;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
             </div>
           </div>`).join('')}
-        ${myProds.length>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="text-align:center;padding:12px;color:#ff6f00;font-size:14px;font-weight:600;cursor:pointer">상품 더보기 ›</div>`:''}
-      </div>`;
+        ${!myProds.length?'<div style="text-align:center;padding:20px;color:#888;font-size:14px">등록된 상품이 없어요</div>':''}
+      </div>
+
+      <!-- 최근 소식 -->
+      ${(()=>{
+        const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name).slice(0,2);
+        if(!news.length)return '';
+        return `<div style="padding:16px;border-top:8px solid #f5f5f5">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-size:16px;font-weight:700">최근 소식</div>
+            <div onclick="switchSellerTab('news',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:13px;color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>
+          </div>
+          ${news.map(n=>`
+            <div style="padding:10px 0;border-bottom:1px solid #f5f5f5">
+              <div style="font-size:14px;font-weight:600;color:#1a1a1a">${n.title}</div>
+              <div style="font-size:12px;color:#888;margin-top:4px">${new Date(n.createdAt).toLocaleDateString()}</div>
+            </div>`).join('')}
+        </div>`;
+      })()}
+    `;
   } else if(tab==='news'){
     const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name);
     content.innerHTML=`<div style="padding:16px">${news.length?news.map(n=>`
