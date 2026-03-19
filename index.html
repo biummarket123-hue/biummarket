@@ -1215,32 +1215,48 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 
 <!-- ========== SELLER PAGE ========== -->
 <div id="view-seller" class="view">
-  <header class="hdr">
-    <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">판매자</div>
-    <button class="hdr-btn" onclick="showToast('공유됐어요!')">⋯</button>
-  </header>
-  <div style="flex:1;overflow-y:auto;padding-bottom:20px">
-    <div class="seller-cover" id="sh-cover">
-      <div class="seller-cover-overlay" id="sh-cover-overlay"></div>
-      <div class="seller-av-row">
-        <div class="seller-big-av" id="sh-av"></div>
-        <div class="seller-av-info">
-          <div class="seller-hero-name" id="sh-name"></div>
-          <div id="sh-cert-badge" style="margin-top:4px"></div>
-          <div class="seller-hero-sub" id="sh-loc"></div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:80px">
+    <!-- 헤더 -->
+    <div style="position:sticky;top:0;z-index:100;background:#fff;display:flex;align-items:center;padding:0 14px;height:56px;border-bottom:1px solid #e0e0ea">
+      <button onclick="goBack()" style="background:none;border:none;font-size:22px;cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
+      <div style="flex:1;font-size:16px;font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
+      <button onclick="showToast('공유됐어요!')" style="background:none;border:none;font-size:20px;cursor:pointer">⬆</button>
+      <button id="sh-wish-btn" onclick="toggleSellerWish()" style="background:none;border:none;font-size:20px;cursor:pointer;margin-left:4px">🤍</button>
+    </div>
+    <!-- 업체명 + 기본 정보 -->
+    <div style="padding:16px 16px 0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#1a1a1a" id="sh-name"></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+            <span style="font-size:14px;color:#f5c518;font-weight:700" id="sh-rating">⭐ 0.0</span>
+            <span style="font-size:13px;color:#666" id="sh-review-cnt">후기 0</span>
+            <span style="font-size:13px;color:#666">·</span>
+            <span style="font-size:13px;color:#666" id="sh-follower-cnt">단골 0</span>
+          </div>
+          <div style="font-size:13px;color:#888;margin-top:4px" id="sh-loc"></div>
+          <div id="sh-cert-badge" style="margin-top:6px"></div>
         </div>
-        <button class="seller-follow-btn" onclick="showToast('팔로우했어요! ⭐')">팔로우</button>
+        <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:8px 16px;background:#ff6f00;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
       </div>
     </div>
-    <div class="seller-stats" id="sh-stats"></div>
-    <div class="seller-tabs">
-      <div class="seller-tab on" onclick="switchSellerTab('home',this)">🏠 홈</div>
-      <div class="seller-tab"   onclick="switchSellerTab('products',this)">📦 상품</div>
-      <div class="seller-tab"   onclick="switchSellerTab('info',this)">📋 정보</div>
-      <div class="seller-tab"   onclick="switchSellerTab('review',this)">⭐ 후기</div>
+    <!-- 사진 갤러리 -->
+    <div id="sh-photos-gallery" style="display:flex;gap:4px;overflow-x:auto;padding:12px 16px;scrollbar-width:none"></div>
+    <!-- 탭 메뉴 -->
+    <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff;position:sticky;top:56px;z-index:50" id="sh-tabs">
+      <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
+      <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
+      <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 0</div>
+      <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+      <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
     </div>
-    <div id="sh-tab-content"></div>
+    <!-- 탭 컨텐츠 -->
+    <div id="sh-tab-content" style="padding-bottom:20px"></div>
+  </div>
+  <!-- 하단 버튼 -->
+  <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e0ea;padding:12px 16px;display:flex;gap:10px">
+    <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
+    <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
   </div>
 </div>
 
@@ -4692,173 +4708,213 @@ async function submitReservation(){
 
 /* ==================== SELLER PAGE ==================== */
 function switchSellerTab(tab,el){
-  document.querySelectorAll('#view-seller .seller-tab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
+  document.querySelectorAll('#sh-tabs .seller-tab').forEach(t=>{
+    t.style.borderBottomColor='transparent';
+    t.style.color='#666677';
+  });
+  if(el){el.style.borderBottomColor='#ff6f00';el.style.color='#ff6f00';}
   const content=document.getElementById('sh-tab-content');
   const seller=curSellerData||{};
-  const myProds=products.filter(p=>isMyProduct(p,seller));
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
+  let extra={};
+  try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
+  const myProds=products.filter(p=>isMyProduct(p,seller));
+
   if(tab==='home'){
-    const top3=[...myProds].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,3);
+    const tel=userInfo.tel||extra.tel||seller.tel||'';
+    const hours=userInfo.profile?.hours||extra.hours||'';
+    const intro=userInfo.intro||extra.intro||'재고원단 전문 업체입니다.';
+    const insta=userInfo.profile?.insta||extra.insta||'';
+    const rows=[];
+    if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">🕐</span><div><div style="font-size:14px;color:#1a1a1a">${hours}</div></div></div>`);
+    if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">📞</span><div style="font-size:14px;color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">복사</button></div>`);
+    if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">🌐</span><div style="font-size:14px;color:#1565c0">${insta}</div></div>`);
+    const address=extra.address||userInfo.loc||seller.loc||'';
+    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">📍</span><div style="font-size:14px;color:#1a1a1a">${address}</div></div>`);
     const tags=seller.tags||userInfo.tags||['재고원단','면/린넨','B2B'];
-    content.innerHTML=`<div style="padding:14px;background:#f5f5f5">
-      <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">💬 인사말</div>
-        <div style="font-size:13px;color:#555566;line-height:1.7">${seller._intro||'안녕하세요. 재고원단 전문 업체입니다.'}</div>
+    content.innerHTML=`
+      <div style="padding:0 16px">${rows.join('')}</div>
+      <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:8px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">소개</div>
+        <div style="font-size:14px;color:#444;line-height:1.7">${intro}</div>
+        ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:13px;color:#1565c0;cursor:pointer">🛡️ 사업자등록증 및 인증 정보</div>':''}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-        ${tags.map(t=>`<span style="background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;padding:4px 12px;font-size:12px;color:#555566">#${t}</span>`).join('')}
-      </div>
-      ${top3.length?`<div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:10px">🔥 인기 상품</div>
-      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px">
-        ${top3.map(s=>`<div onclick="openDetail(${s.id})" style="flex-shrink:0;width:130px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
-          <div style="height:100px;background:${getFColor(s.type,s.color)};display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden">
-            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover">`:'🧵'}
-          </div>
-          <div style="padding:8px">
-            <div style="font-size:12px;color:#1a1a1a;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${s.title}</div>
-            <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-top:2px">${fmtPrice(s.price)}/${s.unit||'m'}</div>
-          </div>
-        </div>`).join('')}
-      </div>`:''}
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button onclick="openChatModal()" style="flex:1;background:linear-gradient(135deg,#c8962a,#f5c518);color:#1a1a1a;font-weight:700;border:none;border-radius:12px;padding:14px;font-size:14px;cursor:pointer">💬 문의하기</button>
-        <button onclick="switchSellerTab('info',document.querySelectorAll('#view-seller .seller-tab')[2])" style="flex:1;background:#fff;border:1.5px solid #d8d8e8;color:#555566;font-weight:600;border-radius:12px;padding:14px;font-size:14px;cursor:pointer">📋 상세정보</button>
-      </div>
-    </div>`;
-  }else if(tab==='products'){
-    content.innerHTML=`<div style="padding:14px;background:#f5f5f5">
-      <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">전체 상품 ${myProds.length}건</div>
-      ${myProds.length?myProds.map(s=>{
-        const discRate=s.list_price&&s.list_price>s.price?Math.round((1-s.price/s.list_price)*100):0;
-        return `<div onclick="openDetail(${s.id})" style="display:flex;gap:12px;background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;align-items:center">
-          <div style="width:80px;height:80px;border-radius:10px;background:${getFColor(s.type,s.color)};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px">
-            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover">`:'🧵'}
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${s.title}</div>
-            <div style="font-size:12px;color:#888;margin-bottom:6px">${[s.material,s.weight?s.weight+'g/㎡':null].filter(Boolean).join(' · ')||s.type}</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              ${discRate?`<span style="background:#fff0f0;color:#e53935;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px">-${discRate}%</span>`:''}
-              <span style="font-size:15px;font-weight:700;color:#1a1a1a">${fmtPrice(s.price)}/${s.unit||'m'}</span>
+      <div style="padding:16px;border-top:8px solid #f5f5f5">
+        <div style="font-size:16px;font-weight:700;margin-bottom:12px">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
+        ${myProds.slice(0,3).map(p=>`
+          <div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;align-items:center">
+            <div style="width:60px;height:60px;border-radius:8px;background:#eee;flex-shrink:0;overflow:hidden">
+              ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧵</div>'}
             </div>
-            <div style="font-size:11px;color:#aaa;margin-top:4px">🤍 ${s.likes||0} · 💬 ${s.chats||0}</div>
-          </div>
-        </div>`;
-      }).join(''):`<div style="text-align:center;padding:40px;color:#888">등록된 상품이 없어요 📦</div>`}
-    </div>`;
-  }else if(tab==='info'){
-    const infoRows=[
-      ['대표자',userInfo.ceo||seller.ceo||'홍길동'],
-      ['설립년도',userInfo.established?userInfo.established+'년':'2015년'],
-      ['사업자번호',userInfo.bizno||seller.bizno||'123-45-67890'],
-      ['전화',userInfo.phone||seller.phone||'02-1234-5678'],
-      ['주소',userInfo.address||seller.address||(seller.loc||'서울특별시')],
-    ];
-    content.innerHTML=`<div style="padding:14px;background:#f5f5f5">
-      <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">🏢 회사 정보</div>
-        ${infoRows.map((r,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;${i<infoRows.length-1?'border-bottom:1px solid #f0f0f5':''}">
-          <span style="font-size:12px;color:#888">${r[0]}</span>
-          <span style="font-size:14px;color:#1a1a1a;font-weight:500">${r[1]}</span>
-        </div>`).join('')}
-      </div>
-      <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">🕐 영업시간</div>
-        <div style="font-size:14px;color:#555566">${userInfo.hours||seller.hours||'월-토 08:00~19:00'}</div>
-        <div style="font-size:12px;color:#e53935;margin-top:4px">일요일 · 공휴일 휴무</div>
-      </div>
-      <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">🚚 거래 조건</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${[['배송방법',userInfo.delivery||'직접 배송 / 택배'],['최소주문',userInfo.minOrder?fmtPrice(userInfo.minOrder):'50m 이상'],['결제방법',userInfo.payment||'계좌이체 / 세금계산서'],['거래지역',seller.loc||'전국 가능']].map(r=>`
-          <div style="background:#f8f8fa;border-radius:10px;padding:12px">
-            <div style="font-size:11px;color:#888;margin-bottom:4px">${r[0]}</div>
-            <div style="font-size:13px;color:#1a1a1a;font-weight:600">${r[1]}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+              <div style="font-size:13px;color:#ff6f00;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
+            </div>
           </div>`).join('')}
-        </div>
+        ${myProds.length>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="text-align:center;padding:12px;color:#ff6f00;font-size:14px;font-weight:600;cursor:pointer">상품 더보기 ›</div>`:''}
+      </div>`;
+  } else if(tab==='news'){
+    const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name);
+    content.innerHTML=`<div style="padding:16px">${news.length?news.map(n=>`
+      <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
+        <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
+        <div style="font-size:14px;color:#444;line-height:1.6">${n.content}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:8px">${new Date(n.createdAt).toLocaleDateString()}</div>
+      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 소식이 없어요</div>'}</div>`;
+  } else if(tab==='review'){
+    const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
+    content.innerHTML=`
+      <div style="padding:24px 16px;text-align:center;border-bottom:1px solid #f0f0f5">
+        <div style="font-size:40px;font-weight:800;color:#1a1a1a">${reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1):'0.0'}</div>
+        <div style="font-size:20px;color:#f5c518;margin:6px 0">${'★'.repeat(Math.round(reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length):0))}${'☆'.repeat(5-Math.round(reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length):0))}</div>
+        <div style="font-size:13px;color:#888">후기 ${reviews.length}개</div>
       </div>
-      <button onclick="openChatModal()" style="width:100%;background:linear-gradient(135deg,#c8962a,#f5c518);color:#1a1a1a;font-weight:700;border:none;border-radius:12px;padding:14px;font-size:15px;cursor:pointer">💬 문의하기</button>
-    </div>`;
-  }else{
-    const REVIEWS=[
-      {name:'동대문텍스',stars:5,text:'원단 품질이 사진과 동일합니다. 빠른 배송 감사합니다.',time:'1일 전'},
-      {name:'한양직물',stars:4,text:'좋은 원단이지만 포장이 조금 아쉬웠습니다.',time:'2일 전'},
-    ];
-    const rating=4.5;const dist={5:1,4:1,3:0,2:0,1:0};
-    content.innerHTML=`<div style="padding:14px;background:#f5f5f5">
-      <div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="display:flex;align-items:center;gap:16px">
-          <div style="text-align:center;flex-shrink:0">
-            <div style="font-size:48px;font-weight:800;color:#f5c518;line-height:1">${rating}</div>
-            <div style="color:#f5c518;font-size:18px;margin-top:4px">★★★★½</div>
-            <div style="font-size:12px;color:#888;margin-top:4px">${REVIEWS.length}개 리뷰</div>
-          </div>
-          <div style="flex:1">
-            ${[5,4,3,2,1].map(n=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-              <span style="font-size:11px;color:#888;width:8px">${n}</span>
-              <div style="flex:1;background:#f0f0f5;border-radius:4px;height:8px;overflow:hidden">
-                <div style="height:100%;width:${dist[n]?Math.round(dist[n]/REVIEWS.length*100):0}%;background:#f5c518;border-radius:4px"></div>
-              </div>
-            </div>`).join('')}
-          </div>
+      ${curUser?`<div style="padding:16px;border-bottom:8px solid #f5f5f5">
+        <div style="font-size:15px;font-weight:700;margin-bottom:10px">${curUser.name}님, 이 업체 이용하셨나요?</div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-bottom:12px" id="sh-review-stars">
+          ${[1,2,3,4,5].map(i=>`<span onclick="setReviewStar(${i})" style="font-size:32px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}
         </div>
-      </div>
-      ${REVIEWS.map(r=>`<div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:32px;height:32px;border-radius:50%;background:#d4a017;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${r.name[0]}</div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:#1a1a1a">${r.name}</div>
-              <div style="font-size:12px;color:#f5c518">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
-            </div>
+        <textarea id="sh-review-text" class="fi" placeholder="후기를 남겨주세요" style="min-height:80px;margin-bottom:8px"></textarea>
+        <button onclick="submitSellerReview('${seller.id||seller.name}')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">후기 작성하기</button>
+      </div>`:''}
+      <div style="padding:16px">${reviews.length?reviews.map(r=>`
+        <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${(r.author||'?')[0]}</div>
+            <div><div style="font-size:13px;font-weight:700">${r.author}</div><div style="font-size:11px;color:#aaa">${new Date(r.createdAt).toLocaleDateString()}</div></div>
+            <div style="margin-left:auto;color:#f5c518;font-size:13px">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
           </div>
-          <span style="font-size:11px;color:#aaa">${r.time}</span>
+          <div style="font-size:14px;color:#444;line-height:1.6">${r.text}</div>
+        </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">아직 후기가 없어요</div>'}</div>`;
+  } else if(tab==='products'){
+    content.innerHTML=`<div style="padding:16px">${myProds.length?myProds.map(p=>`
+      <div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;align-items:center">
+        <div style="width:70px;height:70px;border-radius:10px;background:#eee;flex-shrink:0;overflow:hidden">
+          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🧵</div>'}
         </div>
-        <div style="font-size:13px;color:#555566;line-height:1.6">${r.text}</div>
-      </div>`).join('')}
-    </div>`;
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''}</div>
+          <div style="font-size:15px;color:#ff6f00;font-weight:700;margin-top:4px">${(p.price||0).toLocaleString()}원/m</div>
+        </div>
+      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 상품이 없어요</div>'}</div>`;
+  } else if(tab==='photos'){
+    const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+    content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:14px">등록된 사진이 없어요</div>'}</div>`;
   }
 }
 function renderSellerPage(seller){
   curSellerData=seller;
-  const overlay=document.getElementById('sh-cover-overlay');
-  if(overlay)overlay.style.background='none';
-  const av=document.getElementById('sh-av');
-  av.textContent=seller.name?seller.name.slice(0,2):'?';
-  av.style.background='#d4a017';
-  document.getElementById('sh-name').textContent=seller.name;
+  const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
+  let extra={};
+  try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
+  const myProds=products.filter(p=>isMyProduct(p,seller));
+  const reviewCount=userInfo.reviewCount||0;
+  const rating=userInfo.rating||0;
+  const followers=lsGet('sellerFollowers',{})[seller.id||seller.name]||0;
+  const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
+  const hdrTitle=document.getElementById('sh-hdr-title');
+  if(hdrTitle)hdrTitle.textContent=seller.name||'업체 정보';
+  const nameEl=document.getElementById('sh-name');
+  if(nameEl)nameEl.textContent=seller.name||'';
+  const ratingEl=document.getElementById('sh-rating');
+  if(ratingEl)ratingEl.textContent=rating>0?`⭐ ${rating.toFixed(1)}`:'⭐ -';
+  const reviewEl=document.getElementById('sh-review-cnt');
+  if(reviewEl)reviewEl.textContent=`후기 ${reviewCount}`;
+  const followerEl=document.getElementById('sh-follower-cnt');
+  if(followerEl)followerEl.textContent=`단골 ${followers}`;
+  const locEl=document.getElementById('sh-loc');
+  if(locEl)locEl.textContent=(extra.address||userInfo.loc||seller.loc||'')+(userInfo.category?' · '+userInfo.category:'');
   const certBadge=document.getElementById('sh-cert-badge');
   if(certBadge){
-    const stype=seller.type||seller.role||'';
-    if(stype==='both')certBadge.innerHTML='<span style="background:rgba(200,168,75,.95);color:#1a1400;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px">🏢 공식 인증업체</span>';
-    else if(stype==='seller')certBadge.innerHTML='<span style="background:rgba(0,179,134,.9);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px">✅ 인증판매자</span>';
+    if(isBiz)certBadge.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;color:#1565c0;font-size:13px;font-weight:600">🛡️ 사업자인증</span>';
     else certBadge.innerHTML='';
   }
-  const locEl=document.getElementById('sh-loc');
-  if(locEl)locEl.innerHTML='<span>📍 '+(seller.loc||'서울')+'</span>';
-  const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
-  curSellerData._intro=userInfo.intro||'재고원단 전문 업체입니다. 다양한 소재의 원단을 합리적인 가격에 공급합니다.';
-  const reviewCount=userInfo.reviewCount||2;
-  const rating=userInfo.rating||4.5;
-  const estYear=userInfo.established||seller.established;
-  const sinceHtml=estYear?`<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px">Since ${estYear} · ${2026-estYear}년 전통</div>`:'';
-  document.querySelectorAll('.seller-hero-stars').forEach(e=>e.remove());
-  const nameEl=document.getElementById('sh-name');
-  if(nameEl)nameEl.insertAdjacentHTML('afterend',
-    `<div class="seller-hero-stars">${sinceHtml}<div style="font-size:12px;color:#f5c518;margin-top:2px">★★★★½ ${rating} (${reviewCount})</div></div>`
-  );
-  const myProds=products.filter(p=>isMyProduct(p,seller));
-  const totalLikes=myProds.reduce((a,p)=>a+(p.likes||0),0);
-  document.getElementById('sh-stats').innerHTML=`
-    <div class="sstat"><div class="sv">${myProds.length}</div><div class="sl">상품</div></div>
-    <div class="sstat"><div class="sv">${reviewCount}</div><div class="sl">리뷰</div></div>
-    <div class="sstat"><div class="sv">${totalLikes}</div><div class="sl">관심</div></div>
-  `;
-  document.querySelectorAll('#view-seller .seller-tab').forEach((t,i)=>t.classList.toggle('on',i===0));
-  const firstTab=document.querySelector('#view-seller .seller-tab');
-  if(firstTab)switchSellerTab('home',firstTab);
+  const followBtn=document.getElementById('sh-follow-btn');
+  const myFollows=lsGet('myFollows',[]);
+  const isFollowing=myFollows.includes(seller.id||seller.name);
+  if(followBtn){
+    followBtn.textContent=isFollowing?'✓ 단골중':'+ 단골맺기';
+    followBtn.style.background=isFollowing?'#f5f5f5':'#ff6f00';
+    followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
+  }
+  const gallery=document.getElementById('sh-photos-gallery');
+  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  if(gallery){
+    if(photos.length){
+      gallery.innerHTML=photos.map(src=>`<img src="${src}" style="width:200px;height:150px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('');
+    } else {
+      gallery.style.display='none';
+    }
+  }
+  const tabReview=document.getElementById('sh-tab-review');
+  if(tabReview)tabReview.textContent=`후기 ${reviewCount}`;
+  document.querySelectorAll('#sh-tabs .seller-tab').forEach((t,i)=>{
+    t.style.borderBottomColor=i===0?'#ff6f00':'transparent';
+    t.style.color=i===0?'#ff6f00':'#666677';
+    t.classList.toggle('on',i===0);
+  });
+  switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
+}
+function toggleSellerFollow(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  const seller=curSellerData||{};
+  const key=seller.id||seller.name;
+  const myFollows=lsGet('myFollows',[]);
+  const idx=myFollows.indexOf(key);
+  const followers=lsGet('sellerFollowers',{});
+  if(idx>-1){
+    myFollows.splice(idx,1);
+    followers[key]=Math.max((followers[key]||1)-1,0);
+    showToast('단골을 취소했어요');
+  }else{
+    myFollows.push(key);
+    followers[key]=(followers[key]||0)+1;
+    showToast('단골이 됐어요! ❤️');
+  }
+  lsSet('myFollows',myFollows);
+  lsSet('sellerFollowers',followers);
+  const followBtn=document.getElementById('sh-follow-btn');
+  const isFollowing=myFollows.includes(key);
+  if(followBtn){
+    followBtn.textContent=isFollowing?'✓ 단골중':'+ 단골맺기';
+    followBtn.style.background=isFollowing?'#f5f5f5':'#ff6f00';
+    followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
+  }
+  const followerEl=document.getElementById('sh-follower-cnt');
+  if(followerEl)followerEl.textContent=`단골 ${followers[key]||0}`;
+}
+function toggleSellerWish(){
+  showToast('저장됐어요 🤍');
+}
+function callSeller(){
+  const seller=curSellerData||{};
+  const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
+  let extra={};
+  try{extra=JSON.parse(userInfo.extra_info||'{}');}catch(e){}
+  const tel=userInfo.tel||extra.tel||seller.tel||'';
+  if(tel){window.location.href='tel:'+tel.replace(/-/g,'');}
+  else showToast('전화번호가 등록되지 않았어요');
+}
+let reviewStarVal=0;
+function setReviewStar(val){
+  reviewStarVal=val;
+  document.querySelectorAll('#sh-review-stars span').forEach(s=>{
+    s.style.color=parseInt(s.dataset.star)<=val?'#f5c518':'#ddd';
+  });
+}
+function submitSellerReview(sellerId){
+  if(!reviewStarVal){showToast('별점을 선택해주세요');return;}
+  const text=document.getElementById('sh-review-text')?.value.trim();
+  if(!text){showToast('후기 내용을 입력해주세요');return;}
+  const reviews=lsGet('sellerReviews',{});
+  if(!reviews[sellerId])reviews[sellerId]=[];
+  reviews[sellerId].unshift({rating:reviewStarVal,text,author:curUser?.name||'익명',createdAt:new Date().toISOString()});
+  lsSet('sellerReviews',reviews);
+  reviewStarVal=0;
+  showToast('후기가 등록됐어요 ⭐');
+  switchSellerTab('review',document.querySelectorAll('#sh-tabs .seller-tab')[2]);
 }
 
 /* ==================== FORM v2 ==================== */
