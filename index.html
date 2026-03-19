@@ -4998,52 +4998,6 @@ function renderSellerPage(seller){
   const rating=userInfo.rating||0;
   const followers=lsGet('sellerFollowers',{})[seller.id||seller.name]||0;
   const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
-
-    // 일반회원 vs 사업자회원 페이지 분기
-    if(!isBiz){
-      // 일반 회원 프로필 - 심플하게
-      if(hdrTitle)hdrTitle.textContent=seller.name||'회원 프로필';
-      // 탭 구성 변경 (홈/상품/후기만)
-      const tabsEl=document.getElementById('sh-tabs');
-      if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
-      `;
-      // 단골맺기 버튼 색상 변경 (보라색)
-      if(followBtn&&!isFollowing){followBtn.style.background='#6c63ff';}
-      // 하단 버튼 - 채팅만
-      const bottomBtns=document.querySelector('#view-seller > div:last-child');
-      if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
-      `;
-      // 사진 갤러리 숨김
-      const gallery=document.getElementById('sh-photos-gallery');
-      if(gallery)gallery.style.display='none';
-      // 등급 표시
-      const myProdsCount=myProds.length;
-      const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
-      const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
-      const certBadgeEl=document.getElementById('sh-cert-badge');
-      if(certBadgeEl)certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">${grade.icon} ${grade.label} 회원</span>`;
-    } else {
-      // 사업자 회원 - 기존 탭 유지
-      const tabsEl=document.getElementById('sh-tabs');
-      if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
-      `;
-      // 하단 버튼 - 전화+채팅
-      const bottomBtns=document.querySelector('#view-seller > div:last-child');
-      if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
-        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
-      `;
-    }
-
   const hdrTitle=document.getElementById('sh-hdr-title');
   if(hdrTitle)hdrTitle.textContent=seller.name||'업체 정보';
   const nameEl=document.getElementById('sh-name');
@@ -5085,6 +5039,52 @@ function renderSellerPage(seller){
     t.style.color=i===0?'#ff6f00':'#666677';
     t.classList.toggle('on',i===0);
   });
+
+    // 일반회원 vs 사업자회원 페이지 분기
+    if(!isBiz){
+      // 일반 회원 프로필 - 심플하게
+      if(hdrTitle)hdrTitle.textContent=seller.name||'회원 프로필';
+      // 탭 구성 변경 (홈/상품/후기만)
+      const tabsEl=document.getElementById('sh-tabs');
+      if(tabsEl)tabsEl.innerHTML=`
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+      `;
+      // 단골맺기 버튼 색상 변경 (보라색)
+      if(followBtn&&!isFollowing){followBtn.style.background='#6c63ff';}
+      // 하단 버튼 - 채팅만
+      const bottomBtns=document.querySelector('#view-seller > div:last-child');
+      if(bottomBtns)bottomBtns.innerHTML=`
+        <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+      `;
+      // 사진 갤러리 숨김
+      const galleryEl=document.getElementById('sh-photos-gallery');
+      if(galleryEl)galleryEl.style.display='none';
+      // 등급 표시
+      const myProdsCount=myProds.length;
+      const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
+      const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
+      const certBadgeEl=document.getElementById('sh-cert-badge');
+      if(certBadgeEl)certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">${grade.icon} ${grade.label} 회원</span>`;
+    } else {
+      // 사업자 회원 - 기존 탭 유지
+      const tabsEl=document.getElementById('sh-tabs');
+      if(tabsEl)tabsEl.innerHTML=`
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
+        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
+      `;
+      // 하단 버튼 - 전화+채팅
+      const bottomBtns=document.querySelector('#view-seller > div:last-child');
+      if(bottomBtns)bottomBtns.innerHTML=`
+        <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
+        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+      `;
+    }
+
   switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
 }
