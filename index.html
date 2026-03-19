@@ -4436,7 +4436,25 @@ function openChatModal(){if(curProductId)openChatRoom(curProductId);}
 function shareProduct(){openModal('modal-share')}
 function openSellerPage(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
-  renderSellerPage(p.seller);
+  const seller=p.seller||{};
+  // users 배열에서 추가 정보 찾기 (이메일, id 등으로 매칭)
+  const userInfo=users.find(u=>
+    u.id===seller.id||
+    u.email===seller.name||
+    u.name===seller.name||
+    u.email===seller.email
+  )||{};
+  // seller 객체에 type 보완
+  const mergedSeller={
+    ...seller,
+    type:seller.type||userInfo.type||userInfo.role||'member',
+    role:seller.role||userInfo.role||userInfo.type||'member',
+    loc:seller.loc||userInfo.loc||'',
+    tel:seller.tel||userInfo.tel||'',
+    intro:seller.intro||userInfo.intro||'',
+    extra_info:seller.extra_info||userInfo.extra_info||'{}',
+  };
+  renderSellerPage(mergedSeller);
 }
 
 /* ==================== SLIDER ==================== */
