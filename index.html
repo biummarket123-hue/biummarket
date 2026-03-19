@@ -1951,6 +1951,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
     <div class="fg"><label>소식 제목</label><input type="text" class="fi" id="biz-news-title" placeholder="예) 신상 면/린넨 입고 안내"/></div>
     <div class="fg"><label>내용</label><textarea class="fi" id="biz-news-content" placeholder="소식 내용을 입력하세요" style="min-height:120px"></textarea></div>
+    <div class="fg">
+      <label>이미지 첨부 <span style="font-size:11px;color:#888;font-weight:400">(선택 · 최대 3장)</span></label>
+      <input type="file" id="biz-news-img-input" accept="image/*" multiple style="display:none" onchange="previewBizNewsImgs(this)"/>
+      <button onclick="document.getElementById('biz-news-img-input').click()" style="width:100%;padding:10px;background:#f5f5f5;border:1.5px dashed #d8d8e8;border-radius:10px;color:#666677;font-size:13px;cursor:pointer">📷 이미지 추가</button>
+      <div id="biz-news-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
     <button class="submit-btn" onclick="submitBizNews()">소식 발행하기</button>
     <div style="margin-top:20px;font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">발행된 소식</div>
     <div id="biz-news-list"><div style="text-align:center;padding:20px;color:#888;font-size:13px">발행된 소식이 없어요</div></div>
@@ -4832,13 +4838,19 @@ function switchSellerTab(tab,el){
       })()}
     `;
   } else if(tab==='news'){
-    const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name);
-    content.innerHTML=`<div style="padding:16px">${news.length?news.map(n=>`
-      <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
-        <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
-        <div style="font-size:14px;color:#444;line-height:1.6">${n.content}</div>
-        <div style="font-size:12px;color:#aaa;margin-top:8px">${new Date(n.createdAt).toLocaleDateString()}</div>
-      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 소식이 없어요</div>'}</div>`;
+    const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name||n.authorId===seller.id);
+    const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
+    content.innerHTML=`
+      ${isMine?`<div style="padding:12px 16px;border-bottom:8px solid #f5f5f5">
+        <button onclick="showView('biz-news')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📢 새 소식 올리기</button>
+      </div>`:''}
+      <div style="padding:16px">${news.length?news.map(n=>`
+        <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
+          <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
+          <div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:8px">${n.content}</div>
+          ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">${n.images.map(src=>`<img src="${src}" style="width:150px;height:110px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('')}</div>`:''}
+          <div style="font-size:12px;color:#aaa">${new Date(n.createdAt).toLocaleDateString()}</div>
+        </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 소식이 없어요</div>'}</div>`;
   } else if(tab==='review'){
     const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
     content.innerHTML=`
@@ -5970,17 +5982,66 @@ function showUpgradeToBiz(){
     renderMypage();
   }
 }
+let bizNewsImgs=[];
+function previewBizNewsImgs(input){
+  const files=Array.from(input.files);
+  if(bizNewsImgs.length+files.length>3){showToast('이미지는 최대 3장까지 첨부할 수 있어요');return;}
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      bizNewsImgs.push(e.target.result);
+      renderBizNewsImgPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function renderBizNewsImgPreview(){
+  const el=document.getElementById('biz-news-img-preview');if(!el)return;
+  el.innerHTML=bizNewsImgs.map((src,i)=>`
+    <div style="position:relative;width:80px;height:80px">
+      <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #e0e0ea"/>
+      <button onclick="removeBizNewsImg(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#ef4444;color:#fff;border-radius:50%;font-size:12px;font-weight:700;border:none;cursor:pointer">×</button>
+    </div>`).join('');
+}
+function removeBizNewsImg(idx){
+  bizNewsImgs.splice(idx,1);
+  renderBizNewsImgPreview();
+}
 function submitBizNews(){
   const title=document.getElementById('biz-news-title')?.value.trim();
   const content=document.getElementById('biz-news-content')?.value.trim();
   if(!title||!content){showToast('제목과 내용을 입력해주세요');return;}
+  if(!curUser){showToast('로그인이 필요해요');return;}
   const news=lsGet('bizNews',[]);
-  news.unshift({id:Date.now(),title,content,author:curUser?.name||'',createdAt:new Date().toISOString()});
+  news.unshift({
+    id:Date.now(),
+    title,
+    content,
+    images:[...bizNewsImgs],
+    author:curUser.name||'',
+    authorId:curUser.id||'',
+    createdAt:new Date().toISOString()
+  });
   lsSet('bizNews',news);
+  bizNewsImgs=[];
+  renderBizNewsImgPreview();
   document.getElementById('biz-news-title').value='';
   document.getElementById('biz-news-content').value='';
+  document.getElementById('biz-news-img-input').value='';
   renderBizNewsList();
   showToast('소식이 발행됐어요 📢');
+  setTimeout(()=>{
+    renderSellerPage({
+      id:curUser.id,
+      name:curUser.name,
+      type:curUser.role||curUser.type||'',
+      loc:curUser.loc||'',
+      tel:curUser.tel||''
+    });
+    const newsTab=document.querySelectorAll('#sh-tabs .seller-tab')[1];
+    if(newsTab)switchSellerTab('news',newsTab);
+  },300);
 }
 function renderBizNewsList(){
   const news=lsGet('bizNews',[]);
@@ -5990,6 +6051,7 @@ function renderBizNewsList(){
     <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:14px;margin-bottom:10px">
       <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">${n.title}</div>
       <div style="font-size:13px;color:#666;line-height:1.6;margin-bottom:8px">${n.content}</div>
+      ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">${n.images.map(src=>`<img src="${src}" style="width:120px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('')}</div>`:''}
       <div style="font-size:11px;color:#aaa">${new Date(n.createdAt).toLocaleDateString()}</div>
     </div>`).join('');
 }
