@@ -873,8 +873,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <div class="fg"><label>위치</label><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동"/></div>
     <!-- 개인 판매자 전용 필드 -->
     <div id="signup-seller-fields" style="display:none">
-      <div style="font-size:12px;font-weight:700;color:#6c63ff;margin:12px 0 8px;padding:8px 12px;background:rgba(108,99,255,.08);border-radius:8px">👤 개인 판매자 정보</div>
-      <div class="fg"><label>인사말</label><textarea class="fi" id="s-intro" placeholder="예) 안녕하세요. 동대문 원단 전문 판매자입니다." style="min-height:70px"></textarea></div>
+      <div style="font-size:12px;font-weight:700;color:#6c63ff;margin:12px 0 8px;padding:8px 12px;background:rgba(108,99,255,.08);border-radius:8px">👤 개인 판매 정보</div>
+      <div class="fg"><label>인사말</label><textarea class="fi" id="s-intro" placeholder="예) 안녕하세요. 동대문 원단 전문입니다." style="min-height:70px"></textarea></div>
       <div class="fg"><label>전문 태그</label><input type="text" class="fi" id="s-tags" placeholder="예) 면, 린넨, 폴리 (쉼표로 구분)"/></div>
       <div class="fg"><label>영업시간</label><input type="text" class="fi" id="s-hours" placeholder="예) 평일 09:00 ~ 18:00"/></div>
       <div class="fg"><label>최소 주문량(MOQ)</label><input type="text" class="fi" id="s-moq" placeholder="예) 50마 이상"/></div>
@@ -883,7 +883,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <!-- 업체 판매자 전용 필드 -->
     <div id="signup-company-fields" style="display:none">
-      <div style="font-size:12px;font-weight:700;color:#c8a84b;margin:12px 0 8px;padding:8px 12px;background:rgba(200,168,75,.08);border-radius:8px">🏭 업체 판매자 정보</div>
+      <div style="font-size:12px;font-weight:700;color:#c8a84b;margin:12px 0 8px;padding:8px 12px;background:rgba(200,168,75,.08);border-radius:8px">🏭 사업자 정보</div>
       <div class="fg"><label>회사명 <span class="req">*</span></label><input type="text" class="fi" id="s-bizname" placeholder="예) (주)비움텍스타일"/></div>
       <div class="fg"><label>대표자명 <span class="req">*</span></label><input type="text" class="fi" id="s-ceo" placeholder="대표자 이름"/></div>
       <div class="fg"><label>사업자등록번호 <span class="req">*</span></label><input type="text" class="fi" id="s-biznum" placeholder="예) 123-45-67890"/></div>
@@ -932,7 +932,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
       <div style="display:flex;gap:8px;margin-top:4px;position:relative;z-index:1">
         <button onclick="showView('category')" style="flex:1;padding:11px 0;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer">🧵 지금 둘러보기</button>
-        <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 판매자 입점</button>
+        <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 사업자 회원 입점</button>
       </div>
     </div>
     <!-- AI 추천 섹션 -->
@@ -1453,7 +1453,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <div class="my-menu-item" id="menu-top-sellers" onclick="openTopSellers()">
         <div class="my-icon-box ib-yellow">🏆</div>
         <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 판매자 랭킹</div>
+          <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 사업자 랭킹</div>
           <div class="my-menu-sub" data-i18n="mnu_top_sellers_sub">판매 실적 · 거래 완료 순위</div>
         </div>
         <span class="my-menu-arrow">›</span>
@@ -2233,7 +2233,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <div id="view-top-sellers" class="view">
   <header class="hdr">
     <button class="hdr-back" onclick="goBack()">←</button>
-    <div class="hdr-title">TOP 판매자</div>
+    <div class="hdr-title">TOP 사업자</div>
     <div style="width:38px"></div>
   </header>
   <div style="flex:1;overflow-y:auto;padding:14px;background:#f5f5f5" id="top-sellers-view-content"></div>
@@ -2375,7 +2375,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       </div>
     </div>
     <div class="suggest-form" style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0ea">
-      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (판매자에게 전달돼요)</div>
+      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (상대방에게 전달돼요)</div>
       <div class="fg"><label>이름 / 업체명</label><input type="text" class="fi" id="res-contact-name" placeholder="예) 홍길동 / (주)패션하우스"/></div>
       <div class="fg"><label>전화번호</label><input type="text" class="fi" id="res-contact-tel" placeholder="예) 010-1234-5678"/></div>
       <div class="fg"><label>주소 (샘플 배송지)</label><input type="text" class="fi" id="res-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
@@ -2553,8 +2553,8 @@ const LANGS={
     login_id_label:'아이디',login_pw_label:'비밀번호',
     btn_login:'로그인',btn_to_signup:'회원가입',test_account:'테스트 계정',
     signup_type_label:'회원 유형 선택',
-    type_seller:'판매자',type_seller_sub:'원단 도매 · 재고 판매',
-    type_buyer:'구매자',type_buyer_sub:'원단 소싱 · 구매',
+    type_seller:'사업자 회원',type_seller_sub:'원단 도매 · 재고 판매',
+    type_buyer:'일반 회원',type_buyer_sub:'원단 소싱 · 구매',
     type_both:'겸업',type_both_sub:'판매 + 구매 모두',
     btn_join:'가입하기',
     form_photo:'사진 첨부',form_photo_add:'사진추가',
@@ -2575,7 +2575,7 @@ const LANGS={
     mnu_notif:'알림',mnu_notif_sub:'새 상품·가격변동·거래',
     mnu_keyword:'키워드 알림',mnu_keyword_sub:'원하는 원단 등록시 알림',
     mnu_cart:'묶음 장바구니',
-    mnu_top_sellers:'TOP 판매자 랭킹',mnu_top_sellers_sub:'판매 실적·거래 완료 순위',
+    mnu_top_sellers:'TOP 사업자 랭킹',mnu_top_sellers_sub:'판매 실적·거래 완료 순위',
     mnu_board:'업계 게시판',mnu_board_sub:'트렌드·정보·Q&A',
     mnu_ai_detect:'원단 감별 AI',mnu_ai_detect_sub:'사진으로 소재 분석',
     mnu_trend:'AI 트렌드 리포트',mnu_trend_sub:'시즌 수요 예측·패션위크 분석',
@@ -2957,7 +2957,7 @@ try{
             if(localMatch){
               curUser=localMatch;
             }else{
-              const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+              const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
               await _sb.from('users').insert(newProfile);
               curUser=newProfile;
             }
@@ -3440,7 +3440,7 @@ async function doLogin(){
     }
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
-    curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'buyer',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);updateNotifDot();
     showView('list');showListSkeleton();loadProductsFromSupabase();
@@ -3497,7 +3497,7 @@ async function doSignup(){
     curUser=newUser;lsSet('curUser',curUser);
     if(wantsBusiness){
       showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
-      addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:newUser.id,email,requestedRole});
+      addAppNotification('admin','seller_request',`📋 ${name}님이 사업자 회원 전환을 신청했어요`,{userId:newUser.id,email,requestedRole});
     } else showToast('가입 완료! 환영해요 🎉');
     showView('list');return;
   }
@@ -3525,7 +3525,7 @@ async function doSignup(){
     lsSet('curUser',curUser);
     if(wantsBusiness){
       showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
-      addAppNotification('admin','seller_request',`📋 ${name}님이 판매자 승인을 신청했어요`,{userId:curUser.id,email,requestedRole});
+      addAppNotification('admin','seller_request',`📋 ${name}님이 사업자 회원 전환을 신청했어요`,{userId:curUser.id,email,requestedRole});
     } else {
       showToast('가입 완료! 환영해요 🎉');
       addAppNotification('admin','new_user',`👤 ${name}님이 새로 가입했어요`,{userId:curUser.id,email});
@@ -3580,7 +3580,7 @@ async function handleKakaoCode(code){
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
     let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
     if(!user){
-      user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+      user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
       users.push(user);lsSet('users',users);
       if(_sb)await _sb.from('users').upsert(user);
     }
@@ -3621,7 +3621,7 @@ async function handleNaverCode(code,state){
     const email=profile.email||('naver_'+naverId+'@naver.com');
     let user=users.find(u=>u.email===email||u.naverId===String(naverId));
     if(!user){
-      user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'buyer',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
+      user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
       users.push(user);lsSet('users',users);
       if(_sb)await _sb.from('users').upsert(user);
     }
@@ -4142,7 +4142,7 @@ function renderCard(p, idx){
       ${(()=>{
         const stype=p.seller?.type||p.sellerType||'';
         if(stype==='both')return '<div class="badge-cert company">🏢 인증업체</div>';
-        if(stype==='seller')return '<div class="badge-cert personal">✅ 인증판매자</div>';
+        if(stype==='seller')return '<div class="badge-cert personal">✅ 인증회원</div>';
         return '';
       })()}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
@@ -4268,7 +4268,7 @@ function openDetail(id){
       const stype=p.seller?.type||p.sellerType||curUser?.type||'';
       const badge=stype==='both'
         ?'<span class="pd-cert-badge company">🏢 인증업체</span>'
-        :(stype==='seller'?'<span class="pd-cert-badge personal">✅ 인증판매자</span>':'');
+        :(stype==='seller'?'<span class="pd-cert-badge personal">✅ 인증회원</span>':'');
       return '<div class="pd-seller-name">'+sellerName+badge+'</div>';
     })()
     +'<div class="pd-seller-meta">📍 '+(p.loc||seller.loc||'위치 미기재')+' · 매너온도 '+(seller.temp||36.5).toFixed(1)+'°C</div>'
@@ -4525,7 +4525,7 @@ function showCounterOffer(offerId){
   offers[idx].counterPrice=parseInt(price);
   lsSet('priceOffers',offers);
   const o=offers[idx];
-  addAppNotification(o.buyerId,'offer_counter',`🔄 판매자가 역제안했어요: ${parseInt(price).toLocaleString()}원/m`,{offerId,productTitle:o.productTitle,counterPrice:parseInt(price)});
+  addAppNotification(o.buyerId,'offer_counter',`🔄 상대방이 역제안했어요: ${parseInt(price).toLocaleString()}원/m`,{offerId,productTitle:o.productTitle,counterPrice:parseInt(price)});
   showToast('역제안을 보냈어요! 🔄');
   renderMyOffers();
 }
@@ -5611,7 +5611,7 @@ function renderProfileEdit(){
   // 인사말 placeholder 변경
   const introEl2=document.getElementById('pe-intro');
   if(introEl2&&isBuyerRole)introEl2.placeholder='예) 안녕하세요! 패션 의류 소싱 전문 구매자입니다.';
-  else if(introEl2&&role==='seller')introEl2.placeholder='예) 안녕하세요! 동대문 원단 개인 판매자입니다.';
+  else if(introEl2&&role==='seller')introEl2.placeholder='예) 안녕하세요! 동대문 원단 전문 판매합니다.';
   else if(introEl2)introEl2.placeholder='예) 20년 경력 동대문 원단 도매업체입니다.';
   // 태그 placeholder 변경
   const tagsEl2=document.getElementById('pe-tags');
@@ -5759,7 +5759,7 @@ const LOCATION_OPTIONS=[
 function renderSettings(){
   const u=curUser||{};
   const lang=LANGS[curLang]||LANGS.ko;
-  const typeMap={seller:'판매자',buyer:'구매자',both:'겸업',admin:'관리자',guest:'게스트'};
+  const typeMap={seller:'사업자 회원',buyer:'일반 회원',both:'사업자 회원',member:'일반 회원',business:'사업자 회원',admin:'관리자',guest:'일반 회원'};
 
   // 프로필
   const avEl=document.getElementById('sett-av');
@@ -5924,15 +5924,15 @@ async function doChangeType(newType){
     // 판매자로 변경 시 승인 필요
     curUser.requestedRole=newType;
     curUser.sellerStatus='pending';
-    showToast('판매자 신청이 완료됐어요! 관리자 승인을 기다려주세요 😊');
-    addAppNotification('admin','seller_request',`📋 ${curUser.name||curUser.email}님이 판매자 전환을 신청했어요`,{userId:curUser.id,email:curUser.email,requestedRole:newType});
+    showToast('사업자 전환 신청이 완료됐어요! 관리자 승인을 기다려주세요 😊');
+    addAppNotification('admin','seller_request',`📋 ${curUser.name||curUser.email}님이 사업자 전환을 신청했어요`,{userId:curUser.id,email:curUser.email,requestedRole:newType});
   }else{
     // 구매자로 변경 시 즉시 적용
     curUser.role=newType;
     curUser.type=newType;
     curUser.sellerStatus='none';
     curUser.requestedRole='';
-    const labels={buyer:'구매자',guest:'게스트'};
+    const labels={buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'};
     showToast(`${labels[newType]||newType}으로 변경됐어요`);
   }
 
@@ -6000,7 +6000,7 @@ function renderMypage(){
   const myProdCnt=products.filter(p=>isMyProduct(p,u)).length;
   if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
 
-  // 판매자 신청/상태 섹션 렌더
+  // 사업자 전환 신청/상태 섹션 렌더
   renderSellerApplySection();
   // 권한별 메뉴 표시/숨김
   applyRoleVisibility();
@@ -6167,7 +6167,7 @@ function openTopSellers(){
   const banner=`<div style="background:linear-gradient(135deg,#1a2340 0%,#2d3561 100%);border-radius:16px;padding:32px 20px;text-align:center;margin-bottom:4px;position:relative;overflow:hidden">
     <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
     <div style="font-size:48px;margin-bottom:10px">🏆</div>
-    <div style="font-size:18px;font-weight:800;color:#ffffff;margin-bottom:4px">TOP 판매자 랭킹</div>
+    <div style="font-size:18px;font-weight:800;color:#ffffff;margin-bottom:4px">TOP 사업자 랭킹</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.7)">거래·리뷰·관심도 종합 순위</div>
   </div>`;
   const rows=window._rankSellers.map((s,i)=>{
@@ -6757,7 +6757,7 @@ function renderHomeBanners(){
     <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
     <div style="display:flex;gap:8px;margin-top:4px;position:relative;z-index:1">
       <button onclick="showView('category')" style="flex:1;padding:11px 0;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer">🧵 지금 둘러보기</button>
-      <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 판매자 입점</button>
+      <button onclick="showView('form')" style="flex:1;padding:11px 0;background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">📦 사업자 회원 입점</button>
     </div>
     ${dots}`;
   };
@@ -6782,7 +6782,7 @@ function updateBannerStats(){
   const stats=[
     {label:'총 상품',value:totalProducts+'개',icon:'🧵'},
     {label:'총 재고',value:totalQty.toLocaleString()+'마',icon:'📦'},
-    {label:'판매자',value:totalSellers+'명',icon:'🏪'},
+    {label:'사업자',value:totalSellers+'명',icon:'🏪'},
     {label:'급처',value:urgentCount+'개',icon:'⚡'},
     {label:'오늘 신규',value:todayCount+'개',icon:'🆕'},
   ];
@@ -6814,7 +6814,7 @@ function renderAdmin(){
     ${(()=>{const pc=users.filter(u=>(u.sellerStatus||u.seller_status)==='pending').length;return pc>0?`
     <div onclick="showAdminUsers()" style="margin:0 16px 12px;background:#fffbeb;border:1.5px solid #ffe082;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer">
       <span style="font-size:24px">⏳</span>
-      <div style="flex:1"><div style="font-size:14px;font-weight:700;color:#c8962a">판매자 승인 대기: ${pc}명</div><div style="font-size:12px;color:#888;margin-top:2px">클릭하여 회원관리에서 승인/거절</div></div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700;color:#c8962a">사업자 승인 대기: ${pc}명</div><div style="font-size:12px;color:#888;margin-top:2px">클릭하여 회원관리에서 승인/거절</div></div>
       <span style="color:#c8962a;font-size:18px">›</span>
     </div>`:''})()}
     <div class="my-section-wrap">
@@ -7410,7 +7410,7 @@ function showAdminUserDetail(idx){
   const rr=u.requestedRole||u.requested_role||'';
   const sellerApprovalHtml=ss==='pending'?`
       <div style="background:#fffbeb;border:1.5px solid #ffe082;border-radius:14px;padding:14px 16px">
-        <div style="font-size:14px;font-weight:700;color:#c8962a;margin-bottom:4px">⏳ 판매자 승인 대기 중</div>
+        <div style="font-size:14px;font-weight:700;color:#c8962a;margin-bottom:4px">⏳ 사업자 승인 대기 중</div>
         <div style="font-size:12px;color:#888;margin-bottom:10px">신청 역할: <b style="color:#6c63ff">${roleLabel(rr)}</b></div>
         <div style="display:flex;gap:8px">
           <button onclick="adminApproveSeller(${idx})" style="flex:1;padding:12px;background:#00b386;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">✅ 승인</button>
@@ -7418,10 +7418,10 @@ function showAdminUserDetail(idx){
         </div>
       </div>`:ss==='approved'?`
       <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:14px;padding:12px 16px">
-        <div style="font-size:13px;font-weight:700;color:#2e7d32">✅ 승인된 판매자 (${roleLabel(u.type||rr)})</div>
+        <div style="font-size:13px;font-weight:700;color:#2e7d32">✅ 승인된 사업자 회원 (${roleLabel(u.type||rr)})</div>
       </div>`:ss==='rejected'?`
       <div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;padding:12px 16px">
-        <div style="font-size:13px;font-weight:700;color:#e53935">❌ 판매자 신청 거절됨</div>
+        <div style="font-size:13px;font-weight:700;color:#e53935">❌ 사업자 전환 신청 거절됨</div>
       </div>`:'';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
@@ -7638,8 +7638,8 @@ async function adminApproveSeller(idx){
     applyRoleVisibility();
   }
 
-  addAppNotification(u.id||u.email,'seller_approved','✅ 판매자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
-  showToast('✅ 판매자 승인 완료!');
+  addAppNotification(u.id||u.email,'seller_approved','✅ 사업자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
+  showToast('✅ 사업자 승인 완료!');
   showAdminUsers && showAdminUsers();
 }
 async function adminRejectSeller(idx){
@@ -7666,8 +7666,8 @@ async function adminRejectSeller(idx){
     applyRoleVisibility();
   }
 
-  addAppNotification(u.id||u.email,'seller_rejected','❌ 판매자 신청이 거절됐어요. MY 메뉴에서 재신청할 수 있어요.',{});
-  showToast('❌ 판매자 신청 거절');
+  addAppNotification(u.id||u.email,'seller_rejected','❌ 사업자 전환 신청이 거절됐어요. MY 메뉴에서 재신청할 수 있어요.',{});
+  showToast('❌ 사업자 전환 신청 거절');
   showAdminUsers && showAdminUsers();
 }
 function showAdminProducts(){
@@ -7740,7 +7740,7 @@ function adminViewProduct(id){
       <div style="font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:6px">${p.title}</div>
       <div style="font-size:12px;color:#888;display:flex;gap:12px;flex-wrap:wrap">
         ${p.time?`<span>🕐 ${p.time}</span>`:''}
-        <span>👤 ${seller.name||'판매자 미상'}</span>
+        <span>👤 ${seller.name||'미상'}</span>
         <span>📍 ${p.loc||seller.loc||'위치 미기재'}</span>
       </div>
     </div>
@@ -8139,9 +8139,9 @@ function renderNotifView(){
   const userId=curUser?.id||curUser?.email;
   // 타입별 아이콘/색상/제목/클릭액션 매핑
   const TYPE_META={
-    seller_request:{icon:'📋',bg:'rgba(201,168,76,.15)',title:'판매자 신청',action:"showView('admin')"},
-    seller_approved:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'판매자 승인',action:"showView('mypage')"},
-    seller_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'판매자 거절',action:"showView('mypage')"},
+    seller_request:{icon:'📋',bg:'rgba(201,168,76,.15)',title:'사업자 전환 신청',action:"showView('admin')"},
+    seller_approved:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'사업자 승인',action:"showView('mypage')"},
+    seller_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'사업자 거절',action:"showView('mypage')"},
     price_offer:{icon:'💰',bg:'rgba(201,168,76,.15)',title:'가격제안 도착',action:"showView('my-offers');renderMyOffers()"},
     offer_accepted:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'가격제안 수락',action:"showView('my-offers');renderMyOffers()"},
     offer_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'가격제안 거절',action:"showView('my-offers');renderMyOffers()"},
@@ -8175,9 +8175,9 @@ function renderNotifView(){
     '예약 거절':{bg:'#fff5f5',color:'#e53935'},
     '새 메시지':{bg:'#f3e5f5',color:'#6a1b9a'},
     '키워드 알림':{bg:'#fff9e6',color:'#856404'},
-    '판매자 신청':{bg:'#fffbeb',color:'#c8962a'},
-    '판매자 승인':{bg:'#e8f5e9',color:'#2e7d32'},
-    '판매자 거절':{bg:'#fff5f5',color:'#e53935'},
+    '사업자 전환 신청':{bg:'#fffbeb',color:'#c8962a'},
+    '사업자 승인':{bg:'#e8f5e9',color:'#2e7d32'},
+    '사업자 거절':{bg:'#fff5f5',color:'#e53935'},
   };
   el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
