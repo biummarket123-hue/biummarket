@@ -4271,18 +4271,23 @@ function openDetail(id){
     +'<div style="width:46px;height:46px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0">'+(sellerName[0]||'?')+'</div>'
     +'<div style="flex:1;min-width:0">'
     +(()=>{
-      const stype=p.seller?.type||p.sellerType||curUser?.type||'';
-      const badge=stype==='both'
+      const stype=p.seller?.type||p.sellerType||'';
+      const badge=stype==='business'||stype==='both'
         ?'<span class="pd-cert-badge company">🏢 인증업체</span>'
         :(stype==='seller'?'<span class="pd-cert-badge personal">✅ 인증회원</span>':'');
       return '<div class="pd-seller-name">'+sellerName+badge+'</div>';
     })()
     +'<div class="pd-seller-meta">📍 '+(p.loc||seller.loc||'위치 미기재')+' · 매너온도 '+(seller.temp||36.5).toFixed(1)+'°C</div>'
     +'</div></div>'
-    +'<div class="pd-sel2-btns">'
-    +'<button class="pd-sel2-btn-sec" onclick="openSellerPage()">🏠 회사정보</button>'
-    +'<button class="pd-sel2-btn-pri" onclick="openChatModal()">💬 문의하기</button>'
-    +'</div>';
+    +(()=>{
+        const stype=p.seller?.type||p.sellerType||'';
+        const isBizSeller=stype==='business'||stype==='both';
+        const btnLabel=isBizSeller?'🏢 업체정보':'👤 프로필 보기';
+        return '<div class="pd-sel2-btns">'
+          +'<button class="pd-sel2-btn-sec" onclick="openSellerPage()">'+btnLabel+'</button>'
+          +'<button class="pd-sel2-btn-pri" onclick="openChatModal()">💬 문의하기</button>'
+          +'</div>';
+      })();
 
   // 8. 스펙 그리드
   const specGrid=document.getElementById('pd-spec-grid');
