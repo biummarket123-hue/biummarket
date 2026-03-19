@@ -1280,8 +1280,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <div class="my-stat-lbl" data-i18n="stat_done">거래완료</div>
       </div>
     </div>
-    <!-- 판매자 신청/상태 배너 -->
-    <div id="menu-seller-apply-section" style="display:none"></div>
+    <!-- 사업자 전환 배너 -->
+    <div id="menu-biz-apply-section" style="display:none"></div>
     <!-- 상품 관리 섹션 -->
     <div class="my-section-wrap">
       <div class="my-section-title" data-i18n="my_sec_products">상품 관리</div>
@@ -1300,6 +1300,52 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
           <div class="my-menu-sub" id="my-sub-products">0개 등록</div>
         </div>
         <span class="my-menu-arrow">›</span>
+      </div>
+      <!-- 사업자 전용 메뉴 -->
+      <div id="menu-biz-section" style="display:none">
+        <div class="my-menu-item" onclick="showView('biz-stats')">
+          <div class="my-icon-box ib-purple">📊</div>
+          <div class="my-menu-info">
+            <div class="my-menu-title">거래 통계</div>
+            <div class="my-menu-sub">조회수 · 관심 · 문의 현황</div>
+          </div>
+          <span class="my-menu-arrow">›</span>
+        </div>
+        <div class="my-menu-item" onclick="showView('biz-news')">
+          <div class="my-icon-box ib-green">📢</div>
+          <div class="my-menu-info">
+            <div class="my-menu-title">소식 올리기</div>
+            <div class="my-menu-sub">신상품 · 이벤트 · 공지</div>
+          </div>
+          <span class="my-menu-arrow">›</span>
+        </div>
+        <div class="my-menu-item" onclick="showView('biz-coupon')">
+          <div class="my-icon-box" style="background:rgba(200,168,75,.15)">🎫</div>
+          <div class="my-menu-info">
+            <div class="my-menu-title">쿠폰 관리</div>
+            <div class="my-menu-sub">할인 쿠폰 발행 · 관리</div>
+          </div>
+          <span class="my-menu-arrow">›</span>
+        </div>
+        <div class="my-menu-item" onclick="showView('biz-followers')">
+          <div class="my-icon-box" style="background:rgba(255,101,132,.15)">❤️</div>
+          <div class="my-menu-info">
+            <div class="my-menu-title">단골 관리</div>
+            <div class="my-menu-sub">팔로워 · 단골 구매자</div>
+          </div>
+          <span class="my-menu-arrow">›</span>
+        </div>
+      </div>
+      <!-- 일반 회원 사업자 전환 배너 -->
+      <div id="menu-upgrade-biz" style="display:none">
+        <div class="my-menu-item" onclick="showUpgradeToBiz()" style="background:linear-gradient(135deg,rgba(200,168,75,.08),rgba(200,168,75,.15));border:1px solid rgba(200,168,75,.3);border-radius:14px;margin:4px 0">
+          <div class="my-icon-box" style="background:rgba(200,168,75,.2)">🏢</div>
+          <div class="my-menu-info">
+            <div class="my-menu-title" style="color:#c8a84b">사업자 회원으로 전환</div>
+            <div class="my-menu-sub">무제한 판매 · 인증 마크 · 통계</div>
+          </div>
+          <span class="my-menu-arrow" style="color:#c8a84b">›</span>
+        </div>
       </div>
       <div class="my-menu-item" onclick="showView('my-offers');renderMyOffers()">
         <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
@@ -1641,14 +1687,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openSettTypeModal()">
-        <div class="my-icon-box ib-blue">👤</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title">회원 유형 변경</div>
-          <div class="my-menu-sub">현재: <span id="sett-type-val">–</span></div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
     </div>
     <!-- 앱 정보 -->
     <div class="my-section-wrap">
@@ -1874,6 +1912,52 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div class="empty" id="wishlist-empty" style="display:none">
     <div class="ei">🤍</div>
     <p>관심 상품이 없어요</p>
+  </div>
+</div>
+
+<!-- ========== BIZ VIEWS ========== -->
+<div id="view-biz-stats" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">📊 거래 통계</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px" id="biz-stats-grid"></div>
+    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px;text-align:center;color:#888;font-size:13px">📈 상세 통계는 준비 중이에요</div>
+  </div>
+</div>
+
+<div id="view-biz-news" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">📢 소식 올리기</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
+    <div class="fg"><label>소식 제목</label><input type="text" class="fi" id="biz-news-title" placeholder="예) 신상 면/린넨 입고 안내"/></div>
+    <div class="fg"><label>내용</label><textarea class="fi" id="biz-news-content" placeholder="소식 내용을 입력하세요" style="min-height:120px"></textarea></div>
+    <button class="submit-btn" onclick="submitBizNews()">소식 발행하기</button>
+    <div style="margin-top:20px;font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">발행된 소식</div>
+    <div id="biz-news-list"><div style="text-align:center;padding:20px;color:#888;font-size:13px">발행된 소식이 없어요</div></div>
+  </div>
+</div>
+
+<div id="view-biz-coupon" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">🎫 쿠폰 관리</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
+    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px;text-align:center;color:#888;font-size:13px">🎫 쿠폰 기능은 준비 중이에요</div>
+  </div>
+</div>
+
+<div id="view-biz-followers" class="view">
+  <div class="hdr">
+    <button class="hdr-btn" onclick="goBack()">←</button>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">❤️ 단골 관리</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
+    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px;text-align:center;color:#888;font-size:13px">❤️ 단골 기능은 준비 중이에요</div>
   </div>
 </div>
 
@@ -2414,15 +2498,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
-<!-- MODAL: 회원 유형 변경 -->
-<div class="mover" id="modal-change-type" onclick="closeModal('modal-change-type',event)">
-  <div class="msheet">
-    <div class="mhandle"></div>
-    <div class="mtitle">회원 유형 변경</div>
-    <div id="type-options" style="display:flex;flex-direction:column;gap:8px;margin:4px 0 12px"></div>
-    <button class="mclose" onclick="closeModal('modal-change-type')">닫기</button>
-  </div>
-</div>
 
 <script>
 // 첫 접속 시 랜딩페이지로 이동
@@ -5625,11 +5700,6 @@ const LOCATION_OPTIONS=[
   '서울 중구 동대문','서울 성동구 성수동','서울 중구 을지로',
   '서울 종로구 창신동','서울 중구 신당동','서울 동대문구 답십리',
 ];
-const TYPE_OPTIONS=[
-  {key:'seller',label:'개인 판매자',sub:'개인 원단 도매·재고 판매',icon:'👤'},
-  {key:'buyer',label:'구매자',sub:'원단 소싱 · 구매',icon:'🛒'},
-  {key:'both',label:'업체 판매자',sub:'법인·사업자 등록 업체',icon:'🏭'},
-];
 function renderSettings(){
   const u=curUser||{};
   const lang=LANGS[curLang]||LANGS.ko;
@@ -5700,28 +5770,6 @@ function openSettLocModal(){
   }
   openModal('modal-change-loc');
 }
-function openSettTypeModal(){
-  const u=curUser||{};
-  const curType=u.type||'';
-  const el=document.getElementById('type-options');
-  if(el){
-    el.innerHTML=TYPE_OPTIONS.map(o=>`
-      <button onclick="doChangeType('${o.key}')" style="
-        display:flex;align-items:center;gap:12px;
-        padding:13px 14px;border-radius:12px;
-        background:${o.key===curType?'rgba(108,99,255,.15)':'#f0f0f5'};
-        border:1.5px solid ${o.key===curType?'#6c63ff':'transparent'};
-        cursor:pointer;text-align:left;width:100%">
-        <span style="font-size:22px">${o.icon}</span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:${o.key===curType?'#6c63ff':'#1a1a1a'}">${o.label}</div>
-          <div style="font-size:11px;color:#666677;margin-top:1px">${o.sub}</div>
-        </div>
-        ${o.key===curType?'<span style="color:#6c63ff;font-size:18px">✓</span>':''}
-      </button>`).join('');
-  }
-  openModal('modal-change-type');
-}
 function openChangePw(){
   document.getElementById('pw-current').value='';
   document.getElementById('pw-new').value='';
@@ -5772,6 +5820,45 @@ async function doChangeLoc(loc){
   closeModal('modal-change-loc');
   showToast('지역이 변경됐어요 📍');
 }
+function showUpgradeToBiz(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  if(confirm('사업자 회원으로 전환 신청하시겠어요?\n사업자등록증 심사 후 승인됩니다 (1~2 영업일)')){
+    curUser.bizStatus='pending';
+    curUser.requestedRole='business';
+    lsSet('curUser',curUser);
+    const li=users.findIndex(x=>x.id===curUser.id||x.email===curUser.email);
+    if(li!==-1){users[li].bizStatus='pending';users[li].requestedRole='business';lsSet('users',users);}
+    if(_sb&&curUser.id&&curUser.id.length>5){
+      _sb.from('users').update({seller_status:'pending',requested_role:'business'}).eq('id',curUser.id);
+    }
+    addAppNotification('admin','seller_request',`📋 ${curUser.name||curUser.email}님이 사업자 회원 전환을 신청했어요`,{userId:curUser.id,email:curUser.email,requestedRole:'business'});
+    showToast('사업자 전환 신청이 완료됐어요! 승인을 기다려주세요 😊');
+    renderMypage();
+  }
+}
+function submitBizNews(){
+  const title=document.getElementById('biz-news-title')?.value.trim();
+  const content=document.getElementById('biz-news-content')?.value.trim();
+  if(!title||!content){showToast('제목과 내용을 입력해주세요');return;}
+  const news=lsGet('bizNews',[]);
+  news.unshift({id:Date.now(),title,content,author:curUser?.name||'',createdAt:new Date().toISOString()});
+  lsSet('bizNews',news);
+  document.getElementById('biz-news-title').value='';
+  document.getElementById('biz-news-content').value='';
+  renderBizNewsList();
+  showToast('소식이 발행됐어요 📢');
+}
+function renderBizNewsList(){
+  const news=lsGet('bizNews',[]);
+  const el=document.getElementById('biz-news-list');if(!el)return;
+  if(!news.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#888;font-size:13px">발행된 소식이 없어요</div>';return;}
+  el.innerHTML=news.map(n=>`
+    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:14px;margin-bottom:10px">
+      <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">${n.title}</div>
+      <div style="font-size:13px;color:#666;line-height:1.6;margin-bottom:8px">${n.content}</div>
+      <div style="font-size:11px;color:#aaa">${new Date(n.createdAt).toLocaleDateString()}</div>
+    </div>`).join('');
+}
 async function doChangeType(newType){
   if(!curUser)return;
 
@@ -5814,7 +5901,7 @@ async function doChangeType(newType){
 /* ==================== MYPAGE ==================== */
 function renderMypage(){
   const u=curUser||{name:t('my_guest'),type:'guest',loc:''};
-  const types={seller:'개인 판매자',buyer:'구매자',both:'업체 판매자',admin:'관리자',guest:'구매자'};
+  const types={business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원',member:'일반 회원',buyer:'일반 회원',admin:'관리자',guest:'일반 회원'};
 
   // 아바타
   const avEl=document.getElementById('my-av');
@@ -5861,6 +5948,26 @@ function renderMypage(){
   renderSellerApplySection();
   // 권한별 메뉴 표시/숨김
   applyRoleVisibility();
+  // 사업자 전용 메뉴 표시/숨김
+  const bizSection=document.getElementById('menu-biz-section');
+  const upgradeBiz=document.getElementById('menu-upgrade-biz');
+  const bizApplySection=document.getElementById('menu-biz-apply-section');
+  if(isBusiness()){
+    if(bizSection)bizSection.style.display='block';
+    if(upgradeBiz)upgradeBiz.style.display='none';
+    if(bizApplySection){bizApplySection.style.display='none';bizApplySection.innerHTML='';}
+  }else if(isBizPending()){
+    if(bizSection)bizSection.style.display='none';
+    if(upgradeBiz)upgradeBiz.style.display='none';
+    if(bizApplySection){
+      bizApplySection.style.display='block';
+      bizApplySection.innerHTML=`<div style="margin:4px 0;padding:12px 16px;background:#fffbeb;border:1.5px solid #ffe082;border-radius:14px;font-size:13px;color:#c8962a;font-weight:600">⏳ 사업자 승인 대기 중이에요</div>`;
+    }
+  }else if(!isAdmin()){
+    if(bizSection)bizSection.style.display='none';
+    if(upgradeBiz)upgradeBiz.style.display='block';
+    if(bizApplySection){bizApplySection.style.display='none';bizApplySection.innerHTML='';}
+  }
 }
 
 /* ===== 상품 소유자 확인 헬퍼 ===== */
