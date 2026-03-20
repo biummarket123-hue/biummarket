@@ -794,6 +794,20 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
+<!-- ========== 관심 카테고리 선택 모달 ========== -->
+<div id="modal-interest-cats" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:28px;margin-bottom:8px">🧵</div>
+      <div style="font-size:18px;font-weight:800;color:#1a1a1a">관심 원단을 선택해주세요</div>
+      <div style="font-size:13px;color:#888;margin-top:4px">선택한 카테고리를 홈에서 먼저 보여드려요</div>
+    </div>
+    <div id="interest-cats-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px"></div>
+    <button onclick="saveInterestCats()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6c63ff,#8b84ff);color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer">시작하기 →</button>
+    <button onclick="closeInterestModal()" style="width:100%;padding:12px;background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-top:8px">나중에 설정할게요</button>
+  </div>
+</div>
+
 <!-- ========== LOGIN ========== -->
 <div id="view-login" class="view">
   <div style="padding:48px 24px 0;width:100%">
@@ -1411,6 +1425,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <div class="my-menu-info">
           <div class="my-menu-title">키워드 알림</div>
           <div class="my-menu-sub">원하는 원단 등록시 알림</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
+      <div class="my-menu-item" onclick="openInterestModal()">
+        <div class="my-icon-box ib-purple">⭐</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">관심 원단 설정</div>
+          <div class="my-menu-sub">홈 화면 맞춤 설정</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -3478,6 +3500,7 @@ async function doLogin(){
     if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
     curUser=user;lsSet('curUser',curUser);updateNotifDot();
     showView('list');showListSkeleton();
+    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},500);
     return;
   }
   try{
@@ -3496,6 +3519,8 @@ async function doLogin(){
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);updateNotifDot();
     showView('list');showListSkeleton();loadProductsFromSupabase();
+    // 첫 로그인 시 관심 카테고리 선택 모달 표시
+    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},500);
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
 }
 async function doSignup(){
@@ -4171,8 +4196,25 @@ async function deleteProductById(id){
 function renderHomeSections(){
   const el=document.getElementById('home-category-sections');
   if(!el)return;
+  const interestCats=lsGet('interestCats',[]);
   const sections=homeCurCat==='전체'?HOME_SECTIONS:[{key:homeCurCat,label:HOME_CATS.find(c=>c.key===homeCurCat)?.label||homeCurCat}];
-  el.innerHTML=sections.map(sec=>{
+  let html='';
+
+  // 관심 카테고리 섹션 (전체 탭일 때만)
+  if(homeCurCat==='전체'&&interestCats.length){
+    const interestProds=interestCats.flatMap(cat=>getProductsByHomeCat(cat).slice(0,3));
+    if(interestProds.length){
+      html+=`<div class="cat-section" style="border:1.5px solid rgba(108,99,255,.2);border-radius:16px;padding:12px;background:rgba(108,99,255,.03);margin-bottom:8px">
+        <div class="cat-section-hd">
+          <span class="cat-section-title">⭐ 내 관심 원단</span>
+          <span class="cat-section-more" onclick="openInterestModal()">관심 수정 →</span>
+        </div>
+        ${interestProds.map(p=>renderHomeProduct(p)).join('')}
+      </div>`;
+    }
+  }
+
+  html+=sections.map(sec=>{
     const items=getProductsByHomeCat(sec.key).slice(0,5);
     if(!items.length)return '';
     return `<div class="cat-section">
@@ -4183,9 +4225,54 @@ function renderHomeSections(){
       ${items.map(p=>renderHomeProduct(p)).join('')}
     </div>`;
   }).filter(Boolean).join('');
-  if(!el.innerHTML){
-    el.innerHTML=`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 카테고리에 상품이 없어요</div>`;
+
+  el.innerHTML=html||`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 카테고리에 상품이 없어요</div>`;
+}
+
+function openInterestModal(){
+  const modal=document.getElementById('modal-interest-cats');
+  if(!modal)return;
+  modal.style.display='flex';
+  const saved=lsGet('interestCats',[]);
+  const grid=document.getElementById('interest-cats-grid');
+  if(grid){
+    grid.innerHTML=CATEGORY_DATA.map(cat=>{
+      const isSelected=saved.includes(cat.id);
+      return `<button onclick="toggleInterestCat('${cat.id}',this)" style="padding:12px 8px;border-radius:14px;border:2px solid ${isSelected?'#6c63ff':'#e0e0ea'};background:${isSelected?'rgba(108,99,255,.1)':'#f8f8fa'};cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-size:24px;margin-bottom:4px">${cat.emoji}</div>
+        <div style="font-size:12px;font-weight:700;color:${isSelected?'#6c63ff':'#1a1a1a'}">${cat.id}</div>
+      </button>`;
+    }).join('');
   }
+}
+function toggleInterestCat(catId,btn){
+  const saved=lsGet('interestCats',[]);
+  const idx=saved.indexOf(catId);
+  if(idx>-1){
+    saved.splice(idx,1);
+    btn.style.border='2px solid #e0e0ea';
+    btn.style.background='#f8f8fa';
+    btn.querySelector('div:last-child').style.color='#1a1a1a';
+  } else {
+    saved.push(catId);
+    btn.style.border='2px solid #6c63ff';
+    btn.style.background='rgba(108,99,255,.1)';
+    btn.querySelector('div:last-child').style.color='#6c63ff';
+  }
+  lsSet('interestCats',saved);
+}
+function saveInterestCats(){
+  const saved=lsGet('interestCats',[]);
+  if(!saved.length){showToast('관심 원단을 1개 이상 선택해주세요');return;}
+  closeInterestModal();
+  lsSet('interestCatsSet',true);
+  renderHomeSections();
+  showToast('관심 원단이 저장됐어요 ⭐');
+}
+function closeInterestModal(){
+  const modal=document.getElementById('modal-interest-cats');
+  if(modal)modal.style.display='none';
+  lsSet('interestCatsSet',true);
 }
 
 function goSearchCat(cat){
