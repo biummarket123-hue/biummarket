@@ -3499,8 +3499,16 @@ async function doLogin(){
     if(!user){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
     curUser=user;lsSet('curUser',curUser);updateNotifDot();
+    const prevUId=lsGet('lastUserId','');
+    const newUId=curUser.id||curUser.email||'';
+    if(prevUId!==newUId){
+      chatRooms={};
+      lsSet('chatRooms',{});
+      lsSet('lastUserId',newUId);
+      lsSet('interestCatsSet',false);
+    }
     showView('list');showListSkeleton();
-    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},500);
+    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
     return;
   }
   try{
@@ -3518,9 +3526,17 @@ async function doLogin(){
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     lsSet('curUser',curUser);updateNotifDot();
+    // 계정 전환 시 chatRooms 초기화 (다른 계정 데이터 격리)
+    const prevUserId=lsGet('lastUserId','');
+    const newUserId=curUser.id||curUser.email||'';
+    if(prevUserId!==newUserId){
+      chatRooms={};
+      lsSet('chatRooms',{});
+      lsSet('lastUserId',newUserId);
+      lsSet('interestCatsSet',false);
+    }
     showView('list');showListSkeleton();loadProductsFromSupabase();
-    // 첫 로그인 시 관심 카테고리 선택 모달 표시
-    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},500);
+    setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
 }
 async function doSignup(){
@@ -3576,7 +3592,12 @@ async function doSignup(){
       showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
       addAppNotification('admin','seller_request',`📋 ${name}님이 사업자 회원 전환을 신청했어요`,{userId:newUser.id,email,requestedRole});
     } else showToast('가입 완료! 환영해요 🎉');
-    showView('list');return;
+    chatRooms={};lsSet('chatRooms',{});
+    lsSet('lastUserId',curUser.id||curUser.email||'');
+    lsSet('interestCatsSet',false);
+    showView('list');
+    setTimeout(()=>openInterestModal(),800);
+    return;
   }
   try{
     const{data,error}=await _sb.auth.signUp({email,password:pw});
@@ -3607,13 +3628,22 @@ async function doSignup(){
       showToast('가입 완료! 환영해요 🎉');
       addAppNotification('admin','new_user',`👤 ${name}님이 새로 가입했어요`,{userId:curUser.id,email});
     }
+    // 신규 가입 시 chatRooms 초기화
+    chatRooms={};
+    lsSet('chatRooms',{});
+    lsSet('lastUserId',curUser.id||curUser.email||'');
+    lsSet('interestCatsSet',false);
     showView('list');showListSkeleton();loadProductsFromSupabase();
+    setTimeout(()=>openInterestModal(),800);
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
 async function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
   try{if(_sb&&curUser?.email!=='admin')await _sb.auth.signOut();}catch(e){console.error('signOut 오류:',e);}
   curUser=null;lsSet('curUser',null);
+  chatRooms={};
+  lsSet('chatRooms',{});
+  lsSet('lastUserId','');
   if(document.getElementById('view-login'))showView('login');
   else window.location.reload();
 }
