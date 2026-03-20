@@ -2953,8 +2953,16 @@ function getTexture(type){
 function fmtPrice(n){return n.toLocaleString('ko-KR')+'원'}
 
 /* ==================== LOCAL STORAGE ==================== */
-function lsGet(k,def){try{const v=localStorage.getItem('bium_'+k);return v?JSON.parse(v):def}catch{return def}}
-function lsSet(k,v){try{localStorage.setItem('bium_'+k,JSON.stringify(v))}catch{}}
+// 계정별로 분리해야 하는 키 목록
+const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','lastUserId','curUser'];
+function _lsUserKey(k){
+  // 계정별 분리가 필요한 키는 userId prefix 추가
+  if(!USER_SCOPED_KEYS.includes(k))return 'bium_'+k;
+  const uid=localStorage.getItem('bium_activeUserId')||'guest';
+  return 'bium_u_'+uid+'_'+k;
+}
+function lsGet(k,def){try{const v=localStorage.getItem(_lsUserKey(k));return v?JSON.parse(v):def}catch{return def}}
+function lsSet(k,v){try{localStorage.setItem(_lsUserKey(k),JSON.stringify(v))}catch{}}
 const _CACHE_TTL=5*60*1000;
 function lsGetTTL(k){try{const raw=localStorage.getItem('bium_ttl_'+k);if(!raw)return null;const o=JSON.parse(raw);if(Date.now()-o.__t>_CACHE_TTL)return null;return o.__v}catch{return null}}
 function lsSetTTL(k,v){try{localStorage.setItem('bium_ttl_'+k,JSON.stringify({__v:v,__t:Date.now()}))}catch{}}
@@ -3498,6 +3506,7 @@ async function doLogin(){
     const user=findUser(email,pw);
     if(!user){showToast('이메일 또는 비밀번호가 틀렸어요');return;}
     if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
+    localStorage.setItem('bium_activeUserId', user.id||user.email||'guest');
     curUser=user;lsSet('curUser',curUser);updateNotifDot();
     const prevUId=lsGet('lastUserId','');
     const newUId=curUser.id||curUser.email||'';
@@ -3525,6 +3534,8 @@ async function doLogin(){
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
+    // 활성 userId 설정 (계정별 데이터 분리용)
+    localStorage.setItem('bium_activeUserId', curUser.id||curUser.email||'guest');
     lsSet('curUser',curUser);updateNotifDot();
     // 계정 전환 시 chatRooms 초기화 (다른 계정 데이터 격리)
     const prevUserId=lsGet('lastUserId','');
@@ -3587,6 +3598,7 @@ async function doSignup(){
     if(users.find(u=>u.email===email)){showToast('이미 사용 중인 이메일이에요');return;}
     const newUser={id:'u'+Date.now(),name,email,pw,type:actualType,loc,temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus,requestedRole};
     users.push(newUser);lsSet('users',users);
+    localStorage.setItem('bium_activeUserId', newUser.id||email||'guest');
     curUser=newUser;lsSet('curUser',curUser);
     if(wantsBusiness){
       showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
@@ -3616,6 +3628,7 @@ async function doSignup(){
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
     const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     await _sb.from('users').insert(newProfile);
+    localStorage.setItem('bium_activeUserId', data.user.id||email||'guest');
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
     users.push({...curUser});
@@ -3640,6 +3653,7 @@ async function doSignup(){
 async function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
   try{if(_sb&&curUser?.email!=='admin')await _sb.auth.signOut();}catch(e){console.error('signOut 오류:',e);}
+  localStorage.setItem('bium_activeUserId','guest');
   curUser=null;lsSet('curUser',null);
   chatRooms={};
   lsSet('chatRooms',{});
