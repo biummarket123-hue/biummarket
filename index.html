@@ -4605,57 +4605,60 @@ function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)document.getElementById(id).classList.remove('open')}
 function openSuggestModal(){openModal('modal-suggest')}
 
-function renderMyOffers(){
-  const offers=lsGet('priceOffers',[]);
-  const isSell=isSeller()||isAdmin();
-  const myOffers=isSell
-    ? offers.filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name||o.sellerName===curUser?.email)
-    : offers.filter(o=>o.buyerId===curUser?.id||o.buyerName===curUser?.name||o.buyerName===curUser?.email);
-  const el=document.getElementById('my-offers-list');
-  if(!el)return;
-  if(!myOffers.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888;font-size:13px">제안 내역이 없어요</div>';return;}
-  const statusLabel={pending:'⏳ 대기중',accepted:'✅ 수락',rejected:'❌ 거절',counter:'🔄 역제안'};
-  const statusColor={pending:'#f59e0b',accepted:'#10b981',rejected:'#ef4444',counter:'#6c63ff'};
-  el.innerHTML=[...myOffers].reverse().map(o=>`
-    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        ${o.productImg?`<img src="${o.productImg}" style="width:44px;height:44px;border-radius:8px;object-fit:cover">`:'<div style="width:44px;height:44px;border-radius:8px;background:#e0e0ea;display:flex;align-items:center;justify-content:center;font-size:20px">🧵</div>'}
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.productTitle}</div>
-          <div style="font-size:12px;color:#888;margin-top:2px">${isSell?'구매자: '+o.buyerName:'판매자: '+o.sellerName}</div>
+async function renderMyOffers(){
+  const container=document.getElementById('my-offers-list');if(!container)return;
+  let offers=[];
+
+  if(_sb&&curUser){
+    const myId=curUser.id||curUser.email||'';
+    const{data}=await _sb.from('price_offers')
+      .select('*')
+      .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`)
+      .order('created_at',{ascending:false});
+    if(data)offers=data.map(o=>({
+      id:o.id,
+      productId:o.product_id,
+      productTitle:o.product_title,
+      offerPrice:o.offer_price,
+      originalPrice:null,
+      msg:o.message,
+      buyerId:o.buyer_id,
+      buyerName:o.buyer_name,
+      sellerId:o.seller_id,
+      sellerName:o.seller_name,
+      status:o.status,
+      createdAt:o.created_at
+    }));
+  } else {
+    offers=lsGet('priceOffers',[]);
+  }
+
+  if(!offers.length){
+    container.innerHTML='<div style="text-align:center;padding:40px;color:#888">가격제안 내역이 없어요</div>';
+    return;
+  }
+
+  const myId=curUser?.id||curUser?.email||'';
+  container.innerHTML=offers.map(o=>{
+    const isSeller=o.sellerId===myId;
+    const statusLabel={pending:'⏳ 대기중',accepted:'✅ 수락됨',rejected:'❌ 거절됨',countered:'🔄 역제안'}[o.status]||o.status;
+    const statusColor={pending:'#f59e0b',accepted:'#10b981',rejected:'#ef4444',countered:'#6c63ff'}[o.status]||'#888';
+    return `
+      <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;flex:1">${o.productTitle}</div>
+          <span style="font-size:12px;font-weight:700;color:${statusColor}">${statusLabel}</span>
         </div>
-        <span style="font-size:11px;font-weight:700;color:${statusColor[o.status]||'#888'}">${statusLabel[o.status]||o.status}</span>
-      </div>
-      <div style="display:flex;gap:12px;font-size:13px;margin-bottom:10px">
-        <span style="color:#888">원가 <b style="color:#1a1a1a">${(o.originalPrice||0).toLocaleString()}원/m</b></span>
-        <span style="color:#888">제안 <b style="color:#6c63ff">${(o.offerPrice||0).toLocaleString()}원/m</b></span>
-        ${o.counterPrice?`<span style="color:#888">역제안 <b style="color:#ff6584">${o.counterPrice.toLocaleString()}원/m</b></span>`:''}
-      </div>
-      ${o.msg?`<div style="font-size:12px;color:#666;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${o.msg}"</div>`:''}
-      ${(o.status==='accepted'||o.status==='counter')&&o.buyerContact?`
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px">
-          <div style="font-weight:700;color:#15803d;margin-bottom:6px">📋 ${isSell?'구매자':'판매자'} 연락처</div>
-          <div style="color:#1a1a1a">👤 ${isSell?(o.buyerContact.name||'-'):(o.sellerName||'-')}</div>
-          <div style="color:#1a1a1a">📞 ${isSell?(o.buyerContact.tel||'-'):(o.sellerTel||'-')}</div>
-          <div style="color:#1a1a1a">📍 ${isSell?(o.buyerContact.addr||'-'):(o.sellerAddr||'-')}</div>
-        </div>`:''}
-      ${isSell&&o.status==='pending'?`
-        <div style="display:flex;gap:8px">
-          <button onclick="respondOffer('${o.id}','accepted')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
-          <button onclick="showCounterOffer('${o.id}')" style="flex:1;padding:10px;background:#6c63ff;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔄 역제안</button>
-          <button onclick="respondOffer('${o.id}','rejected')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
-        </div>`:''}
-      ${!isSell&&o.status==='rejected'?`
-        <button onclick="reOffer('${o.id}')" style="width:100%;padding:10px;background:#f5f0e8;border:1.5px solid #c8a84b;color:#c8a84b;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔁 재제안하기</button>`:''}
-      ${!isSell&&o.status==='accepted'?`
-        <button onclick="openResModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">📅 예약하기</button>`:''}
-      ${o.status==='counter'&&!isSell?`
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button onclick="respondOffer('${o.id}','accepted')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 역제안 수락</button>
-          <button onclick="respondOffer('${o.id}','rejected')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
-        </div>`:''}
-    </div>
-  `).join('');
+        <div style="font-size:13px;color:#666;margin-bottom:4px">${isSeller?'구매자':'판매자'}: ${isSeller?o.buyerName:o.sellerName}</div>
+        <div style="font-size:15px;font-weight:800;color:#6c63ff;margin-bottom:8px">제안가: ${(o.offerPrice||0).toLocaleString()}원/m</div>
+        ${o.msg?`<div style="font-size:13px;color:#888;margin-bottom:8px">"${o.msg}"</div>`:''}
+        ${isSeller&&o.status==='pending'?`
+          <div style="display:flex;gap:8px">
+            <button onclick="acceptOffer('${o.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
+            <button onclick="rejectOffer('${o.id}')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
+          </div>`:''}
+      </div>`;
+  }).join('');
 }
 
 function respondOffer(offerId,status){
@@ -4706,49 +4709,64 @@ function reOffer(offerId){
 }
 function openResModal(){openModal('modal-res')}
 
-function renderMyReservations(){
-  const resvList=lsGet('reservationList',[]);
-  const isSell=isSeller()||isAdmin();
-  const myResvs=isSell
-    ? resvList.filter(r=>r.sellerId===curUser?.id||r.sellerName===curUser?.name||r.sellerName===curUser?.email)
-    : resvList.filter(r=>r.buyerId===curUser?.id||r.buyerName===curUser?.name||r.buyerName===curUser?.email);
-  const el=document.getElementById('my-reservations-list');
-  if(!el)return;
-  if(!myResvs.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888;font-size:13px">예약 내역이 없어요</div>';return;}
-  const typeNames={visit:'🏭 방문 감별',swatch:'📦 스와치 요청',inspect:'🚗 출장 감별'};
-  const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정',rejected:'❌ 거절'};
-  const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444'};
-  el.innerHTML=[...myResvs].reverse().map(r=>`
-    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        ${r.productImg?`<img src="${r.productImg}" style="width:44px;height:44px;border-radius:8px;object-fit:cover">`:'<div style="width:44px;height:44px;border-radius:8px;background:#e0e0ea;display:flex;align-items:center;justify-content:center;font-size:20px">📅</div>'}
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.productTitle}</div>
-          <div style="font-size:12px;color:#888;margin-top:2px">${isSell?'구매자: '+r.buyerName:'판매자: '+r.sellerName}</div>
+async function renderMyReservations(){
+  const container=document.getElementById('my-reservations-list');if(!container)return;
+  let resvList=[];
+
+  if(_sb&&curUser){
+    const myId=curUser.id||curUser.email||'';
+    const{data}=await _sb.from('reservations')
+      .select('*')
+      .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`)
+      .order('created_at',{ascending:false});
+    if(data)resvList=data.map(r=>({
+      id:r.id,
+      productId:r.product_id,
+      productTitle:r.product_title,
+      productImg:r.product_img,
+      buyerId:r.buyer_id,
+      buyerName:r.buyer_name,
+      buyerTel:r.buyer_tel,
+      sellerId:r.seller_id,
+      sellerName:r.seller_name,
+      qty:r.qty,
+      unit:r.unit,
+      message:r.message,
+      status:r.status,
+      createdAt:r.created_at
+    }));
+  } else {
+    resvList=lsGet('reservationList',[]);
+  }
+
+  if(!resvList.length){
+    container.innerHTML='<div style="text-align:center;padding:40px;color:#888">예약 내역이 없어요</div>';
+    return;
+  }
+
+  const myId=curUser?.id||curUser?.email||'';
+  container.innerHTML=resvList.map(r=>{
+    const isSeller=r.sellerId===myId;
+    const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정됨',rejected:'❌ 거절됨',cancelled:'🚫 취소됨'}[r.status]||r.status;
+    const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444',cancelled:'#888'}[r.status]||'#888';
+    return `
+      <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;flex:1">${r.productTitle}</div>
+          <span style="font-size:12px;font-weight:700;color:${statusColor}">${statusLabel}</span>
         </div>
-        <span style="font-size:11px;font-weight:700;color:${statusColor[r.status]||'#888'}">${statusLabel[r.status]||r.status}</span>
-      </div>
-      <div style="display:flex;gap:12px;font-size:13px;margin-bottom:10px">
-        <span>${typeNames[r.type]||r.type}</span>
-        <span style="color:#888">📅 ${r.date} ${r.time}</span>
-      </div>
-      ${r.note?`<div style="font-size:12px;color:#666;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${r.note}"</div>`:''}
-      ${r.status==='confirmed'&&r.buyerContact?`
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px">
-          <div style="font-weight:700;color:#15803d;margin-bottom:6px">📋 ${isSell?'구매자':'판매자'} 연락처</div>
-          <div style="color:#1a1a1a">👤 ${isSell?(r.buyerContact.name||'-'):(r.sellerTel?r.sellerName:r.sellerName)}</div>
-          <div style="color:#1a1a1a">📞 ${isSell?(r.buyerContact.tel||'-'):(r.sellerTel||'-')}</div>
-          <div style="color:#1a1a1a">📍 ${isSell?(r.buyerContact.addr||'-'):(r.sellerAddr||'-')}</div>
-        </div>`:''}
-      ${isSell&&r.status==='pending'?`
-        <div style="display:flex;gap:8px">
-          <button onclick="respondReservation('${r.id}','confirmed')" style="flex:1;padding:10px;background:#10b981;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 수락</button>
-          <button onclick="respondReservation('${r.id}','rejected')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
-        </div>`:''}
-      ${!isSell&&r.status==='rejected'?`
-        <button onclick="openResModal()" style="width:100%;padding:10px;background:#f5f0e8;border:1.5px solid #c8a84b;color:#c8a84b;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔁 재예약하기</button>`:''}
-    </div>
-  `).join('');
+        <div style="font-size:13px;color:#666;margin-bottom:4px">${isSeller?'구매자':'판매자'}: ${isSeller?r.buyerName:r.sellerName}</div>
+        ${r.buyerTel&&isSeller&&r.status==='confirmed'?`<div style="font-size:13px;color:#1565c0;margin-bottom:4px">📞 ${r.buyerTel}</div>`:''}
+        ${r.qty?`<div style="font-size:13px;color:#666;margin-bottom:4px">수량: ${r.qty}${r.unit||'m'}</div>`:''}
+        ${r.message?`<div style="font-size:13px;color:#888;margin-bottom:8px">"${r.message}"</div>`:''}
+        <div style="font-size:12px;color:#aaa;margin-bottom:8px">${new Date(r.createdAt).toLocaleDateString()}</div>
+        ${isSeller&&r.status==='pending'?`
+          <div style="display:flex;gap:8px">
+            <button onclick="acceptReservation('${r.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 확정</button>
+            <button onclick="rejectReservation('${r.id}')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>
+          </div>`:''}
+      </div>`;
+  }).join('');
 }
 
 function respondReservation(resvId,status){
@@ -4767,52 +4785,83 @@ function respondReservation(resvId,status){
   }
   renderMyReservations();
 }
-function submitSuggest(){
+async function submitSuggest(){
   const price=parseInt(document.getElementById('suggest-price').value);
   const msg=document.getElementById('suggest-msg').value.trim();
   if(!price){showToast('제안 가격을 입력해주세요');return;}
   if(!curUser){showToast('로그인이 필요해요');return;}
   const prod=products.find(x=>x.id===curProductId);
-  if(!prod){return;}
+  if(!prod)return;
   const offerContactName=document.getElementById('offer-contact-name')?.value.trim()||curUser.name||'';
   const offerContactTel=document.getElementById('offer-contact-tel')?.value.trim()||curUser.tel||'';
   const offerContactAddr=document.getElementById('offer-contact-addr')?.value.trim()||curUser.loc||'';
+  const sellerId=prod.seller?.id||prod.seller_id||prod.seller?.name||'';
+  const offerId='offer_'+Date.now();
   const offer={
-    id:'offer_'+Date.now(),
+    id:offerId,
     productId:prod.id,
     productTitle:prod.title,
     productImg:prod.image_url||null,
     originalPrice:prod.price,
     offerPrice:price,
     msg,
-    buyerId:curUser.id,
+    buyerId:curUser.id||curUser.email,
     buyerName:curUser.name||curUser.email,
-    sellerId:prod.seller_id||(prod.seller&&prod.seller.id)||'',
+    sellerId,
     sellerName:prod.seller?.name||'판매자',
-    sellerTel:prod.seller?.tel||'',
-    sellerAddr:prod.seller?.loc||'',
     buyerContact:{name:offerContactName,tel:offerContactTel,addr:offerContactAddr},
     status:'pending',
     createdAt:new Date().toISOString(),
   };
+
+  // Supabase 저장
+  if(_sb){
+    const{error}=await _sb.from('price_offers').insert({
+      id:offerId,
+      product_id:String(prod.id),
+      product_title:prod.title,
+      buyer_id:curUser.id||curUser.email,
+      buyer_name:curUser.name||curUser.email,
+      buyer_tel:offerContactTel,
+      seller_id:sellerId,
+      seller_name:prod.seller?.name||'판매자',
+      offer_price:price,
+      status:'pending',
+      message:msg,
+      created_at:new Date().toISOString(),
+      updated_at:new Date().toISOString()
+    });
+    if(error)console.error('가격제안 저장 오류:',error);
+    // 판매자 알림
+    await sendNotification(sellerId,'price_offer','💰 새 가격제안이 왔어요',`${curUser.name||'구매자'}님이 "${prod.title}" 상품에 ${price.toLocaleString()}원/m을 제안했어요`,{offerId,productId:String(prod.id)});
+  }
+
+  // localStorage 백업
   const offers=lsGet('priceOffers',[]);
   offers.push(offer);
   lsSet('priceOffers',offers);
-  addAppNotification(offer.sellerId,'price_offer',`💰 ${offer.buyerName}님이 가격을 제안했어요`,{offerId:offer.id,productTitle:offer.productTitle,offerPrice:offer.offerPrice});
+
   closeModal('modal-suggest');
   showToast('가격 제안이 전송됐어요! 💰');
-  setTimeout(()=>{
-    openChatRoom(prod.id);
-    const room=chatRooms[`${curUser.id}_${prod.id}`];
-    if(room){
-      const time=formatChatTime(new Date());
-      room.messages.push({from:'me',senderId:curUser.id,text:`💰 가격 제안: ${price.toLocaleString()}원/m\n${msg?'메시지: '+msg:''}`,time});
-      room.lastMsg=`💰 가격제안 ${price.toLocaleString()}원/m`;
-      room.lastTime=time;
-      lsSet('chatRooms',chatRooms);
-      renderChatRoom(`${curUser.id}_${prod.id}`);
+
+  // 채팅으로 메시지 전송
+  setTimeout(async()=>{
+    await openChatRoom(prod.id);
+    if(curChatRoomId&&_sb){
+      await _sb.from('chat_messages').insert({
+        room_id:curChatRoomId,
+        sender_id:curUser.id||curUser.email,
+        sender_name:curUser.name||'구매자',
+        text:`💰 가격 제안: ${price.toLocaleString()}원/m${msg?'\n메시지: '+msg:''}`,
+        created_at:new Date().toISOString()
+      });
+      await _sb.from('chat_rooms').update({
+        last_msg:`💰 가격제안 ${price.toLocaleString()}원/m`,
+        last_time:new Date().toISOString(),
+        unread_seller:1
+      }).eq('id',curChatRoomId);
     }
-    showView('chat-room');
+    renderChatRoom(curChatRoomId);
   },300);
 }
 function selectRes(type,el){
@@ -4831,39 +4880,168 @@ async function submitReservation(){
   const note=document.getElementById('res-note').value.trim();
   if(!date){showToast('희망 날짜를 선택해주세요');return;}
   if(!curUser){showToast('로그인이 필요해요');return;}
-  const prod=products.find(x=>x.id===curProductId);
+  const prod=products.find(x=>x.id===curProductId);if(!prod)return;
   const contactName=document.getElementById('res-contact-name')?.value.trim()||curUser.name||'';
   const contactTel=document.getElementById('res-contact-tel')?.value.trim()||curUser.tel||'';
   const contactAddr=document.getElementById('res-contact-addr')?.value.trim()||curUser.loc||'';
+  const sellerId=prod.seller?.id||prod.seller_id||prod.seller?.name||'';
+  const resvId='resv_'+Date.now();
+
+  // Supabase 저장
+  if(_sb){
+    const{error}=await _sb.from('reservations').insert({
+      id:resvId,
+      product_id:String(prod.id),
+      product_title:prod.title,
+      product_img:prod.image_url||'',
+      buyer_id:curUser.id||curUser.email,
+      buyer_name:curUser.name||curUser.email,
+      buyer_tel:contactTel,
+      seller_id:sellerId,
+      seller_name:prod.seller?.name||'판매자',
+      qty:prod.moq||1,
+      unit:prod.unit||'m',
+      message:note,
+      status:'pending',
+      created_at:new Date().toISOString(),
+      updated_at:new Date().toISOString()
+    });
+    if(error)console.error('예약 저장 오류:',error);
+    // 판매자 알림
+    await sendNotification(sellerId,'reservation_new','📅 새 예약 신청이 왔어요',`${curUser.name||'구매자'}님이 "${prod.title}" 상품 ${date} ${time} 예약을 신청했어요`,{resvId,productId:String(prod.id)});
+  }
+
+  // localStorage 백업
   const resv={
-    id:'resv_'+Date.now(),
-    productId:curProductId,
-    productTitle:prod?.title||'',
-    productImg:prod?.image_url||null,
-    type:curResType,
-    date,time,note,
-    buyerId:curUser.id,
-    buyerName:curUser.name||curUser.email,
-    sellerId:prod?.seller_id||(prod?.seller&&prod.seller.id)||'',
-    sellerName:prod?.seller?.name||'판매자',
-    sellerTel:prod?.seller?.tel||'',
-    sellerAddr:prod?.seller?.loc||'',
+    id:resvId,productId:curProductId,productTitle:prod?.title||'',
+    productImg:prod?.image_url||null,type:curResType,date,time,note,
+    buyerId:curUser.id,buyerName:curUser.name||curUser.email,
+    sellerId,sellerName:prod?.seller?.name||'판매자',
     buyerContact:{name:contactName,tel:contactTel,addr:contactAddr},
-    status:'pending',
-    createdAt:new Date().toISOString(),
+    status:'pending',createdAt:new Date().toISOString(),
   };
   const resvList=lsGet('reservationList',[]);
   resvList.push(resv);
   lsSet('reservationList',resvList);
-  if(curUser&&curProductId&&_sb){
-    const{error}=await _sb.from('reservations').insert({
-      product_id:curProductId,user_id:curUser.id,type:curResType,date,time,note,
-    });
-    if(error)console.error('reservation error:',error);
-  }
-  addAppNotification(resv.sellerId,'reservation_request',`📅 ${resv.buyerName}님이 예약을 신청했어요`,{resvId:resv.id,productTitle:resv.productTitle,date,time,type:curResType});
+
   closeModal('modal-res');
   showToast(`${date} ${time} 예약이 신청됐어요! 📅`);
+
+  // 채팅으로 알림
+  setTimeout(async()=>{
+    await openChatRoom(prod.id);
+    if(curChatRoomId&&_sb){
+      await _sb.from('chat_messages').insert({
+        room_id:curChatRoomId,
+        sender_id:curUser.id||curUser.email,
+        sender_name:curUser.name||'구매자',
+        text:`📅 예약 신청: ${date} ${time}${note?'\n메모: '+note:''}`,
+        created_at:new Date().toISOString()
+      });
+      await _sb.from('chat_rooms').update({
+        last_msg:`📅 예약신청 ${date}`,
+        last_time:new Date().toISOString(),
+        unread_seller:1
+      }).eq('id',curChatRoomId);
+    }
+    renderChatRoom(curChatRoomId);
+  },300);
+}
+
+async function acceptOffer(offerId){
+  if(!curUser)return;
+  if(_sb){
+    const{data:offer}=await _sb.from('price_offers').select('*').eq('id',offerId).single();
+    if(!offer){showToast('제안 정보를 찾을 수 없어요');return;}
+    await _sb.from('price_offers').update({status:'accepted',updated_at:new Date().toISOString()}).eq('id',offerId);
+    await sendNotification(offer.buyer_id,'offer_accepted','✅ 가격제안이 수락됐어요',`"${offer.product_title}" 상품의 가격제안이 수락됐어요! ${offer.offer_price.toLocaleString()}원/m`,{offerId,productId:offer.product_id});
+    const roomId='chat_'+offer.product_id+'_'+offer.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
+    await _sb.from('chat_messages').insert({
+      room_id:roomId,
+      sender_id:curUser.id||curUser.email,
+      sender_name:curUser.name||'판매자',
+      text:`✅ 가격제안을 수락했어요! ${offer.offer_price.toLocaleString()}원/m으로 거래를 진행해주세요.`,
+      created_at:new Date().toISOString()
+    });
+    await _sb.from('chat_rooms').update({last_msg:'✅ 가격제안 수락',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
+  }
+  const offers=lsGet('priceOffers',[]);
+  const idx=offers.findIndex(o=>o.id===offerId);
+  if(idx>-1){offers[idx].status='accepted';lsSet('priceOffers',offers);}
+  showToast('가격제안을 수락했어요 ✅');
+  renderMyOffers&&renderMyOffers();
+}
+
+async function rejectOffer(offerId){
+  if(!curUser)return;
+  if(_sb){
+    const{data:offer}=await _sb.from('price_offers').select('*').eq('id',offerId).single();
+    if(!offer)return;
+    await _sb.from('price_offers').update({status:'rejected',updated_at:new Date().toISOString()}).eq('id',offerId);
+    await sendNotification(offer.buyer_id,'offer_rejected','❌ 가격제안이 거절됐어요',`"${offer.product_title}" 상품의 가격제안이 거절됐어요`,{offerId,productId:offer.product_id});
+    const roomId='chat_'+offer.product_id+'_'+offer.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
+    await _sb.from('chat_messages').insert({
+      room_id:roomId,
+      sender_id:curUser.id||curUser.email,
+      sender_name:curUser.name||'판매자',
+      text:`❌ 가격제안을 거절했어요. 다른 가격으로 다시 제안해주세요.`,
+      created_at:new Date().toISOString()
+    });
+    await _sb.from('chat_rooms').update({last_msg:'❌ 가격제안 거절',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
+  }
+  const offers=lsGet('priceOffers',[]);
+  const idx=offers.findIndex(o=>o.id===offerId);
+  if(idx>-1){offers[idx].status='rejected';lsSet('priceOffers',offers);}
+  showToast('가격제안을 거절했어요');
+  renderMyOffers&&renderMyOffers();
+}
+
+async function acceptReservation(resvId){
+  if(!curUser)return;
+  if(_sb){
+    const{data:resv}=await _sb.from('reservations').select('*').eq('id',resvId).single();
+    if(!resv){showToast('예약 정보를 찾을 수 없어요');return;}
+    await _sb.from('reservations').update({status:'confirmed',updated_at:new Date().toISOString()}).eq('id',resvId);
+    await sendNotification(resv.buyer_id,'reservation_confirmed','✅ 예약이 확정됐어요',`"${resv.product_title}" 상품 예약이 확정됐어요!`,{resvId,productId:resv.product_id});
+    const roomId='chat_'+resv.product_id+'_'+resv.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
+    await _sb.from('chat_messages').insert({
+      room_id:roomId,
+      sender_id:curUser.id||curUser.email,
+      sender_name:curUser.name||'판매자',
+      text:`✅ 예약이 확정됐어요! 거래를 진행해주세요.`,
+      created_at:new Date().toISOString()
+    });
+    await _sb.from('chat_rooms').update({last_msg:'✅ 예약 확정',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
+  }
+  const resvList=lsGet('reservationList',[]);
+  const idx=resvList.findIndex(r=>r.id===resvId);
+  if(idx>-1){resvList[idx].status='confirmed';lsSet('reservationList',resvList);}
+  showToast('예약을 확정했어요 ✅');
+  renderMyReservations&&renderMyReservations();
+}
+
+async function rejectReservation(resvId){
+  if(!curUser)return;
+  if(_sb){
+    const{data:resv}=await _sb.from('reservations').select('*').eq('id',resvId).single();
+    if(!resv)return;
+    await _sb.from('reservations').update({status:'rejected',updated_at:new Date().toISOString()}).eq('id',resvId);
+    await sendNotification(resv.buyer_id,'reservation_rejected','❌ 예약이 거절됐어요',`"${resv.product_title}" 상품 예약이 거절됐어요`,{resvId,productId:resv.product_id});
+    const roomId='chat_'+resv.product_id+'_'+resv.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
+    await _sb.from('chat_messages').insert({
+      room_id:roomId,
+      sender_id:curUser.id||curUser.email,
+      sender_name:curUser.name||'판매자',
+      text:`❌ 예약 신청이 거절됐어요. 다시 신청해주세요.`,
+      created_at:new Date().toISOString()
+    });
+    await _sb.from('chat_rooms').update({last_msg:'❌ 예약 거절',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
+  }
+  const resvList=lsGet('reservationList',[]);
+  const idx=resvList.findIndex(r=>r.id===resvId);
+  if(idx>-1){resvList[idx].status='rejected';lsSet('reservationList',resvList);}
+  showToast('예약을 거절했어요');
+  renderMyReservations&&renderMyReservations();
 }
 
 /* ==================== SELLER PAGE ==================== */
@@ -8852,6 +9030,31 @@ function updateNotifDot(){
 function addAppNotification(targetUserId,type,message,data){
   const notif={id:Date.now(),targetUserId,type,message,data:data||{},read:false,createdAt:new Date().toISOString()};
   appNotifications.push(notif);
+  lsSet('appNotifications',appNotifications);
+  updateNotifDot();
+}
+async function loadNotifications(){
+  if(!curUser||!_sb)return;
+  const myId=curUser.id||curUser.email||'';
+  const{data}=await _sb.from('notifications')
+    .select('*')
+    .eq('user_id',myId)
+    .order('created_at',{ascending:false})
+    .limit(50);
+  if(!data)return;
+  // localStorage 알림과 병합
+  const localNotifs=lsGet('appNotifications',[]);
+  const sbNotifs=data.map(n=>({
+    id:n.id,
+    type:n.type,
+    title:n.title,
+    message:n.message,
+    data:typeof n.data==='string'?JSON.parse(n.data||'{}'):n.data||{},
+    isRead:n.is_read,
+    createdAt:n.created_at
+  }));
+  // Supabase 알림 우선, 중복 제거
+  appNotifications=[...sbNotifs,...localNotifs.filter(l=>!sbNotifs.find(s=>s.id===l.id))];
   lsSet('appNotifications',appNotifications);
   updateNotifDot();
 }
