@@ -4802,6 +4802,7 @@ async function submitSuggest(){
   const offerContactAddr=document.getElementById('offer-contact-addr')?.value.trim()||curUser.loc||'';
   const sellerId=prod.seller?.id||prod.seller_id||prod.seller?.name||'';
   const offerId='offer_'+Date.now();
+  const sbOfferId=crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
   const offer={
     id:offerId,
     productId:prod.id,
@@ -4822,7 +4823,7 @@ async function submitSuggest(){
   // Supabase 저장
   if(_sb){
     const{error}=await _sb.from('price_offers').insert({
-      id:offerId,
+      id:sbOfferId,
       product_id:String(prod.id),
       product_title:prod.title,
       buyer_id:curUser.id||curUser.email,
@@ -4891,11 +4892,12 @@ async function submitReservation(){
   const contactAddr=document.getElementById('res-contact-addr')?.value.trim()||curUser.loc||'';
   const sellerId=prod.seller?.id||prod.seller_id||prod.seller?.name||'';
   const resvId='resv_'+Date.now();
+  const sbResvId=crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
 
   // Supabase 저장
   if(_sb){
     const{error}=await _sb.from('reservations').insert({
-      id:resvId,
+      id:sbResvId,
       product_id:String(prod.id),
       product_title:prod.title,
       product_img:prod.image_url||'',
