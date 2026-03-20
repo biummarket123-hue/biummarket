@@ -2004,13 +2004,20 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 <!-- ========== CHAT LIST ========== -->
 <div id="view-chat" class="view">
   <header class="hdr">
-    <div class="hdr-title" style="flex:1;text-align:left;font-size:18px;font-weight:800" data-i18n="chat_hdr">채팅</div>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:18px;font-weight:800">채팅</div>
     <button class="hdr-btn" onclick="showToast('채팅 검색 준비중이에요')">🔍</button>
   </header>
+  <!-- 채팅 탭 필터 -->
+  <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff;position:sticky;top:56px;z-index:50">
+    <button onclick="setChatFilter('all')" id="chat-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
+    <button onclick="setChatFilter('sell')" id="chat-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setChatFilter('buy')" id="chat-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
+    <button onclick="setChatFilter('unread')" id="chat-tab-unread" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="chat-tab-unread">안읽음</button>
+  </div>
   <div class="chat-list-wrap" id="chat-list-wrap" style="flex:1;overflow-y:auto;padding-bottom:72px"></div>
   <div class="empty" id="chat-list-empty" style="display:none">
     <div class="ei">💬</div>
-    <p style="text-align:center"><span data-i18n="chat_empty">채팅 내역이 없어요</span><br><small style="font-size:12px;color:#666677" data-i18n="chat_empty_hint">상품 상세에서 채팅하기를 눌러보세요</small></p>
+    <p style="text-align:center"><span>채팅 내역이 없어요</span><br><small style="font-size:12px;color:#666677">상품 상세에서 채팅하기를 눌러보세요</small></p>
   </div>
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
@@ -5685,21 +5692,76 @@ function openChatRoomById(roomId){
   if(chatRooms[roomId]){chatRooms[roomId].unread=0;lsSet('chatRooms',chatRooms);}
   showView('chat-room');
 }
+let curChatFilter='all';
+function setChatFilter(filter){
+  curChatFilter=filter;
+  // 탭 스타일 업데이트
+  ['all','sell','buy','unread'].forEach(f=>{
+    const btn=document.getElementById(`chat-tab-${f}`);
+    if(btn){
+      btn.style.borderBottomColor=f===filter?'#6c63ff':'transparent';
+      btn.style.color=f===filter?'#6c63ff':'#666677';
+      btn.style.fontWeight=f===filter?'700':'600';
+    }
+  });
+  renderChatList();
+}
 function renderChatList(){
   const wrap=document.getElementById('chat-list-wrap');
   const empty=document.getElementById('chat-list-empty');
-  const rooms=Object.values(chatRooms);
+  let rooms=Object.values(chatRooms);
   if(!rooms.length){wrap.innerHTML='';wrap.style.display='none';empty.style.display='flex';return;}
-  empty.style.display='none';wrap.style.display='block';
-  wrap.innerHTML=rooms.slice().reverse().map(r=>`
+
+  // 필터 적용
+  const myId=curUser?.id||'';
+  const myName=curUser?.name||'';
+  if(curChatFilter==='sell'){
+    // 내 상품에 대한 문의 (상대방이 구매자)
+    rooms=rooms.filter(r=>{
+      const prod=products.find(p=>p.id===r.productId);
+      return prod&&isMyProduct(prod,curUser);
+    });
+  } else if(curChatFilter==='buy'){
+    // 내가 문의한 채팅 (내가 구매자)
+    rooms=rooms.filter(r=>{
+      const prod=products.find(p=>p.id===r.productId);
+      return !prod||!isMyProduct(prod,curUser);
+    });
+  } else if(curChatFilter==='unread'){
+    // 안읽은 채팅만
+    rooms=rooms.filter(r=>r.unread&&r.unread>0);
+  }
+
+  if(!rooms.length){
+    wrap.innerHTML='';
+    wrap.style.display='none';
+    empty.style.display='flex';
+    return;
+  }
+  empty.style.display='none';
+  wrap.style.display='block';
+
+  // 안읽음 뱃지 업데이트
+  const totalUnread=Object.values(chatRooms).filter(r=>r.unread&&r.unread>0).length;
+  const unreadTab=document.getElementById('chat-tab-unread');
+  if(unreadTab)unreadTab.textContent=totalUnread>0?`안읽음 ${totalUnread}`:'안읽음';
+
+  wrap.innerHTML=rooms.slice().reverse().map(r=>{
+    const prod=products.find(p=>p.id===r.productId);
+    const isSellChat=prod&&isMyProduct(prod,curUser);
+    const typeLabel=isSellChat?
+      `<span style="font-size:10px;background:rgba(255,111,0,.1);color:#ff6f00;padding:2px 6px;border-radius:10px;font-weight:700">판매</span>`:
+      `<span style="font-size:10px;background:rgba(108,99,255,.1);color:#6c63ff;padding:2px 6px;border-radius:10px;font-weight:700">구매</span>`;
+    return `
     <div class="chat-room-item" onclick="openChatRoomById('${r.id}')">
       <div class="cr-av" style="background:${r.bgColor||'#6c63ff'}">${(r.sellerName||'?')[0]}</div>
       <div class="cr-info">
         <div class="cr-top">
-          <span class="cr-name">${r.sellerName||'판매자'}</span>
+          <span class="cr-name">${r.sellerName||'상대방'}</span>
           <span class="cr-time">${r.lastTime||''}</span>
         </div>
-        <div class="cr-preview">${r.lastMsg||'채팅을 시작해보세요'}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">${typeLabel}</div>
+        <div class="cr-preview" style="color:${r.unread?'#1a1a1a':'#888'};font-weight:${r.unread?'600':'400'}">${r.lastMsg||'채팅을 시작해보세요'}</div>
         <div class="cr-sub-preview">${r.productTitle||''}</div>
       </div>
       <div class="cr-right">
@@ -5708,7 +5770,8 @@ function renderChatList(){
         </div>
         ${r.unread?`<div class="cr-unread">${r.unread}</div>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function renderChatRoom(roomId){
   const room=chatRooms[roomId];if(!room)return;
