@@ -3336,6 +3336,36 @@ function showView(name,push=true){
   if(name==='mypage')renderMypage();
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
+  if(name==='chat'&&_sb&&curUser){
+    const myId=curUser.id||curUser.email||'';
+    _sb.from('chat_rooms')
+      .select('*')
+      .or(`seller_id.eq.${myId},buyer_id.eq.${myId}`)
+      .order('last_time',{ascending:false})
+      .then(({data})=>{
+        if(!data)return;
+        data.forEach(r=>{
+          const isSeller=r.seller_id===myId;
+          chatRooms[r.id]={
+            ...chatRooms[r.id],
+            id:r.id,
+            productId:r.product_id,
+            productTitle:r.product_title,
+            productImg:r.product_img||'',
+            sellerName:isSeller?r.buyer_name:r.seller_name,
+            sellerId:r.seller_id,
+            buyerId:r.buyer_id,
+            buyerName:r.buyer_name,
+            bgColor:chatRooms[r.id]?.bgColor||'#6c63ff',
+            lastMsg:r.last_msg||'',
+            lastTime:r.last_time?formatChatTime(new Date(r.last_time)):'',
+            unread:isSeller?(r.unread_seller||0):(r.unread_buyer||0)
+          };
+        });
+        lsSet('chatRooms',chatRooms);
+        renderChatList();
+      });
+  }
   if(name==='chat')renderChatList();
   if(name==='wishlist')renderWishlist();
   if(name==='chat-room')renderChatRoom(curChatRoomId);
@@ -5820,31 +5850,96 @@ function renderWishlist(){
 
 /* ==================== CHAT ==================== */
 function formatChatTime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function openChatRoom(productId){
+async function openChatRoom(productId){
   if(!curUser){showToast('로그인 후 채팅할 수 있어요');showView('login');return;}
-  const roomId='prod_'+productId;
+  const p=products.find(x=>x.id===productId);if(!p)return;
+  if(isMyProduct(p,curUser)){showToast('내 상품에는 채팅할 수 없어요');return;}
+  const sellerId=p.seller?.id||p.seller?.name||'';
+  const buyerId=curUser.id||curUser.email||'';
+  const roomId='chat_'+productId+'_'+buyerId.replace(/[^a-zA-Z0-9]/g,'_');
   curChatRoomId=roomId;
-  if(!chatRooms[roomId]){
-    const p=products.find(x=>x.id===productId);
-    if(!p)return;
-    chatRooms[roomId]={
-      id:roomId,productId,
-      productTitle:p.title,
-      productPrice:p.price,
-      productImg:p.image_url||'',
-      sellerName:p.seller?.name||'판매자',
-      bgColor:getFColor(p.type,p.color),
-      messages:[{from:'seller',text:'안녕하세요! 관심 가져주셔서 감사합니다 😊 궁금한 점 있으시면 편하게 물어보세요!',time:formatChatTime(new Date())}],
-      lastMsg:'안녕하세요! 관심 가져주셔서 감사합니다 😊',
-      lastTime:formatChatTime(new Date()),unread:1,
-    };
-    lsSet('chatRooms',chatRooms);
-  }else{chatRooms[roomId].unread=0;lsSet('chatRooms',chatRooms);}
+
+  // Supabase에서 채팅방 조회 또는 생성
+  if(_sb){
+    const{data:existing}=await _sb.from('chat_rooms').select('*').eq('id',roomId).single();
+    if(!existing){
+      // 새 채팅방 생성
+      await _sb.from('chat_rooms').insert({
+        id:roomId,
+        product_id:String(productId),
+        product_title:p.title,
+        product_img:p.image_url||'',
+        seller_id:sellerId,
+        seller_name:p.seller?.name||'판매자',
+        buyer_id:buyerId,
+        buyer_name:curUser.name||'구매자',
+        last_msg:`"${p.title}" 상품 문의`,
+        last_time:new Date().toISOString(),
+        unread_seller:1,
+        unread_buyer:0
+      });
+      // 판매자에게 알림
+      await sendNotification(sellerId,'chat_new',`💬 새 문의가 왔어요`,`${curUser.name||'구매자'}님이 "${p.title}" 상품에 문의했어요`,{roomId,productId:String(productId)});
+    } else {
+      // 기존 채팅방 - 판매자 읽음 처리 안함, 구매자 unread 0으로
+      await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
+    }
+  }
+
+  // localStorage 동기화
+  chatRooms[roomId]={
+    id:roomId,productId,
+    productTitle:p.title,
+    productPrice:p.price,
+    productImg:p.image_url||'',
+    sellerName:p.seller?.name||'판매자',
+    sellerId,buyerId,
+    buyerName:curUser.name||'구매자',
+    bgColor:getFColor(p.type,p.color),
+    messages:[],
+    lastMsg:`"${p.title}" 상품 문의`,
+    lastTime:formatChatTime(new Date()),
+    unread:0,
+    ...(chatRooms[roomId]||{})
+  };
+  lsSet('chatRooms',chatRooms);
   showView('chat-room');
 }
-function openChatRoomById(roomId){
+async function openChatRoomById(roomId){
+  if(!curUser)return;
   curChatRoomId=roomId;
-  if(chatRooms[roomId]){chatRooms[roomId].unread=0;lsSet('chatRooms',chatRooms);}
+  const myId=curUser.id||curUser.email||'';
+
+  // Supabase에서 채팅방 정보 가져오기
+  if(_sb){
+    const{data:room}=await _sb.from('chat_rooms').select('*').eq('id',roomId).single();
+    if(room){
+      const isSeller=room.seller_id===myId;
+      // 내 unread 0으로 업데이트
+      if(isSeller)await _sb.from('chat_rooms').update({unread_seller:0}).eq('id',roomId);
+      else await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
+
+      chatRooms[roomId]={
+        ...chatRooms[roomId],
+        id:roomId,
+        productId:room.product_id,
+        productTitle:room.product_title,
+        productImg:room.product_img||'',
+        sellerName:isSeller?room.buyer_name:room.seller_name,
+        sellerId:room.seller_id,
+        buyerId:room.buyer_id,
+        buyerName:room.buyer_name,
+        bgColor:chatRooms[roomId]?.bgColor||'#6c63ff',
+        lastMsg:room.last_msg||'',
+        lastTime:room.last_time?formatChatTime(new Date(room.last_time)):'',
+        unread:0
+      };
+      lsSet('chatRooms',chatRooms);
+    }
+  }else{
+    if(chatRooms[roomId])chatRooms[roomId].unread=0;
+    lsSet('chatRooms',chatRooms);
+  }
   showView('chat-room');
 }
 let curChatFilter='all';
@@ -5928,20 +6023,40 @@ function renderChatList(){
     </div>`;
   }).join('');
 }
-function renderChatRoom(roomId){
+async function renderChatRoom(roomId){
   const room=chatRooms[roomId];if(!room)return;
-  document.getElementById('cr-hdr-title').textContent=room.sellerName;
-  document.getElementById('cr-prod-title').textContent=room.productTitle;
+  document.getElementById('cr-hdr-title').textContent=room.sellerName||'상대방';
+  document.getElementById('cr-prod-title').textContent=room.productTitle||'';
   const priceEl=document.getElementById('cr-prod-price');
   if(priceEl)priceEl.textContent=room.productPrice?room.productPrice.toLocaleString()+'원/m':'';
   const thumb=document.getElementById('cr-thumb');
   thumb.style.background=room.bgColor||'#eeeeee';
-  thumb.innerHTML=room.productImg
-    ?`<img src="${room.productImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:8px">`
-    :'🧵';
+  thumb.innerHTML=room.productImg?`<img src="${room.productImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:8px">`:'🧵';
+
+  // Supabase에서 메시지 로드
+  let messages=room.messages||[];
+  if(_sb){
+    const{data:msgs}=await _sb.from('chat_messages')
+      .select('*')
+      .eq('room_id',roomId)
+      .order('created_at',{ascending:true});
+    if(msgs&&msgs.length){
+      const myId=curUser?.id||curUser?.email||'';
+      messages=msgs.map(m=>({
+        from:m.sender_id===myId?'me':'other',
+        senderId:m.sender_id,
+        senderName:m.sender_name,
+        text:m.text,
+        time:formatChatTime(new Date(m.created_at))
+      }));
+      room.messages=messages;
+      lsSet('chatRooms',chatRooms);
+    }
+  }
+
   const body=document.getElementById('cr-body');
-  body.innerHTML=room.messages.map(m=>{
-    const isMe=m.senderId&&curUser?m.senderId===curUser.id:m.from==='me';
+  body.innerHTML=messages.map(m=>{
+    const isMe=m.senderId&&curUser?(m.senderId===(curUser.id||curUser.email)):m.from==='me';
     return `<div class="msg-row ${isMe?'me':'other'}">
       ${!isMe?`<div class="msg-av" style="background:${room.bgColor||'#6c63ff'}">${(room.sellerName||'?')[0]}</div>`:''}
       <div class="msg-col">
@@ -5952,16 +6067,60 @@ function renderChatRoom(roomId){
   }).join('');
   setTimeout(()=>body.scrollTop=body.scrollHeight,50);
 }
-function sendChatMsg(){
+async function sendNotification(targetId,type,title,message,data={}){
+  if(!_sb||!targetId)return;
+  await _sb.from('notifications').insert({
+    user_id:targetId,
+    type,title,message,
+    data:JSON.stringify(data),
+    is_read:false,
+    created_at:new Date().toISOString()
+  });
+}
+async function sendChatMsg(){
   const input=document.getElementById('cr-input');
   const text=input.value.trim();
   if(!text||!curChatRoomId)return;
   const room=chatRooms[curChatRoomId];if(!room)return;
   const time=formatChatTime(new Date());
-  room.messages.push({from:'me',senderId:curUser?.id||'guest',text,time});
+  const senderId=curUser?.id||curUser?.email||'guest';
+  const senderName=curUser?.name||'나';
+  const myId=curUser?.id||curUser?.email||'';
+  const isSeller=room.sellerId===myId;
+
+  // 로컬 메시지 추가 (즉시 반영)
+  if(!room.messages)room.messages=[];
+  room.messages.push({from:'me',senderId,senderName,text,time});
   room.lastMsg=text;room.lastTime=time;room.unread=0;
-  input.value='';lsSet('chatRooms',chatRooms);
+  input.value='';
+  lsSet('chatRooms',chatRooms);
   renderChatRoom(curChatRoomId);
+
+  // Supabase에 메시지 저장
+  if(_sb){
+    await _sb.from('chat_messages').insert({
+      room_id:curChatRoomId,
+      sender_id:senderId,
+      sender_name:senderName,
+      text,
+      created_at:new Date().toISOString()
+    });
+    // 채팅방 last_msg 업데이트 + 상대방 unread +1
+    const unreadField=isSeller?'unread_buyer':'unread_seller';
+    await _sb.from('chat_rooms').update({
+      last_msg:text,
+      last_time:new Date().toISOString(),
+      [unreadField]:(_sb.rpc?undefined:1)
+    }).eq('id',curChatRoomId);
+    // unread 증가 (별도 처리)
+    const{data:curr}=await _sb.from('chat_rooms').select(unreadField).eq('id',curChatRoomId).single();
+    if(curr){
+      await _sb.from('chat_rooms').update({[unreadField]:(curr[unreadField]||0)+1}).eq('id',curChatRoomId);
+    }
+    // 상대방 알림
+    const targetId=isSeller?room.buyerId:room.sellerId;
+    await sendNotification(targetId,'chat_msg','💬 새 메시지',`${senderName}: ${text}`,{roomId:curChatRoomId});
+  }
 }
 function goChatProduct(){
   const room=chatRooms[curChatRoomId];if(!room)return;
