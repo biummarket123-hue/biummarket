@@ -6073,9 +6073,17 @@ async function submitForm(){
 document.getElementById('search-input').addEventListener('input',e=>{curSearch=e.target.value;renderList()});
 document.getElementById('sv-input').addEventListener('input',e=>{
   svSearch=e.target.value;
-  const q=svSearch.trim();
-  if(q.length>=2)addRecentSearch(q);
   renderSearchView();
+});
+document.getElementById('sv-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const q=svSearch.trim();
+    if(q.length>=2){
+      addRecentSearch(q);
+      renderSearchView();
+    }
+    e.target.blur();
+  }
 });
 const _btnLoc=document.getElementById('btn-loc');if(_btnLoc)_btnLoc.addEventListener('click',()=>showToast('지역 설정 기능 준비중이에요'));
 document.getElementById('btn-alert').addEventListener('click',()=>showView('notif'));
