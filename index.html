@@ -4719,23 +4719,25 @@ async function renderMyReservations(){
     const myId=curUser.id||curUser.email||'';
     const{data}=await _sb.from('reservations')
       .select('*')
-      .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`)
+      .or(`buyer_id.eq.${myId},seller_id.eq.${myId},user_id.eq.${myId}`)
       .order('created_at',{ascending:false});
     if(data)resvList=data.map(r=>({
       id:r.id,
       productId:r.product_id,
-      productTitle:r.product_title,
+      productTitle:r.product_title||'상품',
       productImg:r.product_img,
-      buyerId:r.buyer_id,
-      buyerName:r.buyer_name,
-      buyerTel:r.buyer_tel,
-      sellerId:r.seller_id,
-      sellerName:r.seller_name,
-      qty:r.qty,
-      unit:r.unit,
-      message:r.message,
-      status:r.status,
-      createdAt:r.created_at
+      buyerId:r.buyer_id||r.user_id,
+      buyerName:r.buyer_name||'구매자',
+      buyerTel:r.buyer_tel||'',
+      sellerId:r.seller_id||'',
+      sellerName:r.seller_name||'판매자',
+      qty:r.qty||1,
+      unit:r.unit||'m',
+      message:r.message||r.note||'',
+      status:r.status||'pending',
+      createdAt:r.created_at,
+      date:r.date||'',
+      time:r.time||''
     }));
   } else {
     resvList=lsGet('reservationList',[]);
@@ -4760,6 +4762,7 @@ async function renderMyReservations(){
         <div style="font-size:13px;color:#666;margin-bottom:4px">${isSeller?'구매자':'판매자'}: ${isSeller?r.buyerName:r.sellerName}</div>
         ${r.buyerTel&&isSeller&&r.status==='confirmed'?`<div style="font-size:13px;color:#1565c0;margin-bottom:4px">📞 ${r.buyerTel}</div>`:''}
         ${r.qty?`<div style="font-size:13px;color:#666;margin-bottom:4px">수량: ${r.qty}${r.unit||'m'}</div>`:''}
+        ${r.date?`<div style="font-size:13px;color:#666;margin-bottom:4px">📅 ${r.date} ${r.time||''}</div>`:''}
         ${r.message?`<div style="font-size:13px;color:#888;margin-bottom:8px">"${r.message}"</div>`:''}
         <div style="font-size:12px;color:#aaa;margin-bottom:8px">${new Date(r.createdAt).toLocaleDateString()}</div>
         ${isSeller&&r.status==='pending'?`
