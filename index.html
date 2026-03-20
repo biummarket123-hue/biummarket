@@ -2018,6 +2018,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <button class="hdr-btn" onclick="goBack()">←</button>
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">📅 예약 내역</div>
   </div>
+  <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff">
+    <button onclick="setResvFilter('all')" id="resv-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
+    <button onclick="setResvFilter('sell')" id="resv-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setResvFilter('buy')" id="resv-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
+  </div>
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px" id="my-reservations-list"></div>
 </div>
 
@@ -2026,6 +2031,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div class="hdr">
     <button class="hdr-btn" onclick="goBack()">←</button>
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">💰 가격제안 내역</div>
+  </div>
+  <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff">
+    <button onclick="setOfferFilter('all')" id="offer-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
+    <button onclick="setOfferFilter('sell')" id="offer-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setOfferFilter('buy')" id="offer-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px" id="my-offers-list"></div>
 </div>
@@ -4738,6 +4748,19 @@ function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)document.getElementById(id).classList.remove('open')}
 function openSuggestModal(){openModal('modal-suggest')}
 
+let curOfferFilter='all';
+function setOfferFilter(filter){
+  curOfferFilter=filter;
+  ['all','sell','buy'].forEach(f=>{
+    const btn=document.getElementById(`offer-tab-${f}`);
+    if(btn){
+      btn.style.borderBottomColor=f===filter?'#6c63ff':'transparent';
+      btn.style.color=f===filter?'#6c63ff':'#666677';
+      btn.style.fontWeight=f===filter?'700':'600';
+    }
+  });
+  renderMyOffers();
+}
 async function renderMyOffers(){
   const container=document.getElementById('my-offers-list');if(!container)return;
   let offers=[];
@@ -4766,13 +4789,23 @@ async function renderMyOffers(){
     offers=lsGet('priceOffers',[]);
   }
 
-  if(!offers.length){
-    container.innerHTML='<div style="text-align:center;padding:40px;color:#888">가격제안 내역이 없어요</div>';
+  const myId=curUser?.id||curUser?.email||'';
+
+  // 필터 적용
+  let filteredOffers=offers;
+  if(curOfferFilter==='sell'){
+    filteredOffers=offers.filter(o=>o.sellerId===myId);
+  } else if(curOfferFilter==='buy'){
+    filteredOffers=offers.filter(o=>o.buyerId===myId);
+  }
+
+  if(!filteredOffers.length){
+    const labels={all:'가격제안 내역이 없어요',sell:'판매 가격제안 내역이 없어요',buy:'구매 가격제안 내역이 없어요'};
+    container.innerHTML=`<div style="text-align:center;padding:40px;color:#888">${labels[curOfferFilter]||'가격제안 내역이 없어요'}</div>`;
     return;
   }
 
-  const myId=curUser?.id||curUser?.email||'';
-  container.innerHTML=offers.map(o=>{
+  container.innerHTML=filteredOffers.map(o=>{
     const isSeller=o.sellerId===myId;
     const statusLabel={pending:'⏳ 대기중',accepted:'✅ 수락됨',rejected:'❌ 거절됨',countered:'🔄 역제안'}[o.status]||o.status;
     const statusColor={pending:'#f59e0b',accepted:'#10b981',rejected:'#ef4444',countered:'#6c63ff'}[o.status]||'#888';
@@ -4842,6 +4875,19 @@ function reOffer(offerId){
 }
 function openResModal(){openModal('modal-res')}
 
+let curResvFilter='all';
+function setResvFilter(filter){
+  curResvFilter=filter;
+  ['all','sell','buy'].forEach(f=>{
+    const btn=document.getElementById(`resv-tab-${f}`);
+    if(btn){
+      btn.style.borderBottomColor=f===filter?'#6c63ff':'transparent';
+      btn.style.color=f===filter?'#6c63ff':'#666677';
+      btn.style.fontWeight=f===filter?'700':'600';
+    }
+  });
+  renderMyReservations();
+}
 async function renderMyReservations(){
   const container=document.getElementById('my-reservations-list');if(!container)return;
   let resvList=[];
@@ -4874,13 +4920,23 @@ async function renderMyReservations(){
     resvList=lsGet('reservationList',[]);
   }
 
-  if(!resvList.length){
-    container.innerHTML='<div style="text-align:center;padding:40px;color:#888">예약 내역이 없어요</div>';
+  const myId=curUser?.id||curUser?.email||'';
+
+  // 필터 적용
+  let filteredList=resvList;
+  if(curResvFilter==='sell'){
+    filteredList=resvList.filter(r=>r.sellerId===myId);
+  } else if(curResvFilter==='buy'){
+    filteredList=resvList.filter(r=>r.buyerId===myId);
+  }
+
+  if(!filteredList.length){
+    const labels={all:'예약 내역이 없어요',sell:'판매 예약 내역이 없어요',buy:'구매 예약 내역이 없어요'};
+    container.innerHTML=`<div style="text-align:center;padding:40px;color:#888">${labels[curResvFilter]||'예약 내역이 없어요'}</div>`;
     return;
   }
 
-  const myId=curUser?.id||curUser?.email||'';
-  container.innerHTML=resvList.map(r=>{
+  container.innerHTML=filteredList.map(r=>{
     const isSeller=r.sellerId===myId;
     const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정됨',rejected:'❌ 거절됨',cancelled:'🚫 취소됨'}[r.status]||r.status;
     const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444',cancelled:'#888'}[r.status]||'#888';
