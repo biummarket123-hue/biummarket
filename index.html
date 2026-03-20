@@ -750,6 +750,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pcard.soldout .pthumb{filter:grayscale(.5)}
 .stock-bar{height:4px;border-radius:2px;background:#e0e0ea;margin-top:6px;overflow:hidden}
 .stock-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6c63ff,#a78bfa);transition:width .3s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
@@ -795,6 +796,40 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 <!-- ========== 관심 카테고리 선택 모달 ========== -->
+<div id="modal-welcome" style="display:none;position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#6c63ff,#8b84ff);align-items:center;justify-content:center;flex-direction:column;padding:32px 24px;text-align:center">
+  <div style="font-size:60px;margin-bottom:16px;animation:bounce 1s infinite">🧵</div>
+  <div style="font-size:26px;font-weight:900;color:#fff;margin-bottom:8px" id="welcome-name">환영해요!</div>
+  <div style="font-size:15px;color:rgba(255,255,255,.85);line-height:1.7;margin-bottom:32px">
+    비움마켓은 원단을 사고 파는<br>전문 거래 플랫폼이에요 😊<br><br>
+    원단이 있다면 <b>팔고</b><br>
+    원단이 필요하다면 <b>사보세요</b>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px">
+    <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.15);border-radius:16px;padding:14px 16px">
+      <span style="font-size:24px">🏪</span>
+      <div style="text-align:left">
+        <div style="font-size:14px;font-weight:700;color:#fff">다양한 원단 탐색</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">면, 폴리, 실크, 데님 등 모든 원단</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.15);border-radius:16px;padding:14px 16px">
+      <span style="font-size:24px">💬</span>
+      <div style="text-align:left">
+        <div style="font-size:14px;font-weight:700;color:#fff">채팅으로 간편 거래</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">문의부터 가격제안까지 한번에</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.15);border-radius:16px;padding:14px 16px">
+      <span style="font-size:24px">⭐</span>
+      <div style="text-align:left">
+        <div style="font-size:14px;font-weight:700;color:#fff">신뢰할 수 있는 거래</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">패브릭 스코어로 검증된 판매자</div>
+      </div>
+    </div>
+  </div>
+  <button onclick="closeWelcomeModal()" style="margin-top:32px;width:100%;max-width:320px;padding:16px;background:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;color:#6c63ff;cursor:pointer">시작하기 →</button>
+</div>
+
 <div id="modal-interest-cats" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
   <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
     <div style="text-align:center;margin-bottom:20px">
@@ -3618,7 +3653,7 @@ async function doSignup(){
     lsSet('lastUserId',curUser.id||curUser.email||'');
     lsSet('interestCatsSet',false);
     showView('list');
-    setTimeout(()=>openInterestModal(),800);
+    setTimeout(()=>openWelcomeModal(curUser.name||name),800);
     return;
   }
   try{
@@ -3657,7 +3692,7 @@ async function doSignup(){
     lsSet('lastUserId',curUser.id||curUser.email||'');
     lsSet('interestCatsSet',false);
     showView('list');showListSkeleton();loadProductsFromSupabase();
-    setTimeout(()=>openInterestModal(),800);
+    setTimeout(()=>openWelcomeModal(curUser.name||name),800);
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
 async function doLogout(){
@@ -4283,6 +4318,19 @@ function renderHomeSections(){
   el.innerHTML=html||`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 카테고리에 상품이 없어요</div>`;
 }
 
+function openWelcomeModal(userName){
+  const modal=document.getElementById('modal-welcome');
+  if(!modal)return;
+  modal.style.display='flex';
+  const nameEl=document.getElementById('welcome-name');
+  if(nameEl)nameEl.textContent=`${userName||''}님, 환영해요! 🎉`;
+}
+function closeWelcomeModal(){
+  const modal=document.getElementById('modal-welcome');
+  if(modal)modal.style.display='none';
+  // 환영 모달 닫으면 관심 카테고리 모달 표시
+  setTimeout(()=>openInterestModal(),300);
+}
 function openInterestModal(){
   const modal=document.getElementById('modal-interest-cats');
   if(!modal)return;
