@@ -991,7 +991,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <button onclick="event.stopPropagation();showView('ai')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0"></span>
       <span style="flex:1;font-size:13px;color:#888899" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
-      <button onclick="event.stopPropagation();openSearchOverlay()" style="background:#1a1a1a;border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
+      <button onclick="event.stopPropagation();openSearchOverlay()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
     </div>
     <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #f8f8fa"></span></button>
   </header>
@@ -1968,7 +1968,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0;margin:0 4px"></span>
       <input type="text" id="sv-input" placeholder="원단명, 색상, 종류 검색..." autocomplete="off" style="flex:1"/>
       <button class="sv-clear" id="sv-clear-btn" onclick="clearSvInput()" style="display:none">✕</button>
-      <button onclick="doSvSearch()" style="background:#1a1a1a;border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
+      <button onclick="doSvSearch()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
@@ -3418,6 +3418,35 @@ async function startAiAnalysis(){
     </div>
   `;
   setTimeout(()=>{const gf=document.getElementById('ai-gf');if(gf)gf.style.width=gaugeVal+'%';},100);
+  renderSimilarFabrics(type,color,data);
+}
+function renderSimilarFabrics(type,color,data){
+  const result=document.getElementById('ai-result-card');
+  if(!result)return;
+  const similar=products.filter(p=>{
+    if((p.qty||0)<=0||p.status==='stopped')return false;
+    if(p.type===type)return true;
+    if(color&&p.color&&p.color.toLowerCase().includes(color.toLowerCase()))return true;
+    return false;
+  }).slice(0,6);
+  if(!similar.length)return;
+  const html=`
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e0e0ea">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">🔍 비슷한 원단 상품</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px">
+        ${similar.map(p=>{
+          const bg=getFColor(p.type,p.color);
+          return `<div onclick="openDetail(${p.id})" style="flex-shrink:0;width:110px;cursor:pointer">
+            <div style="width:110px;height:80px;border-radius:10px;overflow:hidden;background:${bg};display:flex;align-items:center;justify-content:center;margin-bottom:6px;position:relative">
+              ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`:`<span style="font-size:24px">${p.type}</span>`}
+            </div>
+            <div style="font-size:12px;font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;line-clamp:1;margin-bottom:2px">${p.title}</div>
+            <div style="font-size:11px;color:#666677">${fmtPrice(p.price)}/m</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  result.innerHTML+=html;
 }
 
 /* ==================== TOAST ==================== */
