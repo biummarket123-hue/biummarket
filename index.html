@@ -5861,7 +5861,7 @@ function getFabricScoreHtml(sellerId,style='normal'){
   }
   return `⭐ ${score.total} (${score.count}건)`;
 }
-function submitSellerReview(sellerId){
+async function submitSellerReview(sellerId){
   const quality=reviewStarItems.quality;
   const manner=reviewStarItems.manner;
   const delivery=reviewStarItems.delivery;
