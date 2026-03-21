@@ -529,7 +529,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 
 /* HOME REDESIGN */
 .home-hdr{position:sticky;top:0;z-index:100;background:#f8f8fa;border-bottom:1px solid #e0e0ea;padding:0 12px;height:56px;display:flex;align-items:center;gap:8px}
-.home-search-bar{flex:1;display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:22px;padding:9px 14px;cursor:pointer;transition:background .15s}
+.home-search-bar{flex:1;display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:22px;padding:6px 6px 6px 14px;cursor:pointer;transition:background .15s}
 .home-search-bar:hover{background:#e0e0ea}
 .home-scroll{flex:1;overflow-y:auto;padding-bottom:72px}
 .notice-banner{margin:12px 14px 0;background:#fffbeb;border:1px solid #f0e68c;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#92400e}
@@ -987,10 +987,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <header class="home-hdr">
     <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;gap:1px"><span style="font-size:16px;font-weight:900;letter-spacing:-0.3px"><span style="color:#1a1a1a">비움</span><span style="color:#fbbf24">마켓</span></span><span style="font-size:8px;font-weight:600;color:#aaaaaa;letter-spacing:0.8px">BIUM MARKET</span></div>
     <div class="home-search-bar" onclick="openSearchOverlay()">
-      <span style="font-size:14px;color:#666677">🔍</span>
-      <span style="flex:1;font-size:13px;color:#666677" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
+      <button onclick="event.stopPropagation();showView('ai')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
+      <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0"></span>
+      <span style="flex:1;font-size:13px;color:#888899" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
+      <button onclick="event.stopPropagation();openSearchOverlay()" style="background:#1a1a1a;border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
     </div>
-    <button class="hdr-btn" onclick="showView('ai')" title="AI분석">📷</button>
     <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #f8f8fa"></span></button>
   </header>
   <!-- 레거시 호환용 숨김 요소 -->
@@ -1961,10 +1962,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   </header>
   <!-- 검색바 (sticky) -->
   <div class="sv-top">
-    <div class="sv-bar">
-      <span style="font-size:16px;color:#666677">🔍</span>
-      <input type="text" id="sv-input" placeholder="원단명, 색상, 종류 검색..." autocomplete="off"/>
+    <div class="sv-bar" style="padding:6px 6px 6px 14px">
+      <button onclick="showView('ai')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
+      <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0;margin:0 4px"></span>
+      <input type="text" id="sv-input" placeholder="원단명, 색상, 종류 검색..." autocomplete="off" style="flex:1"/>
       <button class="sv-clear" id="sv-clear-btn" onclick="clearSvInput()" style="display:none">✕</button>
+      <button onclick="doSvSearch()" style="background:#1a1a1a;border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
@@ -6204,6 +6207,11 @@ async function submitForm(){
     console.error('[submitForm] 예외:', e);
     showToast('상품 저장 중 오류가 발생했어요');
   }
+}
+function doSvSearch(){
+  const q=svSearch.trim();
+  if(q.length>=2){addRecentSearch(q);renderSearchView();}
+  document.getElementById('sv-input')?.blur();
 }
 document.getElementById('search-input').addEventListener('input',e=>{curSearch=e.target.value;renderList()});
 document.getElementById('sv-input').addEventListener('input',e=>{
