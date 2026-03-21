@@ -706,7 +706,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-empty{padding:60px 20px;text-align:center;color:#666677;font-size:13px}
 
 /* SEARCH OVERLAY */
-#view-search-view{display:none;position:fixed;top:0;left:0;right:0;width:100%;max-width:430px;margin:0 auto;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:none;touch-action:pan-y}
+#view-search-view{display:none;position:fixed;top:0;left:0;right:0;width:100%;max-width:430px;margin:0 auto;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:none;touch-action:pan-y;height:calc(100vh - 72px)}
 #view-search-view .ai-view-scroll,#view-search-view>*{overscroll-behavior:none}
 #view-search-view.open{display:flex;animation:searchViewIn .2s ease-out}
 @keyframes searchViewIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
