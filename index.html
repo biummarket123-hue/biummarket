@@ -705,7 +705,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-empty{padding:60px 20px;text-align:center;color:#666677;font-size:13px}
 
 /* SEARCH OVERLAY */
-#view-search-view{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset}
+#view-search-view{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:contain}
+#view-search-view .ai-view-scroll,#view-search-view>*{overscroll-behavior:contain}
 #view-search-view.open{display:flex;animation:viewIn .2s ease-out}
 
 /* AI VIEW */
@@ -1966,7 +1967,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <button class="sv-clear" id="sv-clear-btn" onclick="clearSvInput()" style="display:none">✕</button>
     </div>
   </div>
-  <!-- 필터 버튼 행 -->
+  <div style="flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+  <!-- 필터 섹션 -->
+  <div style="padding:12px 16px 4px">
+    <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px">필터</div>
+  </div>
   <div class="sv-filter-row">
     <button class="sv-filter-btn on" id="svf-all" onclick="setSvFilter('전체');updateSvFilterBtns('전체')">전체</button>
     <button class="sv-filter-btn" id="svf-면" onclick="setSvFilter('면');updateSvFilterBtns('면')">면</button>
@@ -2004,6 +2009,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <div class="empty" id="sv-empty" style="display:none">
     <div class="ei">🔍</div>
     <p id="sv-empty-msg">검색어를 입력하거나 카테고리를 선택하세요</p>
+  </div>
   </div>
 </div>
 
