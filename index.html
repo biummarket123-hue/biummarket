@@ -830,6 +830,32 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <button onclick="closeWelcomeModal()" style="margin-top:32px;width:100%;max-width:320px;padding:16px;background:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;color:#6c63ff;cursor:pointer">시작하기 →</button>
 </div>
 
+<div id="modal-price-filter" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px">
+    <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:20px">💰 가격 필터</div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;font-weight:600;color:#666677;display:block;margin-bottom:8px">최소 가격 (원/m)</label>
+      <input type="number" id="price-filter-min" placeholder="예) 1000" class="fi" style="color:#1a1a1a"/>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:13px;font-weight:600;color:#666677;display:block;margin-bottom:8px">최대 가격 (원/m)</label>
+      <input type="number" id="price-filter-max" placeholder="예) 10000" class="fi" style="color:#1a1a1a"/>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+      <button onclick="setPriceRange(0,3000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">~3,000원</button>
+      <button onclick="setPriceRange(3000,6000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">3,000~6,000</button>
+      <button onclick="setPriceRange(6000,10000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">6,000~10,000</button>
+      <button onclick="setPriceRange(10000,20000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">10,000~20,000</button>
+      <button onclick="setPriceRange(20000,50000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">20,000~50,000</button>
+      <button onclick="setPriceRange(50000,0)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">50,000원~</button>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="resetPriceFilter()" style="flex:1;padding:14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:600;color:#666677;cursor:pointer">초기화</button>
+      <button onclick="applyPriceFilter()" style="flex:2;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer">적용하기</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-interest-cats" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
   <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
     <div style="text-align:center;margin-bottom:20px">
@@ -1949,7 +1975,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
     <button class="sv-filter-btn" id="svf-린넨" onclick="setSvFilter('린넨');updateSvFilterBtns('린넨')">린넨</button>
     <button class="sv-filter-btn" id="svf-실크" onclick="setSvFilter('실크');updateSvFilterBtns('실크')">실크</button>
     <button class="sv-filter-btn" id="svf-혼방" onclick="setSvFilter('혼방');updateSvFilterBtns('혼방')">혼방</button>
-    <button class="sv-filter-btn" id="svf-가격" onclick="showToast('가격 필터 준비중이에요')">가격 ▾</button>
+    <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
     <button class="sv-filter-btn" id="svf-지역" onclick="showToast('지역 필터 준비중이에요')">지역 ▾</button>
   </div>
   <!-- 최근 검색어 -->
@@ -6161,7 +6187,8 @@ function renderSearchView(){
   const filtered=products.filter(p=>{
     const mf=svFilter==='전체'||p.type===svFilter;
     const ms=!q||p.title.toLowerCase().includes(q)||p.type.includes(q)||p.color.toLowerCase().includes(q)||(p.tags||[]).some(tg=>tg.toLowerCase().includes(q))||(p.seller&&p.seller.name.toLowerCase().includes(q));
-    return mf&&ms;
+    const mp=(!svPriceMin&&!svPriceMax)||(svPriceMin&&svPriceMax?p.price>=svPriceMin&&p.price<=svPriceMax:svPriceMin?p.price>=svPriceMin:p.price<=svPriceMax);
+    return mf&&ms&&mp;
   });
   if(resultHd){
     resultHd.style.display=q?'block':'none';
@@ -6181,6 +6208,53 @@ function renderSearchView(){
 function renderSvChips(){
   const el=document.getElementById('sv-chips');if(!el)return;
   el.innerHTML=FILTERS.map(f=>`<button class="chip ${f===svFilter?'on':''}" onclick="setSvFilter('${f}')">${t('filter_'+f)||f}</button>`).join('');
+}
+let svPriceMin=0;
+let svPriceMax=0;
+function openPriceFilter(){
+  const modal=document.getElementById('modal-price-filter');
+  if(modal)modal.style.display='flex';
+  const minEl=document.getElementById('price-filter-min');
+  const maxEl=document.getElementById('price-filter-max');
+  if(minEl)minEl.value=svPriceMin||'';
+  if(maxEl)maxEl.value=svPriceMax||'';
+}
+function setPriceRange(min,max){
+  const minEl=document.getElementById('price-filter-min');
+  const maxEl=document.getElementById('price-filter-max');
+  if(minEl)minEl.value=min||'';
+  if(maxEl)maxEl.value=max||'';
+}
+function resetPriceFilter(){
+  svPriceMin=0;svPriceMax=0;
+  const minEl=document.getElementById('price-filter-min');
+  const maxEl=document.getElementById('price-filter-max');
+  if(minEl)minEl.value='';
+  if(maxEl)maxEl.value='';
+  const modal=document.getElementById('modal-price-filter');
+  if(modal)modal.style.display='none';
+  updatePriceFilterBtn();
+  renderSearchView();
+}
+function applyPriceFilter(){
+  svPriceMin=parseInt(document.getElementById('price-filter-min')?.value)||0;
+  svPriceMax=parseInt(document.getElementById('price-filter-max')?.value)||0;
+  const modal=document.getElementById('modal-price-filter');
+  if(modal)modal.style.display='none';
+  updatePriceFilterBtn();
+  renderSearchView();
+}
+function updatePriceFilterBtn(){
+  const btn=document.getElementById('svf-가격');
+  if(!btn)return;
+  if(svPriceMin||svPriceMax){
+    const label=svPriceMax?`${(svPriceMin/1000).toFixed(0)}K~${(svPriceMax/1000).toFixed(0)}K`:`${(svPriceMin/1000).toFixed(0)}K~`;
+    btn.textContent='💰 '+label;
+    btn.className='sv-filter-btn on';
+  }else{
+    btn.textContent='가격 ▾';
+    btn.className='sv-filter-btn';
+  }
 }
 function setSvFilter(f){
   svFilter=f;
