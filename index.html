@@ -3504,17 +3504,22 @@ function showView(name,push=true){
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
   if(!el)return;
-  // 기존 애니메이션 초기화 후 재적용
+  // 뒤에 있는 active 뷰 애니메이션 일시 정지
+  const activeView=document.querySelector('.view.active');
+  if(activeView)activeView.style.animation='none';
   el.style.animation='none';
   el.classList.add('open');
   requestAnimationFrame(()=>{
-    el.style.animation='';
+    el.style.animation='searchViewIn .2s ease-out forwards';
   });
   renderSearchView();
 }
 function closeSearchOverlay(){
   const el=document.getElementById('view-search-view');
   if(el)el.classList.remove('open');
+  // 뒤에 있는 active 뷰 애니메이션 복원
+  const activeView=document.querySelector('.view.active');
+  if(activeView)activeView.style.animation='';
 }
 function goBack(){
   const overlay=document.getElementById('view-search-view');
