@@ -2151,22 +2151,22 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px">
           <div style="font-size:22px;margin-bottom:6px">🏆</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">소재 종류</div>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a">소재 종류</div>
           <div style="font-size:11px;color:#666677;margin-top:2px">면, 울, 실크, 폴리 등</div>
         </div>
         <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px">
           <div style="font-size:22px;margin-bottom:6px">⚖️</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">예상 중량</div>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a">예상 중량</div>
           <div style="font-size:11px;color:#666677;margin-top:2px">경량~중량~헤비</div>
         </div>
         <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px">
           <div style="font-size:22px;margin-bottom:6px">🎨</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">직조 패턴</div>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a">직조 패턴</div>
           <div style="font-size:11px;color:#666677;margin-top:2px">평직, 능직, 수자직</div>
         </div>
         <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px">
           <div style="font-size:22px;margin-bottom:6px">📐</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">조직 밀도</div>
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a">조직 밀도</div>
           <div style="font-size:11px;color:#666677;margin-top:2px">고밀도/저밀도</div>
         </div>
       </div>
@@ -6182,12 +6182,17 @@ function renderSvChips(){
   const el=document.getElementById('sv-chips');if(!el)return;
   el.innerHTML=FILTERS.map(f=>`<button class="chip ${f===svFilter?'on':''}" onclick="setSvFilter('${f}')">${t('filter_'+f)||f}</button>`).join('');
 }
-function setSvFilter(f){svFilter=f;renderSvChips();renderSearchView();}
+function setSvFilter(f){
+  svFilter=f;
+  renderSvChips();
+  updateSvFilterBtns(f);
+  renderSearchView();
+}
 function updateSvFilterBtns(active){
-  const ids=['전체','면','폴리','울','린넨','실크','혼방'];
-  ids.forEach(id=>{
-    const btn=document.getElementById('svf-'+(id==='전체'?'all':id));
-    if(btn)btn.className='sv-filter-btn'+(id===active?' on':'');
+  const map={'전체':'all','면':'면','폴리':'폴리','울':'울','린넨':'린넨','실크':'실크','혼방':'혼방'};
+  Object.entries(map).forEach(([label,id])=>{
+    const btn=document.getElementById('svf-'+id);
+    if(btn)btn.className='sv-filter-btn'+(label===active?' on':'');
   });
 }
 
