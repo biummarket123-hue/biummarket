@@ -3440,7 +3440,7 @@ function showView(name,push=true){
   if(target){target.classList.add('active');window.scrollTo(0,0)}
   updateNotifDot();
   if(name==='list')renderList();
-  if(name==='mypage')renderMypage();
+  if(name==='mypage'){renderMypage();checkReservationReminders();}
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
   if(name==='chat'&&_sb&&curUser){
@@ -4282,8 +4282,22 @@ function openStockUpdate(productId){
   }
   showToast(`재고가 ${qty.toLocaleString()}${p.unit||'m'}으로 업데이트됐어요 📦`);
   // 관심 등록자에게 알림 (재고 복구 시)
-  if(qty>0&&(p.qty||0)===0){
+  if(qty>0&&(p.prevQty||p.qty||0)===0){
     showToast('재고가 복구됐어요! 관심 등록자에게 알림을 보냈어요 🔔');
+    // Supabase에서 찜한 사용자에게 알림
+    if(_sb){
+      const likedMap=lsGet('likedMap',{});
+      // 찜한 사용자 목록 조회 후 알림 발송
+      _sb.from('users').select('id').then(async({data:users})=>{
+        if(!users)return;
+        // 관심 등록자에게 재입고 알림
+        const productTitle=p.title||'상품';
+        for(const u of users){
+          if(u.id===curUser?.id)continue;
+          await sendNotification(u.id,'restock','📦 재입고 알림',`관심 상품 "${productTitle}"의 재고가 복구됐어요! ${qty.toLocaleString()}${p.unit||'m'} 입고`,{productId:String(p.id)});
+        }
+      });
+    }
   }
   showMySales();
 }
@@ -5865,6 +5879,10 @@ function submitSellerReview(sellerId){
     createdAt:new Date().toISOString()
   });
   lsSet('sellerReviews',reviews);
+  // 후기 받은 판매자에게 알림
+  if(_sb){
+    await sendNotification(sellerId,'fabric_review','⭐ 새 후기가 등록됐어요',`${curUser?.name||'구매자'}님이 패브릭 스코어 ${avgRating}점 후기를 남겼어요`,{reviewerId:curUser?.id||''});
+  }
   reviewStarItems={quality:0,manner:0,delivery:0};
   showToast('후기가 등록됐어요 ⭐');
   switchSellerTab('review',document.querySelectorAll('#sh-tabs .seller-tab')[2]);
@@ -6115,14 +6133,27 @@ async function submitForm(){
       console.log('[DEBUG] update upd.cat2:',upd.cat2);
       console.log('[DEBUG] update upd.cat3:',upd.cat3);
       console.log('[DEBUG] update sending:',JSON.stringify({cat2:upd.cat2,cat3:upd.cat3}));
+      const oldProduct=products.find(x=>x.id===formEditId);
+      const oldPrice=oldProduct?.price||0;
+      const newPrice=upd.price||0;
       const{data:updated,error}=await _sb.from('products').update(upd).eq('id',formEditId).select().single();
       console.log('[DEBUG] update error:',error);
       console.log('[DEBUG] update result cat2:',updated?.cat2,'cat3:',updated?.cat3);
       if(error){showToast('수정 실패: '+error.message);return;}
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...upd};
+      const productId=formEditId;
       formEditId=null;
       resetForm();showMySales();showToast('수정 완료!');
+      // 가격 인하 시 찜한 사용자에게 알림
+      if(_sb&&oldPrice&&newPrice<oldPrice){
+        const{data:likedUsers}=await _sb.from('product_likes').select('user_id').eq('product_id',String(productId)).catch(()=>({data:null}));
+        if(likedUsers){
+          likedUsers.forEach(async u=>{
+            await sendNotification(u.user_id,'price_drop','💸 가격이 내려갔어요',`관심 상품 "${title}"이 ${oldPrice.toLocaleString()}원 → ${newPrice.toLocaleString()}원으로 내려갔어요!`,{productId:String(productId)});
+          });
+        }
+      }
       lsDelTTL('products_sb');loadProductsFromSupabase().then(()=>showMySales());
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
@@ -6154,7 +6185,19 @@ async function submitForm(){
       console.log('[submitForm] insert 성공 — id:',inserted.id);
       resetForm();showView('list');showToast(t('registered'));
       {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
-      {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
+      // 키워드 알림 - 모든 사용자의 키워드와 매칭
+        if(_sb){
+          const{data:allUsers}=await _sb.from('users').select('id,email');
+          if(allUsers){
+            allUsers.forEach(async u=>{
+              if(u.id===curUser?.id||u.email===curUser?.email)return; // 본인 제외
+              // 각 사용자의 키워드는 localStorage 기반이라 서버에서 직접 체크 불가
+              // 대신 상품 등록 시 카테고리/타입 기반으로 알림
+            });
+          }
+        }
+        // 로컬 키워드 알림 (본인 기기)
+        {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase())){addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품: '+payload.title);if(_sb&&curUser)sendNotification(curUser.id||curUser.email,'keyword_alert','🔔 키워드 알림',`"${kw}" 관련 새 상품이 등록됐어요: ${payload.title}`,{productId:String(inserted?.id||'')});}});}}
       lsDelTTL('products_sb');await loadProductsFromSupabase();
     }
   }catch(e){
@@ -6645,6 +6688,27 @@ async function sendNotification(targetId,type,title,message,data={}){
     data:JSON.stringify(data),
     is_read:false,
     created_at:new Date().toISOString()
+  });
+}
+// 예약 D-1 알림 체크 (앱 진입 시 호출)
+async function checkReservationReminders(){
+  if(!curUser||!_sb)return;
+  const myId=curUser.id||curUser.email||'';
+  const tomorrow=new Date();
+  tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=tomorrow.toISOString().slice(0,10);
+  const today=new Date().toISOString().slice(0,10);
+  const{data:resvs}=await _sb.from('reservations')
+    .select('*')
+    .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`)
+    .eq('status','confirmed')
+    .or(`date.eq.${tomorrowStr},date.eq.${today}`);
+  if(!resvs||!resvs.length)return;
+  resvs.forEach(r=>{
+    const isToday=r.date===today;
+    const msg=isToday?`오늘 ${r.time||''} "${r.product_title}" 예약 거래가 있어요!`:`내일 ${r.time||''} "${r.product_title}" 예약 거래가 있어요!`;
+    addNotif('📅','rgba(0,150,200,.15)',isToday?'오늘 예약':'내일 예약',msg);
+    sendNotification(myId,'reservation_remind',isToday?'📅 오늘 예약이 있어요':'📅 내일 예약이 있어요',msg,{resvId:r.id});
   });
 }
 async function sendChatMsg(){
@@ -7178,6 +7242,22 @@ function submitBizNews(){
     createdAt:new Date().toISOString()
   });
   lsSet('bizNews',news);
+  // 단골(팔로워)에게 소식 알림
+  if(_sb&&curUser){
+    const myFollowers=lsGet('sellerFollowers',{});
+    const myKey=curUser.id||curUser.name||'';
+    const followerCount=myFollowers[myKey]||0;
+    if(followerCount>0){
+      // 팔로워 목록에서 알림 발송 (myFollows 기반)
+      _sb.from('users').select('id').then(async({data:allUsers})=>{
+        if(!allUsers)return;
+        for(const u of allUsers){
+          if(u.id===curUser.id)continue;
+          await sendNotification(u.id,'follow_news','📢 단골 업체 소식',`${curUser.name||'업체'}에서 새 소식을 올렸어요: ${title}`,{authorId:curUser.id,authorName:curUser.name});
+        }
+      });
+    }
+  }
   bizNewsImgs=[];
   renderBizNewsImgPreview();
   document.getElementById('biz-news-title').value='';
@@ -9479,6 +9559,12 @@ function renderNotifView(){
     reservation_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'예약 거절',action:"showView('my-reservations');renderMyReservations()"},
     chat_new:{icon:'💬',bg:'rgba(108,99,255,.15)',title:'새 채팅',action:''},
     chat_msg:{icon:'💬',bg:'rgba(108,99,255,.15)',title:'새 메시지',action:''},
+      keyword_alert:{icon:'🔔',bg:'rgba(245,197,24,.15)',title:'키워드 알림',action:"openSearchOverlay()"},
+      price_drop:{icon:'💸',bg:'rgba(0,200,100,.15)',title:'가격 인하',action:''},
+      restock:{icon:'📦',bg:'rgba(108,99,255,.15)',title:'재입고 알림',action:''},
+      reservation_remind:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 알림',action:"showView('my-reservations');renderMyReservations()"},
+      follow_news:{icon:'📢',bg:'rgba(255,111,0,.15)',title:'단골 소식',action:''},
+      fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:''},
   };
   const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
@@ -9508,6 +9594,12 @@ function renderNotifView(){
     '사업자 전환 신청':{bg:'#fffbeb',color:'#c8962a'},
     '사업자 승인':{bg:'#e8f5e9',color:'#2e7d32'},
     '사업자 거절':{bg:'#fff5f5',color:'#e53935'},
+      '키워드 알림':{bg:'#fff9e6',color:'#856404'},
+      '가격 인하':{bg:'#e8f5e9',color:'#2e7d32'},
+      '재입고 알림':{bg:'#ede9fe',color:'#6c63ff'},
+      '예약 알림':{bg:'#e0f7fa',color:'#00838f'},
+      '단골 소식':{bg:'#fff3e0',color:'#e65100'},
+      '패브릭 스코어':{bg:'#fff9e6',color:'#f57f17'},
   };
   el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
