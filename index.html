@@ -415,11 +415,12 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pe-av-hint{font-size:11px;color:#666677}
 
 /* ===================== SEARCH VIEW ===================== */
-.sv-top{padding:12px 14px 10px;background:#f8f8fa;border-bottom:1px solid #e0e0ea;position:sticky;top:56px;z-index:50}
-.sv-bar{display:flex;align-items:center;gap:10px;background:#eeeeee;border-radius:14px;padding:10px 14px;border:1.5px solid #d8d8e8;transition:border-color .2s}
+.sv-top{padding:10px 12px 8px;background:#f8f8fa;border-bottom:1px solid #e0e0ea;position:sticky;top:0;z-index:50}
+.sv-bar{display:flex;align-items:center;gap:6px;background:#eeeeee;border-radius:14px;padding:6px 8px 6px 12px;border:1.5px solid #d8d8e8;transition:border-color .2s;width:100%;box-sizing:border-box;min-width:0}
 .sv-bar:focus-within{border-color:#6c63ff}
-.sv-bar input{flex:1;border:none;background:transparent;font-size:16px;outline:none;color:#1a1a1a}
+.sv-bar input{flex:1;border:none;background:transparent;font-size:15px;outline:none;color:#1a1a1a;min-width:0;width:100%}
 .sv-bar input::placeholder{color:#666677}
+.sv-bar button{flex-shrink:0}
 .sv-clear{font-size:13px;color:#666677;padding:2px 6px;border-radius:6px}
 .sv-filter-row{display:flex;gap:8px;padding:10px 14px;background:#ffffff;border-bottom:1px solid #e0e0ea;overflow-x:auto;scrollbar-width:none}
 .sv-filter-row::-webkit-scrollbar{display:none}
@@ -705,8 +706,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-empty{padding:60px 20px;text-align:center;color:#666677;font-size:13px}
 
 /* SEARCH OVERLAY */
-#view-search-view{display:none;position:fixed;top:0;left:0;right:0;width:100%;max-width:430px;margin:0 auto;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:contain}
-#view-search-view .ai-view-scroll,#view-search-view>*{overscroll-behavior:contain}
+#view-search-view{display:none;position:fixed;top:0;left:0;right:0;width:100%;max-width:430px;margin:0 auto;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:none;touch-action:pan-y}
+#view-search-view .ai-view-scroll,#view-search-view>*{overscroll-behavior:none}
 #view-search-view.open{display:flex;animation:searchViewIn .2s ease-out}
 @keyframes searchViewIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 
@@ -1971,7 +1972,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
       <button onclick="doSvSearch()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
     </div>
   </div>
-  <div style="flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+  <div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y">
   <!-- 필터 섹션 -->
   <div style="padding:12px 16px 4px">
     <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px">필터</div>
@@ -3588,7 +3589,11 @@ function showView(name,push=true){
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
   if(!el)return;
-  // 뒤에 있는 active 뷰 애니메이션 일시 정지
+  // body 스크롤 막기 (모바일 뒷 화면 스크롤 방지)
+  document.body.style.overflow='hidden';
+  document.body.style.position='fixed';
+  document.body.style.width='100%';
+  // 뒤 화면 애니메이션 정지
   const activeView=document.querySelector('.view.active');
   if(activeView)activeView.style.animation='none';
   el.style.animation='none';
@@ -3601,7 +3606,11 @@ function openSearchOverlay(){
 function closeSearchOverlay(){
   const el=document.getElementById('view-search-view');
   if(el)el.classList.remove('open');
-  // 뒤에 있는 active 뷰 애니메이션 복원
+  // body 스크롤 복원
+  document.body.style.overflow='';
+  document.body.style.position='';
+  document.body.style.width='';
+  // 뒤 화면 애니메이션 복원
   const activeView=document.querySelector('.view.active');
   if(activeView)activeView.style.animation='';
 }
