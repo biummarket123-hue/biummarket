@@ -1964,7 +1964,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
   <!-- 검색바 (sticky) -->
   <div class="sv-top">
     <div class="sv-bar" style="padding:6px 6px 6px 14px">
-      <button onclick="showView('ai')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
+      <button onclick="closeSearchOverlay();setTimeout(()=>showView('ai'),200)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0;margin:0 4px"></span>
       <input type="text" id="sv-input" placeholder="원단명, 색상, 종류 검색..." autocomplete="off" style="flex:1"/>
       <button class="sv-clear" id="sv-clear-btn" onclick="clearSvInput()" style="display:none">✕</button>
@@ -3421,32 +3421,87 @@ async function startAiAnalysis(){
   renderSimilarFabrics(type,color,data);
 }
 function renderSimilarFabrics(type,color,data){
-  const result=document.getElementById('ai-result-card');
-  if(!result)return;
-  const similar=products.filter(p=>{
-    if((p.qty||0)<=0||p.status==='stopped')return false;
-    if(p.type===type)return true;
-    if(color&&p.color&&p.color.toLowerCase().includes(color.toLowerCase()))return true;
-    return false;
-  }).slice(0,6);
-  if(!similar.length)return;
-  const html=`
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e0e0ea">
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">🔍 비슷한 원단 상품</div>
-      <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px">
-        ${similar.map(p=>{
-          const bg=getFColor(p.type,p.color);
-          return `<div onclick="openDetail(${p.id})" style="flex-shrink:0;width:110px;cursor:pointer">
-            <div style="width:110px;height:80px;border-radius:10px;overflow:hidden;background:${bg};display:flex;align-items:center;justify-content:center;margin-bottom:6px;position:relative">
-              ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`:`<span style="font-size:24px">${p.type}</span>`}
-            </div>
-            <div style="font-size:12px;font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;line-clamp:1;margin-bottom:2px">${p.title}</div>
-            <div style="font-size:11px;color:#666677">${fmtPrice(p.price)}/m</div>
-          </div>`;
-        }).join('')}
+  const resultCard=document.getElementById('ai-result-card');
+  if(!resultCard)return;
+
+  // 타입 매핑
+  const typeMap={
+    '면':['면/린넨','면','트윌','캔버스','옥스포드','론'],
+    '린넨':['면/린넨','린넨'],
+    '폴리':['폴리/합섬','폴리','쉬폰','새틴','오간자','타프타'],
+    '울':['울/모직','울','트위드','플란넬','캐시미어'],
+    '실크':['실크/새틴','실크','새틴'],
+    '데님':['데님/청','데님','청'],
+    '니트':['니트/져지','니트','져지','스판'],
+    '기능성':['기능성','방수','쿨링'],
+    '레이스':['레이스/자수','레이스','자수'],
+    '혼방':['면/린넨','폴리/합섬','혼방'],
+    '인견':['실크/새틴','인견'],
+    '텐셀':['면/린넨','텐셀']
+  };
+
+  const searchTypes=typeMap[type]||[type];
+  const colorLower=(color||'').toLowerCase();
+
+  // 관련 상품 필터링
+  let similar=products.filter(p=>{
+    if(!p||p.status==='stopped'||(p.qty||0)<=0)return false;
+    const pType=(p.type||'').toLowerCase();
+    const pTitle=(p.title||'').toLowerCase();
+    const typeMatch=searchTypes.some(t=>
+      pType.includes(t.toLowerCase())||
+      t.toLowerCase().includes(pType)||
+      pTitle.includes(t.toLowerCase())
+    );
+    return typeMatch;
+  });
+
+  // 색상 매칭 상품 우선 정렬
+  if(colorLower){
+    similar.sort((a,b)=>{
+      const aMatch=(a.color||'').toLowerCase().includes(colorLower)||(a.title||'').toLowerCase().includes(colorLower)?1:0;
+      const bMatch=(b.color||'').toLowerCase().includes(colorLower)||(b.title||'').toLowerCase().includes(colorLower)?1:0;
+      return bMatch-aMatch;
+    });
+  }
+
+  similar=similar.slice(0,6);
+
+  const similarHtml=`
+    <div style="margin-top:20px;border-top:1px solid #e0e0ea;padding-top:16px">
+      <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:4px">
+        🔍 비슷한 원단 상품
+        <span style="color:#6c63ff;font-size:14px">${similar.length}개</span>
       </div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">분석 결과와 유사한 상품이에요</div>
+      ${similar.length?`
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${similar.map(p=>`
+          <div onclick="goBack();setTimeout(()=>openDetail(${p.id}),300)" style="display:flex;gap:12px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:12px;cursor:pointer;align-items:center;transition:background .15s" onmouseenter="this.style.background='#f0f0f8'" onmouseleave="this.style.background='#f8f8fa'">
+            <div style="width:64px;height:64px;border-radius:10px;background:${getFColor(p.type,p.color)};flex-shrink:0;overflow:hidden;position:relative">
+              ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover"/>`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧵</div>'}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''} ${p.color?'· '+p.color:''} ${p.width?'· '+p.width+'cm':''}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <span style="font-size:14px;font-weight:700;color:#6c63ff">${(p.price||0).toLocaleString()}원/m</span>
+                ${p.qty?`<span style="font-size:11px;color:#888">재고 ${p.qty.toLocaleString()}m</span>`:''}
+              </div>
+            </div>
+            <div style="font-size:16px;color:#ccc">›</div>
+          </div>`).join('')}
+      </div>
+      <button onclick="closeSearchOverlay();svSearch='${type}';openSearchOverlay();renderSearchView();" style="width:100%;margin-top:12px;padding:12px;background:rgba(108,99,255,.1);border:1px solid #6c63ff;border-radius:12px;color:#6c63ff;font-size:13px;font-weight:700;cursor:pointer">
+        🔍 "${type}" 원단 전체보기 →
+      </button>`:`
+      <div style="text-align:center;padding:20px;color:#888;font-size:13px;background:#f8f8fa;border-radius:12px">
+        😔 비슷한 원단 상품이 없어요<br>
+        <span style="font-size:12px;color:#aaa">다른 사진으로 다시 시도해보세요</span>
+      </div>`}
     </div>`;
-  result.innerHTML+=html;
+
+  resultCard.innerHTML+=similarHtml;
 }
 
 /* ==================== TOAST ==================== */
