@@ -4410,8 +4410,20 @@ function closeInterestModal(){
 }
 
 function goSearchCat(cat){
-  curFilter=cat;
-  openSearchOverlay();
+  // 카테고리 필터 설정 후 카테고리 뷰로 이동
+  homeCurCat=cat;
+  showView('list');
+  // 홈 카테고리 탭도 해당 카테고리로 선택
+  document.querySelectorAll('.hcat-btn').forEach(btn=>{
+    const isActive=btn.textContent.trim()===cat||btn.dataset.cat===cat;
+    btn.classList.toggle('on',isActive);
+  });
+  renderHomeSections();
+  // 해당 섹션으로 스크롤
+  setTimeout(()=>{
+    const sections=document.querySelectorAll('.cat-section');
+    if(sections.length){sections[0].scrollIntoView({behavior:'smooth',block:'start'});}
+  },300);
 }
 
 function openNoticeModal(){openModal('modal-notice')}
@@ -6207,7 +6219,37 @@ function renderSearchView(){
     document.getElementById('sv-empty-msg').textContent=t('empty_msg');
   }else{
     empty.style.display='none';list.style.display='grid';
-    list.innerHTML=filtered.map(renderCard).join('');
+    list.innerHTML=filtered.map(p=>{
+        const bg=getFColor(p.type,p.color);
+        const tex=getTexture(p.type);
+        const isSoldout=(p.qty||0)<=0;
+        const isStopped=p.status==='stopped';
+        if(isStopped)return '';
+        const delay=0;
+        return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})" style="animation-delay:${delay}s">
+          <div class="pthumb" style="background:${bg};background-image:${tex}">
+            ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
+            ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
+            ${(()=>{
+              const stype=p.seller?.type||p.sellerType||'';
+              if(stype==='business'||stype==='both')return '<div class="badge-cert company">🏢 인증업체</div>';
+              if(stype==='seller')return '<div class="badge-cert personal">✅ 인증회원</div>';
+              return '';
+            })()}
+            <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
+          </div>
+          <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${p.liked?'❤️':'🤍'}</button>
+          <div class="pinfo">
+            <div class="pname">${p.title}</div>
+            <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
+            <div class="pprice">${fmtPrice(p.price)}<span class="pu">/m</span></div>
+            <div class="pfoot">
+              <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
+              <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
+            </div>
+          </div>
+        </li>`;
+      }).join('');
   }
   setTimeout(()=>document.getElementById('sv-input')?.focus(),120);
 }
