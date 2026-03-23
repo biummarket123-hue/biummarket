@@ -10150,10 +10150,11 @@ function renderAnalytics(){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
     loadFontSize();
-    checkAdminSecretUrl();
   }else{
     showView('login');
   }
+  // 로그인 여부 관계없이 관리자 URL 체크
+  checkAdminSecretUrl();
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
   renderChips();
