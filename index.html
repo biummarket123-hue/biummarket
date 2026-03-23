@@ -564,13 +564,13 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cat-section-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px;margin-bottom:10px}
 .cat-section-title{font-size:var(--fs-xl);font-weight:800;color:#1a1a1a}
 .cat-section-more{font-size:var(--fs-sm);color:#888899;font-weight:600;cursor:pointer}
-.h-product-card{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f0f0;background:#ffffff;cursor:pointer;transition:background .15s}
+.h-product-card{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f0f0;background:#ffffff;cursor:pointer;transition:background .15s;align-items:flex-start;min-height:calc(var(--card-img) + 28px)}
 .h-product-card:hover{background:#f8f8fa}
 .h-product-img{width:var(--card-img);height:var(--card-img);border-radius:12px;overflow:hidden;flex-shrink:0;background:#eeeeee;display:flex;align-items:center;justify-content:center;position:relative}
 .h-product-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:var(--card-img)}
 .h-badge-urgent{position:absolute;top:4px;left:4px;z-index:2;background:#e53935;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center}
-.h-product-name{font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;line-clamp:1;margin-bottom:2px}
+.h-product-name{font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;margin-bottom:2px;min-height:calc(var(--fs-lg) * 1.4 * 2);line-height:1.4}
 .h-meta{font-size:var(--fs-base);color:#888;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .h-fabric-badge{font-size:12px;padding:3px 8px;border-radius:10px;background:#eeeeee;color:#888899;font-weight:500}
