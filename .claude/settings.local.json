@@ -10,7 +10,8 @@
       "Bash(where vercel:*)",
       "Bash(npx vercel:*)",
       "Bash(grep:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(curl:*)"
     ]
   }
 }

@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
+html{font-size:17px}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#ffffff;color:#1a1a1a;min-height:100vh;display:flex;justify-content:center}
 button{cursor:pointer;border:none;background:none;font-family:inherit}
 input,select,textarea{font-family:inherit}
@@ -88,10 +88,10 @@ ul{list-style:none}
 .fabric-badge{position:relative;z-index:1;background:rgba(0,0,0,.35);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;color:rgba(255,255,255,.9)}
 .card-heart{position:absolute;top:7px;right:7px;z-index:2;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .pinfo{padding:9px 9px 7px}
-.pname{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;color:#1a1a1a}
-.pmeta{font-size:11px;color:#666677;margin-bottom:5px}
-.pprice{font-size:13px;font-weight:700;color:#1a1a1a}
-.pprice .pu{font-size:10px;font-weight:400;color:#666677}
+.pname{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;color:#1a1a1a}
+.pmeta{font-size:12px;color:#666677;margin-bottom:5px}
+.pprice{font-size:14px;font-weight:800;color:#e53935}
+.pprice .pu{font-size:11px;font-weight:400;color:#666677}
 .pfoot{display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding-top:5px;border-top:1px solid #e0e0ea}
 .ploc{font-size:10px;color:#666677;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pcnt{display:flex;gap:5px;font-size:10px;color:#666677;flex-shrink:0}
@@ -562,7 +562,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .ai-card-disc{font-size:10px;color:#ff6584;font-weight:600;margin-left:4px}
 .cat-section{margin:0 0 24px;padding-top:16px}
 .cat-section-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px;margin-bottom:10px}
-.cat-section-title{font-size:14px;font-weight:800;color:#1a1a1a}
+.cat-section-title{font-size:16px;font-weight:800;color:#1a1a1a}
 .cat-section-more{font-size:12px;color:#888899;font-weight:600;cursor:pointer}
 .h-product-card{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f0f0;background:#ffffff;cursor:pointer;transition:background .15s}
 .h-product-card:hover{background:#f8f8fa}
@@ -571,15 +571,15 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
 .h-badge-urgent{position:absolute;top:4px;left:4px;z-index:2;background:#e53935;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center}
 .h-product-name{font-size:15px;font-weight:700;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;line-clamp:1;margin-bottom:2px}
-.h-meta{font-size:12px;color:#888;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-meta{font-size:13px;color:#888;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .h-fabric-badge{font-size:12px;padding:3px 8px;border-radius:10px;background:#eeeeee;color:#888899;font-weight:500}
 .h-weight-badge{font-size:12px;padding:3px 8px;border-radius:10px;background:#f0f0f0;color:#555555;font-weight:500}
-.h-price{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:5px}
+.h-price{font-size:17px;font-weight:800;color:#e53935;margin-bottom:5px}
 .h-price .h-pu{font-size:12px;font-weight:400;color:#666677;margin-left:2px}
 .h-bottom{display:flex;justify-content:space-between;align-items:center;gap:4px}
 .h-moq-tag{background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:12px;font-weight:500}
-.h-disc-tag{color:#e53935;font-weight:700;font-size:12px}
+.h-disc-tag{background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:12px}
 .h-seller{font-size:12px;color:#666677}
 .h-counts{display:flex;gap:8px;font-size:11px;color:#666677;flex-shrink:0}
 .my-card-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
@@ -598,11 +598,11 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-wt-badge{padding:5px 12px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);border-radius:20px;font-size:12px;font-weight:600;color:#888899}
 .pd-urgent-badge{padding:5px 12px;background:rgba(255,101,132,.12);border:1px solid rgba(255,101,132,.25);border-radius:20px;font-size:12px;font-weight:700;color:#ff6584}
 .pd-price-block{margin-bottom:10px}
-.pd-price-main{font-size:28px;font-weight:900;color:#1a1a1a;margin-bottom:4px}
+.pd-price-main{font-size:28px;font-weight:900;color:#e53935;margin-bottom:4px}
 .pd-price-range{font-size:13px;color:#666677}
 .pd-moq-row{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid #e0e0ea;margin-top:10px}
 .pd-moq-tag{padding:5px 12px;background:#eeeeee;border-radius:10px;font-size:12px;color:#888899;font-weight:500}
-.pd-disc-tag{padding:5px 12px;background:rgba(255,101,132,.12);border-radius:10px;font-size:12px;color:#ff6584;font-weight:700}
+.pd-disc-tag{padding:5px 12px;background:rgba(25,118,210,.12);border-radius:10px;font-size:12px;color:#1976d2;font-weight:700}
 .pd-seller-card{margin:14px 14px 0;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
 .pd-seller-card:hover{background:#eeeeee}
 .pd-seller-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
@@ -638,8 +638,8 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-stats-inline{display:flex;gap:6px;font-size:12px;color:#777788;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .pd-price-card{background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px;margin-bottom:12px}
 .pd-list-price-line{font-size:13px;color:#666677;margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.pd-disc-pct{background:rgba(255,101,132,.15);color:#ff6584;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px}
-.pd-price-hero{font-size:30px;font-weight:900;color:#1a1a1a;line-height:1.2}
+.pd-disc-pct{background:rgba(25,118,210,.15);color:#1976d2;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px}
+.pd-price-hero{font-size:30px;font-weight:900;color:#e53935;line-height:1.2}
 .pd-price-unit{font-size:15px;font-weight:400;color:#666677}
 .pd-saving-badge{display:inline-block;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.25);color:#e53935;font-size:12px;font-weight:600;padding:4px 12px;border-radius:10px;margin-top:8px}
 .pd-badges2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e0e0ea}
@@ -6397,7 +6397,7 @@ function renderSearchView(){
           <div class="pinfo">
             <div class="pname">${p.title}</div>
             <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-            <div class="pprice">${fmtPrice(p.price)}<span class="pu">/m</span></div>
+            <div class="pprice" style="color:#e53935">${fmtPrice(p.price)}<span class="pu" style="color:#666677">/m</span></div>
             <div class="pfoot">
               <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
               <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
