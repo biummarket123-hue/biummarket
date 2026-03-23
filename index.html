@@ -10146,15 +10146,18 @@ function renderAnalytics(){
   // 최소 2초 스플래시 보장
   const elapsed=Date.now()-splashStart;
   if(elapsed<2000)await new Promise(r=>setTimeout(r,2000-elapsed));
-  if(curUser){
+  // 관리자 URL 체크 먼저
+  const isAdminUrl=new URLSearchParams(window.location.search).get('admin')===ADMIN_SECRET_CODE;
+  if(isAdminUrl){
+    showView('login');
+    checkAdminSecretUrl();
+  }else if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
     loadFontSize();
   }else{
     showView('login');
   }
-  // 로그인 여부 관계없이 관리자 URL 체크
-  checkAdminSecretUrl();
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
   renderChips();
