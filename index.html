@@ -810,6 +810,56 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   </div>
 </div>
 
+<div id="modal-biz-upgrade" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 20px 40px;width:100%;max-width:480px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:48px;margin-bottom:12px">🏢</div>
+      <div style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:8px">사업자 회원만 상품 등록이 가능해요</div>
+      <div style="font-size:13px;color:#666677;line-height:1.6">사업자 회원으로 전환하시면<br>상품 등록 및 판매가 가능해요!</div>
+    </div>
+    <div style="background:#f8f8fa;border-radius:16px;padding:16px;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">사업자 회원 혜택</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:13px;color:#444">✅ 상품 등록 무제한</div>
+        <div style="font-size:13px;color:#444">✅ 사업자 인증 뱃지</div>
+        <div style="font-size:13px;color:#444">✅ 소식 올리기</div>
+        <div style="font-size:13px;color:#444">✅ 단골 관리 기능</div>
+        <div style="font-size:13px;color:#444">✅ 거래 통계</div>
+      </div>
+    </div>
+    <button onclick="closeBizUpgradeModal();showBizUpgradeForm()" style="width:100%;padding:15px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">🏢 사업자 회원 신청하기</button>
+    <button onclick="closeBizUpgradeModal()" style="width:100%;padding:12px;background:none;border:none;color:#888;font-size:13px;cursor:pointer">다음에 할게요</button>
+  </div>
+</div>
+
+<!-- 사업자 전환 신청 폼 모달 -->
+<div id="modal-biz-form" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;overflow-y:auto">
+  <div style="background:#fff;border-radius:20px;padding:24px 20px;width:90%;max-width:480px;margin:20px auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:800;color:#1a1a1a">사업자 회원 전환 신청</div>
+      <button onclick="closeBizForm()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#6c63ff;margin-bottom:16px;padding:8px 12px;background:rgba(108,99,255,.08);border-radius:8px">📋 사업자 정보를 입력해주세요</div>
+    <div class="fg"><label>회사명 <span class="req">*</span></label><input type="text" class="fi" id="biz-name" placeholder="예) (주)비움텍스타일"/></div>
+    <div class="fg"><label>대표자명 <span class="req">*</span></label><input type="text" class="fi" id="biz-ceo" placeholder="대표자 이름"/></div>
+    <div class="fg"><label>사업자등록번호 <span class="req">*</span></label><input type="text" class="fi" id="biz-num" placeholder="예) 123-45-67890"/></div>
+    <div class="fg"><label>사업장 주소 <span class="req">*</span></label><input type="text" class="fi" id="biz-address" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
+    <div class="fg"><label>업종/취급 원단</label><input type="text" class="fi" id="biz-category" placeholder="예) 면, 린넨, 데님 등 원단 도매"/></div>
+    <div class="fg"><label>설립년도</label><input type="text" class="fi" id="biz-founded" placeholder="예) 2010"/></div>
+    <div class="fg"><label>인사말</label><textarea class="fi" id="biz-intro" placeholder="예) 20년 경력의 원단 도매 전문 업체입니다." style="min-height:70px"></textarea></div>
+    <div class="fg">
+      <label>사업자등록증 첨부 <span class="req">*</span></label>
+      <input type="file" id="biz-file" accept="image/*,.pdf" style="display:none" onchange="previewBizUpgradeFile(this)"/>
+      <button onclick="document.getElementById('biz-file').click()" style="width:100%;padding:12px;background:#f5f5f5;border:1.5px dashed #d8d8e8;border-radius:10px;color:#666677;font-size:13px;cursor:pointer">📎 사업자등록증 첨부 (이미지 또는 PDF)</button>
+      <div id="biz-file-preview" style="margin-top:6px;font-size:12px;color:#6c63ff"></div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px">
+      <button onclick="closeBizForm()" style="flex:1;padding:14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:600;color:#666677;cursor:pointer">취소</button>
+      <button onclick="submitBizUpgrade()" style="flex:2;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer">신청하기</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-admin-access" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);align-items:center;justify-content:center">
   <div style="background:#1a1a2e;border:1px solid #6c63ff;border-radius:20px;padding:32px 24px;width:90%;max-width:360px;text-align:center">
     <div style="font-size:40px;margin-bottom:12px">🛡️</div>
@@ -1063,6 +1113,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <p id="empty-msg">검색 결과가 없어요</p>
     </div>
   </div>
+  <button id="fab-add" onclick="openAddProduct()" style="position:fixed;bottom:84px;right:calc(50% - 200px);width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(108,99,255,.4);z-index:100;display:flex;align-items:center;justify-content:center">+</button>
   <nav class="tabbar">
     <button class="tab on" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
@@ -3601,6 +3652,10 @@ function showToast(msg){
 function showView(name,push=true){
   const PROTECTED=['chat','form','mypage','wishlist','reservations','notif-settings','profile-edit','analytics','settings'];
   if(PROTECTED.includes(name)&&!curUser){showToast('로그인 후 이용해주세요');name='login';}
+  if(name==='form'&&curUser&&!isAdmin()&&!isBusiness()){
+    openAddProduct();
+    return;
+  }
   const ROOT=['list','category','chat','mypage'];
   if(ROOT.includes(name)){
     viewHistory=[];
@@ -7423,8 +7478,75 @@ async function doChangeLoc(loc){
   closeModal('modal-change-loc');
   showToast('지역이 변경됐어요 📍');
 }
+function openAddProduct(){
+  if(!curUser){showToast('로그인이 필요해요');showView('login');return;}
+  if(isAdmin()){showView('form');return;}
+  if(isBusiness()){
+    showView('form');return;
+  }
+  if(isBizPending()){
+    showToast('사업자 심사 중이에요. 승인 후 상품 등록이 가능해요 ⏳');return;
+  }
+  // 일반회원 - 사업자 전환 유도 모달
+  openBizUpgradeModal();
+}
+function openBizUpgradeModal(){
+  const modal=document.getElementById('modal-biz-upgrade');
+  if(modal)modal.style.display='flex';
+}
+function closeBizUpgradeModal(){
+  const modal=document.getElementById('modal-biz-upgrade');
+  if(modal)modal.style.display='none';
+}
+function showBizUpgradeForm(){
+  const modal=document.getElementById('modal-biz-form');
+  if(modal)modal.style.display='flex';
+}
+function closeBizForm(){
+  const modal=document.getElementById('modal-biz-form');
+  if(modal)modal.style.display='none';
+}
+function previewBizUpgradeFile(input){
+  const file=input.files[0];
+  if(!file)return;
+  const preview=document.getElementById('biz-file-preview');
+  if(preview)preview.textContent='📎 '+file.name;
+}
+async function submitBizUpgrade(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  const name=document.getElementById('biz-name')?.value.trim();
+  const ceo=document.getElementById('biz-ceo')?.value.trim();
+  const num=document.getElementById('biz-num')?.value.trim();
+  const address=document.getElementById('biz-address')?.value.trim();
+  const file=document.getElementById('biz-file')?.files[0];
+  if(!name||!ceo||!num||!address){showToast('필수 항목을 모두 입력해주세요');return;}
+  if(!file){showToast('사업자등록증을 첨부해주세요');return;}
+  const category=document.getElementById('biz-category')?.value.trim();
+  const founded=document.getElementById('biz-founded')?.value.trim();
+  const intro=document.getElementById('biz-intro')?.value.trim();
+  // 상태 업데이트
+  curUser.bizStatus='pending';
+  curUser.requestedRole='business';
+  const extraInfo=JSON.stringify({bizName:name,ceo,bizNum:num,address,category,founded,intro,hasFile:!!file});
+  curUser.extra_info=extraInfo;
+  lsSet('curUser',curUser);
+  if(_sb&&curUser.id){
+    await _sb.from('users').update({
+      seller_status:'pending',
+      requested_role:'business',
+      extra_info:extraInfo
+    }).eq('id',curUser.id);
+  }
+  // 관리자 알림
+  sendNotification('admin','seller_request',`📋 사업자 전환 신청`,`${curUser.name||curUser.email}님이 사업자 회원 전환을 신청했어요. 회사: ${name}`,{userId:curUser.id,email:curUser.email,bizName:name,bizNum:num});
+  closeBizForm();
+  showToast('사업자 전환 신청이 완료됐어요! 승인까지 1~2 영업일 소요됩니다 😊');
+  renderMypage();
+}
 function showUpgradeToBiz(){
   if(!curUser){showToast('로그인이 필요해요');return;}
+  openBizUpgradeModal();
+  return;
   if(confirm('사업자 회원으로 전환 신청하시겠어요?\n사업자등록증 심사 후 승인됩니다 (1~2 영업일)')){
     curUser.bizStatus='pending';
     curUser.requestedRole='business';
