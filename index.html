@@ -3224,11 +3224,14 @@ async function loadProductsFromSupabase(){
   if(!_sb)return;
   const cached=lsGetTTL('products_sb');
   if(cached&&cached.length){
-    // 캐시된 Supabase 상품과 로컬 전용 상품 병합
+    // 캐시 먼저 보여주고
     const cachedIds=new Set(cached.map(p=>String(p.id)));
     const localOnly=products.filter(p=>!cachedIds.has(String(p.id))&&p.id>10);
     products=[...cached,...localOnly];
-    renderList();return;
+    renderList();
+    // 로그인 직후에는 캐시 무시하고 Supabase에서 최신 데이터 다시 로드
+    if(!curUser)return;
+    lsDelTTL('products_sb');
   }
   showListSkeleton();
   try{
