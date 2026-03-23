@@ -3256,6 +3256,38 @@ async function loadProductsFromSupabase(){
   }catch(e){console.error('[loadProducts] 예외:',e);}
 }
 
+async function loadAppSettings(){
+  if(!_sb)return;
+  try{
+    const{data}=await _sb.from('app_settings').select('key,value');
+    if(!data||!data.length)return;
+    data.forEach(({key,value})=>{
+      if(!value)return;
+      // customCategories
+      if(key==='customCategories'&&Array.isArray(value)){
+        CATEGORY_DATA=value;
+        lsSet('customCategories',value);
+        rebuildHomeCats&&rebuildHomeCats();
+      }
+      // adminBanners
+      if(key==='adminBanners'&&Array.isArray(value)){
+        lsSet('adminBanners',value);
+      }
+      // notices
+      if(key==='notices'&&Array.isArray(value)){
+        lsSet('notices',value);
+      }
+      // ads
+      if(key==='ads'&&Array.isArray(value)){
+        lsSet('ads',value);
+      }
+    });
+    console.log('✅ 관리자 설정 로드 완료');
+  }catch(e){
+    console.error('관리자 설정 로드 오류:',e);
+  }
+}
+
 /* ==================== STATE ==================== */
 let curFilter='전체';
 let curSearch='';
@@ -8454,7 +8486,20 @@ function adminDeleteItem(catId,subIdx,itemName){
   saveCategoriesToStorage();
   showAdminItems(catId,subIdx);showToast('삭제됐어요');
 }
-function saveCategoriesToStorage(){lsSet('customCategories',CATEGORY_DATA);rebuildHomeCats();renderHomeCats();renderHomeSections();}
+function saveCategoriesToStorage(){
+  lsSet('customCategories',CATEGORY_DATA);
+  // Supabase에도 저장 (영구 보존)
+  if(_sb){
+    _sb.from('app_settings').upsert({
+      key:'customCategories',
+      value:CATEGORY_DATA,
+      updated_at:new Date().toISOString()
+    }).then(({error})=>{
+      if(error)console.error('카테고리 저장 오류:',error);
+    });
+  }
+  rebuildHomeCats();renderHomeCats();renderHomeSections();
+}
 function adminAddCategory(){
   const el=document.getElementById('admin-content');if(!el)return;
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
@@ -8554,6 +8599,10 @@ function adminSaveBannerEdit(id){
   const b=adminBanners.find(x=>x.id===id);if(!b)return;
   b.title=title;b.desc=desc;
   lsSet('adminBanners',adminBanners);
+  if(_sb){
+    const banners=lsGet('adminBanners',[]);
+    _sb.from('app_settings').upsert({key:'adminBanners',value:banners,updated_at:new Date().toISOString()}).then();
+  }
   showAdminBanners();showToast('배너가 수정됐어요 ✅');}
 function adminEditCat(catId){
   const el=document.getElementById('admin-content');if(!el)return;
@@ -8728,17 +8777,30 @@ function adminSaveBanner(){
   if(!title){showToast('배너 제목을 입력해주세요');return;}
   adminBanners.unshift({id:Date.now(),title,desc,active:true,emoji:'🖼️',color:'#eeeeee'});
   lsSet('adminBanners',adminBanners);
+  if(_sb){
+    const banners=lsGet('adminBanners',[]);
+    _sb.from('app_settings').upsert({key:'adminBanners',value:banners,updated_at:new Date().toISOString()}).then();
+  }
   showAdminBanners();showToast('배너가 추가됐어요 ✅');
 }
 function adminDeleteBanner(id){
   if(!confirm('배너를 삭제할까요?'))return;
   adminBanners=adminBanners.filter(b=>b.id!==id);
   lsSet('adminBanners',adminBanners);
+  if(_sb){
+    const banners=lsGet('adminBanners',[]);
+    _sb.from('app_settings').upsert({key:'adminBanners',value:banners,updated_at:new Date().toISOString()}).then();
+  }
   showAdminBanners();showToast('배너가 삭제됐어요');
 }
 function adminToggleBanner(id){
   const b=adminBanners.find(b=>b.id===id);
-  if(b){b.active=!b.active;lsSet('adminBanners',adminBanners);showAdminBanners();}
+  if(b){b.active=!b.active;lsSet('adminBanners',adminBanners);
+  if(_sb){
+    const banners=lsGet('adminBanners',[]);
+    _sb.from('app_settings').upsert({key:'adminBanners',value:banners,updated_at:new Date().toISOString()}).then();
+  }
+  showAdminBanners();}
 }
 function showAdminNotices(){
   const el=document.getElementById('admin-content');if(!el)return;
@@ -8795,6 +8857,10 @@ function adminSaveNotice(id){
   const n=notices.find(n=>n.id===id);if(!n)return;
   n.title=title;n.content=content;
   lsSet('notices',notices);
+  if(_sb){
+    const notices=lsGet('notices',[]);
+    _sb.from('app_settings').upsert({key:'notices',value:notices,updated_at:new Date().toISOString()}).then();
+  }
   showAdminNotices();showToast('공지사항이 수정됐어요!');
 }
 function adminAddNotice(){
@@ -8825,12 +8891,20 @@ function adminSaveNewNotice(){
   const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace(/\.$/,'');
   notices.unshift({id:Date.now(),title,content,date:today,author:'관리자'});
   lsSet('notices',notices);
+  if(_sb){
+    const _notices=lsGet('notices',[]);
+    _sb.from('app_settings').upsert({key:'notices',value:_notices,updated_at:new Date().toISOString()}).then();
+  }
   showAdminNotices();showToast('공지가 등록됐어요 📢');
 }
 function adminDeleteNotice(id){
   if(!confirm('공지를 삭제할까요?'))return;
   notices=notices.filter(n=>n.id!==id);
   lsSet('notices',notices);
+  if(_sb){
+    const _notices=lsGet('notices',[]);
+    _sb.from('app_settings').upsert({key:'notices',value:_notices,updated_at:new Date().toISOString()}).then();
+  }
   showAdminNotices();showToast('공지가 삭제됐어요');
 }
 let _adminUserList=[];
@@ -9460,20 +9534,34 @@ function _saveAdWithImage(editIdx,imageData){
   if(editIdx!==undefined&&adminAds[editIdx]){adminAds[editIdx]=ad;}
   else{adminAds.push(ad);}
   lsSet('ads',adminAds);
+  if(_sb){
+    const ads=lsGet('ads',[]);
+    _sb.from('app_settings').upsert({key:'ads',value:ads,updated_at:new Date().toISOString()}).then();
+  }
   renderHomeBanners();
   showAdminAds();showToast(editIdx!==undefined?'광고가 수정됐어요 ✅':'광고가 등록됐어요 ✅');
 }
 function adminToggleAd(idx){
   if(!isAdmin()||!adminAds[idx])return;
   adminAds[idx].active=!adminAds[idx].active;
-  lsSet('ads',adminAds);renderHomeBanners();
+  lsSet('ads',adminAds);
+  if(_sb){
+    const ads=lsGet('ads',[]);
+    _sb.from('app_settings').upsert({key:'ads',value:ads,updated_at:new Date().toISOString()}).then();
+  }
+  renderHomeBanners();
   showAdminAds();showToast(adminAds[idx].active?'광고 활성화 ✅':'광고 비활성화 ⏸');
 }
 function adminDeleteAd(idx){
   if(!isAdmin()||!adminAds[idx])return;
   if(!confirm(`'${adminAds[idx].name}' 광고를 삭제할까요?`))return;
   adminAds.splice(idx,1);
-  lsSet('ads',adminAds);renderHomeBanners();
+  lsSet('ads',adminAds);
+  if(_sb){
+    const ads=lsGet('ads',[]);
+    _sb.from('app_settings').upsert({key:'ads',value:ads,updated_at:new Date().toISOString()}).then();
+  }
+  renderHomeBanners();
   showAdminAds();showToast('광고가 삭제됐어요');
 }
 function getActiveAds(position){
@@ -9915,6 +10003,7 @@ function renderAnalytics(){
   if(elapsed<2000)await new Promise(r=>setTimeout(r,2000-elapsed));
   if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
+    loadAppSettings();
   }else{
     showView('login');
   }
