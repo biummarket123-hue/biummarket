@@ -810,6 +810,18 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   </div>
 </div>
 
+<div id="modal-admin-access" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);align-items:center;justify-content:center">
+  <div style="background:#1a1a2e;border:1px solid #6c63ff;border-radius:20px;padding:32px 24px;width:90%;max-width:360px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">🛡️</div>
+    <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px">관리자 접근</div>
+    <div style="font-size:13px;color:#888;margin-bottom:24px">관리자 비밀번호를 입력해주세요</div>
+    <input type="password" id="admin-access-pw" class="fi" placeholder="비밀번호 입력" style="margin-bottom:12px;text-align:center;letter-spacing:4px;color:#1a1a1a" onkeydown="if(event.key==='Enter')checkAdminAccess()"/>
+    <button onclick="checkAdminAccess()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">접근하기</button>
+    <button onclick="closeAdminAccess()" style="width:100%;padding:10px;background:none;border:none;color:#666;font-size:13px;cursor:pointer">취소</button>
+    <div id="admin-access-error" style="color:#ef4444;font-size:12px;margin-top:8px;display:none">비밀번호가 틀렸어요</div>
+  </div>
+</div>
+
 <!-- ========== 관심 카테고리 선택 모달 ========== -->
 <div id="modal-welcome" style="display:none;position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#6c63ff,#8b84ff);align-items:center;justify-content:center;flex-direction:column;padding:32px 24px;text-align:center">
   <div style="font-size:60px;margin-bottom:16px;animation:bounce 1s infinite">🧵</div>
@@ -3749,9 +3761,8 @@ async function doLogin(){
   const pw=document.getElementById('l-pw').value;
   // 관리자 계정 특별 처리 (로컬 검증)
   if(email==='admin'){
-    const admin=DEFAULT_USERS.find(u=>u.email==='admin'&&u.pw===pw);
-    if(!admin){showToast('비밀번호가 틀렸어요');return;}
-    curUser=admin;lsSet('curUser',curUser);updateNotifDot();showView('list');showListSkeleton();return;
+    showToast('관리자는 별도 경로로 접근해주세요');
+    return;
   }
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
@@ -7646,6 +7657,61 @@ function isMyProduct(p,u){
 /* ===== 역할 판별 헬퍼 ===== */
 function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
+// 관리자 비밀 URL 체크 (페이지 로드 시)
+const ADMIN_SECRET_CODE='bium2024admin';
+const ADMIN_PASSWORD='bium@admin!2024';
+
+function checkAdminSecretUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('admin');
+  if(code===ADMIN_SECRET_CODE){
+    // URL에서 파라미터 제거
+    const url=new URL(window.location.href);
+    url.searchParams.delete('admin');
+    window.history.replaceState({},'',url);
+    // 관리자 접근 모달 표시
+    openAdminAccess();
+  }
+}
+function openAdminAccess(){
+  const modal=document.getElementById('modal-admin-access');
+  if(modal){
+    modal.style.display='flex';
+    setTimeout(()=>document.getElementById('admin-access-pw')?.focus(),300);
+  }
+}
+function closeAdminAccess(){
+  const modal=document.getElementById('modal-admin-access');
+  if(modal)modal.style.display='none';
+  const input=document.getElementById('admin-access-pw');
+  if(input)input.value='';
+  const err=document.getElementById('admin-access-error');
+  if(err)err.style.display='none';
+}
+function checkAdminAccess(){
+  const pw=document.getElementById('admin-access-pw')?.value;
+  const err=document.getElementById('admin-access-error');
+  if(pw===ADMIN_PASSWORD){
+    closeAdminAccess();
+    // 관리자로 로그인
+    const admin=DEFAULT_USERS.find(u=>u.email==='admin');
+    if(admin){
+      curUser={...admin};
+      localStorage.setItem('bium_activeUserId',curUser.id||curUser.email||'admin');
+      lsSet('curUser',curUser);
+      updateNotifDot();
+      applyRoleVisibility();
+      showView('list');
+      showListSkeleton();
+      loadProductsFromSupabase();
+      showToast('관리자 모드로 접속했어요 🛡️');
+    }
+  } else {
+    if(err){err.style.display='block';}
+    const input=document.getElementById('admin-access-pw');
+    if(input){input.value='';input.focus();}
+  }
+}
 function isBusiness(){
   if(!curUser)return false;
   const role=curUser.role||curUser.type||'';
@@ -10084,6 +10150,7 @@ function renderAnalytics(){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
     loadFontSize();
+    checkAdminSecretUrl();
   }else{
     showView('login');
   }
