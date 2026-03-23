@@ -2690,6 +2690,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   if(location.search.includes('from=landing')){
     sessionStorage.setItem('bium_visited','1');
   }
+  // 관리자 URL이면 랜딩페이지 스킵
+  if(location.search.includes('admin=')){
+    sessionStorage.setItem('bium_visited','1');
+    return;
+  }
   if(!sessionStorage.getItem('bium_visited') && !location.search.includes('from=landing')){
     location.replace('./landing.html');
   }
