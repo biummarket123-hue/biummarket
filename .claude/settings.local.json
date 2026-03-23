@@ -11,7 +11,15 @@
       "Bash(npx vercel:*)",
       "Bash(grep:*)",
       "Bash(rm:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(py --version)",
+      "Bash(/c/Users/A/AppData/Local/Microsoft/WindowsApps/python3 -c \"print\\(''hello''\\)\")",
+      "Bash(/c/Users/A/AppData/Local/Microsoft/WindowsApps/python -c \"print\\(''hello''\\)\")",
+      "Bash(ls /c/Python*/python.exe /c/Users/A/AppData/Local/Programs/Python/*/python.exe)",
+      "Read(//c/ProgramData/miniconda3/**)",
+      "Bash(npm install:*)",
+      "Bash(cd:*)"
     ]
   }
 }
