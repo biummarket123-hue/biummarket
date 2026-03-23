@@ -754,6 +754,14 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .stock-bar{height:4px;border-radius:2px;background:#e0e0ea;margin-top:6px;overflow:hidden}
 .stock-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6c63ff,#a78bfa);transition:width .3s}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+/* 글씨 크기 단계 */
+html.font-s1{font-size:14px}
+html.font-s2{font-size:15px}
+html.font-s3{font-size:17px}
+html.font-s4{font-size:19px}
+html.font-s5{font-size:21px}
+.font-size-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:2px solid #e0e0ea;background:#f8f8fa;cursor:pointer;font-weight:700;color:#666677;transition:all .2s;font-size:13px}
+.font-size-btn.on{border-color:#6c63ff;background:rgba(108,99,255,.15);color:#6c63ff}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
@@ -1714,6 +1722,27 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
         <div id="sett-uinfo" style="font-size:12px;color:#666677;margin-top:3px">–</div>
       </div>
       <button onclick="openProfileEditByType()" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">프로필 수정</button>
+    </div>
+    <!-- 글씨 크기 설정 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">글씨 크기</div>
+      <div style="padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:13px;color:#666677">가</span>
+          <div style="flex:1;height:2px;background:#e0e0ea;margin:0 8px;border-radius:2px;position:relative">
+            <div id="font-size-track" style="height:100%;background:#6c63ff;border-radius:2px;transition:width .2s"></div>
+          </div>
+          <span style="font-size:19px;color:#1a1a1a;font-weight:700">가</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <button class="font-size-btn" onclick="setFontSize(1)" id="fsz-1">매우<br>작게</button>
+          <button class="font-size-btn" onclick="setFontSize(2)" id="fsz-2">작게</button>
+          <button class="font-size-btn on" onclick="setFontSize(3)" id="fsz-3">기본</button>
+          <button class="font-size-btn" onclick="setFontSize(4)" id="fsz-4">크게</button>
+          <button class="font-size-btn" onclick="setFontSize(5)" id="fsz-5">매우<br>크게</button>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:#888" id="font-size-label">기본 (17px)</div>
+      </div>
     </div>
     <!-- 알림 설정 -->
     <div class="my-section-wrap">
@@ -6968,6 +6997,37 @@ function renderNotifSettings(){
       </label>
     </div>`).join('');
 }
+const FONT_SIZES=[
+  {step:1,size:14,label:'매우 작게 (14px)'},
+  {step:2,size:15,label:'작게 (15px)'},
+  {step:3,size:17,label:'기본 (17px)'},
+  {step:4,size:19,label:'크게 (19px)'},
+  {step:5,size:21,label:'매우 크게 (21px)'}
+];
+function setFontSize(step){
+  // 기존 font 클래스 제거
+  document.documentElement.classList.remove('font-s1','font-s2','font-s3','font-s4','font-s5');
+  // 새 클래스 적용
+  document.documentElement.classList.add('font-s'+step);
+  // 버튼 스타일 업데이트
+  [1,2,3,4,5].forEach(i=>{
+    const btn=document.getElementById('fsz-'+i);
+    if(btn)btn.className='font-size-btn'+(i===step?' on':'');
+  });
+  // 트랙 업데이트
+  const track=document.getElementById('font-size-track');
+  if(track)track.style.width=((step-1)/4*100)+'%';
+  // 라벨 업데이트
+  const label=document.getElementById('font-size-label');
+  const info=FONT_SIZES.find(f=>f.step===step);
+  if(label&&info)label.textContent=info.label;
+  // 계정별 저장
+  lsSet('fontSizeStep',step);
+}
+function loadFontSize(){
+  const step=lsGet('fontSizeStep',3);
+  setFontSize(step);
+}
 function toggleNotif(key,val){
   notifSettings[key]=val;
   lsSet('notifSettings',notifSettings);
@@ -7227,6 +7287,18 @@ function renderSettings(){
   // 알림 토글
   const nsMap={push:'push',chat:'chat',newProd:'newprod',urgent:'urgent'};
   Object.entries(nsMap).forEach(([k,id])=>{const el=document.getElementById('ns-'+id);if(el)el.checked=!!notifSettings[k];});
+
+  // 글씨 크기 버튼 현재 상태 반영
+  const curStep=lsGet('fontSizeStep',3);
+  [1,2,3,4,5].forEach(i=>{
+    const btn=document.getElementById('fsz-'+i);
+    if(btn)btn.className='font-size-btn'+(i===curStep?' on':'');
+  });
+  const track=document.getElementById('font-size-track');
+  if(track)track.style.width=((curStep-1)/4*100)+'%';
+  const label=document.getElementById('font-size-label');
+  const info=FONT_SIZES.find(f=>f.step===curStep);
+  if(label&&info)label.textContent=info.label;
 
   // 거래 토글
   const tsMap={priceOffer:'price',freeSwatch:'swatch',delivery:'delivery',directTrade:'direct'};
@@ -10004,6 +10076,7 @@ function renderAnalytics(){
   if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
+    loadFontSize();
   }else{
     showView('login');
   }
