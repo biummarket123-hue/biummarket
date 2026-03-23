@@ -10122,6 +10122,13 @@ function renderAnalytics(){
       return;
     }
   }
+  // 관리자 URL이면 스플래시 스킵
+  const _adminParam=new URLSearchParams(window.location.search).get('admin');
+  if(_adminParam===ADMIN_SECRET_CODE){
+    showView('login');
+    checkAdminSecretUrl();
+    return;
+  }
   // 스플래시 화면 표시
   showView('splash');
   const splashStart=Date.now();
