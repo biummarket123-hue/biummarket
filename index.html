@@ -353,10 +353,10 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .chat-room-item:active,.chat-room-item:hover{background:#f8f8fa}
 .cr-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
 .cr-info{flex:1;min-width:0}
-.cr-name{font-size:13px;font-weight:600;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1a1a1a}
-.cr-preview{font-size:12px;color:#666677;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-name{font-size:var(--fs-base);font-weight:600;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1a1a1a}
+.cr-preview{font-size:var(--fs-sm);color:#666677;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cr-meta{text-align:right;flex-shrink:0;padding-left:8px}
-.cr-time{font-size:10px;color:#666677}
+.cr-time{font-size:var(--fs-xs);color:#666677}
 .cr-unread{display:inline-block;min-width:18px;background:#6c63ff;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-top:3px;text-align:center}
 
 /* CHAT ROOM */
@@ -684,7 +684,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 /* CHAT LIST v2 */
 #view-chat{background:#ffffff}
 .cr-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px}
-.cr-sub-preview{font-size:11px;color:#6c63ff;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-sub-preview{font-size:var(--fs-xs);color:#6c63ff;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 .cr-thumb-right{width:50px;height:50px;border-radius:10px;overflow:hidden;background:#eeeeee;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
 .cr-thumb-right img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -2153,10 +2153,10 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   </header>
   <!-- 채팅 탭 필터 -->
   <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff;position:sticky;top:56px;z-index:50">
-    <button onclick="setChatFilter('all')" id="chat-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
-    <button onclick="setChatFilter('sell')" id="chat-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
-    <button onclick="setChatFilter('buy')" id="chat-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
-    <button onclick="setChatFilter('unread')" id="chat-tab-unread" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="chat-tab-unread">안읽음</button>
+    <button onclick="setChatFilter('all')" id="chat-tab-all" style="flex:1;padding:12px 4px;font-size:var(--fs-base);font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
+    <button onclick="setChatFilter('sell')" id="chat-tab-sell" style="flex:1;padding:12px 4px;font-size:var(--fs-base);font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setChatFilter('buy')" id="chat-tab-buy" style="flex:1;padding:12px 4px;font-size:var(--fs-base);font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
+    <button onclick="setChatFilter('unread')" id="chat-tab-unread" style="flex:1;padding:12px 4px;font-size:var(--fs-base);font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">안읽음</button>
   </div>
   <div class="chat-list-wrap" id="chat-list-wrap" style="flex:1;overflow-y:auto;padding-bottom:72px"></div>
   <div class="empty" id="chat-list-empty" style="display:none">
