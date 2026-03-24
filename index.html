@@ -7795,6 +7795,20 @@ function renderMypage(){
       bizApplySection.style.display='block';
       bizApplySection.innerHTML=`<div style="margin:4px 0;padding:12px 16px;background:#fffbeb;border:1.5px solid #ffe082;border-radius:14px;font-size:13px;color:#c8962a;font-weight:600">⏳ 사업자 승인 대기 중이에요</div>`;
     }
+  }else if(isBizRejected()){
+    if(bizSection)bizSection.style.display='none';
+    if(upgradeBiz)upgradeBiz.style.display='none';
+    if(bizApplySection){
+      let extra={};try{extra=JSON.parse(curUser.extra_info||'{}');}catch(e){}
+      const reason=curUser.rejectReason||extra.rejectReason||'';
+      bizApplySection.style.display='block';
+      bizApplySection.innerHTML=`
+        <div style="margin:4px 0;padding:14px 16px;background:#fff0f0;border:1.5px solid #ffb3b3;border-radius:14px">
+          <div style="font-size:13px;font-weight:700;color:#d32f2f;margin-bottom:6px">❌ 사업자 전환 신청이 거절됐어요</div>
+          ${reason?`<div style="font-size:12px;color:#666;margin-bottom:10px;padding:8px 10px;background:#fff;border-radius:8px;line-height:1.6">📋 거절 사유: ${reason}</div>`:''}
+          <button onclick="openBizReapply()" style="width:100%;padding:11px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔄 재신청하기</button>
+        </div>`;
+    }
   }else if(!isAdmin()){
     if(bizSection)bizSection.style.display='none';
     if(upgradeBiz)upgradeBiz.style.display='block';
@@ -9365,6 +9379,18 @@ function showAdminUserDetail(idx){
       })()}
     </div>`;
 }
+function openBizReapply(){
+  if(!curUser)return;
+  curUser.sellerStatus='none';
+  curUser.bizStatus='none';
+  curUser.rejectReason='';
+  lsSet('curUser',curUser);
+  if(_sb&&curUser.id){
+    _sb.from('users').update({seller_status:'none',requested_role:''}).eq('id',curUser.id).then(()=>{});
+  }
+  const modal=document.getElementById('modal-biz-upgrade');
+  if(modal){modal.style.display='flex';}
+}
 function openBizfileViewer(src){
   const existing=document.getElementById('bizfile-viewer');
   if(existing)existing.remove();
@@ -9519,7 +9545,12 @@ async function adminRejectSeller(idx){
   const u = _adminUserList[idx];
   if(!u){ showToast('회원 정보를 찾을 수 없어요'); return; }
 
+  const reason = prompt('거절 사유를 입력해주세요:', '');
+  if(reason === null) return; // 취소 시 중단
+  if(!reason.trim()){ showToast('거절 사유를 입력해주세요'); return; }
+
   _adminUserList[idx].sellerStatus = 'rejected';
+  _adminUserList[idx].rejectReason = reason.trim();
 
   const li = users.findIndex(x =>
     (u.id && x.id === u.id) ||
@@ -9528,19 +9559,30 @@ async function adminRejectSeller(idx){
 
   if(li !== -1){
     users[li].sellerStatus = 'rejected';
+    users[li].rejectReason = reason.trim();
     lsSet('users', users);
   }
 
-  // Supabase에는 sellerStatus 컬럼 없으므로 로컬만 업데이트
+  if(_sb && u.id){
+    try{
+      const prevExtra = JSON.parse(u.extra_info||'{}');
+      prevExtra.rejectReason = reason.trim();
+      await _sb.from('users').update({
+        seller_status: 'rejected',
+        extra_info: JSON.stringify(prevExtra)
+      }).eq('id', u.id);
+    }catch(e){ console.error('거절 Supabase 오류:', e); }
+  }
 
   if(curUser && (curUser.id === u.id || curUser.email === u.email)){
     curUser.sellerStatus = 'rejected';
+    curUser.rejectReason = reason.trim();
     lsSet('curUser', curUser);
     applyRoleVisibility();
   }
 
-  addAppNotification(u.id||u.email,'seller_rejected','❌ 사업자 전환 신청이 거절됐어요. MY 메뉴에서 재신청할 수 있어요.',{});
-  showToast('❌ 사업자 전환 신청 거절');
+  addAppNotification(u.id||u.email,'seller_rejected',`❌ 사업자 전환 신청이 거절됐어요. 사유: ${reason.trim()}`,{rejectReason:reason.trim()});
+  showToast('❌ 사업자 전환 신청 거절 완료');
   showAdminUsers && showAdminUsers();
 }
 function showAdminProducts(){
