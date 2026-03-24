@@ -7550,10 +7550,19 @@ async function submitBizUpgrade(){
   const category=document.getElementById('biz-category')?.value.trim();
   const founded=document.getElementById('biz-founded')?.value.trim();
   const intro=document.getElementById('biz-intro')?.value.trim();
+  // 사업자등록증 base64 변환
+  let bizfileBase64='';
+  if(file){
+    bizfileBase64=await new Promise(res=>{
+      const reader=new FileReader();
+      reader.onload=e=>res(e.target.result);
+      reader.readAsDataURL(file);
+    });
+  }
   // 상태 업데이트
   curUser.bizStatus='pending';
   curUser.requestedRole='business';
-  const extraInfo=JSON.stringify({bizName:name,ceo,bizNum:num,address,category,founded,intro,hasFile:!!file});
+  const extraInfo=JSON.stringify({bizName:name,ceo,bizNum:num,address,category,founded,intro,bizfile:bizfileBase64});
   curUser.extra_info=extraInfo;
   lsSet('curUser',curUser);
   if(_sb&&curUser.id){
