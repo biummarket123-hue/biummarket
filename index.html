@@ -3164,7 +3164,20 @@ function lsSetTTL(k,v){try{localStorage.setItem('bium_ttl_'+k,JSON.stringify({__
 function mergeWithLocalUser(sbProfile){
   if(!sbProfile)return null;
   const localUser=users.find(u=>u.id===sbProfile.id||u.email===sbProfile.email);
-  if(!localUser)return sbProfile;
+  if(!localUser){
+    let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
+    const sbStatus=sbProfile.seller_status||'none';
+    const finalType=sbStatus==='approved'?'business':(sbProfile.type||'member');
+    return {
+      ...sbProfile,
+      type:finalType,
+      role:finalType,
+      sellerStatus:sbStatus,
+      bizStatus:sbStatus,
+      rejectReason:extra.rejectReason||'',
+      requestedRole:sbProfile.requested_role||''
+    };
+  }
   const sbStatus=sbProfile.seller_status||sbProfile.sellerStatus||'none';
   const localStatus=localUser.sellerStatus||localUser.bizStatus||'none';
   const finalStatus=sbStatus==='approved'?'approved':(localStatus==='approved'?'approved':(sbStatus==='rejected'?'rejected':(localStatus==='rejected'?'rejected':sbStatus||localStatus||'none')));
