@@ -3823,7 +3823,7 @@ async function doFindPw(){
   if(!_sb){showToast('이메일 찾기는 Supabase 연결이 필요해요');return;}
   try{
     const{error}=await _sb.auth.resetPasswordForEmail(email,{
-      redirectTo:'https://biummarket.vercel.app'
+      redirectTo:'https://www.biummarket.com'
     });
     if(error)throw error;
     result.style.display='block';
@@ -4030,7 +4030,7 @@ async function handleKakaoCode(code){
     const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://biummarket.vercel.app',code})
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'e7845a5b848756553feab8191fd4f63b',redirect_uri:'https://www.biummarket.com',code})
     }).then(r=>r.json());
     if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
     const res=await fetch('https://kapi.kakao.com/v2/user/me',{
