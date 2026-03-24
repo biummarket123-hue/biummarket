@@ -2756,7 +2756,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     sessionStorage.setItem('bium_visited','1');
     return;
   }
-  if(!sessionStorage.getItem('bium_visited') && !location.search.includes('from=landing')){
+  if(!sessionStorage.getItem('bium_visited') && !location.search.includes('from=landing') && !location.search.includes('page=register') && !location.search.includes('page=')){
     location.replace('./landing.html');
   }
 })();
