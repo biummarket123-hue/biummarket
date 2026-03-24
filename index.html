@@ -3745,7 +3745,7 @@ function showView(name,push=true){
   if(name==='form')initFormView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
   const fab=document.getElementById('fab-wrap');
-  if(fab)fab.style.display=((name==='list'||name==='home')&&!isBuyer())?'block':'none';
+  if(fab)fab.style.display=(name==='list'||name==='home')?'block':'none';
 }
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
@@ -7500,6 +7500,13 @@ async function doChangeLoc(loc){
   showToast('지역이 변경됐어요 📍');
 }
 function openAddProduct(){
+  if(isMember()){
+    if(confirm('사업자 회원만 상품을 등록할 수 있어요.\n사업자 회원으로 전환 신청하시겠어요?')){
+      showView('mypage');
+      setTimeout(()=>{const el=document.getElementById('biz-apply-section');if(el)el.scrollIntoView({behavior:'smooth'});},300);
+    }
+    return;
+  }
   if(!curUser){showToast('로그인이 필요해요');showView('login');return;}
   if(isAdmin()){showView('form');return;}
   if(isBusiness()){
