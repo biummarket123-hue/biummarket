@@ -964,6 +964,20 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="login-logo">🧵 비움마켓</div>
     <div class="login-logo" style="font-size:13px;font-weight:400;color:var(--g500);margin-bottom:28px">BIUM MARKET — B2B 재고원단 거래 플랫폼</div>
     <div class="login-box">
+      <div class="fg">
+        <label data-i18n="login_id_label">아이디</label>
+        <input type="email" class="fi" id="l-email" placeholder="example@bium.market" />
+      </div>
+      <div class="fg">
+        <label data-i18n="login_pw_label">비밀번호</label>
+        <input type="password" class="fi" id="l-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <button class="btn-primary" data-i18n="btn_login" onclick="doLogin()" style="margin-bottom:12px">로그인</button>
+      <button class="btn-secondary" data-i18n="btn_to_signup" onclick="showView('signup')">회원가입</button>
+      <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:20px">
+        <button onclick="showView('find-id')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">아이디 찾기</button>
+        <button onclick="showView('find-pw')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">비밀번호 찾기</button>
+      </div>
       <div style="margin-bottom:20px">
         <div style="text-align:center;color:#888;font-size:13px;margin-bottom:16px;position:relative">
           <span style="background:#fff;padding:0 12px;position:relative;z-index:1">간편 로그인</span>
@@ -981,24 +995,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <span style="font-size:18px;font-weight:900;color:#fff">N</span>
           네이버 계정으로 로그인
         </button>
-        <div style="text-align:center;color:#888;font-size:13px;margin:16px 0;position:relative">
-          <span style="background:#fff;padding:0 12px;position:relative;z-index:1">또는 이메일로 로그인</span>
-          <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#e0e0e0"></div>
-        </div>
-      </div>
-      <div class="fg">
-        <label data-i18n="login_id_label">아이디</label>
-        <input type="email" class="fi" id="l-email" placeholder="example@bium.market" />
-      </div>
-      <div class="fg">
-        <label data-i18n="login_pw_label">비밀번호</label>
-        <input type="password" class="fi" id="l-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()" />
-      </div>
-      <button class="btn-primary" data-i18n="btn_login" onclick="doLogin()" style="margin-bottom:12px">로그인</button>
-      <button class="btn-secondary" data-i18n="btn_to_signup" onclick="showView('signup')">회원가입</button>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="showView('find-id')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">아이디 찾기</button>
-        <button onclick="showView('find-pw')" style="flex:1;padding:11px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;font-weight:600;color:#666677;cursor:pointer">비밀번호 찾기</button>
       </div>
     </div>
   </div>
