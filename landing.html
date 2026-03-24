@@ -93,8 +93,8 @@
                 패션 브랜드와 제조사를 위한 프리미엄 재고원단 거래 플랫폼<br>잠자는 원단에 생명을 불어넣습니다
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button onclick="openModal()" class="btn-primary px-10 py-4 text-white rounded-xl text-lg font-semibold shadow-2xl relative z-10">입점 신청하기</button>
-                <a href="https://www.biummarket.com?from=landing" class="px-10 py-4 bg-slate-800/80 text-white rounded-xl text-lg font-semibold hover:bg-slate-700 transition-all shadow-xl border border-slate-600">원단 둘러보기</a>
+                <button onclick="handleLandingBtn()" class="btn-primary px-10 py-4 text-white rounded-xl text-lg font-semibold shadow-2xl relative z-10">입점 신청하기</button>
+                <button onclick="handleLandingBtn()" class="px-10 py-4 bg-slate-800/80 text-white rounded-xl text-lg font-semibold hover:bg-slate-700 transition-all shadow-xl border border-slate-600">원단 둘러보기</button>
             </div>
         </div>
         <div class="mt-20 fade-up" style="transition-delay:0.2s;">
@@ -363,6 +363,22 @@
         toast.style.transform = 'translateY(0)';
         setTimeout(() => { toast.style.transform = 'translateY(8rem)'; }, 3000);
         document.getElementById('subscribeForm').reset();
+    }
+
+    function handleLandingBtn() {
+        const sbUrl = 'https://ygernyfkydqalqmjzjbw.supabase.co';
+        const sbKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZXJueWZreWRxYWxxbWp6amJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwMzI4NzcsImV4cCI6MjA1NzYwODg3N30.gHnMwX8oe_Jf4d1BHWlLt-yCYzjwV4fJvCFSvqS7X5A';
+        const session = localStorage.getItem('sb-ygernyfkydqalqmjzjbw-auth-token');
+        if (session) {
+            try {
+                const parsed = JSON.parse(session);
+                if (parsed && parsed.access_token) {
+                    window.location.href = 'https://www.biummarket.com';
+                    return;
+                }
+            } catch(e) {}
+        }
+        window.location.href = 'https://www.biummarket.com?page=register';
     }
 
     window.addEventListener('scroll', handleScrollAnimation);
