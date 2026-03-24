@@ -2756,9 +2756,16 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     sessionStorage.setItem('bium_visited','1');
     return;
   }
-  if(!sessionStorage.getItem('bium_visited') && !location.search.includes('from=landing') && !location.search.includes('page=register') && !location.search.includes('page=')){
+  const _activeId = localStorage.getItem('bium_activeUserId') || '';
+  const _curUser = localStorage.getItem('bium_u_' + _activeId + '_curUser');
+  const _sbSession = localStorage.getItem('sb-ygernyfkydqalqmjzjbw-auth-token');
+  let _isLoggedIn = false;
+  if(_sbSession){try{const _p=JSON.parse(_sbSession);if(_p&&(_p.access_token||_p.provider_token||(_p.user&&_p.user.id)))_isLoggedIn=true;}catch(e){}}
+  if(!_isLoggedIn&&_curUser){try{const _u=JSON.parse(_curUser);if(_u&&_u.id)_isLoggedIn=true;}catch(e){}}
+  if(!sessionStorage.getItem('bium_visited') && !location.search.includes('from=landing') && !location.search.includes('page=') && !_isLoggedIn){
     location.replace('./landing.html');
   }
+  if(_isLoggedIn){ sessionStorage.setItem('bium_visited','1'); }
 })();
 
 /* ==================== CONFIG ==================== */
