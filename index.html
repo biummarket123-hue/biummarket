@@ -9259,9 +9259,9 @@ function showAdminUsers(){
   const mergeUsers=(sbList)=>{
     const result = (sbList||[]).map(sbUser => {
       const localUser = users.find(u => u.id === sbUser.id || u.email === sbUser.email);
-      // sellerStatus: localUser 우선, 없으면 Supabase seller_status 사용
-      const sellerStatus = (localUser?.sellerStatus) || sbUser.seller_status || 'none';
-      const requestedRole = (localUser?.requestedRole) || sbUser.requested_role || '';
+      // sellerStatus: Supabase 우선, 없으면 로컬 사용
+      const sellerStatus = sbUser.seller_status || (localUser?.sellerStatus) || 'none';
+      const requestedRole = sbUser.requested_role || (localUser?.requestedRole) || '';
       if(localUser){
         return {
           ...sbUser,
