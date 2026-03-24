@@ -1304,33 +1304,31 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 상세 설명 -->
     <div class="fg"><label>상세 설명</label><textarea class="fi" id="f-desc" rows="3" placeholder="원단 특징, 용도, 상태, 최소주문 등"></textarea></div>
 
+    <!-- 판매가 / 정가 -->
+    <div class="form-row">
+      <div class="fg"><label>판매가(₩) <span class="req">*</span></label>
+        <div class="price-field"><input type="number" class="fi" id="f-price" placeholder="단가" min="0"/><span class="price-sfx" id="price-sfx-1">/yard</span></div>
+      </div>
+      <div class="fg"><label>정가(₩)</label>
+        <div class="price-field"><input type="number" class="fi" id="f-list-price" placeholder="원래 가격" min="0"/><span class="price-sfx" id="price-sfx-2">/yard</span></div>
+      </div>
+    </div>
     <!-- 재고수량 / 단위 -->
     <div class="form-row">
       <div class="fg"><label>재고수량 <span class="req">*</span></label><input type="number" class="fi" id="f-qty" placeholder="수량" min="0" step="1" inputmode="numeric" pattern="[0-9]*"/></div>
       <div class="fg"><label>단위</label>
-        <select class="unit-select" id="f-unit">
-          <option value="yard">yard</option>
-          <option value="m">m</option>
-          <option value="마">마</option>
-          <option value="롤">롤</option>
+        <select class="unit-select" id="f-unit" onchange="updateUnitSuffix()">
+          <option value="yard">yard (야드)</option>
+          <option value="m">m (미터)</option>
+          <option value="roll">roll (롤)</option>
+          <option value="kg">kg (킬로그램)</option>
         </select>
       </div>
     </div>
-
-    <!-- 판매가 / 정가 -->
-    <div class="form-row">
-      <div class="fg"><label>판매가(₩) <span class="req">*</span></label>
-        <div class="price-field"><input type="number" class="fi" id="f-price" placeholder="단가" min="0"/><span class="price-sfx">/yard</span></div>
-      </div>
-      <div class="fg"><label>정가(₩)</label>
-        <div class="price-field"><input type="number" class="fi" id="f-list-price" placeholder="원래 가격" min="0"/><span class="price-sfx">/yard</span></div>
-      </div>
-    </div>
-
     <!-- 대량가 / MOQ -->
     <div class="form-row">
       <div class="fg"><label>대량가(₩)</label>
-        <div class="price-field"><input type="number" class="fi" id="f-bulk-price" placeholder="대량 단가" min="0"/><span class="price-sfx">/yard</span></div>
+        <div class="price-field"><input type="number" class="fi" id="f-bulk-price" placeholder="대량 단가" min="0"/><span class="price-sfx" id="price-sfx-3">/yard</span></div>
       </div>
       <div class="fg"><label>MOQ 최소수량</label><input type="number" class="fi" id="f-moq" placeholder="예: 500" min="0"/></div>
     </div>
@@ -7542,6 +7540,14 @@ async function doChangeLoc(loc){
   renderSettings();renderMypage();
   closeModal('modal-change-loc');
   showToast('지역이 변경됐어요 📍');
+}
+function updateUnitSuffix(){
+  const unit=document.getElementById('f-unit')?.value||'yard';
+  const sfx='/'+unit;
+  ['price-sfx-1','price-sfx-2','price-sfx-3'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=sfx;
+  });
 }
 function openAddProduct(){
   if(isMember()){
