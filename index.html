@@ -3165,20 +3165,21 @@ function mergeWithLocalUser(sbProfile){
   if(!sbProfile)return null;
   const localUser=users.find(u=>u.id===sbProfile.id||u.email===sbProfile.email);
   if(!localUser)return sbProfile;
-  // Supabase seller_status가 approved면 무조건 우선
   const sbStatus=sbProfile.seller_status||sbProfile.sellerStatus||'none';
   const localStatus=localUser.sellerStatus||localUser.bizStatus||'none';
-  const finalStatus=sbStatus==='approved'?'approved':(localStatus==='approved'?'approved':sbStatus||localStatus||'none');
-  // type/role: approved면 business 우선
+  const finalStatus=sbStatus==='approved'?'approved':(localStatus==='approved'?'approved':(sbStatus==='rejected'?'rejected':(localStatus==='rejected'?'rejected':sbStatus||localStatus||'none')));
   const sbType=sbProfile.type||'member';
   const localType=localUser.type||localUser.role||'member';
   const finalType=finalStatus==='approved'?'business':(sbType==='business'||localType==='business'?'business':sbType||localType||'member');
+  let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
+  const rejectReason=extra.rejectReason||localUser.rejectReason||'';
   return {
     ...sbProfile,
     type:finalType,
     role:finalType,
     sellerStatus:finalStatus,
     bizStatus:finalStatus,
+    rejectReason,
     requestedRole:sbProfile.requested_role||localUser.requestedRole||sbProfile.requestedRole||'',
     pw:localUser.pw||sbProfile.pw||''
   };
