@@ -3212,9 +3212,19 @@ try{
             if(localMatch){
               curUser=localMatch;
             }else{
-              const newProfile={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0],type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10)};
-              await _sb.from('users').insert(newProfile);
-              curUser=newProfile;
+              const newProfile={
+                id:u.id,
+                email:u.email,
+                name:u.user_metadata?.full_name||u.email.split('@')[0],
+                type:'member',
+                temp:36.5,
+                join_date:new Date().toISOString().slice(0,10),
+                seller_status:'none',
+                requested_role:''
+              };
+              const{error:insertErr}=await _sb.from('users').insert(newProfile);
+              if(insertErr)console.error('신규 유저 insert 오류:',insertErr);
+              curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus:'none'};
             }
           }
           lsSet('curUser',curUser);
