@@ -3997,13 +3997,13 @@ async function doLogout(){
 async function doGoogleLogin(){
   if(!_sb){showToast('소셜 로그인은 온라인에서만 가능해요');return;}
   try{
-    const{error}=await _sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://biummarket.vercel.app'}});
+    const{error}=await _sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://www.biummarket.com'}});
     if(error)throw error;
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
   const REST_API_KEY='e7845a5b848756553feab8191fd4f63b';
-  const REDIRECT_URI='https://biummarket.vercel.app';
+  const REDIRECT_URI='https://www.biummarket.com';
   const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&prompt=login`;
   const popup=window.open(kakaoAuthUrl,'kakaoLogin','width=500,height=600,scrollbars=yes');
   const messageHandler=async function(event){
@@ -4045,7 +4045,7 @@ async function handleKakaoCode(code){
 }
 function doNaverLogin(){
   const CLIENT_ID='nvcabgkBSUsoLBcwLvKt';
-  const REDIRECT_URI='https://biummarket.vercel.app';
+  const REDIRECT_URI='https://www.biummarket.com';
   const STATE=Math.random().toString(36).substring(2);
   sessionStorage.setItem('naver_state',STATE);
   const naverAuthUrl=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${STATE}`;
