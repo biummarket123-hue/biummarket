@@ -3166,11 +3166,20 @@ function mergeWithLocalUser(sbProfile){
   if(!sbProfile)return null;
   const localUser=users.find(u=>u.id===sbProfile.id||u.email===sbProfile.email);
   if(!localUser)return sbProfile;
+  // Supabase seller_status가 approved면 무조건 우선
+  const sbStatus=sbProfile.seller_status||sbProfile.sellerStatus||'none';
+  const localStatus=localUser.sellerStatus||localUser.bizStatus||'none';
+  const finalStatus=sbStatus==='approved'?'approved':(localStatus==='approved'?'approved':sbStatus||localStatus||'none');
+  // type/role: approved면 business 우선
+  const sbType=sbProfile.type||'member';
+  const localType=localUser.type||localUser.role||'member';
+  const finalType=finalStatus==='approved'?'business':(sbType==='business'||localType==='business'?'business':sbType||localType||'member');
   return {
     ...sbProfile,
-    type:sbProfile.type||localUser.type||'buyer',
-    role:localUser.role||sbProfile.type||'buyer',
-    sellerStatus:sbProfile.seller_status||localUser.sellerStatus||sbProfile.sellerStatus||'none',
+    type:finalType,
+    role:finalType,
+    sellerStatus:finalStatus,
+    bizStatus:finalStatus,
     requestedRole:sbProfile.requested_role||localUser.requestedRole||sbProfile.requestedRole||'',
     pw:localUser.pw||sbProfile.pw||''
   };
