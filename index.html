@@ -3535,6 +3535,7 @@ async function runAIAnalysis(dataUrl){
 
 /* ==================== AI VIEW ==================== */
 let aiViewImgData='';
+let aiLastAnalysisData=null;
 function handleAiUpload(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
@@ -3565,39 +3566,47 @@ async function startAiAnalysis(){
   result.innerHTML='<div class="ai-loading">✨ AI가 원단을 분석하고 있어요...</div>';
   result.classList.add('show');
   const data=await analyzeImageWithAI(aiViewImgData);
+  aiLastAnalysisData=data;
   if(btn){btn.textContent='AI 분석 시작';btn.disabled=false;}
   if(!data){
     result.innerHTML='<div class="ai-loading" style="color:#ff6584">분석에 실패했어요. 다시 시도해주세요.</div>';
     return;
   }
-  const type=data.type||'알 수 없음';
+  const type=data.category||data.type||'알 수 없음';
   const color=data.color||'-';
-  const weight=data.weight?data.weight+'g/㎡':'-';
-  const ranges={면:[3000,8000],폴리:[2000,6000],울:[12000,35000],린넨:[5000,12000],실크:[20000,80000],혼방:[4000,10000],기타:[2000,15000]};
-  const [lo,hi]=ranges[type]||[2000,20000];
-  const priceStr=lo.toLocaleString()+'~'+hi.toLocaleString()+'원/m';
-  const gaugeVal=Math.round(Math.random()*25+55);
-  const strategies={면:'여름 의류 시장 적기. 소량 패키지로 묶어 판매 시 단가 상승 효과가 있어요.',폴리:'전천후 원단으로 빠른 회전율. 색상별 분류 판매를 추천해요.',울:'겨울 시즌 수요 집중. 3~4m 소분 판매로 접근성을 높이세요.',린넨:'친환경 트렌드 수혜. 친환경·여름 키워드 태깅이 필수예요.',실크:'고급 시장 타겟. 브랜드·디자이너 채널 직접 연락 전략을 추천해요.',혼방:'가성비 포지셔닝이 유리해요. 용도별 분류로 구매자 선택을 용이하게 해주세요.'};
-  const strategy=strategies[type]||'시장 수요를 확인 후 소량으로 먼저 판매해보세요.';
+  const weight=data.weight||'-';
+  const name=data.name||type;
+  const material=data.material||'-';
+  const fabricType=data.type||'-';
+  const width=data.width||'-';
+  const texture=data.texture||'-';
+  const usage=data.usage||'-';
+  const season=data.season||'-';
+  const grade=data.grade||'-';
+  const priceRange=data.price_range||'-';
+  const description=data.description||'-';
+  const gradeColor=grade==='프리미엄'?'#6c63ff':grade==='일반'?'#1976d2':'#888';
   result.innerHTML=`
-    <div class="ai-result-title">✨ AI 분석 결과</div>
-    <div class="ai-result-row"><span class="ai-result-label">원단 종류</span><span class="ai-result-val ai-result-highlight">${type}</span></div>
+    <div class="ai-result-title">✨ AI 원단 분석 결과</div>
+    <div style="background:linear-gradient(135deg,#6c63ff15,#ff658415);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:4px">${name}</div>
+      <div style="font-size:12px;color:#6c63ff;font-weight:600">${type} · ${fabricType}</div>
+    </div>
+    <div class="ai-result-row"><span class="ai-result-label">소재</span><span class="ai-result-val ai-result-highlight">${material}</span></div>
     <div class="ai-result-row"><span class="ai-result-label">색상</span><span class="ai-result-val">${color}</span></div>
     <div class="ai-result-row"><span class="ai-result-label">중량</span><span class="ai-result-val">${weight}</span></div>
-    <div class="ai-result-row"><span class="ai-result-label">적정 가격</span><span class="ai-result-val ai-result-highlight">${priceStr}</span></div>
-    <div class="ai-result-row">
-      <span class="ai-result-label">시세 대비</span>
-      <div class="ai-gauge-wrap">
-        <div class="ai-gauge"><div class="ai-gauge-fill" style="width:0%" id="ai-gf"></div></div>
-        <span style="font-size:11px;color:#6c63ff;font-weight:700">${gaugeVal}%</span>
-      </div>
+    <div class="ai-result-row"><span class="ai-result-label">폭</span><span class="ai-result-val">${width}</span></div>
+    <div class="ai-result-row"><span class="ai-result-label">질감</span><span class="ai-result-val">${texture}</span></div>
+    <div class="ai-result-row"><span class="ai-result-label">용도</span><span class="ai-result-val">${usage}</span></div>
+    <div class="ai-result-row"><span class="ai-result-label">적합 계절</span><span class="ai-result-val">${season}</span></div>
+    <div class="ai-result-row"><span class="ai-result-label">품질 등급</span><span class="ai-result-val" style="color:${gradeColor};font-weight:700">${grade}</span></div>
+    <div class="ai-result-row"><span class="ai-result-label">도매 시세</span><span class="ai-result-val ai-result-highlight">${priceRange}</span></div>
+    <div class="ai-strategy-box" style="margin-top:12px">
+      <div class="ai-strategy-title">🧵 전문가 소견</div>
+      <div class="ai-strategy-text" style="line-height:1.7">${description}</div>
     </div>
-    <div class="ai-strategy-box">
-      <div class="ai-strategy-title">📊 판매 전략 추천</div>
-      <div class="ai-strategy-text">${strategy}</div>
-    </div>
+    <button onclick="applyAiResultToForm()" style="width:100%;margin-top:12px;padding:13px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📝 이 결과로 상품 등록하기</button>
   `;
-  setTimeout(()=>{const gf=document.getElementById('ai-gf');if(gf)gf.style.width=gaugeVal+'%';},100);
   renderSimilarFabrics(type,color,data);
 }
 function renderSimilarFabrics(type,color,data){
@@ -9476,6 +9485,27 @@ function openBizReapply(){
   }
   const modal=document.getElementById('modal-biz-upgrade');
   if(modal){modal.style.display='flex';}
+}
+function applyAiResultToForm(){
+  if(!aiLastAnalysisData) return;
+  const d=aiLastAnalysisData;
+  showView('form');
+  setTimeout(()=>{
+    const nameEl=document.getElementById('f-name');
+    const materialEl=document.getElementById('f-material');
+    const weightEl=document.getElementById('f-weight');
+    const descEl=document.getElementById('f-desc');
+    if(nameEl)nameEl.value=d.name||'';
+    if(materialEl)materialEl.value=d.material||'';
+    if(weightEl)weightEl.value=(d.weight||'').replace(/[^0-9.]/g,'');
+    if(descEl)descEl.value=d.description||'';
+    // 카테고리 자동 선택
+    const catBtns=document.querySelectorAll('.cat-btn');
+    catBtns.forEach(btn=>{
+      if(btn.textContent.includes(d.category||'')){btn.click();}
+    });
+    showToast('AI 분석 결과가 입력됐어요 ✅');
+  },300);
 }
 function openBizfileViewer(src){
   const existing=document.getElementById('bizfile-viewer');
