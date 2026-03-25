@@ -93,7 +93,7 @@
                 패션 브랜드와 제조사를 위한 프리미엄 재고원단 거래 플랫폼<br>잠자는 원단에 생명을 불어넣습니다
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button onclick="handleLandingBtn()" class="btn-primary px-10 py-4 text-white rounded-xl text-lg font-semibold shadow-2xl relative z-10">입점 신청하기</button>
+                <button onclick="handleBizApply()" class="btn-primary px-10 py-4 text-white rounded-xl text-lg font-semibold shadow-2xl relative z-10">입점 신청하기</button>
                 <button onclick="handleLandingBtn()" class="px-10 py-4 bg-slate-800/80 text-white rounded-xl text-lg font-semibold hover:bg-slate-700 transition-all shadow-xl border border-slate-600">원단 둘러보기</button>
             </div>
         </div>
@@ -365,6 +365,30 @@
         document.getElementById('subscribeForm').reset();
     }
 
+    function handleBizApply() {
+        const session = localStorage.getItem('sb-ygernyfkydqalqmjzjbw-auth-token');
+        const curUser = localStorage.getItem('bium_u_' + (localStorage.getItem('bium_activeUserId') || '') + '_curUser');
+        let isLoggedIn = false;
+        if (session) {
+            try {
+                const parsed = JSON.parse(session);
+                if (parsed && (parsed.access_token || parsed.provider_token || (parsed.user && parsed.user.id))) {
+                    isLoggedIn = true;
+                }
+            } catch(e) {}
+        }
+        if (!isLoggedIn && curUser) {
+            try {
+                const u = JSON.parse(curUser);
+                if (u && u.id) isLoggedIn = true;
+            } catch(e) {}
+        }
+        if (isLoggedIn) {
+            window.location.href = 'https://www.biummarket.com?page=mypage';
+        } else {
+            window.location.href = 'https://www.biummarket.com?page=register&type=business';
+        }
+    }
     function handleLandingBtn() {
         const session = localStorage.getItem('sb-ygernyfkydqalqmjzjbw-auth-token');
         const curUser = localStorage.getItem('bium_u_' + (localStorage.getItem('bium_activeUserId') || '') + '_curUser');
