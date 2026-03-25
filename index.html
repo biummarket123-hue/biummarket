@@ -10432,9 +10432,26 @@ function renderAnalytics(){
   if(elapsed<2000)await new Promise(r=>setTimeout(r,2000-elapsed));
   // 관리자 URL 체크 먼저
   const isAdminUrl=new URLSearchParams(window.location.search).get('admin')===ADMIN_SECRET_CODE;
+  const _pageParam=new URLSearchParams(window.location.search).get('page');
+  const _typeParam=new URLSearchParams(window.location.search).get('type');
   if(isAdminUrl){
     showView('login');
     checkAdminSecretUrl();
+  }else if(_pageParam==='register'){
+    // 회원가입 화면으로 이동
+    showView('signup');
+    // type=business면 사업자 회원 탭 자동 선택
+    if(_typeParam==='business'){
+      setTimeout(()=>{
+        const bizCard=document.querySelector('.type-card[data-type="business"]');
+        if(bizCard){ bizCard.click(); }
+      },100);
+    }
+  }else if(_pageParam==='mypage'&&curUser){
+    showView('mypage');
+    renderMypage();
+    loadAppSettings();
+    loadFontSize();
   }else if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
