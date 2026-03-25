@@ -19,9 +19,10 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
       }
     });
+    const responseText = await response.text();
+    console.log('Supabase Auth 삭제 응답:', response.status, responseText);
     if(!response.ok){
-      const err = await response.text();
-      res.status(500).json({error: err}); return;
+      res.status(500).json({error: responseText, status: response.status}); return;
     }
     res.status(200).json({success: true});
   }catch(e){
