@@ -3219,8 +3219,10 @@ try{
         if(session&&session.user&&!lsGet('curUser',null)){
           const u=session.user;
           const{data:profile}=await _sb.from('users').select('*').eq('id',u.id).single();
+          let isNewUser=false;
           if(profile){
             curUser=mergeWithLocalUser(profile);
+            lsSet('curUser',curUser);
           }else{
             const localMatch=users.find(x=>x.id===u.id||x.email===u.email);
             if(localMatch){
@@ -3239,10 +3241,16 @@ try{
               const{error:insertErr}=await _sb.from('users').insert(newProfile);
               if(insertErr)console.error('신규 유저 insert 오류:',insertErr);
               curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus:'none'};
+              isNewUser=true;
             }
           }
           lsSet('curUser',curUser);
-          if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
+          if(isNewUser){
+            sessionStorage.setItem('bium_new_user','1');
+            if(typeof showView==='function'){showView('profile-edit');if(typeof renderProfileEdit==='function')renderProfileEdit();}
+          }else{
+            if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
+          }
         }
       }catch(e){console.error('OAuth 세션 복구 오류:',e);}
     })();
@@ -4068,6 +4076,7 @@ async function handleKakaoCode(code){
     const kakaoId=res.id;
     const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
+    let kakaoIsNew=false;
     if(_sb){
       const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
       if(sbProfile){
@@ -4078,6 +4087,7 @@ async function handleKakaoCode(code){
           user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
           users.push(user);lsSet('users',users);
           const{error:ke}=await _sb.from('users').upsert(user);if(ke)console.error('카카오 upsert 오류:',ke);
+          kakaoIsNew=true;
         }
         curUser=user;
       }
@@ -4085,6 +4095,7 @@ async function handleKakaoCode(code){
       curUser=users.find(u=>u.email===email||u.kakaoId===String(kakaoId))||{id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
     }
     lsSet('curUser',curUser);
+    if(kakaoIsNew){ sessionStorage.setItem('bium_new_user','1'); }
     showToast('카카오 로그인 성공! 환영합니다 '+nickname);
     showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
   }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
@@ -4119,6 +4130,7 @@ async function handleNaverCode(code,state){
     const naverId=profile.id;
     const nickname=profile.name||profile.nickname||'네이버사용자';
     const email=profile.email||('naver_'+naverId+'@naver.com');
+    let naverIsNew=false;
     if(_sb){
       const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
       if(sbProfile){
@@ -4129,6 +4141,7 @@ async function handleNaverCode(code,state){
           user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
           users.push(user);lsSet('users',users);
           const{error:ne}=await _sb.from('users').upsert(user);if(ne)console.error('네이버 upsert 오류:',ne);
+          naverIsNew=true;
         }
         curUser=user;
       }
@@ -4136,6 +4149,7 @@ async function handleNaverCode(code,state){
       curUser=users.find(u=>u.email===email||u.naverId===String(naverId))||{id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
     }
     lsSet('curUser',curUser);
+    if(naverIsNew){ sessionStorage.setItem('bium_new_user','1'); }
     showToast('네이버 로그인 성공! 환영합니다 '+nickname);
     showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
   }catch(e){showToast('네이버 로그인 오류: '+e.message);console.error(e);}
