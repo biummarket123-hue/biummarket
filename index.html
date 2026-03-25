@@ -6567,6 +6567,24 @@ async function submitForm(){
         showToast('저장 실패: '+error.message);return;
       }
       console.log('[submitForm] insert 성공 — id:',inserted.id);
+      // fabric_specs에 자동 저장 (RAG 데이터 축적)
+      if(payload.material||payload.weight||payload.type){
+        _sb.from('fabric_specs').insert({
+          category: payload.cat||payload.type||'',
+          type: payload.type||'',
+          material: payload.material||'',
+          color: payload.color||'',
+          weight: payload.weight?payload.weight+'g/yd':'',
+          width: payload.width?payload.width+'cm':'',
+          count: '',
+          texture: '',
+          usage: '',
+          season: '',
+          grade: '',
+          price_range: payload.price?payload.price+'원/'+(payload.unit||'m'):'',
+          description: payload.description||''
+        }).then(()=>{}).catch(e=>console.warn('fabric_specs 저장 오류:',e));
+      }
       resetForm();showView('list');showToast(t('registered'));
       {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
       // 키워드 알림 - 모든 사용자의 키워드와 매칭
