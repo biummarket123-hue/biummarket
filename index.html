@@ -4001,10 +4001,8 @@ async function doSignup(){
     lsSet('users',users);
     lsSet('curUser',curUser);
     if(wantsBusiness){
-      showToast('사업자 신청이 완료됐어요! 관리자 승인 후 사업자 혜택을 이용할 수 있어요 😊');
       addAppNotification('admin','seller_request',`📋 ${name}님이 사업자 회원 전환을 신청했어요`,{userId:curUser.id,email,requestedRole});
     } else {
-      showToast('가입 완료! 환영해요 🎉');
       addAppNotification('admin','new_user',`👤 ${name}님이 새로 가입했어요`,{userId:curUser.id,email});
     }
     // 신규 가입 시 chatRooms 초기화
@@ -4012,8 +4010,15 @@ async function doSignup(){
     lsSet('chatRooms',{});
     lsSet('lastUserId',curUser.id||curUser.email||'');
     lsSet('interestCatsSet',false);
-    showView('list');showListSkeleton();loadProductsFromSupabase();
-    setTimeout(()=>openWelcomeModal(curUser.name||name),800);
+    // 이메일 인증 필요 여부 확인
+    if(data.user && !data.user.confirmed_at && !data.user.email_confirmed_at){
+      // 이메일 인증 필요 → 안내 화면 표시
+      curUser=null; lsSet('curUser',null);
+      showEmailVerifyScreen(email, wantsBusiness);
+    } else {
+      showView('list');showListSkeleton();loadProductsFromSupabase();
+      setTimeout(()=>openWelcomeModal(curUser.name||name),800);
+    }
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
 async function doLogout(){
@@ -9440,6 +9445,25 @@ function showAdminUserDetail(idx){
           </div>`;
       })()}
     </div>`;
+}
+function showEmailVerifyScreen(email, isBusiness){
+  const el = document.getElementById('view-login');
+  if(!el) return;
+  showView('login');
+  const loginBox = el.querySelector('.login-box');
+  if(!loginBox) return;
+  loginBox.innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:48px;margin-bottom:16px">📧</div>
+      <div style="font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:8px">이메일 인증을 완료해주세요!</div>
+      <div style="font-size:14px;color:#666;line-height:1.7;margin-bottom:20px">
+        <b style="color:#6c63ff">${email}</b>로<br>인증 메일을 발송했어요.<br>메일함을 확인 후 인증 링크를 클릭해주세요.
+      </div>
+      ${isBusiness?`<div style="padding:12px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:13px;color:#1d4ed8;margin-bottom:16px">📋 이메일 인증 후 사업자 심사가 진행됩니다.</div>`:''}
+      <div style="font-size:12px;color:#999;margin-bottom:16px">메일이 오지 않으면 스팸함을 확인해주세요.</div>
+      <button onclick="location.reload()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">✅ 인증 완료 후 로그인하기</button>
+    </div>
+  `;
 }
 function openBizReapply(){
   if(!curUser)return;
