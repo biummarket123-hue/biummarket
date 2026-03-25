@@ -4459,6 +4459,12 @@ function setHomeCat(key){
   homeCurCat=key;
   renderHomeCats();
   renderHomeSections();
+  // 전체가 아닐 때 배너, AI추천 숨김
+  const isAll = key==='전체';
+  const bannerEl=document.getElementById('home-premium-banner');
+  const aiEl=document.getElementById('ai-rec-section');
+  if(bannerEl)bannerEl.style.display=isAll?'':'none';
+  if(aiEl)aiEl.style.display=isAll?'':'none';
   const sec=document.getElementById('home-category-sections');
   if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
 }
