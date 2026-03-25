@@ -1785,27 +1785,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       </div>
       <button onclick="openProfileEditByType()" style="flex-shrink:0;background:rgba(108,99,255,.15);border:1px solid #6c63ff;color:#6c63ff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">프로필 수정</button>
     </div>
-    <!-- 글씨 크기 설정 -->
-    <div class="my-section-wrap">
-      <div class="my-section-title">글씨 크기</div>
-      <div style="padding:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-size:13px;color:#666677">가</span>
-          <div style="flex:1;height:2px;background:#e0e0ea;margin:0 8px;border-radius:2px;position:relative">
-            <div id="font-size-track" style="height:100%;background:#6c63ff;border-radius:2px;transition:width .2s"></div>
-          </div>
-          <span style="font-size:19px;color:#1a1a1a;font-weight:700">가</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;gap:8px">
-          <button class="font-size-btn" onclick="setFontSize(1)" id="fsz-1">매우<br>작게</button>
-          <button class="font-size-btn" onclick="setFontSize(2)" id="fsz-2">작게</button>
-          <button class="font-size-btn on" onclick="setFontSize(3)" id="fsz-3">기본</button>
-          <button class="font-size-btn" onclick="setFontSize(4)" id="fsz-4">크게</button>
-          <button class="font-size-btn" onclick="setFontSize(5)" id="fsz-5">매우<br>크게</button>
-        </div>
-        <div style="text-align:center;margin-top:10px;font-size:12px;color:#888" id="font-size-label">기본 (17px)</div>
-      </div>
-    </div>
     <!-- 알림 설정 -->
     <div class="my-section-wrap">
       <div class="my-section-title">알림 설정</div>
@@ -1915,6 +1894,27 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <div class="my-icon-box ib-yellow">💾</div>
         <div class="my-menu-info"><div class="my-menu-title">저장 공간</div></div>
         <span class="sett-val" id="sett-storage">계산중...</span>
+      </div>
+    </div>
+    <!-- 글씨 크기 설정 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">글씨 크기</div>
+      <div style="padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:13px;color:#666677">가</span>
+          <div style="flex:1;height:2px;background:#e0e0ea;margin:0 8px;border-radius:2px;position:relative">
+            <div id="font-size-track" style="height:100%;background:#6c63ff;border-radius:2px;transition:width .2s"></div>
+          </div>
+          <span style="font-size:19px;color:#1a1a1a;font-weight:700">가</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <button class="font-size-btn" onclick="setFontSize(1)" id="fsz-1">매우<br>작게</button>
+          <button class="font-size-btn" onclick="setFontSize(2)" id="fsz-2">작게</button>
+          <button class="font-size-btn on" onclick="setFontSize(3)" id="fsz-3">기본</button>
+          <button class="font-size-btn" onclick="setFontSize(4)" id="fsz-4">크게</button>
+          <button class="font-size-btn" onclick="setFontSize(5)" id="fsz-5">매우<br>크게</button>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:#888" id="font-size-label">기본 (17px)</div>
       </div>
     </div>
     <!-- 하단 액션 -->
