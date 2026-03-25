@@ -9551,17 +9551,43 @@ function adminToggleUserStatus(idx){
   showToast(newStatus==='suspended'?'회원이 정지됐어요 🚫':'회원이 활성화됐어요 ✅');
   showAdminUserDetail(idx);
 }
-function adminDeleteUser(idx){
+async function adminDeleteUser(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
-  if(!confirm(`'${u.name||u.email}' 회원을 정말 탈퇴시키겠습니까?`))return;
-  users=users.filter(x=>x.id!==u.id&&x.email!==u.email);
-  lsSet('users',users);
-  if(_sb&&u.id&&u.id!=='admin'){
-    _sb.from('users').delete().eq('id',u.id).then(()=>{});
+  if(!confirm(`'${u.name||u.email}' 회원을 정말 탈퇴시키겠습니까?\n\n상품, 채팅, 가격제안, 예약 등 모든 데이터가 삭제됩니다.`))return;
+  showToast('탈퇴 처리 중...');
+  try{
+    if(_sb&&u.id&&u.id!=='admin'){
+      // 1. 상품 삭제
+      await _sb.from('products').delete().eq('seller_id',u.id);
+      // 2. 채팅 메시지 삭제
+      await _sb.from('chat_messages').delete().eq('sender_id',u.id);
+      // 3. 채팅방 삭제 (buyer 또는 seller)
+      await _sb.from('chat_rooms').delete().or(`buyer_id.eq.${u.id},seller_id.eq.${u.id}`);
+      // 4. 가격제안 삭제
+      await _sb.from('price_offers').delete().eq('user_id',u.id);
+      // 5. 예약 삭제
+      await _sb.from('reservations').delete().eq('user_id',u.id);
+      // 6. users 테이블 삭제
+      await _sb.from('users').delete().eq('id',u.id);
+      // 7. Supabase Auth 계정 삭제 (서버리스 함수)
+      await fetch('/api/delete-user',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({userId:u.id})
+      });
+    }
+    // 8. 로컬 데이터 정리
+    users=users.filter(x=>x.id!==u.id&&x.email!==u.email);
+    products=products.filter(x=>x.seller_id!==u.id&&(!x.seller||x.seller.id!==u.id));
+    lsSet('users',users);
+    lsSet('products',products);
+    showToast('✅ 회원 탈퇴 처리 완료');
+    showAdminUsers();
+  }catch(e){
+    console.error('탈퇴 처리 오류:',e);
+    showToast('탈퇴 처리 중 오류가 발생했어요');
   }
-  showToast('회원이 탈퇴 처리됐어요');
-  showAdminUsers();
 }
 function adminSaveUserMemo(idx){
   if(!isAdmin())return;
