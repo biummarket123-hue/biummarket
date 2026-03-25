@@ -9564,10 +9564,11 @@ async function adminDeleteUser(idx){
       await _sb.from('chat_messages').delete().eq('sender_id',u.id);
       // 3. 채팅방 삭제 (buyer 또는 seller)
       await _sb.from('chat_rooms').delete().or(`buyer_id.eq.${u.id},seller_id.eq.${u.id}`);
-      // 4. 가격제안 삭제
-      await _sb.from('price_offers').delete().eq('user_id',u.id);
+      // 4. 가격제안 삭제 (buyer 또는 seller)
+      await _sb.from('price_offers').delete().eq('buyer_id',u.id);
+      await _sb.from('price_offers').delete().eq('seller_id',u.id);
       // 5. 예약 삭제
-      await _sb.from('reservations').delete().eq('user_id',u.id);
+      await _sb.from('reservations').delete().or(`user_id.eq.${u.id},buyer_id.eq.${u.id}`);
       // 6. users 테이블 삭제
       await _sb.from('users').delete().eq('id',u.id);
       // 7. Supabase Auth 계정 삭제 (서버리스 함수)
