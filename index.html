@@ -4304,25 +4304,15 @@ let CATEGORY_DATA=[
 // 하위 호환용 CATEGORY_MAP 자동 생성 (대분류id → 중분류명 배열)
 const CATEGORY_MAP=Object.fromEntries(CATEGORY_DATA.map(cat=>[cat.id,cat.sub.map(s=>s.name)]));
 // 기존 상품 type 값(단어형)을 새 CATEGORY_DATA id(대분류)에 매핑하는 변환 테이블
-const TYPE_ALIAS={
-  '면':'면/린넨','린넨':'면/린넨','면/린넨':'면/린넨',
-  '폴리':'폴리/합섬','합섬':'폴리/합섬','폴리에스터':'폴리/합섬','폴리/합섬':'폴리/합섬',
-  '울':'울/모직','모직':'울/모직','울/모직':'울/모직',
-  '니트':'니트/져지','져지':'니트/져지','니트/져지':'니트/져지',
-  '실크':'실크/새틴','실크/새틴':'실크/새틴',
-  '데님':'데님/청','청':'데님/청','데님/청':'데님/청',
-  '기능성':'기능성',
-  '레이스':'레이스/자수','자수':'레이스/자수','레이스/자수':'레이스/자수',
-};
+const TYPE_ALIAS={};
 // 카테고리 키 → 상품 배열 필터링 공통 함수
 function filterByCategory(prods,key){
   if(key==='전체')return prods;
-  const types=CATEGORY_MAP[key];
-  if(!types){
-    const allTypes=Object.values(CATEGORY_MAP).flat();
-    return prods.filter(p=>!allTypes.includes(p.type)&&TYPE_ALIAS[p.type]==null);
+  if(key==='기타'){
+    const allCats=CATEGORY_DATA.map(c=>c.id);
+    return prods.filter(p=>!allCats.includes(p.cat)&&!allCats.includes(p.type));
   }
-  return prods.filter(p=>types.includes(p.type)||TYPE_ALIAS[p.type]===key);
+  return prods.filter(p=> p.cat===key || p.type===key);
 }
 function filterByCat2(prods,cat1Key,cat2Key){
   if(!cat2Key)return filterByCategory(prods,cat1Key);
