@@ -4519,17 +4519,25 @@ function renderHomeCats(){
 }
 
 function setHomeCat(key){
+  if(key!=='전체'){
+    // 카테고리 탭으로 이동
+    showView('category');
+    setTimeout(()=>{
+      const catData=CATEGORY_DATA.find(c=>c.id===key);
+      if(catData){
+        // 카테고리 화면에서 해당 대분류 선택
+        selectCat1(key);
+      }
+    },100);
+    return;
+  }
   homeCurCat=key;
   renderHomeCats();
   renderHomeSections();
-  // 전체가 아닐 때 배너, AI추천 숨김
-  const isAll = key==='전체';
   const bannerEl=document.getElementById('home-premium-banner');
   const aiEl=document.getElementById('ai-rec-section');
-  if(bannerEl)bannerEl.style.display=isAll?'':'none';
-  if(aiEl)aiEl.style.display=isAll?'':'none';
-  const sec=document.getElementById('home-category-sections');
-  if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
+  if(bannerEl)bannerEl.style.display='';
+  if(aiEl)aiEl.style.display='';
 }
 
 function renderAiRecs(){
