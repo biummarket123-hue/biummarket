@@ -2264,6 +2264,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 파일 입력 (숨김) -->
     <input type="file" id="ai-file-input" accept="image/*" capture="camera" style="display:none" onchange="handleAiUpload(event)"/>
+    <input type="file" id="ai-label-input" accept="image/*" style="display:none" onchange="handleLabelUpload(event)"/>
     <input type="file" id="ai-gallery-input" accept="image/*" style="display:none" onchange="handleAiUpload(event)"/>
     <!-- 버튼 2개 -->
     <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">
@@ -2298,6 +2299,18 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 이미지 미리보기 -->
     <div style="padding:0 16px;display:none" id="ai-upload-area"></div>
+    <!-- 라벨 사진 추가 업로드 -->
+    <div id="ai-label-area" style="display:none;padding:0 16px;margin-top:10px">
+      <div style="border:1.5px dashed #c8a84b;border-radius:12px;padding:12px 16px;background:#fffdf0">
+        <div style="font-size:13px;font-weight:700;color:#c8962a;margin-bottom:8px">📋 라벨/태그 사진 추가 (선택)</div>
+        <div style="font-size:12px;color:#888;margin-bottom:10px">원단 라벨 사진을 추가하면 수/혼방비율 등 정확도가 높아져요</div>
+        <div id="ai-label-preview" style="display:none;margin-bottom:8px">
+          <img id="ai-label-img" style="width:100%;border-radius:8px;max-height:120px;object-fit:cover" src="" alt="라벨"/>
+          <button onclick="removeLabelImg()" style="margin-top:6px;padding:4px 10px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;color:#666;cursor:pointer">✕ 제거</button>
+        </div>
+        <button onclick="document.getElementById('ai-label-input').click()" style="width:100%;padding:10px;background:#fff;border:1.5px solid #c8a84b;border-radius:10px;font-size:13px;font-weight:600;color:#c8962a;cursor:pointer">🏷️ 라벨 사진 추가하기</button>
+      </div>
+    </div>
     <!-- 분석 결과 -->
     <div class="ai-result-card" id="ai-result-card"></div>
   </div>
@@ -3501,7 +3514,7 @@ async function uploadProductImg(src,idx){
   try{return await compressImage(src,400,0.7);}catch(e){return src;}
 }
 // 성공 시 result 객체 반환, 실패 시 { __error: '메시지' } 반환
-async function analyzeImageWithAI(dataUrl){
+async function analyzeImageWithAI(dataUrl, labelDataUrl=null){
   const base64=dataUrl.split(',')[1];
   const mediaType=dataUrl.startsWith('data:image/png')?'image/png'
     :dataUrl.startsWith('data:image/webp')?'image/webp':'image/jpeg';
@@ -3510,7 +3523,7 @@ async function analyzeImageWithAI(dataUrl){
     const res=await fetch('/api/analyze-image',{
       method:'POST',
       headers:{'content-type':'application/json'},
-      body:JSON.stringify({base64,mediaType})
+      body:JSON.stringify({base64,mediaType,labelBase64:labelDataUrl?labelDataUrl.split(',')[1]:null,labelMediaType:labelDataUrl?labelDataUrl.split(';')[0].split(':')[1]:null})
     });
     console.log('[AI분석] 응답 status:',res.status);
     if(!res.ok){
@@ -3536,11 +3549,33 @@ async function runAIAnalysis(dataUrl){
 /* ==================== AI VIEW ==================== */
 let aiViewImgData='';
 let aiLastAnalysisData=null;
+let aiLabelImgData=null;
+function handleLabelUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    aiLabelImgData=ev.target.result;
+    const preview=document.getElementById('ai-label-preview');
+    const img=document.getElementById('ai-label-img');
+    if(preview)preview.style.display='block';
+    if(img)img.src=aiLabelImgData;
+  };
+  reader.readAsDataURL(file);
+}
+function removeLabelImg(){
+  aiLabelImgData=null;
+  const preview=document.getElementById('ai-label-preview');
+  const input=document.getElementById('ai-label-input');
+  if(preview)preview.style.display='none';
+  if(input)input.value='';
+}
 function handleAiUpload(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
   r.onload=ev=>{
     aiViewImgData=ev.target.result;
+    const labelArea=document.getElementById('ai-label-area');
+    if(labelArea)labelArea.style.display='block';
     const area=document.getElementById('ai-upload-area');
     if(area){
       area.style.display='block';
@@ -3565,7 +3600,7 @@ async function startAiAnalysis(){
   const result=document.getElementById('ai-result-card');
   result.innerHTML='<div class="ai-loading">✨ AI가 원단을 분석하고 있어요...</div>';
   result.classList.add('show');
-  const data=await analyzeImageWithAI(aiViewImgData);
+  const data=await analyzeImageWithAI(aiViewImgData, aiLabelImgData);
   aiLastAnalysisData=data;
   if(btn){btn.textContent='AI 분석 시작';btn.disabled=false;}
   if(!data){
