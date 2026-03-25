@@ -3655,6 +3655,19 @@ async function startAiAnalysis(){
       <div class="ai-strategy-text" style="line-height:1.7">${description}</div>
     </div>
     <button onclick="applyAiResultToForm()" style="width:100%;margin-top:12px;padding:13px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📝 이 결과로 상품 등록하기</button>
+    <div style="margin-top:16px;padding:14px 16px;background:#f8f8fa;border:1.5px solid #e0e0ea;border-radius:14px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:4px">🔍 실제 스펙이 다른가요?</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">실제 스펙을 입력해주시면 AI 정확도 향상에 도움이 돼요</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">소재</div><input id="fb-material" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 린넨/레이온 55/45"/></div>
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">번수</div><input id="fb-count" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 21수"/></div>
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">중량</div><input id="fb-weight" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 185g/yd"/></div>
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">폭</div><input id="fb-width" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 52~54인치"/></div>
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">색상</div><input id="fb-color" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 세이지그린"/></div>
+        <div><div style="font-size:11px;color:#666;margin-bottom:4px">도매가</div><input id="fb-price" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 5,500원/m"/></div>
+      </div>
+      <button onclick="saveFabricFeedback()" style="width:100%;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 실제 스펙 저장 (AI 학습 기여)</button>
+    </div>
   `;
   renderSimilarFabrics(type,color,data);
 }
@@ -9534,6 +9547,44 @@ function openBizReapply(){
   }
   const modal=document.getElementById('modal-biz-upgrade');
   if(modal){modal.style.display='flex';}
+}
+async function saveFabricFeedback(){
+  if(!aiLastAnalysisData){showToast('분석 데이터가 없어요');return;}
+  const d=aiLastAnalysisData;
+  const material=document.getElementById('fb-material')?.value.trim()||d.material||'';
+  const count=document.getElementById('fb-count')?.value.trim()||d.count||'';
+  const weight=document.getElementById('fb-weight')?.value.trim()||d.weight||'';
+  const width=document.getElementById('fb-width')?.value.trim()||d.width||'';
+  const color=document.getElementById('fb-color')?.value.trim()||d.color||'';
+  const priceRange=document.getElementById('fb-price')?.value.trim()||d.price_range||'';
+  if(!material&&!count&&!weight){showToast('최소 소재, 번수, 중량 중 하나를 입력해주세요');return;}
+  try{
+    if(_sb){
+      await _sb.from('fabric_specs').insert({
+        category:d.category||'',
+        type:d.type||'',
+        material,
+        color,
+        weight,
+        width,
+        count,
+        texture:d.texture||'',
+        usage:d.usage||'',
+        season:d.season||'',
+        grade:d.grade||'',
+        price_range:priceRange,
+        description:d.description||''
+      });
+    }
+    showToast('✅ 실제 스펙이 저장됐어요! AI 학습에 기여해주셔서 감사해요 🙏');
+    // 입력 필드 초기화
+    ['fb-material','fb-count','fb-weight','fb-width','fb-color','fb-price'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value='';
+    });
+  }catch(e){
+    console.error('스펙 저장 오류:',e);
+    showToast('저장 중 오류가 발생했어요');
+  }
 }
 function applyAiResultToForm(){
   if(!aiLastAnalysisData) return;
