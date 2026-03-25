@@ -7276,8 +7276,8 @@ function renderProfileEdit(){
   // 유형별 섹션 표시/숨김
   const companySection=document.getElementById('pe-company-section');
   if(companySection)companySection.style.display=role==='both'?'block':'none';
-  const isBuyerRole=role==='buyer'||role===''||role==='guest';
-  const isSellerRole=role==='seller'||role==='both';
+  const isBuyerRole=role==='buyer'||role===''||role==='guest'||role==='member';
+  const isSellerRole=role==='seller'||role==='both'||role==='business';
   // 영업·거래 조건 - 판매자만
   const tradeSection=document.getElementById('pe-trade-section');
   if(tradeSection)tradeSection.style.display=isSellerRole?'block':'none';
