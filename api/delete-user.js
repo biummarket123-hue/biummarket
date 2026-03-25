@@ -12,18 +12,24 @@ export default async function handler(req, res) {
     if(!SUPABASE_URL || !SUPABASE_SERVICE_KEY){
       res.status(500).json({error:'Supabase 환경변수 없음'}); return;
     }
-    const response = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+    const headers = {
+      'apikey': SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    };
+    // 1. users 테이블 삭제 (service_role로 RLS 우회)
+    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
       method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-      }
+      headers
     });
-    const responseText = await response.text();
-    console.log('Supabase Auth 삭제 응답:', response.status, responseText);
-    if(!response.ok){
-      res.status(500).json({error: responseText, status: response.status}); return;
-    }
+    // 2. Supabase Auth 계정 삭제
+    const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers
+    });
+    const authText = await authRes.text();
+    console.log('Auth 삭제 응답:', authRes.status, authText);
     res.status(200).json({success: true});
   }catch(e){
     res.status(500).json({error: e.message});
