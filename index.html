@@ -3655,19 +3655,6 @@ async function startAiAnalysis(){
       <div class="ai-strategy-text" style="line-height:1.7">${description}</div>
     </div>
     <button onclick="applyAiResultToForm()" style="width:100%;margin-top:12px;padding:13px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📝 이 결과로 상품 등록하기</button>
-    <div style="margin-top:16px;padding:14px 16px;background:#f8f8fa;border:1.5px solid #e0e0ea;border-radius:14px">
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:4px">🔍 실제 스펙이 다른가요?</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px">실제 스펙을 입력해주시면 AI 정확도 향상에 도움이 돼요</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">소재</div><input id="fb-material" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 린넨/레이온 55/45"/></div>
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">번수</div><input id="fb-count" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 21수"/></div>
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">중량</div><input id="fb-weight" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 185g/yd"/></div>
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">폭</div><input id="fb-width" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 52~54인치"/></div>
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">색상</div><input id="fb-color" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 세이지그린"/></div>
-        <div><div style="font-size:11px;color:#666;margin-bottom:4px">도매가</div><input id="fb-price" class="fi" style="font-size:12px;padding:8px 10px" placeholder="예: 5,500원/m"/></div>
-      </div>
-      <button onclick="saveFabricFeedback()" style="width:100%;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 실제 스펙 저장 (AI 학습 기여)</button>
-    </div>
   `;
   renderSimilarFabrics(type,color,data);
 }
