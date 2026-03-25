@@ -3573,15 +3573,29 @@ function handleAiUpload(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
   r.onload=ev=>{
-    aiViewImgData=ev.target.result;
-    const labelArea=document.getElementById('ai-label-area');
-    if(labelArea)labelArea.style.display='block';
-    const area=document.getElementById('ai-upload-area');
-    if(area){
-      area.style.display='block';
-      area.innerHTML=`<img src="${aiViewImgData}" alt="업로드된 원단 이미지" style="width:100%;border-radius:16px;max-height:280px;object-fit:cover;margin-bottom:12px"/>`;
-    }
-    startAiAnalysis();
+    // 이미지 압축 (모바일 대용량 사진 대응)
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=1200;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){
+        if(w>h){h=Math.round(h*MAX/w);w=MAX;}
+        else{w=Math.round(w*MAX/h);h=MAX;}
+      }
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      aiViewImgData=canvas.toDataURL('image/jpeg',0.85);
+      const labelArea=document.getElementById('ai-label-area');
+      if(labelArea)labelArea.style.display='block';
+      const area=document.getElementById('ai-upload-area');
+      if(area){
+        area.style.display='block';
+        area.innerHTML=`<img src="${aiViewImgData}" alt="업로드된 원단 이미지" style="width:100%;border-radius:16px;max-height:280px;object-fit:cover;margin-bottom:12px"/>`;
+      }
+      startAiAnalysis();
+    };
+    img.src=ev.target.result;
   };
   r.readAsDataURL(file);
   e.target.value='';
