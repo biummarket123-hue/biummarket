@@ -9569,18 +9569,14 @@ async function adminDeleteUser(idx){
       await _sb.from('price_offers').delete().eq('seller_id',u.id);
       // 5. 예약 삭제
       await _sb.from('reservations').delete().or(`user_id.eq.${u.id},buyer_id.eq.${u.id}`);
-      // 6. users 테이블 삭제
-      await _sb.from('users').delete().eq('id',u.id);
-      // 7. Supabase Auth 계정 삭제 (서버리스 함수) - users 삭제 후 실행
-      await new Promise(r=>setTimeout(r,500)); // 삭제 완료 대기
+      // 6. users 테이블 + Auth 계정 삭제 (서버리스 함수로 service_role 사용)
       const delRes=await fetch('/api/delete-user',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({userId:u.id})
       });
       if(!delRes.ok){
-        const delErr=await delRes.json();
-        console.warn('Auth 계정 삭제 오류(무시):', delErr);
+        console.warn('Auth 계정 삭제 오류(무시):', await delRes.json());
       }
     }
     // 8. 로컬 데이터 정리
