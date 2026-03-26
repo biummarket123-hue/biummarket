@@ -5906,7 +5906,7 @@ async function rejectReservation(resvId){
 }
 
 /* ==================== SELLER PAGE ==================== */
-function switchSellerTab(tab,el){
+async function switchSellerTab(tab,el){
   document.querySelectorAll('#sh-tabs .seller-tab').forEach(t=>{
     t.style.borderBottomColor='transparent';
     t.style.color='#666677';
@@ -6108,8 +6108,10 @@ function switchSellerTab(tab,el){
       })()}
     `;
   } else if(tab==='news'){
-    const news=lsGet('bizNews',[]).filter(n=>n.author===seller.name||n.authorId===seller.id);
     const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
+    content.innerHTML=`<div style="text-align:center;padding:20px;color:#888">소식 불러오는 중...</div>`;
+    const{data:newsData}=await _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false});
+    const news=newsData||[];
     content.innerHTML=`
       ${isMine?`<div style="padding:12px 16px;border-bottom:8px solid #f5f5f5">
         <button onclick="showView('biz-news')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📢 새 소식 올리기</button>
@@ -6119,7 +6121,7 @@ function switchSellerTab(tab,el){
           <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
           <div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:8px">${n.content}</div>
           ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">${n.images.map(src=>`<img src="${src}" style="width:150px;height:110px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('')}</div>`:''}
-          <div style="font-size:12px;color:#aaa">${new Date(n.createdAt).toLocaleDateString()}</div>
+          <div style="font-size:12px;color:#aaa">${new Date(n.created_at||n.createdAt).toLocaleDateString('ko-KR')}</div>
         </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 소식이 없어요</div>'}</div>`;
     } else if(tab==='review'){
       const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
