@@ -7942,22 +7942,19 @@ function removeBizNewsImg(idx){
   bizNewsImgs.splice(idx,1);
   renderBizNewsImgPreview();
 }
-function submitBizNews(){
+async function submitBizNews(){
   const title=document.getElementById('biz-news-title')?.value.trim();
   const content=document.getElementById('biz-news-content')?.value.trim();
   if(!title||!content){showToast('제목과 내용을 입력해주세요');return;}
   if(!curUser){showToast('로그인이 필요해요');return;}
-  const news=lsGet('bizNews',[]);
-  news.unshift({
-    id:Date.now(),
+  if(!_sb){showToast('서버 연결 오류');return;}
+  const{data,error}=await _sb.from('biz_news').insert({
+    seller_id:curUser.id,
     title,
     content,
-    images:[...bizNewsImgs],
-    author:curUser.name||'',
-    authorId:curUser.id||'',
-    createdAt:new Date().toISOString()
-  });
-  lsSet('bizNews',news);
+    images:bizNewsImgs||[]
+  }).select().single();
+  if(error){showToast('소식 저장 실패: '+error.message);return;}
   // 단골(팔로워)에게 소식 알림
   if(_sb&&curUser){
     const myFollowers=lsGet('sellerFollowers',{});
@@ -7993,17 +7990,48 @@ function submitBizNews(){
     if(newsTab)switchSellerTab('news',newsTab);
   },300);
 }
-function renderBizNewsList(){
-  const news=lsGet('bizNews',[]);
-  const el=document.getElementById('biz-news-list');if(!el)return;
-  if(!news.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#888;font-size:13px">발행된 소식이 없어요</div>';return;}
-  el.innerHTML=news.map(n=>`
-    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:14px;margin-bottom:10px">
-      <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">${n.title}</div>
-      <div style="font-size:13px;color:#666;line-height:1.6;margin-bottom:8px">${n.content}</div>
-      ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">${n.images.map(src=>`<img src="${src}" style="width:120px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('')}</div>`:''}
-      <div style="font-size:11px;color:#aaa">${new Date(n.createdAt).toLocaleDateString()}</div>
+async function loadBizNewsList(){
+  if(!_sb||!curUser)return;
+  const{data}=await _sb.from('biz_news').select('*').eq('seller_id',curUser.id).order('created_at',{ascending:false});
+  return data||[];
+}
+async function renderBizNewsList(){
+  const list=await loadBizNewsList();
+  const el=document.getElementById('biz-news-list');
+  if(!el)return;
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#888">아직 올린 소식이 없어요</div>';return;}
+  el.innerHTML=list.map(n=>`
+    <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="font-size:var(--fs-md);font-weight:700;color:#1a1a1a;flex:1">${n.title}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+          <button onclick="editBizNews(${n.id},'${encodeURIComponent(n.title)}','${encodeURIComponent(n.content)}')" style="padding:4px 8px;background:#f0f0ff;border:none;border-radius:6px;font-size:var(--fs-xs);color:#6c63ff;cursor:pointer">수정</button>
+          <button onclick="deleteBizNews(${n.id})" style="padding:4px 8px;background:#fff0f0;border:none;border-radius:6px;font-size:var(--fs-xs);color:#e53935;cursor:pointer">삭제</button>
+        </div>
+      </div>
+      <div style="font-size:var(--fs-sm);color:#444;line-height:1.6;margin-bottom:8px">${n.content}</div>
+      ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto">${n.images.map(img=>`<img src="${img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0">`).join('')}</div>`:''}
+      <div style="font-size:var(--fs-xs);color:#aaa;margin-top:6px">${new Date(n.created_at).toLocaleDateString('ko-KR')}</div>
     </div>`).join('');
+}
+async function editBizNews(id, encodedTitle, encodedContent){
+  const title=decodeURIComponent(encodedTitle);
+  const content=decodeURIComponent(encodedContent);
+  const newTitle=prompt('제목 수정:', title);
+  if(!newTitle)return;
+  const newContent=prompt('내용 수정:', content);
+  if(!newContent)return;
+  const{error}=await _sb.from('biz_news').update({title:newTitle,content:newContent,updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){showToast('수정 실패: '+error.message);return;}
+  showToast('소식이 수정됐어요 ✅');
+  renderBizNewsList();
+}
+async function deleteBizNews(id){
+  if(!confirm('이 소식을 삭제하시겠습니까?'))return;
+  const{error}=await _sb.from('biz_news').delete().eq('id',id);
+  if(error){showToast('삭제 실패: '+error.message);return;}
+  showToast('소식이 삭제됐어요');
+  renderBizNewsList();
 }
 async function doChangeType(newType){
   if(!curUser)return;
