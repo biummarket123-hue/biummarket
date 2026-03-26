@@ -9623,7 +9623,7 @@ function openSimilarMore(p){
   const bottomHtml=`
     <div style="margin-top:20px;padding:16px;background:#f8f8fa;border-radius:14px;text-align:center">
       <div style="font-size:var(--fs-sm);color:#888;margin-bottom:10px">🔍 찾고 계신 원단이 없으신가요?</div>
-      <button onclick="showView('keyword-alert');goBack();" style="padding:11px 20px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer">🔔 키워드 알림 설정하기</button>
+      <button onclick="viewHistory.push('cat-products');showView('keyword-alert');" style="padding:11px 20px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer">🔔 키워드 알림 설정하기</button>
     </div>`;
   el.innerHTML=pinHtml+listHtml+bottomHtml;
   // 정렬 바 숨김
