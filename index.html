@@ -8206,8 +8206,12 @@ function applyRoleVisibility(){
     const adminSections=['section-sell-mgmt','section-buy-activity','section-community','menu-data-section'];
     const adminOnlyItems=['menu-register','menu-my-products','menu-top-sellers'];
     if(adminViewMode==='admin'){
-      // 관리자 심플 뷰 - 판매/구매/커뮤니티/데이터 숨김
-      adminSections.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      // 관리자 심플 뷰 - 판매/구매/커뮤니티 숨김, 데이터는 표시
+      adminSections.forEach(id=>{
+        if(id==='menu-data-section') return; // 데이터·분석은 관리자 뷰에서 표시
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
+      showIds(['menu-data-section']);
       hideIds(adminOnlyItems);
       // 서비스 섹션 내 일반 메뉴만 숨기고 관리자 관련은 표시
       ['svc-notif','svc-keyword','svc-interest','svc-notices'].forEach(id=>{
