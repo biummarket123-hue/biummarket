@@ -10025,7 +10025,20 @@ function openPolicy(type){
 }
 function openMySellerProfile(){
   if(!curUser)return;
-  openSellerPage(curUser);
+  const userInfo=users.find(u=>u.id===curUser.id)||curUser;
+  const sellerData={
+    id:curUser.id,
+    name:curUser.name||curUser.nickname||'',
+    email:curUser.email||'',
+    type:curUser.type||curUser.role||'biz',
+    role:curUser.role||curUser.type||'biz',
+    loc:curUser.loc||'',
+    tel:curUser.tel||'',
+    intro:curUser.intro||'',
+    extra_info:curUser.extra_info||userInfo.extra_info||'{}',
+    avatar:curUser.avatar||curUser.profileImage||'',
+  };
+  renderSellerPage(sellerData);
 }
 async function openWithdrawModal(){
   const confirmed=confirm('정말 탈퇴하시겠습니까?\n탈퇴 시 등록한 상품, 채팅, 거래 내역 등 모든 데이터가 영구 삭제됩니다.');
