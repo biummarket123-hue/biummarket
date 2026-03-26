@@ -1069,7 +1069,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <header class="home-hdr">
     <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;gap:1px"><span style="font-size:16px;font-weight:900;letter-spacing:-0.3px"><span style="color:#1a1a1a">비움</span><span style="color:#fbbf24">마켓</span></span><span style="font-size:8px;font-weight:600;color:#aaaaaa;letter-spacing:0.8px">BIUM MARKET</span></div>
     <div class="home-search-bar" onclick="openSearchOverlay()">
-      <button onclick="event.stopPropagation();showView('ai')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
+      <input type="file" id="img-search-input" accept="image/*" style="display:none" onchange="handleImgSearch(event)"/>
+<button onclick="event.stopPropagation();document.getElementById('img-search-input').click()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지로 상품 검색">📷</button>
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0"></span>
       <span style="flex:1;font-size:13px;color:#888899" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
       <button onclick="event.stopPropagation();openSearchOverlay()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
@@ -9631,6 +9632,79 @@ function openSimilarMore(p){
   if(sortBar)sortBar.style.display='none';
   viewHistory=['detail'];
   showView('cat-products',false);
+}
+async function handleImgSearch(e){
+  const file=e.target.files[0];if(!file)return;
+  e.target.value='';
+  showToast('이미지 분석 중... 잠시만 기다려주세요 🔍');
+  try{
+    // 이미지 압축
+    const compressed=await new Promise(res=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const img=new Image();
+        img.onload=()=>{
+          const canvas=document.createElement('canvas');
+          const MAX=1200;
+          let w=img.width,h=img.height;
+          if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+          canvas.width=w;canvas.height=h;
+          canvas.getContext('2d').drawImage(img,0,0,w,h);
+          res(canvas.toDataURL('image/jpeg',0.85));
+        };
+        img.src=ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    // Claude API로 카테고리/색상/소재 분석
+    const base64=compressed.split(',')[1];
+    const resp=await fetch('/api/analyze-image',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({base64,mediaType:'image/jpeg'})
+    });
+    const result=await resp.json();
+    const data=result.result||{};
+    // 분석 결과로 상품 검색
+    const cat=data.category||'';
+    const color=data.color||'';
+    const material=data.material||'';
+    const matched=products.filter(p=>{
+      const catMatch=p.cat===cat||p.type===cat||(cat&&(p.cat||'').includes(cat));
+      const colorMatch=color&&(p.color||'').includes(color);
+      const matMatch=material&&(p.material||'').includes(material);
+      return catMatch||colorMatch||matMatch;
+    });
+    if(!matched.length){
+      showToast('비슷한 원단을 찾지 못했어요. 다른 사진으로 시도해보세요');
+      return;
+    }
+    // 검색 결과 화면 표시
+    const el=document.getElementById('cp-list');
+    if(!el)return;
+    curViewMode='img-search';
+    const hdr=document.getElementById('cp-hdr-title');
+    if(hdr)hdr.textContent=`이미지 검색 결과 (${matched.length}개)`;
+    const sortBar=document.querySelector('.cp-sort-bar');
+    if(sortBar)sortBar.style.display='none';
+    // 분석 결과 요약 표시
+    const summaryHtml=`
+      <div style="margin-bottom:12px;padding:12px 14px;background:#f0f0ff;border:1.5px solid #6c63ff33;border-radius:14px">
+        <div style="font-size:var(--fs-xs);color:#6c63ff;font-weight:600;margin-bottom:6px">🔍 이미지 분석 결과</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${cat?`<span style="background:#6c63ff15;color:#6c63ff;padding:3px 8px;border-radius:8px;font-size:var(--fs-xs);font-weight:600">${cat}</span>`:''}
+          ${data.type?`<span style="background:#6c63ff15;color:#6c63ff;padding:3px 8px;border-radius:8px;font-size:var(--fs-xs);font-weight:600">${data.type}</span>`:''}
+          ${color?`<span style="background:#ff658415;color:#ff6584;padding:3px 8px;border-radius:8px;font-size:var(--fs-xs);font-weight:600">${color}</span>`:''}
+          ${material?`<span style="background:#00968815;color:#009688;padding:3px 8px;border-radius:8px;font-size:var(--fs-xs);font-weight:600">${material}</span>`:''}
+        </div>
+      </div>`;
+    el.innerHTML=summaryHtml+matched.map(s=>renderHomeProduct(s)).join('');
+    viewHistory=['list'];
+    showView('cat-products',false);
+  }catch(err){
+    console.error('이미지 검색 오류:',err);
+    showToast('이미지 검색 중 오류가 발생했어요');
+  }
 }
 function openBizReapply(){
   if(!curUser)return;
