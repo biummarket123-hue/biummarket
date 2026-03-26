@@ -4520,14 +4520,9 @@ function renderHomeCats(){
 
 function setHomeCat(key){
   if(key!=='전체'){
-    // 카테고리 탭으로 이동
     showView('category');
     setTimeout(()=>{
-      const catData=CATEGORY_DATA.find(c=>c.id===key);
-      if(catData){
-        // 카테고리 화면에서 해당 대분류 선택
-        selectCat1(key);
-      }
+      catGoStep1(key);
     },100);
     return;
   }

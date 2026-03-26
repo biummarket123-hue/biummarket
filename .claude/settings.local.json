@@ -19,7 +19,10 @@
       "Bash(ls /c/Python*/python.exe /c/Users/A/AppData/Local/Programs/Python/*/python.exe)",
       "Read(//c/ProgramData/miniconda3/**)",
       "Bash(npm install:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js\")",
+      "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js | Out-String\")",
+      "Bash(powershell.exe -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3655..3690\\) | ForEach-Object { $_ }\")"
     ]
   }
 }
