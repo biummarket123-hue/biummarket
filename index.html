@@ -4464,6 +4464,7 @@ function openCatProducts(key,label){
 }
 
 function setCatSort(sort){
+  if(curViewMode==='similar-more') return;
   curCatSort=sort;
   ['latest','price','popular'].forEach(s=>{
     const btn=document.getElementById('cpSort-'+s);
@@ -9635,6 +9636,9 @@ function openSimilarMore(p){
       <button onclick="showView('keyword-alert');goBack();" style="padding:11px 20px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer">🔔 키워드 알림 설정하기</button>
     </div>`;
   el.innerHTML=pinHtml+listHtml+bottomHtml;
+  // 정렬 바 숨김
+  const sortBar=document.querySelector('.cp-sort-bar');
+  if(sortBar)sortBar.style.display='none';
   viewHistory=['detail'];
   showView('cat-products',false);
 }
