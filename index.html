@@ -1933,6 +1933,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <div class="my-menu-item" onclick="openWithdrawModal()" style="border-top:1px solid #fee2e2">
+        <div class="my-icon-box" style="background:rgba(239,68,68,0.1)">🗑️</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title" style="color:#ef4444">회원 탈퇴</div>
+          <div class="my-menu-sub">탈퇴 시 모든 데이터가 삭제됩니다</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
     </div>
     <!-- 앱 정보 -->
     <div class="my-section-wrap">
@@ -10006,6 +10014,42 @@ function openPolicy(type){
       ${p.content}
     </div>`;
   document.body.appendChild(overlay);
+}
+async function openWithdrawModal(){
+  const confirmed=confirm('정말 탈퇴하시겠습니까?\n탈퇴 시 등록한 상품, 채팅, 거래 내역 등 모든 데이터가 영구 삭제됩니다.');
+  if(!confirmed)return;
+  const confirmed2=confirm('한 번 더 확인합니다. 탈퇴하면 복구가 불가능합니다.\n정말 탈퇴하시겠습니까?');
+  if(!confirmed2)return;
+  showToast('탈퇴 처리 중...');
+  try{
+    const uid=curUser?.id;
+    if(!uid){showToast('로그인 정보를 찾을 수 없어요');return;}
+    // 관련 데이터 순차 삭제
+    if(_sb){
+      await _sb.from('products').delete().eq('seller_id',uid);
+      await _sb.from('chat_messages').delete().eq('sender_id',uid);
+      await _sb.from('chat_rooms').delete().or(`buyer_id.eq.${uid},seller_id.eq.${uid}`);
+      await _sb.from('price_offers').delete().or(`buyer_id.eq.${uid},seller_id.eq.${uid}`);
+      await _sb.from('reservations').delete().or(`user_id.eq.${uid},buyer_id.eq.${uid}`);
+    }
+    // Auth 계정 + users 테이블 삭제
+    const res=await fetch('/api/delete-user',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({userId:uid})
+    });
+    if(!res.ok)throw new Error('탈퇴 처리 실패');
+    // 로컬 데이터 정리
+    const activeId=localStorage.getItem('bium_activeUserId')||'';
+    localStorage.removeItem('bium_u_'+activeId+'_curUser');
+    localStorage.removeItem('bium_activeUserId');
+    curUser=null;
+    showToast('탈퇴가 완료됐습니다. 이용해주셔서 감사합니다 🙏');
+    setTimeout(()=>location.replace('./landing.html'),1500);
+  }catch(e){
+    console.error('탈퇴 오류:',e);
+    showToast('탈퇴 처리 중 오류가 발생했어요. 고객센터에 문의해주세요.');
+  }
 }
 function openBizReapply(){
   if(!curUser)return;
