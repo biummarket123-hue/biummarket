@@ -2058,8 +2058,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <!-- 검색바 (sticky) -->
   <div class="sv-top">
     <div class="sv-bar" style="padding:6px 6px 6px 14px">
-      <input type="file" id="img-search-input2" accept="image/*" style="display:none" onchange="handleImgSearch(event)"/>
-<button onclick="closeSearchOverlay();setTimeout(()=>document.getElementById('img-search-input2').click(),200)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
+      <button onclick="closeSearchOverlay();setTimeout(()=>openImgSearchView(),200)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지 검색">📷</button>
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0;margin:0 4px"></span>
       <input type="text" id="sv-input" placeholder="원단명, 색상, 종류 검색..." autocomplete="off" style="flex:1"/>
       <button class="sv-clear" id="sv-clear-btn" onclick="clearSvInput()" style="display:none">✕</button>
@@ -9634,19 +9633,28 @@ function openSimilarMore(p){
   showView('cat-products',false);
 }
 function openImgSearchView(){
-  const view=document.getElementById('view-img-search');
-  if(view){showView('img-search');return;}
+  const existing=document.getElementById('view-img-search');
+  if(existing){
+    // 기존 뷰 초기화
+    const prev=existing.querySelector('#img-search-preview');
+    const res=existing.querySelector('#img-search-result');
+    if(prev)prev.style.display='none';
+    if(res)res.innerHTML='';
+    showView('img-search');
+    return;
+  }
   // 동적 생성
   const div=document.createElement('div');
   div.id='view-img-search';
   div.className='view';
+  div.style.cssText='position:fixed;inset:0;z-index:100;background:#fff;display:flex;flex-direction:column;overflow:hidden';
   div.innerHTML=`
     <header class="hdr">
       <button class="hdr-back" onclick="goBack()">←</button>
       <div class="hdr-title">이미지로 상품 검색</div>
       <div style="width:38px"></div>
     </header>
-    <div class="f-scroll" style="padding:16px">
+    <div class="f-scroll" style="padding:16px;overflow-y:auto;flex:1">
       <input type="file" id="img-search-main-input" accept="image/*" style="display:none" onchange="handleImgSearch(event)"/>
       <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:20px">
         <div style="font-size:48px;margin-bottom:12px">📷</div>
