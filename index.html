@@ -8209,11 +8209,14 @@ function applyRoleVisibility(){
       // 관리자 심플 뷰 - 판매/구매/커뮤니티/데이터 숨김
       adminSections.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
       hideIds(adminOnlyItems);
-      showIds(['menu-admin-dashboard']);
+      // 서비스 섹션 숨기고 관리자 대시보드는 따로 표시
       const svcSection=document.getElementById('section-service');
       if(svcSection)svcSection.style.display='none';
-      if(adminSection)adminSection.style.display='block';
+      if(adminSection){adminSection.style.display='block';}
       if(bizSection)bizSection.style.display='none';
+      // 관리자 대시보드 직접 표시
+      const adminDash=document.getElementById('menu-admin-dashboard');
+      if(adminDash)adminDash.style.display='flex';
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
       if(toggleBtn)toggleBtn.textContent='👤 사업자 회원으로 보기';
     }else{
