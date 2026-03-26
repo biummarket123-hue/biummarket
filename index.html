@@ -1569,7 +1569,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 서비스 섹션 -->
     <div class="my-section-wrap" id="section-service">
       <div class="my-section-title">🔔 서비스</div>
-      <div class="my-menu-item" onclick="showView('notif')">
+      <div class="my-menu-item" id="svc-notif" onclick="showView('notif')">
         <div class="my-icon-box ib-yellow">🔔</div>
         <div class="my-menu-info">
           <div class="my-menu-title">알림</div>
@@ -1577,7 +1577,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openKeywordAlert()">
+      <div class="my-menu-item" id="svc-keyword" onclick="openKeywordAlert()">
         <div class="my-icon-box ib-teal">🔍</div>
         <div class="my-menu-info">
           <div class="my-menu-title">키워드 알림</div>
@@ -1585,7 +1585,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="openInterestModal()">
+      <div class="my-menu-item" id="svc-interest" onclick="openInterestModal()">
         <div class="my-icon-box ib-purple">⭐</div>
         <div class="my-menu-info">
           <div class="my-menu-title">관심 원단 설정</div>
@@ -1593,7 +1593,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('notices')">
+      <div class="my-menu-item" id="svc-notices" onclick="showView('notices')">
         <div class="my-icon-box ib-orange">📢</div>
         <div class="my-menu-info">
           <div class="my-menu-title">공지사항</div>
@@ -8209,14 +8209,14 @@ function applyRoleVisibility(){
       // 관리자 심플 뷰 - 판매/구매/커뮤니티/데이터 숨김
       adminSections.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
       hideIds(adminOnlyItems);
-      // 서비스 섹션 숨기고 관리자 대시보드는 따로 표시
-      const svcSection=document.getElementById('section-service');
-      if(svcSection)svcSection.style.display='none';
+      // 서비스 섹션 내 일반 메뉴만 숨기고 관리자 관련은 표시
+      ['svc-notif','svc-keyword','svc-interest','svc-notices'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
+      const svcTitle=document.querySelector('#section-service .my-section-title');
+      if(svcTitle)svcTitle.style.display='none';
       if(adminSection){adminSection.style.display='block';}
       if(bizSection)bizSection.style.display='none';
-      // 관리자 대시보드 직접 표시
-      const adminDash=document.getElementById('menu-admin-dashboard');
-      if(adminDash)adminDash.style.display='flex';
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
       if(toggleBtn)toggleBtn.textContent='👤 사업자 회원으로 보기';
     }else{
@@ -8224,8 +8224,11 @@ function applyRoleVisibility(){
       adminSections.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
       showIds(['menu-register','menu-my-products','menu-data-section']);
       hideIds(['menu-admin-dashboard','menu-top-sellers']);
-      const svcSection=document.getElementById('section-service');
-      if(svcSection)svcSection.style.display='';
+      ['svc-notif','svc-keyword','svc-interest','svc-notices'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='';
+      });
+      const svcTitle=document.querySelector('#section-service .my-section-title');
+      if(svcTitle)svcTitle.style.display='';
       if(adminSection)adminSection.style.display='none';
       if(bizSection)bizSection.style.display='block';
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
