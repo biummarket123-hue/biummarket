@@ -9674,19 +9674,43 @@ function openImgSearchView(){
 async function handleImgSearch(e){
   const file=e.target.files[0];if(!file)return;
   e.target.value='';
-  showToast('이미지 분석 중... 잠시만 기다려주세요 🔍');
+  // 로딩 게이지 표시
+  const resultArea=document.getElementById('img-search-result');
+  if(resultArea){
+    resultArea.innerHTML=`
+      <div id="img-search-loading" style="padding:20px 0">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:32px;margin-bottom:8px">🔍</div>
+          <div id="img-search-loading-text" style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;margin-bottom:4px">이미지 업로드 중...</div>
+          <div id="img-search-loading-sub" style="font-size:var(--fs-xs);color:#888">잠시만 기다려주세요</div>
+        </div>
+        <div style="background:#f0f0f5;border-radius:10px;height:8px;overflow:hidden;margin:0 4px">
+          <div id="img-search-progress" style="height:100%;background:linear-gradient(135deg,#6c63ff,#ff6584);border-radius:10px;width:0%;transition:width 0.5s ease"></div>
+        </div>
+        <div style="text-align:center;margin-top:8px;font-size:var(--fs-xs);color:#6c63ff;font-weight:600" id="img-search-progress-pct">0%</div>
+      </div>`;
+  }
+  function updateProgress(pct, text, sub){
+    const bar=document.getElementById('img-search-progress');
+    const txt=document.getElementById('img-search-loading-text');
+    const stxt=document.getElementById('img-search-loading-sub');
+    const pctEl=document.getElementById('img-search-progress-pct');
+    if(bar)bar.style.width=pct+'%';
+    if(txt)txt.textContent=text;
+    if(stxt)stxt.textContent=sub||'';
+    if(pctEl)pctEl.textContent=pct+'%';
+  }
+  updateProgress(10,'이미지 업로드 중...','사진을 준비하고 있어요');
   try{
-    // 이미지 압축
     // 미리보기 표시
   const previewArea=document.getElementById('img-search-preview');
   const previewImg=document.getElementById('img-search-preview-img');
-  const resultArea=document.getElementById('img-search-result');
-  if(resultArea)resultArea.innerHTML='<div style="text-align:center;padding:20px;color:#6c63ff;font-weight:600">✨ 이미지 분석 중...</div>';
   const compressed=await new Promise(res=>{
       const reader=new FileReader();
       reader.onload=ev=>{
         if(previewArea)previewArea.style.display='block';
         if(previewImg)previewImg.src=ev.target.result;
+        updateProgress(30,'이미지 압축 중...','최적화하고 있어요');
         const img=new Image();
         img.onload=()=>{
           const canvas=document.createElement('canvas');
@@ -9703,11 +9727,13 @@ async function handleImgSearch(e){
     });
     // Claude API로 카테고리/색상/소재 분석
     const base64=compressed.split(',')[1];
+    updateProgress(50,'AI 분석 중...','원단 특성을 파악하고 있어요');
     const resp=await fetch('/api/analyze-image',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({base64,mediaType:'image/jpeg'})
     });
+    updateProgress(80,'상품 검색 중...','비슷한 원단을 찾고 있어요');
     const result=await resp.json();
     const data=result.result||{};
     // 분석 결과로 상품 검색
@@ -9756,6 +9782,8 @@ async function handleImgSearch(e){
       return;
     }
     // 이미지 검색 화면에 결과 표시
+    updateProgress(100,'검색 완료!','');
+    await new Promise(r=>setTimeout(r,300));
     if(resultArea){
       const summaryHtml=`
         <div style="margin-bottom:12px;padding:12px 14px;background:#f0f0ff;border:1.5px solid #6c63ff33;border-radius:14px">
