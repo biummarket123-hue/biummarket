@@ -9732,8 +9732,25 @@ async function handleImgSearch(e){
       const typeMatch=fabricType&&((p.type||'').includes(fabricType)||(p.title||'').includes(fabricType)||(p.material||'').includes(fabricType));
       return catMatch||matMatch||colorMatch||typeMatch;
     });
-    // 매칭 없으면 같은 대분류 전체 표시
-    const finalMatched = matched.length > 0 ? matched : products.filter(p=>p.cat===cat||p.type===cat).slice(0,10);
+    // 유사도 점수 계산 후 정렬
+    const scored = (matched.length > 0 ? matched : products.filter(p=>p.cat===cat||p.type===cat).slice(0,10))
+      .map(p=>{
+        let score=0;
+        if(p.cat===cat||p.type===cat) score+=3;
+        else if((p.cat||'').includes(cat)||(p.type||'').includes(cat)) score+=1;
+        const pMat=(p.material||'').toLowerCase();
+        const pTitle=(p.title||'').toLowerCase();
+        matKeywords.forEach(k=>{
+          if(pMat.includes(k.toLowerCase())) score+=2;
+          if(pTitle.includes(k.toLowerCase())) score+=1;
+        });
+        if(color&&(p.color||'').includes(color)) score+=2;
+        if(color&&(p.title||'').includes(color)) score+=1;
+        if(fabricType&&((p.type||'').includes(fabricType)||(p.material||'').includes(fabricType))) score+=2;
+        return {...p,_score:score};
+      })
+      .sort((a,b)=>b._score-a._score);
+    const finalMatched=scored;
     if(!finalMatched.length){
       showToast('비슷한 원단을 찾지 못했어요. 다른 사진으로 시도해보세요');
       return;
