@@ -8229,9 +8229,15 @@ function applyRoleVisibility(){
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
       if(toggleBtn)toggleBtn.textContent='👤 사업자 회원으로 보기';
     }else{
-      // 사업자 뷰 - 전체 메뉴 표시
-      adminSections.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+      // 사업자 뷰 - 전체 메뉴 표시 (데이터·분석 제외)
+      adminSections.forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el)return;
+        if(id==='menu-data-section'){el.style.display='none';return;}
+        el.style.display='';
+      });
       showIds(['menu-register','menu-my-products']);
+      hideIds(['menu-data-section']);
       hideIds(['menu-admin-dashboard','menu-top-sellers']);
       ['svc-notif','svc-keyword','svc-interest','svc-notices'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.style.display='';
