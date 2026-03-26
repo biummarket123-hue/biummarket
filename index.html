@@ -9714,13 +9714,27 @@ async function handleImgSearch(e){
     const cat=data.category||'';
     const color=data.color||'';
     const material=data.material||'';
+    const fabricType=data.type||'';
+    // 소재 키워드 추출 (면, 린넨, 폴리, 실크 등)
+    const matKeywords=[material,fabricType].join(' ')
+      .replace(/[0-9]/g,'').split(/[\s\/\+,]+/)
+      .filter(k=>k.length>1);
     const matched=products.filter(p=>{
-      const catMatch=p.cat===cat||p.type===cat||(cat&&(p.cat||'').includes(cat));
-      const colorMatch=color&&(p.color||'').includes(color);
-      const matMatch=material&&(p.material||'').includes(material);
-      return catMatch||colorMatch||matMatch;
+      // 1. 카테고리 매칭
+      const catMatch=cat&&(p.cat===cat||p.type===cat||(p.cat||'').includes(cat)||(p.type||'').includes(cat));
+      // 2. 소재 키워드 매칭
+      const pMat=(p.material||'').toLowerCase();
+      const pTitle=(p.title||'').toLowerCase();
+      const matMatch=matKeywords.some(k=>pMat.includes(k.toLowerCase())||pTitle.includes(k.toLowerCase()));
+      // 3. 색상 매칭
+      const colorMatch=color&&((p.color||'').includes(color)||(p.title||'').includes(color));
+      // 4. 조직/타입 매칭
+      const typeMatch=fabricType&&((p.type||'').includes(fabricType)||(p.title||'').includes(fabricType)||(p.material||'').includes(fabricType));
+      return catMatch||matMatch||colorMatch||typeMatch;
     });
-    if(!matched.length){
+    // 매칭 없으면 같은 대분류 전체 표시
+    const finalMatched = matched.length > 0 ? matched : products.filter(p=>p.cat===cat||p.type===cat).slice(0,10);
+    if(!finalMatched.length){
       showToast('비슷한 원단을 찾지 못했어요. 다른 사진으로 시도해보세요');
       return;
     }
@@ -9736,8 +9750,8 @@ async function handleImgSearch(e){
             ${material?`<span style="background:#00968815;color:#009688;padding:3px 8px;border-radius:8px;font-size:var(--fs-xs);font-weight:600">${material}</span>`:''}
           </div>
         </div>
-        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;margin-bottom:10px">검색결과 ${matched.length}개</div>
-        <div style="display:flex;flex-direction:column;gap:8px">${matched.map(s=>renderHomeProduct(s)).join('')}</div>`;
+        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;margin-bottom:10px">검색결과 ${finalMatched.length}개</div>
+        <div style="display:flex;flex-direction:column;gap:8px">${finalMatched.map(s=>renderHomeProduct(s)).join('')}</div>`;
       resultArea.innerHTML=summaryHtml;
     }
   }catch(err){
