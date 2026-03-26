@@ -23,7 +23,9 @@
       "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js\")",
       "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js | Out-String\")",
       "Bash(powershell.exe -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3655..3690\\) | ForEach-Object { $_ }\")",
-      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3705..3743\\) | Out-String\")"
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3705..3743\\) | Out-String\")",
+      "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1092..1102\\)\")",
+      "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1097..1101\\)\")"
     ]
   }
 }
