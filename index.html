@@ -2048,6 +2048,38 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   </div>
 </div>
 
+<!-- ========== IMAGE SEARCH VIEW ========== -->
+<div id="view-img-search" class="view">
+  <header class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">이미지로 상품 검색</div>
+    <div style="width:38px"></div>
+  </header>
+  <div class="f-scroll">
+    <input type="file" id="img-search-main-input" accept="image/*" style="display:none" onchange="handleImgSearch(event)"/>
+    <div style="margin:16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:20px;padding:24px 20px;text-align:center">
+      <div style="font-size:40px;margin-bottom:10px">📷</div>
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px">이미지로 원단 검색</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6">원단 사진을 업로드하면<br>비슷한 원단 상품을 찾아드려요</div>
+    </div>
+    <div id="img-search-preview" style="display:none;margin:0 16px 16px">
+      <img id="img-search-preview-img" style="width:100%;border-radius:16px;max-height:240px;object-fit:cover"/>
+    </div>
+    <div id="img-search-result" style="margin:0 16px 16px"></div>
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <button onclick="document.getElementById('img-search-main-input').click()" style="width:100%;padding:15px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:14px;font-size:var(--fs-md);font-weight:700;cursor:pointer">📷 사진 촬영 / 갤러리 선택</button>
+    </div>
+    <div style="margin:0 16px 24px;padding:14px;background:#f8f8fa;border-radius:12px">
+      <div style="font-size:var(--fs-xs);color:#888;line-height:1.8">
+        💡 <b>이런 사진이 잘 검색돼요</b><br>
+        · 원단을 평평하게 펼친 사진<br>
+        · 조직이 잘 보이는 근접 사진<br>
+        · 밝은 곳에서 찍은 사진
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ========== SEARCH OVERLAY ========== -->
 <div id="view-search-view">
   <header class="hdr">
@@ -9633,52 +9665,10 @@ function openSimilarMore(p){
   showView('cat-products',false);
 }
 function openImgSearchView(){
-  const existing=document.getElementById('view-img-search');
-  if(existing){
-    // 기존 뷰 초기화
-    const prev=existing.querySelector('#img-search-preview');
-    const res=existing.querySelector('#img-search-result');
-    if(prev)prev.style.display='none';
-    if(res)res.innerHTML='';
-    showView('img-search');
-    return;
-  }
-  // 동적 생성
-  const div=document.createElement('div');
-  div.id='view-img-search';
-  div.className='view';
-  div.style.cssText='position:fixed;inset:0;z-index:100;background:#fff;display:flex;flex-direction:column;overflow:hidden';
-  div.innerHTML=`
-    <header class="hdr">
-      <button class="hdr-back" onclick="goBack()">←</button>
-      <div class="hdr-title">이미지로 상품 검색</div>
-      <div style="width:38px"></div>
-    </header>
-    <div class="f-scroll" style="padding:16px;overflow-y:auto;flex:1">
-      <input type="file" id="img-search-main-input" accept="image/*" style="display:none" onchange="handleImgSearch(event)"/>
-      <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:20px">
-        <div style="font-size:48px;margin-bottom:12px">📷</div>
-        <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">이미지로 원단 검색</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6">원단 사진을 업로드하면<br>비슷한 원단 상품을 찾아드려요</div>
-      </div>
-      <div id="img-search-preview" style="display:none;margin-bottom:16px">
-        <img id="img-search-preview-img" style="width:100%;border-radius:16px;max-height:280px;object-fit:cover"/>
-      </div>
-      <div id="img-search-result" style="margin-bottom:16px"></div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <button onclick="document.getElementById('img-search-main-input').click()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">📷 사진 촬영</button>
-        <button onclick="document.getElementById('img-search-main-input').click()" style="width:100%;padding:16px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">🖼️ 갤러리에서 선택</button>
-      </div>
-      <div style="margin-top:16px;padding:14px;background:#f8f8fa;border-radius:12px">
-        <div style="font-size:12px;color:#888;line-height:1.8">
-          💡 <b>이런 사진이 잘 검색돼요</b><br>
-          · 원단을 평평하게 펼친 사진<br>
-          · 조직이 잘 보이는 근접 사진<br>
-          · 밝은 곳에서 찍은 사진
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(div);
+  const prev=document.getElementById('img-search-preview');
+  const res=document.getElementById('img-search-result');
+  if(prev)prev.style.display='none';
+  if(res)res.innerHTML='';
   showView('img-search');
 }
 async function handleImgSearch(e){
