@@ -8855,12 +8855,26 @@ function updateBannerStats(){
     {label:'급처',value:urgentCount+'개',icon:'⚡'},
     {label:'오늘 신규',value:todayCount+'개',icon:'🆕'},
   ];
-  el.innerHTML=stats.map(s=>`
-    <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;text-align:center;min-width:60px">
-      <div style="font-size:16px;margin-bottom:2px">${s.icon}</div>
-      <div style="font-size:15px;font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px">${s.label}</div>
-    </div>`).join('');
+  const row1=stats.slice(0,2);
+  const row2=stats.slice(2,5);
+  el.style.cssText='margin-top:10px;display:flex;flex-direction:column;gap:6px';
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      ${row1.map(s=>`
+      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
+        <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
+        <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+      ${row2.map(s=>`
+      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
+        <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
+        <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
+      </div>`).join('')}
+    </div>`;
 }
 function renderAdmin(){
   if(!isAdmin()){showToast('관리자만 접근할 수 있어요');showView('mypage');return;}
