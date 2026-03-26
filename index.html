@@ -9619,17 +9619,7 @@ function openSimilarMore(p){
         </div>
       </div>
     </div>`;
-  const listHtml=`<div style="display:flex;flex-direction:column;gap:10px">` + similar.map(s=>`
-    <div onclick="openDetail(${s.id})" style="display:flex;gap:12px;background:#fff;border:1px solid #e0e0ea;border-radius:14px;overflow:hidden;cursor:pointer;padding:10px">
-      <div style="width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(s.type,s.color)};position:relative">
-        ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
-      </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${s.title||''}</div>
-        <div style="font-size:var(--fs-xs);color:#888;margin-bottom:4px">${s.cat||s.type||''} ${s.material?'· '+s.material:''}</div>
-        <div style="font-size:var(--fs-md);color:#e53935;font-weight:700">${fmtPrice(s.price)}/${s.unit||'m'}</div>
-      </div>
-    </div>`).join('') + `</div>`;
+  const listHtml=`<div style="display:flex;flex-direction:column;gap:8px">` + similar.map(s=>renderHomeProduct(s)).join('') + `</div>`;
   const bottomHtml=`
     <div style="margin-top:20px;padding:16px;background:#f8f8fa;border-radius:14px;text-align:center">
       <div style="font-size:var(--fs-sm);color:#888;margin-bottom:10px">🔍 찾고 계신 원단이 없으신가요?</div>
