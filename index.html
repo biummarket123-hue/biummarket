@@ -1465,7 +1465,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div id="menu-biz-apply-section" style="display:none"></div>
     <!-- 상품 관리 섹션 -->
     <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_products">상품 관리</div>
+      <!-- ===== 판매 관리 (사업자 전용) ===== -->
+      <div class="my-section-title">🏭 판매 관리</div>
       <div class="my-menu-item" id="menu-register" onclick="showView('form')">
         <div class="my-icon-box ib-purple">➕</div>
         <div class="my-menu-info">
@@ -1528,6 +1529,10 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <span class="my-menu-arrow" style="color:#c8a84b">›</span>
         </div>
       </div>
+      </div>
+      <!-- ===== 구매 활동 ===== -->
+      <div class="my-section-wrap">
+        <div class="my-section-title">🛒 구매 활동</div>
       <div class="my-menu-item" onclick="showView('my-offers');renderMyOffers()">
         <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
         <div class="my-menu-info">
@@ -1555,7 +1560,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 서비스 섹션 -->
     <div class="my-section-wrap">
-      <div class="my-section-title">서비스</div>
+      <div class="my-section-title">🔔 서비스</div>
       <div class="my-menu-item" onclick="showView('notif')">
         <div class="my-icon-box ib-yellow">🔔</div>
         <div class="my-menu-info">
@@ -1632,8 +1637,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 커뮤니티 섹션 -->
     <div class="my-section-wrap">
-      <div class="my-section-title" data-i18n="my_sec_community">커뮤니티</div>
-      <div class="my-menu-item" id="menu-top-sellers" onclick="openTopSellers()">
+      <div class="my-section-title">📢 커뮤니티</div>
+      <div class="my-menu-item" id="menu-top-sellers" style="display:none" onclick="openTopSellers()">
         <div class="my-icon-box ib-yellow">🏆</div>
         <div class="my-menu-info">
           <div class="my-menu-title" data-i18n="mnu_top_sellers">TOP 사업자 랭킹</div>
@@ -1668,7 +1673,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 데이터·분석 섹션 -->
     <div class="my-section-wrap" id="menu-data-section">
-      <div class="my-section-title" data-i18n="my_sec_data">데이터·분석</div>
+      <div class="my-section-title">📊 데이터·분석</div>
       <div class="my-menu-item" onclick="showView('analytics')">
         <div class="my-icon-box ib-green">💰</div>
         <div class="my-menu-info">
