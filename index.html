@@ -5102,8 +5102,11 @@ function openDetail(id){
           </div>
         </div>`).join('');
       simSection.style.display='';
-      // 더보기 버튼
+      // 더보기 버튼 (중복 방지)
+      const existSimMore=simSection.querySelector('.sim-more-btn');
+      if(existSimMore)existSimMore.remove();
       const simMore=document.createElement('button');
+      simMore.className='sim-more-btn';
       simMore.textContent='비슷한 원단 더보기 ›';
       simMore.style.cssText='width:100%;margin-top:10px;padding:11px;background:#f5f5f5;border:1px solid #e0e0ea;border-radius:12px;font-size:var(--fs-sm);font-weight:600;color:#6c63ff;cursor:pointer';
       simMore.onclick=()=>openSimilarMore(p);
@@ -5128,8 +5131,11 @@ function openDetail(id){
           </div>
         </div>`).join('');
       sellerSection.style.display='';
-      // 판매자 더보기 버튼 → 판매자 프로필로 이동
+      // 판매자 더보기 버튼 (중복 방지)
+      const existSellerMore=sellerSection.querySelector('.seller-more-btn');
+      if(existSellerMore)existSellerMore.remove();
       const sellerMore=document.createElement('button');
+      sellerMore.className='seller-more-btn';
       sellerMore.textContent='판매자 프로필 보기 ›';
       sellerMore.style.cssText='width:100%;margin-top:10px;padding:11px;background:#f5f5f5;border:1px solid #e0e0ea;border-radius:12px;font-size:var(--fs-sm);font-weight:600;color:#6c63ff;cursor:pointer';
       sellerMore.onclick=()=>{
