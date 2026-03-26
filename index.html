@@ -1608,6 +1608,40 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <!-- 관리자 전용 섹션 -->
+      <div id="menu-admin-section" style="display:none">
+        <div class="my-section-wrap" style="margin-top:8px">
+          <div class="my-section-title">🏆 통계·분석</div>
+          <div class="my-menu-item" onclick="openTopSellers()">
+            <div class="my-icon-box ib-yellow">🏆</div>
+            <div class="my-menu-info">
+              <div class="my-menu-title">TOP 사업자 랭킹</div>
+              <div class="my-menu-sub">판매 실적 · 거래 완료 순위</div>
+            </div>
+            <span class="my-menu-arrow">›</span>
+          </div>
+          <div class="my-menu-item" onclick="showView('analytics')">
+            <div class="my-icon-box ib-blue">📊</div>
+            <div class="my-menu-info">
+              <div class="my-menu-title">매출 대시보드</div>
+              <div class="my-menu-sub">전체 거래 현황 분석</div>
+            </div>
+            <span class="my-menu-arrow">›</span>
+          </div>
+          <div class="my-menu-item" onclick="openProductRanking()">
+            <div class="my-icon-box ib-red">🔥</div>
+            <div class="my-menu-info">
+              <div class="my-menu-title">인기 상품 랭킹</div>
+              <div class="my-menu-sub">조회·관심·거래 인기 순위</div>
+            </div>
+            <span class="my-menu-arrow">›</span>
+          </div>
+        </div>
+        <!-- 사업자 뷰 전환 버튼 -->
+        <div style="padding:12px 16px">
+          <button onclick="toggleAdminViewMode()" style="width:100%;padding:12px;background:#f0f0ff;border:1.5px solid #6c63ff33;border-radius:12px;font-size:var(--fs-sm);font-weight:700;color:#6c63ff;cursor:pointer">👤 사업자 회원으로 보기</button>
+        </div>
+      </div>
       <div class="my-menu-item" onclick="openProfileEditByType()" id="menu-profile-edit">
         <div class="my-icon-box ib-green" id="menu-profile-edit-icon">✏️</div>
         <div class="my-menu-info">
@@ -8164,9 +8198,22 @@ function applyRoleVisibility(){
     fab.style.display=(visible&&(vn==='list'||vn==='home'))?'block':'none';
   };
 
-  // Admin: 모든 메뉴 표시
+  // Admin: 관리자 뷰 또는 사업자 뷰
   if(isAdmin()){
-    showIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
+    const adminViewMode=localStorage.getItem('bium_admin_view_mode')||'admin';
+    if(adminViewMode==='admin'){
+      hideIds(['menu-register','menu-my-products']);
+      const adminSection=document.getElementById('menu-admin-section');
+      if(adminSection)adminSection.style.display='block';
+      const bizSection=document.getElementById('menu-biz-section');
+      if(bizSection)bizSection.style.display='none';
+    }else{
+      showIds(['menu-register','menu-my-products','menu-top-sellers']);
+      hideIds(['menu-admin-dashboard']);
+      const adminSection=document.getElementById('menu-admin-section');
+      if(adminSection)adminSection.style.display='none';
+    }
+    showIds(['menu-admin-dashboard','menu-data-section']);
     setFab(true);
     return;
   }
@@ -9822,6 +9869,13 @@ async function handleImgSearch(e){
     console.error('이미지 검색 오류:',err);
     showToast('이미지 검색 중 오류가 발생했어요');
   }
+}
+function toggleAdminViewMode(){
+  const current=localStorage.getItem('bium_admin_view_mode')||'admin';
+  const next=current==='admin'?'biz':'admin';
+  localStorage.setItem('bium_admin_view_mode',next);
+  renderMypage();
+  showToast(next==='admin'?'관리자 뷰로 전환됐어요':'사업자 회원 뷰로 전환됐어요');
 }
 function openBizReapply(){
   if(!curUser)return;
