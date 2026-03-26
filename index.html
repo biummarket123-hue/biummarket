@@ -8217,6 +8217,9 @@ function applyRoleVisibility(){
       if(svcTitle)svcTitle.style.display='none';
       if(adminSection){adminSection.style.display='block';}
       if(bizSection)bizSection.style.display='none';
+      // 관리자 대시보드 항상 표시
+      const adminDash=document.getElementById('menu-admin-dashboard');
+      if(adminDash)adminDash.style.display='flex';
       const toggleWrap=document.getElementById('admin-view-toggle-wrap');
       if(toggleWrap)toggleWrap.style.display='block';
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
