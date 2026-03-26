@@ -1211,8 +1211,13 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 11. 비슷한 원단 -->
     <div class="pd-section" id="pd-similar-section">
-      <div class="pd-section-title">비슷한 원단</div>
-      <div class="pd-sim-row" id="pd-similar-scroll"></div>
+      <div class="pd-section-title" style="font-size:var(--fs-lg);font-weight:700">비슷한 원단</div>
+      <div id="pd-similar-scroll" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 2px"></div>
+    </div>
+    <!-- 판매자의 다른 상품 -->
+    <div class="pd-section" id="pd-seller-section" style="display:none">
+      <div class="pd-section-title" style="font-size:var(--fs-lg);font-weight:700">판매자의 다른 상품</div>
+      <div id="pd-seller-scroll" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 2px"></div>
     </div>
     <!-- 태그 -->
     <div class="pd-tag-row" id="pd-tags"></div>
@@ -5080,15 +5085,44 @@ function openDetail(id){
   if(descSection)descSection.style.display=p.description?'':' none';
 
 
-  // 11. 비슷한 원단
+  // 11. 비슷한 원단 (2열 그리드, 최대 20개)
   const simSection=document.getElementById('pd-similar-section');
   const simScroll=document.getElementById('pd-similar-scroll');
   if(simSection&&simScroll){
-    const similar=products.filter(x=>x.id!==p.id&&(x.type===p.type||(p.material&&x.material===p.material))).slice(0,8);
+    const similar=products.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,20);
     if(similar.length){
-      simScroll.innerHTML=similar.map(s=>'<div class="pd-sim-card" onclick="openDetail('+s.id+')"><div class="pd-sim-thumb" style="background:'+getFColor(s.type,s.color)+'">'+(s.image_url?'<img src="'+s.image_url+'">':'🧵')+'</div><div class="pd-sim-title">'+s.title+'</div><div class="pd-sim-price">'+fmtPrice(s.price)+'/'+(s.unit||'m')+'</div></div>').join('');
+      simScroll.innerHTML=similar.map(s=>`
+        <div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
+          <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
+            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
+          </div>
+          <div style="padding:8px">
+            <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${s.title||''}</div>
+            <div style="font-size:var(--fs-xs);color:#e53935;font-weight:700">${fmtPrice(s.price)}원/${s.unit||'m'}</div>
+          </div>
+        </div>`).join('');
       simSection.style.display='';
     }else{simSection.style.display='none';}
+  }
+  // 12. 판매자의 다른 상품 (2열 그리드, 최대 4개)
+  const sellerSection=document.getElementById('pd-seller-section');
+  const sellerScroll=document.getElementById('pd-seller-scroll');
+  if(sellerSection&&sellerScroll){
+    const sellerId=p.seller_id||(p.seller&&p.seller.id);
+    const sellerProds=products.filter(x=>x.id!==p.id&&(x.seller_id===sellerId||(x.seller&&x.seller.id===sellerId))).slice(0,4);
+    if(sellerProds.length){
+      sellerScroll.innerHTML=sellerProds.map(s=>`
+        <div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
+          <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
+            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
+          </div>
+          <div style="padding:8px">
+            <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${s.title||''}</div>
+            <div style="font-size:var(--fs-xs);color:#e53935;font-weight:700">${fmtPrice(s.price)}원/${s.unit||'m'}</div>
+          </div>
+        </div>`).join('');
+      sellerSection.style.display='';
+    }else{sellerSection.style.display='none';}
   }
 
   // 태그

@@ -22,7 +22,8 @@
       "Bash(cd:*)",
       "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js\")",
       "Bash(powershell.exe -Command \"Get-Content C:\\\\Users\\\\A\\\\biummarket\\\\api\\\\analyze-image.js | Out-String\")",
-      "Bash(powershell.exe -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3655..3690\\) | ForEach-Object { $_ }\")"
+      "Bash(powershell.exe -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3655..3690\\) | ForEach-Object { $_ }\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' | Select-Object -Index \\(3705..3743\\) | Out-String\")"
     ]
   }
 }
