@@ -3426,6 +3426,7 @@ try{
                 type:'member',
                 temp:36.5,
                 join_date:new Date().toISOString().slice(0,10),
+                created_at:new Date().toISOString(),
                 seller_status:'none',
                 requested_role:''
               };
@@ -4393,8 +4394,9 @@ async function doSignup(){
     }
     const extraData={...sellerExtra,...companyExtra};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
-    await _sb.from('users').insert(newProfile);
+    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const{error:insErr}=await _sb.from('users').insert(newProfile);
+    if(insErr)console.error('[회원가입] users insert 오류:',insErr.message,insErr.code,insErr.details);
     localStorage.setItem('bium_activeUserId', data.user.id||email||'guest');
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
@@ -4479,7 +4481,7 @@ async function handleKakaoCode(code){
       }else{
         let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
         if(!user){
-          user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
+          user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
           users.push(user);lsSet('users',users);
           const{error:ke}=await _sb.from('users').upsert(user);if(ke)console.error('카카오 upsert 오류:',ke);
           kakaoIsNew=true;
@@ -4533,7 +4535,7 @@ async function handleNaverCode(code,state){
       }else{
         let user=users.find(u=>u.email===email||u.naverId===String(naverId));
         if(!user){
-          user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
+          user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
           users.push(user);lsSet('users',users);
           const{error:ne}=await _sb.from('users').upsert(user);if(ne)console.error('네이버 upsert 오류:',ne);
           naverIsNew=true;
@@ -10314,6 +10316,8 @@ function showAdminUsers(){
   el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
   if(_sb){
     _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
+      if(error)console.error('[관리자] users 조회 오류:',error.message,error.code);
+      console.log('[관리자] users 조회 결과:',data?.length||0,'명');
       renderList(mergeUsers(!error&&data?data:[]));
     });
   }else{renderList(mergeUsers([]));}
