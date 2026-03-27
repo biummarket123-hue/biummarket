@@ -3631,12 +3631,17 @@ let soundSettings=lsGet('soundSettings',{chat:'bell',offer:'bright',reservation:
 // 알림 소리 시스템 (Web Audio API)
 const _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 const NOTIF_SOUNDS={
-  bell:{name:'기본벨',notes:[{f:880,d:.1,t:0},{f:1100,d:.15,t:.12}]},
-  chat:{name:'채팅',notes:[{f:600,d:.08,t:0},{f:800,d:.08,t:.1},{f:1000,d:.1,t:.2}]},
-  bright:{name:'맑은소리',notes:[{f:1200,d:.1,t:0},{f:1500,d:.12,t:.1},{f:1800,d:.15,t:.22}]},
-  pack:{name:'택배도착',notes:[{f:523,d:.15,t:0},{f:659,d:.15,t:.15},{f:784,d:.2,t:.3}]},
-  soft:{name:'부드러운벨',notes:[{f:440,d:.2,t:0},{f:550,d:.25,t:.2}]},
-  none:{name:'무음',notes:[]}
+  bell:{name:'🔔 기본벨',notes:[{f:880,d:.1,t:0},{f:1100,d:.15,t:.12}]},
+  chat:{name:'💬 채팅',notes:[{f:600,d:.08,t:0},{f:800,d:.08,t:.1},{f:1000,d:.1,t:.2}]},
+  bright:{name:'✨ 맑은소리',notes:[{f:1200,d:.1,t:0},{f:1500,d:.12,t:.1},{f:1800,d:.15,t:.22}]},
+  pack:{name:'📦 택배도착',notes:[{f:523,d:.15,t:0},{f:659,d:.15,t:.15},{f:784,d:.2,t:.3}]},
+  soft:{name:'🎵 부드러운벨',notes:[{f:440,d:.2,t:0},{f:550,d:.25,t:.2}]},
+  bium:{name:'🏪 비움마켓',notes:[{f:659,d:.1,t:0},{f:784,d:.08,t:.1},{f:1047,d:.12,t:.18},{f:784,d:.15,t:.32}]},
+  fabric:{name:'🧵 원단알림',notes:[{f:523,d:.12,t:0},{f:698,d:.1,t:.12},{f:880,d:.18,t:.24}]},
+  coin:{name:'💰 거래성사',notes:[{f:1047,d:.06,t:0},{f:1319,d:.06,t:.07},{f:1568,d:.06,t:.14},{f:2093,d:.15,t:.21}]},
+  drop:{name:'💧 물방울',notes:[{f:1400,d:.08,t:0},{f:900,d:.12,t:.1}]},
+  chime:{name:'🎐 바람소리',notes:[{f:1047,d:.15,t:0},{f:880,d:.12,t:.18},{f:1175,d:.2,t:.32}]},
+  none:{name:'🔕 무음',notes:[]}
 };
 function playNotifSound(type){
   const s=soundSettings;
