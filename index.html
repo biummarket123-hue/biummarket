@@ -2226,7 +2226,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 프로필/회사 사진 -->
     <div id="pe-photos-section" style="padding:16px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:6px" id="pe-photos-title">프로필 사진</div>
-      <div style="font-size:12px;color:#666677;margin-bottom:12px" id="pe-photos-desc">프로필 사진을 등록하세요 (최대 1장)</div>
+      <div style="font-size:12px;color:#666677;margin-bottom:12px" id="pe-photos-desc">프로필 사진을 등록하세요 (최대 10장)</div>
       <div id="pe-photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <input type="file" id="pe-photo-input" accept="image/*" multiple style="display:none" onchange="addCompanyPhotos(this)"/>
       <button onclick="document.getElementById('pe-photo-input').click()" style="padding:10px 18px;background:#f5f0e8;border:1px solid #c8a84b;border-radius:12px;color:#c8a84b;font-size:13px;font-weight:600;cursor:pointer">+ 사진 추가</button>
@@ -8220,10 +8220,10 @@ function renderProfileEdit(){
   const photosDesc=document.getElementById('pe-photos-desc');
   if(isBuyerRole){
     if(photosTitle)photosTitle.textContent='프로필 사진';
-    if(photosDesc)photosDesc.textContent='프로필 사진을 등록하세요 (최대 1장)';
+    if(photosDesc)photosDesc.textContent='프로필 사진을 등록하세요 (최대 10장)';
   }else{
     if(photosTitle)photosTitle.textContent='회사 사진';
-    if(photosDesc)photosDesc.textContent='회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 6장)';
+    if(photosDesc)photosDesc.textContent='회사 외관, 쇼룸, 원단 사진 등을 등록하세요 (최대 10장)';
   }
   // 이름 라벨 변경
   const nameLabelEl=document.getElementById('pe-name-label');
@@ -8275,20 +8275,43 @@ function renderProfileEdit(){
   if(blogEl)blogEl.value=profile.blog||'';
   renderCompanyPhotos();
 }
-function addCompanyPhotos(input){
+async function addCompanyPhotos(input){
   const files=Array.from(input.files);
   const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
-  if(photos.length+files.length>6){showToast('사진은 최대 6장까지 등록할 수 있어요');return;}
-  files.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      photos.push(e.target.result);
+  if(photos.length+files.length>10){showToast('사진은 최대 10장까지 등록할 수 있어요');input.value='';return;}
+  for(const file of files){
+    if(photos.length>=10)break;
+    try{
+      const compressed=await _compressPhoto(file);
+      photos.push(compressed);
       localStorage.setItem('companyPhotos',JSON.stringify(photos));
       renderCompanyPhotos();
+    }catch(e){console.error('사진 추가 오류:',e);}
+  }
+  input.value='';
+}
+function _compressPhoto(file,maxSize=600,quality=0.7){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=reject;
+    reader.onload=e=>{
+      const img=new Image();
+      img.onerror=()=>resolve(e.target.result);
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxSize||h>maxSize){
+          if(w>h){h=Math.round(h*maxSize/w);w=maxSize;}
+          else{w=Math.round(w*maxSize/h);h=maxSize;}
+        }
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.src=e.target.result;
     };
     reader.readAsDataURL(file);
   });
-  input.value='';
 }
 function renderCompanyPhotos(){
   const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
