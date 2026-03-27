@@ -251,7 +251,7 @@
         <div class="text-6xl mb-8">🧵</div>
         <h3 class="text-4xl md:text-5xl font-bold text-white mb-6">지금 바로 시작하세요</h3>
         <p class="text-xl text-white/90 mb-10 leading-relaxed">입점 신청을 남겨주시면 담당자가 24시간 내 연락드립니다</p>
-        <button onclick="openModal()" class="px-12 py-5 bg-white text-blue-600 rounded-xl text-lg font-bold hover:bg-slate-100 transition-all shadow-2xl transform hover:scale-105">입점 신청하기 →</button>
+        <button onclick="handleBizApply()" class="px-12 py-5 bg-white text-blue-600 rounded-xl text-lg font-bold hover:bg-slate-100 transition-all shadow-2xl transform hover:scale-105">입점 신청하기 →</button>
     </div>
 </section>
 
@@ -263,9 +263,9 @@
                 <span class="text-xl font-bold text-white">비움마켓</span>
             </div>
             <div class="flex space-x-6 text-sm">
-                <a href="#" class="hover:text-cyan-400 transition-colors">이용약관</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">개인정보처리방침</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">고객센터</a>
+                <a href="javascript:void(0)" onclick="openPolicyModal('terms')" class="hover:text-cyan-400 transition-colors">이용약관</a>
+                <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" class="hover:text-cyan-400 transition-colors">개인정보처리방침</a>
+                <a href="tel:031-824-3303" class="hover:text-cyan-400 transition-colors">고객센터 ☎</a>
                 <a href="https://www.biummarket.com?from=landing" class="hover:text-cyan-400 transition-colors">서비스 바로가기</a>
             </div>
         </div>
@@ -414,9 +414,57 @@
         }
     }
 
+    const POLICIES={
+      terms:{
+        title:'이용약관',
+        content:`<h3>제1조 (목적)</h3><p>본 약관은 로하이마켓(이하 "회사")이 운영하는 비움마켓(이하 "서비스")의 이용과 관련하여 회사와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+<h3>제2조 (정의)</h3><p>1. "서비스"란 회사가 제공하는 B2B 원단 재고 거래 플랫폼 비움마켓을 의미합니다.<br>2. "이용자"란 본 약관에 동의하고 서비스를 이용하는 일반회원 및 사업자회원을 의미합니다.<br>3. "일반회원"이란 서비스에 가입하여 원단을 검색·열람·구매 문의하는 회원을 의미합니다.<br>4. "사업자회원"이란 회사의 승인을 받아 원단 상품을 등록·판매하는 사업자를 의미합니다.</p>
+<h3>제3조 (약관의 효력 및 변경)</h3><p>1. 본 약관은 서비스 화면에 게시하거나 이용자에게 공지함으로써 효력이 발생합니다.<br>2. 회사는 관련 법령을 위배하지 않는 범위에서 본 약관을 개정할 수 있으며, 변경 시 최소 7일 전에 공지합니다.</p>
+<h3>제4조 (서비스 이용)</h3><p>1. 서비스는 연중무휴 24시간 제공을 원칙으로 합니다.<br>2. 회사는 시스템 점검, 장애 등의 사유로 서비스를 일시 중단할 수 있으며, 이 경우 사전 또는 사후에 공지합니다.<br>3. 서비스는 원단 재고 거래를 위한 중개 플랫폼으로, 회사는 거래 당사자가 아닙니다.</p>
+<h3>제5조 (이용자의 의무)</h3><p>이용자는 다음 행위를 해서는 안 됩니다.<br>1. 타인의 정보를 도용하거나 허위 정보를 등록하는 행위<br>2. 서비스를 통해 불법 상품을 거래하는 행위<br>3. 다른 이용자를 기망하거나 피해를 주는 행위<br>4. 서비스의 안정적 운영을 방해하는 행위<br>5. 관련 법령 및 본 약관을 위반하는 행위</p>
+<h3>제6조 (사업자회원)</h3><p>1. 사업자회원으로 가입하려면 사업자등록증 등 관련 서류를 제출하고 회사의 승인을 받아야 합니다.<br>2. 사업자회원은 등록한 상품 정보의 정확성에 책임을 집니다.<br>3. 허위 상품 등록, 기망 거래 등이 확인될 경우 서비스 이용이 제한될 수 있습니다.</p>
+<h3>제7조 (책임의 한계)</h3><p>1. 회사는 이용자 간 거래에서 발생하는 분쟁에 대해 직접적인 책임을 지지 않습니다.<br>2. 회사는 천재지변, 불가항력적 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.</p>
+<h3>제8조 (준거법 및 관할)</h3><p>본 약관은 대한민국 법령에 따르며, 분쟁 발생 시 회사 소재지 관할 법원을 전속 관할로 합니다.</p>`
+      },
+      privacy:{
+        title:'개인정보처리방침',
+        content:`<p>로하이마켓(이하 "회사")은 개인정보보호법 등 관련 법령을 준수하며, 이용자의 개인정보를 안전하게 처리합니다.</p>
+<h3>제1조 (수집하는 개인정보)</h3><p>· 필수항목: 이메일, 비밀번호, 닉네임<br>· 선택항목: 프로필 사진, 위치 정보<br>· 사업자회원 추가: 상호명, 사업자등록번호, 대표자명, 연락처</p>
+<h3>제2조 (개인정보 수집 및 이용 목적)</h3><p>1. 회원 가입 및 서비스 제공<br>2. 거래 중개 및 이용자 간 연결<br>3. 고객 문의 응대 및 분쟁 해결<br>4. 서비스 개선 및 신규 기능 개발</p>
+<h3>제3조 (개인정보 보유 및 이용 기간)</h3><p>1. 회원 탈퇴 시 즉시 파기하는 것을 원칙으로 합니다.<br>2. 관련 법령에 따라 보존이 필요한 경우:<br>· 계약 또는 청약철회 기록: 5년<br>· 소비자 불만 및 분쟁 기록: 3년<br>· 접속 로그: 3개월</p>
+<h3>제4조 (개인정보의 제3자 제공)</h3><p>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 단, 법령에 따라 수사기관의 요청이 있는 경우는 예외로 합니다.</p>
+<h3>제5조 (개인정보 보호책임자)</h3><p>· 책임자: 이소영 (대표)<br>· 연락처: 031-824-3303</p>
+<h3>제6조 (이용자의 권리)</h3><p>이용자는 언제든지 자신의 개인정보를 조회, 수정, 삭제할 수 있으며, 회원 탈퇴를 통해 개인정보 처리에 대한 동의를 철회할 수 있습니다.</p>`
+      }
+    };
+
+    function openPolicyModal(type){
+      const p=POLICIES[type];
+      if(!p)return;
+      const existing=document.getElementById('policyModal');
+      if(existing)existing.remove();
+      const modal=document.createElement('div');
+      modal.id='policyModal';
+      modal.className='fixed inset-0 z-50 flex items-center justify-center modal-backdrop px-6';
+      modal.onclick=function(e){if(e.target===modal){modal.remove();document.body.style.overflow='auto';}};
+      modal.innerHTML=`
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full shadow-2xl relative" style="max-height:85vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+          <div style="padding:24px 28px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between">
+            <h4 class="text-xl font-bold text-white">${p.title}</h4>
+            <button onclick="document.getElementById('policyModal').remove();document.body.style.overflow='auto'" class="text-slate-400 hover:text-white text-2xl">×</button>
+          </div>
+          <div style="padding:20px 28px 28px;overflow-y:auto;flex:1;color:#94a3b8;font-size:14px;line-height:1.8">
+            <style>#policyModal h3{color:#e2e8f0;font-size:15px;font-weight:700;margin:16px 0 6px}#policyModal p{margin-bottom:10px}</style>
+            ${p.content}
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      document.body.style.overflow='hidden';
+    }
+
     window.addEventListener('scroll', handleScrollAnimation);
     window.addEventListener('load', () => { handleScrollAnimation(); animateCounters(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', (e) => { if(e.key==='Escape'){closeModal();const pm=document.getElementById('policyModal');if(pm){pm.remove();document.body.style.overflow='auto';}} });
 </script>
 </body>
 </html>
