@@ -7722,8 +7722,7 @@ async function openChatRoom(productId){
         unread_seller:1,
         unread_buyer:0
       });
-      // 판매자에게 알림
-      await sendNotification(sellerId,'chat_new',`💬 새 문의가 왔어요`,`${curUser.name||'구매자'}님이 "${p.title}" 상품에 문의했어요`,{roomId,productId:String(productId)});
+      // 채팅 알림은 배지로만 표시 (알림 내역에 쌓지 않음)
     } else {
       // 기존 채팅방 - 판매자 읽음 처리 안함, 구매자 unread 0으로
       await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
@@ -8023,9 +8022,7 @@ async function sendChatMsg(){
     if(curr){
       await _sb.from('chat_rooms').update({[unreadField]:(curr[unreadField]||0)+1}).eq('id',curChatRoomId);
     }
-    // 상대방 알림
-    const targetId=isSeller?room.buyerId:room.sellerId;
-    await sendNotification(targetId,'chat_msg','💬 새 메시지',`${senderName}: ${text}`,{roomId:curChatRoomId});
+    // 채팅은 배지로만 표시 (알림 내역에 쌓지 않음)
   }
 }
 function goChatProduct(){
