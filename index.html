@@ -1342,11 +1342,12 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <input type="hidden" id="f-cat1"/>
     <input type="hidden" id="f-type"/>
 
-    <!-- 소재 / 중량 -->
+    <!-- 소재 / 중량 / 폭 -->
     <div class="form-row">
       <div class="fg"><label>소재 <span class="req">*</span></label><input type="text" class="fi" id="f-material" placeholder="면 100%"/></div>
       <div class="fg"><label>중량</label><input type="text" class="fi" id="f-weight" placeholder="185g/yd"/></div>
     </div>
+    <div class="fg"><label>폭 (cm)</label><input type="text" class="fi" id="f-width" placeholder="예: 150"/></div>
 
     <!-- 상세 설명 -->
     <div class="fg"><label>상세 설명</label><textarea class="fi" id="f-desc" rows="3" placeholder="원단 특징, 용도, 상태, 최소주문 등"></textarea></div>
@@ -5644,7 +5645,7 @@ function openDetail(id){
   if(specGrid){
     const cells=[
       p.material&&['🧵 소재',p.material],
-      p.weight&&['⚖ 중량',p.weight+'g/㎡'],
+      p.weight&&['⚖ 중량',p.weight+(p.weight.toString().includes('g/')?'':'g/yd')],
       p.width&&['📏 폭',p.width+'cm'],
     ].filter(Boolean);
     specGrid.innerHTML=cells.map(kv=>'<div class="pd-spec-cell"><div class="pd-spec-cell-key">'+kv[0]+'</div><div class="pd-spec-cell-val">'+kv[1]+'</div></div>').join('');
@@ -7280,7 +7281,7 @@ function initFormView(){
   initCat1Chips();
   document.getElementById('cat2-wrap').classList.remove('show');
   document.getElementById('cat3-wrap').classList.remove('show');
-  ['f-title','f-material','f-weight','f-qty','f-price','f-list-price','f-bulk-price','f-moq','f-desc'].forEach(id=>{
+  ['f-title','f-material','f-weight','f-width','f-qty','f-price','f-list-price','f-bulk-price','f-moq','f-desc'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('f-unit').value='yard';
@@ -7327,7 +7328,7 @@ async function submitForm(){
   if(image_urls.length>0)image_url=image_urls[0];
   const payload={
     title,type:formCat1,cat:formCat1,cat2:formCat2||null,cat3:formCat3||null,
-    material,weight:parseInt(weight)||null,width:null,color:'',qty:parseInt(qty)||0,price:parseInt(price)||0,unit,loc:curUser?.loc||'',
+    material,weight:parseInt(weight)||null,width:document.getElementById('f-width')?.value.trim()||null,color:'',qty:parseInt(qty)||0,price:parseInt(price)||0,unit,loc:curUser?.loc||'',
     list_price:parseInt(document.getElementById('f-list-price').value)||null,
     bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
     moq:parseInt(document.getElementById('f-moq').value)||null,
