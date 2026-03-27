@@ -5644,9 +5644,7 @@ function openDetail(id){
   if(specGrid){
     const cells=[
       p.material&&['🧵 소재',p.material],
-      ['📍 위치',p.loc||seller.loc||'미기재'],
       p.weight&&['⚖ 중량',p.weight+'g/㎡'],
-      ['📐 단위',unit],
       p.width&&['📏 폭',p.width+'cm'],
     ].filter(Boolean);
     specGrid.innerHTML=cells.map(kv=>'<div class="pd-spec-cell"><div class="pd-spec-cell-key">'+kv[0]+'</div><div class="pd-spec-cell-val">'+kv[1]+'</div></div>').join('');
