@@ -5175,7 +5175,8 @@ function renderHomeProduct(p){
   const seller=p.seller||{};
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
   const priceColor='#e53935';
-  const metaParts=[seller.name,p.loc?p.loc.split(' ').slice(-1)[0]:'',p.time||''].filter(Boolean);
+  const sellerLoc=p.loc||seller.loc||'';
+  const metaParts=[seller.name,p.time||''].filter(Boolean);
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
   const priceHtml=p.bulk_price&&p.price
     ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}-${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
@@ -5189,7 +5190,7 @@ function renderHomeProduct(p){
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
-      <div class="h-meta">${metaParts.join(' · ')}</div>
+      <div class="h-meta">${metaParts.join(' · ')}${sellerLoc?` · <span style="color:#6c63ff">📍${sellerLoc.split(' ').slice(-1)[0]}</span>`:''}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
         ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
@@ -5212,7 +5213,8 @@ function renderMyProductCard(p){
   const seller=p.seller||{};
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
   const priceColor=(urgent||discPct)?'#e53935':'#1a1a1a';
-  const metaParts=[seller.name,p.loc?p.loc.split(' ').slice(-1)[0]:'',p.time||''].filter(Boolean);
+  const sellerLoc2=p.loc||seller.loc||'';
+  const metaParts=[seller.name,p.time||''].filter(Boolean);
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
   const priceHtml=p.bulk_price&&p.price
     ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}-${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
@@ -5226,7 +5228,7 @@ function renderMyProductCard(p){
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
-      <div class="h-meta">${metaParts.join(' · ')}</div>
+      <div class="h-meta">${metaParts.join(' · ')}${sellerLoc2?` · <span style="color:#6c63ff">📍${sellerLoc2.split(' ').slice(-1)[0]}</span>`:''}</div>
       <div class="h-badges">
         <span class="h-fabric-badge">${p.type}</span>
         ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
@@ -5669,8 +5671,9 @@ function openDetail(id){
     +(()=>{
         const sid=seller.id||seller.name||'';
         const scoreHtml=getFabricScoreHtml(sid,'badge');
-        const loc=p.loc||seller.loc||'위치 미기재';
-        return '<div class="pd-seller-meta">📍 '+loc+'</div>'
+        const loc=p.loc||seller.loc||'';
+        return (loc?'<div class="pd-seller-meta" style="color:#6c63ff;font-weight:600">📍 '+loc+'</div>':'')
+
           +(scoreHtml?'<div style="margin-top:4px">'+scoreHtml+'</div>':'');
       })()
     +'</div></div>'
@@ -6502,7 +6505,7 @@ async function switchSellerTab(tab,el){
     if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">🕐</span><div style="font-size:14px;color:#1a1a1a">${hours}</div></div>`);
     if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">📞</span><div style="font-size:14px;color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">복사</button></div>`);
     if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">🌐</span><div style="font-size:14px;color:#1565c0">${insta}</div></div>`);
-    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">📍</span><div style="font-size:14px;color:#1a1a1a">${address}</div></div>`);
+    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">📍</span><div style="font-size:14px;color:#6c63ff;font-weight:600">${address}</div></div>`);
 
     // 통계 (MY 기능 연동)
     const myOffers=lsGet('priceOffers',[]).filter(o=>o.sellerId===seller.id||o.sellerName===seller.name||o.sellerName===seller.email);
@@ -6736,7 +6739,14 @@ function renderSellerPage(seller){
   const followerEl=document.getElementById('sh-follower-cnt');
   if(followerEl)followerEl.textContent=`단골 ${followers}`;
   const locEl=document.getElementById('sh-loc');
-  if(locEl)locEl.textContent=(extra.address||userInfo.loc||seller.loc||'')+(userInfo.category?' · '+userInfo.category:'');
+  const sellerLocStr=extra.address||userInfo.loc||seller.loc||'';
+  if(locEl){
+    if(sellerLocStr){
+      locEl.innerHTML=`<span style="color:#6c63ff;font-weight:600">📍 ${sellerLocStr}</span>${userInfo.category?' · '+userInfo.category:''}`;
+    }else{
+      locEl.textContent=userInfo.category||'';
+    }
+  }
   const certBadge=document.getElementById('sh-cert-badge');
   if(certBadge){
     if(isBiz)certBadge.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;color:#1565c0;font-size:13px;font-weight:600">🛡️ 사업자인증</span>';
