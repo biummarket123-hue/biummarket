@@ -3731,6 +3731,25 @@ let appNotifications=lsGet('appNotifications',[]);
 let curChatRoomId=null;
 let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
 let soundSettings=lsGet('soundSettings',{chat:'bium',offer:'sparkle',reservation:'trumpet',general:'piano',vibrate:true,dnd:false,volume:80});
+// 알림 타입 → 설정 키 매핑
+function _isNotifEnabled(type){
+  if(!notifSettings.push)return false;
+  const map={
+    chat_msg:'chat',chat_new:'chat',
+    price_offer:'newMsg',offer_accepted:'newMsg',offer_rejected:'newMsg',offer_counter:'newMsg',
+    reservation_new:'reservation',reservation_confirmed:'reservation',reservation_rejected:'reservation',reservation_remind:'reservation',
+    price_drop:'priceChange',
+    dangol_msg:'event',dangol_new:'event',dangol_urgent:'urgent',
+    follow_news:'event',
+    guide_member:'event',guide_seller:'event',
+    seller_request:'push',seller_approved:'push',seller_rejected:'push',
+    restock:'newProd',keyword_alert:'newProd',
+    fabric_review:'event'
+  };
+  const key=map[type];
+  if(!key)return true;
+  return notifSettings[key]!==false;
+}
 // 알림 소리 시스템 (Web Audio API)
 const _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 const NOTIF_SOUNDS={
@@ -11706,6 +11725,7 @@ function timeAgo(ts){
   return Math.floor(h/24)+'일 전';
 }
 function addNotif(icon,bg,title,desc,productId){
+  if(!notifSettings.push)return;
   const items=lsGet('notifHistory',[]);
   items.unshift({icon,bg,title,desc,ts:Date.now(),productId:productId||null});
   if(items.length>50)items.pop();
@@ -12539,7 +12559,9 @@ function renderBizStats(tab){
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+myId},payload=>{
         const n=payload.new;
         if(!n)return;
-        const soundMap={chat_msg:'chat',chat_new:'chat',price_offer:'offer',offer_accepted:'offer',offer_rejected:'offer',reservation_new:'reservation',reservation_confirmed:'reservation',dangol_msg:'general',dangol_new:'general',follow_news:'general'};
+        // 알림 설정 체크
+        if(!_isNotifEnabled(n.type))return;
+        const soundMap={price_offer:'offer',offer_accepted:'offer',offer_rejected:'offer',reservation_new:'reservation',reservation_confirmed:'reservation',dangol_msg:'general',dangol_new:'general',dangol_urgent:'general',follow_news:'general',guide_member:'general',guide_seller:'general'};
         playNotifSound(soundMap[n.type]||'general');
         updateNotifDot();
         showToast(n.title||'새 알림이 도착했어요');
@@ -12549,6 +12571,7 @@ function renderBizStats(tab){
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
         const msg=payload.new;
         if(!msg||msg.sender_id===myId)return;
+        // 채팅방 메시지 표시 (설정과 무관하게 항상)
         if(curChatRoomId&&msg.room_id===curChatRoomId){
           const chatBody=document.getElementById('chat-body');
           if(chatBody){
@@ -12562,7 +12585,8 @@ function renderBizStats(tab){
           const room=chatRooms[msg.room_id];
           if(room){room.unread=(room.unread||0)+1;lsSet('chatRooms',chatRooms);}
         }
-        playNotifSound('chat');
+        // 채팅 알림 설정 체크 후 소리
+        if(_isNotifEnabled('chat_msg'))playNotifSound('chat');
         updateChatBadge();
       }).subscribe();
     // 채팅방 unread 변경 리얼타임 구독
