@@ -3577,6 +3577,7 @@ let sliderTotal=0;
 let uploadedImgs=[];
 let curResType='visit';
 let curSellerData=null;
+let cachedSellerNews=null;
 let selectedUserType='seller';
 let svSearch='';
 let svFilter='전체';
@@ -6095,9 +6096,15 @@ async function switchSellerTab(tab,el){
     `;
   } else if(tab==='news'){
     const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
-    content.innerHTML=`<div style="text-align:center;padding:20px;color:#888">소식 불러오는 중...</div>`;
-    const{data:newsData}=await _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false});
-    const news=newsData||[];
+    let news;
+    if(cachedSellerNews){
+      news=cachedSellerNews;
+    } else {
+      content.innerHTML=`<div style="text-align:center;padding:20px;color:#888">소식 불러오는 중...</div>`;
+      const{data:newsData}=await _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false});
+      news=newsData||[];
+      cachedSellerNews=news;
+    }
     content.innerHTML=`
       ${isMine?`<div style="padding:12px 16px;border-bottom:8px solid #f5f5f5">
         <button onclick="showView('biz-news')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📢 새 소식 올리기</button>
@@ -6297,6 +6304,11 @@ function renderSellerPage(seller){
       `;
     }
 
+  // 소식 데이터 미리 불러오기
+  cachedSellerNews=null;
+  if(isBiz&&_sb&&seller.id){
+    _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
+  }
   switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
 }
@@ -7964,6 +7976,7 @@ async function submitBizNews(){
   document.getElementById('biz-news-title').value='';
   document.getElementById('biz-news-content').value='';
   document.getElementById('biz-news-img-input').value='';
+  cachedSellerNews=null;
   renderBizNewsList();
   showToast('소식이 발행됐어요 📢');
   setTimeout(()=>{
@@ -8034,6 +8047,7 @@ async function saveEditBizNews(id){
   if(error){showToast('수정 실패: '+error.message);return;}
   document.getElementById('biz-news-edit-overlay')?.remove();
   showToast('소식이 수정됐어요 ✅');
+  cachedSellerNews=null;
   renderBizNewsList();
 }
 async function deleteBizNews(id){
@@ -8041,6 +8055,7 @@ async function deleteBizNews(id){
   const{error}=await _sb.from('biz_news').delete().eq('id',id);
   if(error){showToast('삭제 실패: '+error.message);return;}
   showToast('소식이 삭제됐어요');
+  cachedSellerNews=null;
   renderBizNewsList();
 }
 async function doChangeType(newType){
