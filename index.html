@@ -370,6 +370,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cr-meta{text-align:right;flex-shrink:0;padding-left:8px}
 .cr-time{font-size:var(--fs-xs);color:#666677}
 .cr-unread{display:inline-block;min-width:18px;background:#6c63ff;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-top:3px;text-align:center}
+.chat-unread-badge{position:absolute;top:4px;right:50%;transform:translateX(14px);min-width:16px;height:16px;line-height:16px;background:#e53935;color:#fff;border-radius:8px;font-size:10px;font-weight:800;text-align:center;padding:0 4px;box-sizing:border-box}
 
 /* CHAT ROOM */
 .croom-body{flex:1;overflow-y:auto;padding:12px 14px 80px;display:flex;flex-direction:column;gap:10px;background:#ffffff}
@@ -1153,7 +1154,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <nav class="tabbar">
     <button class="tab on" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
-    <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
+    <button class="tab" onclick="showView('chat')" style="position:relative"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span><span class="chat-unread-badge" style="display:none"></span></button>
     <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
 </div>
@@ -1167,7 +1168,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab on" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
-    <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
+    <button class="tab" onclick="showView('chat')" style="position:relative"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span><span class="chat-unread-badge" style="display:none"></span></button>
     <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
 </div>
@@ -1195,7 +1196,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab on" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
-    <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
+    <button class="tab" onclick="showView('chat')" style="position:relative"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span><span class="chat-unread-badge" style="display:none"></span></button>
     <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
 </div>
@@ -1814,7 +1815,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
-    <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
+    <button class="tab" onclick="showView('chat')" style="position:relative"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span><span class="chat-unread-badge" style="display:none"></span></button>
     <button class="tab on" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
 </div>
@@ -2432,7 +2433,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <nav class="tabbar">
     <button class="tab" onclick="showView('list')"><span class="ti">🏠</span><span data-i18n="tab_home">홈</span></button>
     <button class="tab" onclick="showView('category')"><span class="ti">📋</span><span data-i18n="tab_category">카테고리</span></button>
-    <button class="tab on" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
+    <button class="tab on" onclick="showView('chat')" style="position:relative"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span><span class="chat-unread-badge" style="display:none"></span></button>
     <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
 </div>
@@ -4167,6 +4168,7 @@ function showView(name,push=true){
         });
         lsSet('chatRooms',chatRooms);
         renderChatList();
+        updateChatBadge();
       });
   }
   if(name==='chat')renderChatList();
@@ -11619,6 +11621,19 @@ function updateNotifDot(){
   const hasGeneric=items.length>0;
   const hasTargeted=curUser?getUnreadAppNotifications(curUser.id||curUser.email).length>0:false;
   if(dot)dot.style.display=(hasGeneric||hasTargeted)?'block':'none';
+  updateChatBadge();
+}
+function updateChatBadge(){
+  const rooms=lsGet('chatRooms',{});
+  const total=Object.values(rooms).reduce((a,r)=>a+(r.unread||0),0);
+  document.querySelectorAll('.chat-unread-badge').forEach(badge=>{
+    if(total>0){
+      badge.textContent=total>99?'99+':total;
+      badge.style.display='';
+    }else{
+      badge.style.display='none';
+    }
+  });
 }
 function addAppNotification(targetUserId,type,message,data){
   const notif={id:Date.now(),targetUserId,type,message,data:data||{},read:false,createdAt:new Date().toISOString()};
@@ -12309,8 +12324,13 @@ function renderBizStats(tab){
             chatBody.appendChild(div);
             chatBody.scrollTop=chatBody.scrollHeight;
           }
+        } else {
+          // 다른 화면이면 unread 증가
+          const room=chatRooms[msg.room_id];
+          if(room){room.unread=(room.unread||0)+1;lsSet('chatRooms',chatRooms);}
         }
         playNotifSound('chat');
+        updateChatBadge();
       }).subscribe();
   }
   // 저장된 언어 자동 적용
