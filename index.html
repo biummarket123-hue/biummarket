@@ -4777,7 +4777,7 @@ function renderCatStep2(){
     </div>`:'';})()}`;
 }
 
-function catGoStep1(id){catSelId=id;catStep=1;renderCategoryView();}
+function catGoStep1(id){catSelId=id;curViewMode='';curCatSubKey='';curCatItemKey='';_fsSubs=[];_fsItem='';_fsPriceMin=0;_fsPriceMax=0;_fsSort='latest';openCatProducts(id,id);}
 function catGoStep2(subIdx){catSelSubIdx=subIdx;catStep=2;renderCategoryView();}
 function catGoBack(){
   if(catStep===2){catStep=1;renderCategoryView();}
