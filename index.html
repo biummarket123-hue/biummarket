@@ -3627,40 +3627,154 @@ let chatRooms=lsGet('chatRooms',{});
 let appNotifications=lsGet('appNotifications',[]);
 let curChatRoomId=null;
 let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
-let soundSettings=lsGet('soundSettings',{chat:'bell',offer:'bright',reservation:'pack',general:'bell',vibrate:true,dnd:false,volume:80});
+let soundSettings=lsGet('soundSettings',{chat:'bium',offer:'sparkle',reservation:'trumpet',general:'piano',vibrate:true,dnd:false,volume:80});
 // 알림 소리 시스템 (Web Audio API)
 const _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 const NOTIF_SOUNDS={
-  bell:{name:'🔔 기본벨',notes:[{f:880,d:.1,t:0},{f:1100,d:.15,t:.12}]},
-  chat:{name:'💬 채팅',notes:[{f:600,d:.08,t:0},{f:800,d:.08,t:.1},{f:1000,d:.1,t:.2}]},
-  bright:{name:'✨ 맑은소리',notes:[{f:1200,d:.1,t:0},{f:1500,d:.12,t:.1},{f:1800,d:.15,t:.22}]},
-  pack:{name:'📦 택배도착',notes:[{f:523,d:.15,t:0},{f:659,d:.15,t:.15},{f:784,d:.2,t:.3}]},
-  soft:{name:'🎵 부드러운벨',notes:[{f:440,d:.2,t:0},{f:550,d:.25,t:.2}]},
-  bium:{name:'🏪 비움마켓',notes:[{f:659,d:.1,t:0},{f:784,d:.08,t:.1},{f:1047,d:.12,t:.18},{f:784,d:.15,t:.32}]},
-  fabric:{name:'🧵 원단알림',notes:[{f:523,d:.12,t:0},{f:698,d:.1,t:.12},{f:880,d:.18,t:.24}]},
-  coin:{name:'💰 거래성사',notes:[{f:1047,d:.06,t:0},{f:1319,d:.06,t:.07},{f:1568,d:.06,t:.14},{f:2093,d:.15,t:.21}]},
-  drop:{name:'💧 물방울',notes:[{f:1400,d:.08,t:0},{f:900,d:.12,t:.1}]},
-  chime:{name:'🎐 바람소리',notes:[{f:1047,d:.15,t:0},{f:880,d:.12,t:.18},{f:1175,d:.2,t:.32}]},
-  none:{name:'🔕 무음',notes:[]}
+  piano:{name:'🎹 피아노',type:'custom'},
+  xylophone:{name:'🎵 실로폰',type:'custom'},
+  drum:{name:'🥁 드럼',type:'custom'},
+  bird:{name:'🐦 새소리',type:'custom'},
+  water:{name:'💧 물방울',type:'custom'},
+  guitar:{name:'🎸 기타',type:'custom'},
+  trumpet:{name:'🎺 팡파레',type:'custom'},
+  sparkle:{name:'✨ 마법소리',type:'custom'},
+  bium:{name:'🏪 비움!',type:'custom'},
+  musicbox:{name:'🎐 오르골',type:'custom'},
+  none:{name:'🔕 무음',type:'none'}
 };
+function _playNote(f,type,t,d,vol,vibrato){
+  const now=_audioCtx.currentTime;
+  const osc=_audioCtx.createOscillator();
+  const gain=_audioCtx.createGain();
+  osc.type=type||'sine';
+  osc.frequency.setValueAtTime(f,now+t);
+  if(vibrato){const lfo=_audioCtx.createOscillator();const lg=_audioCtx.createGain();lfo.frequency.value=vibrato.rate||5;lg.gain.value=vibrato.depth||10;lfo.connect(lg);lg.connect(osc.frequency);lfo.start(now+t);lfo.stop(now+t+d+.1);}
+  gain.gain.setValueAtTime(0,now+t);
+  gain.gain.linearRampToValueAtTime(vol,now+t+.01);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+t+d);
+  osc.connect(gain);gain.connect(_audioCtx.destination);
+  osc.start(now+t);osc.stop(now+t+d+.05);
+}
+function _playNoise(t,d,vol,freq){
+  const now=_audioCtx.currentTime;
+  const bufSize=_audioCtx.sampleRate*d;
+  const buf=_audioCtx.createBuffer(1,bufSize,_audioCtx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1);
+  const src=_audioCtx.createBufferSource();src.buffer=buf;
+  const gain=_audioCtx.createGain();
+  gain.gain.setValueAtTime(vol,now+t);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+t+d);
+  const filter=_audioCtx.createBiquadFilter();
+  filter.type='bandpass';filter.frequency.value=freq||1000;filter.Q.value=1;
+  src.connect(filter);filter.connect(gain);gain.connect(_audioCtx.destination);
+  src.start(now+t);src.stop(now+t+d+.05);
+}
 function playNotifSound(type){
   const s=soundSettings;
   if(s.dnd)return;
-  const soundKey=s[type]||s.general||'bell';
-  const sound=NOTIF_SOUNDS[soundKey];
-  if(!sound||!sound.notes.length)return;
+  const soundKey=s[type]||s.general||'piano';
+  if(soundKey==='none')return;
   if(_audioCtx.state==='suspended')_audioCtx.resume();
-  const vol=Math.max(0,Math.min(1,(s.volume||80)/100));
-  sound.notes.forEach(n=>{
-    const osc=_audioCtx.createOscillator();
-    const gain=_audioCtx.createGain();
-    osc.type='sine';osc.frequency.value=n.f;
-    gain.gain.setValueAtTime(vol*.3,_audioCtx.currentTime+n.t);
-    gain.gain.exponentialRampToValueAtTime(0.001,_audioCtx.currentTime+n.t+n.d);
-    osc.connect(gain);gain.connect(_audioCtx.destination);
-    osc.start(_audioCtx.currentTime+n.t);
-    osc.stop(_audioCtx.currentTime+n.t+n.d+.05);
-  });
+  const v=Math.max(0,Math.min(1,(s.volume||80)/100))*.35;
+
+  if(soundKey==='piano'){
+    // 피아노 화음 - triangle 파형, 빠른 어택 + 긴 감쇠
+    _playNote(523,'triangle',0,.4,v);
+    _playNote(659,'triangle',.08,.35,v*.8);
+    _playNote(784,'triangle',.16,.5,v*.9);
+  }else if(soundKey==='xylophone'){
+    // 실로폰 - 밝은 사각파, 짧고 경쾌
+    _playNote(1047,'square',0,.12,v*.5);
+    _playNote(1319,'square',.1,.12,v*.5);
+    _playNote(1568,'square',.2,.15,v*.6);
+    _playNote(2093,'square',.3,.2,v*.5);
+  }else if(soundKey==='drum'){
+    // 드럼 - 노이즈(스네어) + 저음(킥)
+    _playNote(80,'sine',0,.15,v*1.2);
+    _playNoise(0,.08,v*.6,4000);
+    _playNote(60,'sine',.2,.12,v);
+    _playNoise(.2,.06,v*.5,5000);
+    _playNoise(.35,.1,v*.7,3000);
+  }else if(soundKey==='bird'){
+    // 새소리 - 빠른 주파수 스윕 + 비브라토
+    const now=_audioCtx.currentTime;
+    [0,.25,.55].forEach((t,i)=>{
+      const osc=_audioCtx.createOscillator();const gain=_audioCtx.createGain();
+      osc.type='sine';
+      const baseF=[2200,2800,3200][i];
+      osc.frequency.setValueAtTime(baseF,now+t);
+      osc.frequency.exponentialRampToValueAtTime(baseF*1.3,now+t+.05);
+      osc.frequency.exponentialRampToValueAtTime(baseF*.9,now+t+.12);
+      gain.gain.setValueAtTime(v*.6,now+t);
+      gain.gain.exponentialRampToValueAtTime(0.001,now+t+.15);
+      osc.connect(gain);gain.connect(_audioCtx.destination);
+      osc.start(now+t);osc.stop(now+t+.2);
+    });
+  }else if(soundKey==='water'){
+    // 물방울 - 높은음에서 빠르게 하강 + 잔향
+    const now=_audioCtx.currentTime;
+    [0,.3].forEach((t,i)=>{
+      const osc=_audioCtx.createOscillator();const gain=_audioCtx.createGain();
+      osc.type='sine';
+      const startF=[2400,1800][i];
+      osc.frequency.setValueAtTime(startF,now+t);
+      osc.frequency.exponentialRampToValueAtTime(startF*.25,now+t+.3);
+      gain.gain.setValueAtTime(v*[.7,.5][i],now+t);
+      gain.gain.exponentialRampToValueAtTime(0.001,now+t+.35);
+      osc.connect(gain);gain.connect(_audioCtx.destination);
+      osc.start(now+t);osc.stop(now+t+.4);
+    });
+  }else if(soundKey==='guitar'){
+    // 기타 - sawtooth 파형, 빠른 감쇠, 화음
+    _playNote(330,'sawtooth',0,.3,v*.4);
+    _playNote(415,'sawtooth',0,.25,v*.3);
+    _playNote(494,'sawtooth',0,.35,v*.35);
+    _playNote(659,'sawtooth',.25,.4,v*.4);
+  }else if(soundKey==='trumpet'){
+    // 팡파레 - square 파형, 힘찬 상승
+    _playNote(523,'square',0,.2,v*.4);
+    _playNote(659,'square',.18,.15,v*.45);
+    _playNote(784,'square',.32,.15,v*.5);
+    _playNote(1047,'square',.46,.35,v*.55);
+  }else if(soundKey==='sparkle'){
+    // 마법소리 - 빠른 아르페지오 + 높은 반짝임
+    const now=_audioCtx.currentTime;
+    [1568,2093,2637,3136,2637,3520].forEach((f,i)=>{
+      const osc=_audioCtx.createOscillator();const gain=_audioCtx.createGain();
+      osc.type='sine';osc.frequency.value=f;
+      gain.gain.setValueAtTime(v*(.25+Math.random()*.15),now+i*.06);
+      gain.gain.exponentialRampToValueAtTime(0.001,now+i*.06+.2);
+      osc.connect(gain);gain.connect(_audioCtx.destination);
+      osc.start(now+i*.06);osc.stop(now+i*.06+.25);
+    });
+  }else if(soundKey==='bium'){
+    // "비움!" - 2음절 느낌의 귀여운 멜로디
+    const now=_audioCtx.currentTime;
+    // "비" - 높은 음 짧게
+    const o1=_audioCtx.createOscillator();const g1=_audioCtx.createGain();
+    o1.type='triangle';o1.frequency.setValueAtTime(880,now);o1.frequency.linearRampToValueAtTime(1100,now+.12);
+    g1.gain.setValueAtTime(v*.7,now);g1.gain.linearRampToValueAtTime(v*.5,now+.1);g1.gain.exponentialRampToValueAtTime(0.001,now+.15);
+    o1.connect(g1);g1.connect(_audioCtx.destination);o1.start(now);o1.stop(now+.2);
+    // "움!" - 낮은 음 통통 튀는 느낌
+    const o2=_audioCtx.createOscillator();const g2=_audioCtx.createGain();
+    o2.type='triangle';o2.frequency.setValueAtTime(660,now+.15);o2.frequency.exponentialRampToValueAtTime(440,now+.35);
+    g2.gain.setValueAtTime(0,now+.15);g2.gain.linearRampToValueAtTime(v*.8,now+.17);g2.gain.setValueAtTime(v*.6,now+.25);g2.gain.exponentialRampToValueAtTime(0.001,now+.45);
+    o2.connect(g2);g2.connect(_audioCtx.destination);o2.start(now+.15);o2.stop(now+.5);
+    // 마무리 반짝임
+    const o3=_audioCtx.createOscillator();const g3=_audioCtx.createGain();
+    o3.type='sine';o3.frequency.value=1760;
+    g3.gain.setValueAtTime(v*.2,now+.35);g3.gain.exponentialRampToValueAtTime(0.001,now+.55);
+    o3.connect(g3);g3.connect(_audioCtx.destination);o3.start(now+.35);o3.stop(now+.6);
+  }else if(soundKey==='musicbox'){
+    // 오르골 - triangle 고음, 느리고 잔잔한 멜로디
+    const notes=[1047,1319,1175,1568,1397];
+    notes.forEach((f,i)=>{
+      _playNote(f,'triangle',i*.18,.5,v*(.4+i*.05));
+    });
+  }
+
   if(s.vibrate&&navigator.vibrate)navigator.vibrate([100,50,100]);
 }
 let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
