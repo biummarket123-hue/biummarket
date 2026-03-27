@@ -3363,7 +3363,7 @@ function fmtPrice(n){return n.toLocaleString('ko-KR')+'원'}
 
 /* ==================== LOCAL STORAGE ==================== */
 // 계정별로 분리해야 하는 키 목록
-const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','lastUserId','curUser'];
+const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser'];
 function _lsUserKey(k){
   // 계정별 분리가 필요한 키는 userId prefix 추가
   if(!USER_SCOPED_KEYS.includes(k))return 'bium_'+k;
@@ -4176,7 +4176,7 @@ function showView(name,push=true){
   if(name==='chat-room')renderChatRoom(curChatRoomId);
   if(name==='reservations')renderReservations();
   if(name==='notif-settings')renderNotifSettings();
-  if(name==='notif')renderNotifView();
+  if(name==='notif'){loadNotifications().then(()=>renderNotifView());}
   if(name==='notices')renderNotices();
   if(name==='profile-edit')renderProfileEdit();
   if(name==='settings')renderSettings();
@@ -11639,15 +11639,18 @@ async function loadNotifications(){
   const localNotifs=lsGet('appNotifications',[]);
   const sbNotifs=data.map(n=>({
     id:n.id,
+    targetUserId:n.user_id||myId,
     type:n.type,
     title:n.title,
     message:n.message,
     data:typeof n.data==='string'?JSON.parse(n.data||'{}'):n.data||{},
     isRead:n.is_read,
+    read:n.is_read,
     createdAt:n.created_at
   }));
-  // Supabase 알림 우선, 중복 제거
-  appNotifications=[...sbNotifs,...localNotifs.filter(l=>!sbNotifs.find(s=>s.id===l.id))];
+  // Supabase 알림 우선, 중복 제거, 현재 유저 알림만
+  const myLocalNotifs=localNotifs.filter(l=>l.targetUserId===myId&&!sbNotifs.find(s=>s.id===l.id));
+  appNotifications=[...sbNotifs,...myLocalNotifs];
   lsSet('appNotifications',appNotifications);
   updateNotifDot();
 }
