@@ -4169,7 +4169,7 @@ function showView(name,push=true){
   if(name==='form')initFormView();
   if(name==='category'){catStep=0;catSelId='';catSelSubIdx=-1;renderCategoryView();}
   const fab=document.getElementById('fab-wrap');
-  if(fab)fab.style.display=(name==='list'||name==='home')?'block':'none';
+  if(fab)fab.style.display=name==='list'?'block':'none';
 }
 function openSearchOverlay(){
   const el=document.getElementById('view-search-view');
@@ -8893,7 +8893,7 @@ function applyRoleVisibility(){
     if(!fab)return;
     const cv=document.querySelector('.view.active');
     const vn=cv?cv.id.replace('view-',''):'';
-    fab.style.display=(visible&&(vn==='list'||vn==='home'))?'block':'none';
+    fab.style.display=(visible&&vn==='list')?'block':'none';
   };
 
   // Admin: 관리자 뷰 또는 사업자 뷰
