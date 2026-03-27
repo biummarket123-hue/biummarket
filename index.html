@@ -2236,10 +2236,15 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <button class="hdr-btn" onclick="goBack()">←</button>
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">📊 거래 통계</div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px" id="biz-stats-grid"></div>
-    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px;text-align:center;color:#888;font-size:13px">📈 상세 통계는 준비 중이에요</div>
+  <!-- 탭 -->
+  <div id="biz-stats-tabs" style="display:flex;border-bottom:1px solid #eee;background:#fff">
+    <div class="bst-tab on" onclick="switchBizStatsTab('overview',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">매출 현황</div>
+    <div class="bst-tab" onclick="switchBizStatsTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">상품 분석</div>
+    <div class="bst-tab" onclick="switchBizStatsTab('buyers',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">구매자</div>
+    <div class="bst-tab" onclick="switchBizStatsTab('category',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">카테고리</div>
+    <div class="bst-tab" onclick="switchBizStatsTab('conversion',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">반응</div>
   </div>
+  <div id="biz-stats-content" style="flex:1;overflow-y:auto;padding:14px 14px 80px"></div>
 </div>
 
 <div id="view-biz-news" class="view">
@@ -3880,6 +3885,7 @@ function showView(name,push=true){
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
   if(name==='biz-news')renderBizNewsList();
+  if(name==='biz-stats')renderBizStats('overview');
   if(name==='biz-followers')renderDangolPage();
   if(name==='chat'&&_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
@@ -11336,6 +11342,324 @@ function renderAnalytics(){
     ${topDay}요일 매출이 가장 높습니다. 주말 프로모션을 활용하세요.<br>
     전환율 ${cvr}는 업계 평균(15%) 대비 <strong>${parseFloat(cvr)>=15?'우수합니다 ✅':'개선이 필요합니다'}</strong>.<br>
     인기 소재 <strong>${topTypes[0]?topTypes[0][0]:'—'}</strong> 재고를 충분히 확보하세요.`;
+}
+
+// ── 판매관리 거래 통계 ──
+function switchBizStatsTab(tab,el){
+  document.querySelectorAll('#biz-stats-tabs .bst-tab').forEach(t=>{
+    t.style.borderBottomColor='transparent';t.style.color='#666';
+  });
+  if(el){el.style.borderBottomColor='#6c63ff';el.style.color='#6c63ff';}
+  renderBizStats(tab);
+}
+function _getBizStatsData(){
+  const myProds=curUser?products.filter(p=>isMyProduct(p,curUser)):[];
+  const offers=lsGet('priceOffers',[]).filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name);
+  const resvs=lsGet('reservationList',[]).filter(r=>r.sellerId===curUser?.id||r.sellerName===curUser?.name);
+  const now=new Date();
+  const thisMonth=now.getMonth();
+  const thisYear=now.getFullYear();
+  const thisMonthOffers=offers.filter(o=>{const d=new Date(o.date||o.createdAt||0);return d.getMonth()===thisMonth&&d.getFullYear()===thisYear&&o.status==='accepted';});
+  const lastMonth=thisMonth===0?11:thisMonth-1;
+  const lastYear=thisMonth===0?thisYear-1:thisYear;
+  const lastMonthOffers=offers.filter(o=>{const d=new Date(o.date||o.createdAt||0);return d.getMonth()===lastMonth&&d.getFullYear()===lastYear&&o.status==='accepted';});
+  const thisMonthResvs=resvs.filter(r=>{const d=new Date(r.date||r.createdAt||0);return d.getMonth()===thisMonth&&d.getFullYear()===thisYear&&r.status==='confirmed';});
+  const lastMonthResvs=resvs.filter(r=>{const d=new Date(r.date||r.createdAt||0);return d.getMonth()===lastMonth&&d.getFullYear()===lastYear&&r.status==='confirmed';});
+  const thisAmt=thisMonthOffers.reduce((a,o)=>a+(o.price||0),0)+thisMonthResvs.reduce((a,r)=>a+(r.price||0),0);
+  const lastAmt=lastMonthOffers.reduce((a,o)=>a+(o.price||0),0)+lastMonthResvs.reduce((a,r)=>a+(r.price||0),0);
+  const thisCnt=thisMonthOffers.length+thisMonthResvs.length;
+  const lastCnt=lastMonthOffers.length+lastMonthResvs.length;
+  // 월별 매출 (최근 6개월)
+  const monthly=[];
+  for(let i=5;i>=0;i--){
+    let m=thisMonth-i,y=thisYear;
+    if(m<0){m+=12;y--;}
+    const mOffers=offers.filter(o=>{const d=new Date(o.date||o.createdAt||0);return d.getMonth()===m&&d.getFullYear()===y&&o.status==='accepted';});
+    const mResvs=resvs.filter(r=>{const d=new Date(r.date||r.createdAt||0);return d.getMonth()===m&&d.getFullYear()===y&&r.status==='confirmed';});
+    const amt=mOffers.reduce((a,o)=>a+(o.price||0),0)+mResvs.reduce((a,r)=>a+(r.price||0),0);
+    monthly.push({month:m+1,year:y,amt,cnt:mOffers.length+mResvs.length});
+  }
+  return {myProds,offers,resvs,thisAmt,lastAmt,thisCnt,lastCnt,monthly};
+}
+function _pctChange(cur,prev){
+  if(!prev)return cur>0?'+100%':'—';
+  const pct=Math.round((cur-prev)/prev*100);
+  return pct>0?`<span style="color:#00b386">↑${pct}%</span>`:pct<0?`<span style="color:#e53935">↓${Math.abs(pct)}%</span>`:'<span style="color:#888">—</span>';
+}
+function _fmtAmt(n){return n>=10000?(n/10000).toFixed(1)+'만':n>=1000?(n/1000).toFixed(0)+'천':n.toLocaleString();}
+function renderBizStats(tab){
+  const ct=document.getElementById('biz-stats-content');
+  if(!ct)return;
+  const d=_getBizStatsData();
+
+  if(tab==='overview'){
+    const mMax=Math.max(...d.monthly.map(m=>m.amt),1);
+    ct.innerHTML=`
+      <!-- 이번 달 요약 -->
+      <div style="background:linear-gradient(135deg,#6c63ff,#a78bfa);border-radius:16px;padding:20px;margin-bottom:14px;color:#fff">
+        <div style="font-size:13px;opacity:.8;margin-bottom:4px">${d.monthly[5]?.month||''}월 매출 현황</div>
+        <div style="font-size:28px;font-weight:800;margin-bottom:4px">₩${_fmtAmt(d.thisAmt)}</div>
+        <div style="display:flex;gap:16px;font-size:12px;opacity:.9">
+          <span>거래 ${d.thisCnt}건</span>
+          <span>전월 대비 ${_pctChange(d.thisAmt,d.lastAmt).replace(/#00b386/g,'#a0ffc0').replace(/#e53935/g,'#ffaaaa')}</span>
+        </div>
+      </div>
+      <!-- 요약 카드 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#6c63ff">${d.thisCnt}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">이번 달 거래</div>
+          <div style="font-size:11px;margin-top:4px">${_pctChange(d.thisCnt,d.lastCnt)}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#ff6f00">${d.myProds.reduce((a,p)=>a+(p.views||0),0).toLocaleString()}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">총 조회수</div>
+        </div>
+      </div>
+      <!-- 월별 매출 추이 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">📈 월별 매출 추이</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:120px">
+          ${d.monthly.map(m=>`
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="font-size:9px;color:#888;font-weight:600">${m.amt?_fmtAmt(m.amt):''}</div>
+              <div style="width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#6c63ff,#a78bfa);height:${Math.max(Math.round(m.amt/mMax*90),m.amt?4:0)}px;transition:height .5s"></div>
+              <div style="font-size:10px;color:#888">${m.month}월</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <!-- 거래 건수 추이 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">📊 월별 거래 건수</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:100px">
+          ${d.monthly.map(m=>{const cMax=Math.max(...d.monthly.map(x=>x.cnt),1);return`
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="font-size:10px;color:#888;font-weight:600">${m.cnt||''}</div>
+              <div style="width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#ff6f00,#ffab40);height:${Math.max(Math.round(m.cnt/cMax*70),m.cnt?4:0)}px;transition:height .5s"></div>
+              <div style="font-size:10px;color:#888">${m.month}월</div>
+            </div>`;}).join('')}
+        </div>
+      </div>`;
+
+  } else if(tab==='products'){
+    const sorted=d.myProds.slice();
+    const byViews=sorted.sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+    const byLikes=d.myProds.slice().sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,5);
+    const prodOfferCount={};
+    d.offers.forEach(o=>{prodOfferCount[o.productId]=(prodOfferCount[o.productId]||0)+1;});
+    const byOffers=d.myProds.slice().sort((a,b)=>(prodOfferCount[b.id]||0)-(prodOfferCount[a.id]||0)).slice(0,5);
+    ct.innerHTML=`
+      <!-- 조회수 TOP 5 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">👁 조회수 TOP 5</div>
+        ${byViews.length?byViews.map((p,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<byViews.length-1?'border-bottom:1px solid #f5f5f5':''}">
+            <div style="width:22px;font-size:14px;font-weight:800;color:${i<3?'#6c63ff':'#aaa'};text-align:center">${i+1}</div>
+            ${p.image_url?`<img src="${p.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover"/>`:'<div style="width:40px;height:40px;border-radius:8px;background:#f0f0f5"></div>'}
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div></div>
+            <div style="font-size:13px;font-weight:700;color:#6c63ff">${(p.views||0).toLocaleString()}</div>
+          </div>`).join(''):'<div style="color:#888;font-size:13px">등록된 상품이 없어요</div>'}
+      </div>
+      <!-- 찜 TOP 5 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">❤️ 찜 TOP 5</div>
+        ${byLikes.length?byLikes.map((p,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<byLikes.length-1?'border-bottom:1px solid #f5f5f5':''}">
+            <div style="width:22px;font-size:14px;font-weight:800;color:${i<3?'#ff6584':'#aaa'};text-align:center">${i+1}</div>
+            ${p.image_url?`<img src="${p.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover"/>`:'<div style="width:40px;height:40px;border-radius:8px;background:#f0f0f5"></div>'}
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div></div>
+            <div style="font-size:13px;font-weight:700;color:#ff6584">${(p.likes||0)}</div>
+          </div>`).join(''):'<div style="color:#888;font-size:13px">등록된 상품이 없어요</div>'}
+      </div>
+      <!-- 가격제안 TOP 5 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">💰 가격제안 TOP 5</div>
+        ${byOffers.length?byOffers.map((p,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<byOffers.length-1?'border-bottom:1px solid #f5f5f5':''}">
+            <div style="width:22px;font-size:14px;font-weight:800;color:${i<3?'#ff6f00':'#aaa'};text-align:center">${i+1}</div>
+            ${p.image_url?`<img src="${p.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover"/>`:'<div style="width:40px;height:40px;border-radius:8px;background:#f0f0f5"></div>'}
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div></div>
+            <div style="font-size:13px;font-weight:700;color:#ff6f00">${prodOfferCount[p.id]||0}건</div>
+          </div>`).join(''):'<div style="color:#888;font-size:13px">가격제안이 없어요</div>'}
+      </div>`;
+
+  } else if(tab==='buyers'){
+    // 구매자 분석
+    const buyerMap={};
+    const acceptedOffers=d.offers.filter(o=>o.status==='accepted');
+    const confirmedResvs=d.resvs.filter(r=>r.status==='confirmed');
+    acceptedOffers.forEach(o=>{
+      const bid=o.buyerId||o.buyerName||'unknown';
+      if(!buyerMap[bid])buyerMap[bid]={name:o.buyerName||'구매자',count:0,amt:0,loc:o.buyerLoc||''};
+      buyerMap[bid].count++;buyerMap[bid].amt+=(o.price||0);
+    });
+    confirmedResvs.forEach(r=>{
+      const bid=r.buyerId||r.buyerName||'unknown';
+      if(!buyerMap[bid])buyerMap[bid]={name:r.buyerName||'구매자',count:0,amt:0,loc:r.buyerLoc||''};
+      buyerMap[bid].count++;buyerMap[bid].amt+=(r.price||0);
+    });
+    const buyers=Object.values(buyerMap).sort((a,b)=>b.count-a.count);
+    const totalBuyers=buyers.length;
+    const repeatBuyers=buyers.filter(b=>b.count>=2).length;
+    const repeatRate=totalBuyers>0?Math.round(repeatBuyers/totalBuyers*100):0;
+    // 지역별
+    const locMap={};
+    buyers.forEach(b=>{if(b.loc){locMap[b.loc]=(locMap[b.loc]||0)+1;}});
+    const locEntries=Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const locMax=Math.max(...locEntries.map(e=>e[1]),1);
+    ct.innerHTML=`
+      <!-- 요약 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#6c63ff">${totalBuyers}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">총 구매자</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#ff6f00">${repeatBuyers}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">재구매</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#2ed573">${repeatRate}%</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">재구매율</div>
+        </div>
+      </div>
+      <!-- 신규 vs 재구매 비율 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">🔄 신규 vs 재구매</div>
+        ${totalBuyers>0?`
+          <div style="display:flex;height:24px;border-radius:12px;overflow:hidden;margin-bottom:8px">
+            <div style="width:${100-repeatRate}%;background:#4A90D9;transition:width .5s"></div>
+            <div style="width:${repeatRate}%;background:#2ed573;transition:width .5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span><span style="color:#4A90D9">■</span> 신규 ${totalBuyers-repeatBuyers}명 (${100-repeatRate}%)</span>
+            <span><span style="color:#2ed573">■</span> 재구매 ${repeatBuyers}명 (${repeatRate}%)</span>
+          </div>`:'<div style="color:#888;font-size:13px">구매 데이터가 없어요</div>'}
+      </div>
+      <!-- 구매자 순위 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">👤 구매자 순위</div>
+        ${buyers.length?buyers.slice(0,10).map((b,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<Math.min(buyers.length,10)-1?'border-bottom:1px solid #f5f5f5':''}">
+            <div style="width:28px;height:28px;border-radius:50%;background:${b.count>=3?'linear-gradient(135deg,#ff6f00,#ff6584)':'#e0e0ea'};display:flex;align-items:center;justify-content:center;color:${b.count>=3?'#fff':'#888'};font-size:11px;font-weight:700">${(b.name||'?')[0]}</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1a1a1a">${b.name}</div></div>
+            <div style="text-align:right">
+              <div style="font-size:12px;font-weight:700;color:#6c63ff">${b.count}회</div>
+              ${b.amt?`<div style="font-size:11px;color:#888">${_fmtAmt(b.amt)}원</div>`:''}
+            </div>
+          </div>`).join(''):'<div style="color:#888;font-size:13px">구매 데이터가 없어요</div>'}
+      </div>
+      <!-- 지역별 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">📍 지역별 구매자</div>
+        ${locEntries.length?locEntries.map(([loc,cnt])=>`
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span style="color:#1a1a1a;font-weight:600">${loc}</span>
+              <span style="font-weight:700;color:#1a1a1a">${cnt}명</span>
+            </div>
+            <div style="height:6px;background:#f0f0f5;border-radius:3px">
+              <div style="height:100%;width:${Math.round(cnt/locMax*100)}%;background:linear-gradient(90deg,#6c63ff,#a78bfa);border-radius:3px;transition:width .5s"></div>
+            </div>
+          </div>`).join(''):'<div style="color:#888;font-size:13px">지역 데이터가 없어요</div>'}
+      </div>`;
+
+  } else if(tab==='category'){
+    // 카테고리 분석
+    const matMap={};const catMap={};
+    d.myProds.forEach(p=>{
+      if(p.material)matMap[p.material]=(matMap[p.material]||0)+1;
+      if(p.cat||p.type)catMap[p.cat||p.type]=(catMap[p.cat||p.type]||0)+1;
+    });
+    const matEntries=Object.entries(matMap).sort((a,b)=>b[1]-a[1]);
+    const catEntries=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+    const matTotal=Math.max(d.myProds.length,1);
+    const matColors=['#6c63ff','#ff6584','#ff6f00','#2ed573','#4A90D9','#a78bfa','#c8962a','#7B8FA3'];
+    ct.innerHTML=`
+      <!-- 소재별 판매 비중 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">🧵 소재별 비중</div>
+        ${matEntries.length?`
+          <div style="display:flex;height:28px;border-radius:14px;overflow:hidden;margin-bottom:12px">
+            ${matEntries.map(([,cnt],i)=>`<div style="width:${Math.round(cnt/matTotal*100)}%;background:${matColors[i%matColors.length]};transition:width .5s"></div>`).join('')}
+          </div>
+          ${matEntries.map(([name,cnt],i)=>{
+            const pct=Math.round(cnt/matTotal*100);
+            return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0">
+              <div style="width:12px;height:12px;border-radius:3px;background:${matColors[i%matColors.length]};flex-shrink:0"></div>
+              <div style="flex:1;font-size:13px;color:#1a1a1a;font-weight:600">${name}</div>
+              <div style="font-size:13px;color:#888">${cnt}개</div>
+              <div style="font-size:13px;font-weight:700;color:#1a1a1a;min-width:36px;text-align:right">${pct}%</div>
+            </div>`;}).join('')}`
+        :'<div style="color:#888;font-size:13px">등록된 상품이 없어요</div>'}
+      </div>
+      <!-- 대분류별 거래 현황 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">📦 대분류별 현황</div>
+        ${catEntries.length?catEntries.map(([name,cnt],i)=>{
+          const pct=Math.round(cnt/matTotal*100);
+          return`<div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+              <span style="color:#1a1a1a;font-weight:600">${name}</span>
+              <span style="font-weight:700;color:#1a1a1a">${pct}% (${cnt}개)</span>
+            </div>
+            <div style="height:8px;background:#f0f0f5;border-radius:4px">
+              <div style="height:100%;width:${pct}%;background:${matColors[i%matColors.length]};border-radius:4px;transition:width .6s"></div>
+            </div>
+          </div>`;}).join(''):'<div style="color:#888;font-size:13px">등록된 상품이 없어요</div>'}
+      </div>`;
+
+  } else if(tab==='conversion'){
+    // 반응 지표
+    const totalViews=d.myProds.reduce((a,p)=>a+(p.views||0),0);
+    const totalChats=d.myProds.reduce((a,p)=>a+(p.chats||0),0);
+    const totalOffers=d.offers.length;
+    const acceptedOffers=d.offers.filter(o=>o.status==='accepted').length;
+    const totalResvs=d.resvs.length;
+    const confirmedResvs=d.resvs.filter(r=>r.status==='confirmed').length;
+    const chatRate=totalViews>0?(totalChats/totalViews*100).toFixed(1):0;
+    const resvRate=totalChats>0?(totalResvs/totalChats*100).toFixed(1):0;
+    const offerAcceptRate=totalOffers>0?(acceptedOffers/totalOffers*100).toFixed(1):0;
+    const resvConfirmRate=totalResvs>0?(confirmedResvs/totalResvs*100).toFixed(1):0;
+    const metrics=[
+      {label:'채팅 전환율',desc:'조회 → 채팅',val:chatRate+'%',num:`${totalChats}/${totalViews}`,color:'#6c63ff',pct:Math.min(chatRate,100)},
+      {label:'예약 전환율',desc:'채팅 → 예약',val:resvRate+'%',num:`${totalResvs}/${totalChats}`,color:'#ff6f00',pct:Math.min(resvRate,100)},
+      {label:'가격제안 수락률',desc:'제안 → 수락',val:offerAcceptRate+'%',num:`${acceptedOffers}/${totalOffers}`,color:'#2ed573',pct:Math.min(offerAcceptRate,100)},
+      {label:'예약 확정률',desc:'예약 → 확정',val:resvConfirmRate+'%',num:`${confirmedResvs}/${totalResvs}`,color:'#ff6584',pct:Math.min(resvConfirmRate,100)},
+    ];
+    ct.innerHTML=`
+      <!-- 전환율 퍼널 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px">🔄 전환 퍼널</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          ${[
+            {label:'조회',val:totalViews,w:100,color:'#e8f0fb',tc:'#4A90D9'},
+            {label:'채팅',val:totalChats,w:75,color:'#ede9fe',tc:'#6c63ff'},
+            {label:'가격제안',val:totalOffers,w:55,color:'#fff5eb',tc:'#ff6f00'},
+            {label:'예약',val:totalResvs,w:40,color:'#fce4ec',tc:'#ff6584'},
+            {label:'거래완료',val:acceptedOffers+confirmedResvs,w:28,color:'#e8f8f0',tc:'#2ed573'},
+          ].map(s=>`
+            <div style="width:${s.w}%;background:${s.color};border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:16px;font-weight:800;color:${s.tc}">${s.val.toLocaleString()}</div>
+              <div style="font-size:11px;color:#888">${s.label}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <!-- 상세 지표 -->
+      ${metrics.map(m=>`
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a">${m.label}</div>
+              <div style="font-size:11px;color:#888">${m.desc} (${m.num})</div>
+            </div>
+            <div style="font-size:22px;font-weight:800;color:${m.color}">${m.val}</div>
+          </div>
+          <div style="height:8px;background:#f0f0f5;border-radius:4px">
+            <div style="height:100%;width:${m.pct}%;background:${m.color};border-radius:4px;transition:width .6s"></div>
+          </div>
+        </div>`).join('')}`;
+  }
 }
 
 /* ==================== INIT ==================== */
