@@ -8016,15 +8016,37 @@ async function renderBizNewsList(){
       <div style="font-size:var(--fs-xs);color:#aaa;margin-top:6px">${new Date(n.created_at).toLocaleDateString('ko-KR')}</div>
     </div>`).join('');
 }
-async function editBizNews(id, encodedTitle, encodedContent){
+function editBizNews(id, encodedTitle, encodedContent){
   const title=decodeURIComponent(encodedTitle);
   const content=decodeURIComponent(encodedContent);
-  const newTitle=prompt('제목 수정:', title);
-  if(!newTitle)return;
-  const newContent=prompt('내용 수정:', content);
-  if(!newContent)return;
+  const overlay=document.createElement('div');
+  overlay.id='biz-news-edit-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column';
+  overlay.innerHTML=`
+    <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #eee">
+      <button onclick="document.getElementById('biz-news-edit-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;margin-right:12px">←</button>
+      <div style="font-size:16px;font-weight:700">소식 수정</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:6px">제목</div>
+        <input id="edit-news-title" class="fi" value="${title}" style="width:100%;box-sizing:border-box"/>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:6px">내용</div>
+        <textarea id="edit-news-content" class="fi" style="width:100%;box-sizing:border-box;height:200px;resize:none">${content}</textarea>
+      </div>
+      <button onclick="saveEditBizNews(${id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">✅ 수정 완료</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+async function saveEditBizNews(id){
+  const newTitle=document.getElementById('edit-news-title')?.value.trim();
+  const newContent=document.getElementById('edit-news-content')?.value.trim();
+  if(!newTitle||!newContent){showToast('제목과 내용을 입력해주세요');return;}
   const{error}=await _sb.from('biz_news').update({title:newTitle,content:newContent,updated_at:new Date().toISOString()}).eq('id',id);
   if(error){showToast('수정 실패: '+error.message);return;}
+  document.getElementById('biz-news-edit-overlay')?.remove();
   showToast('소식이 수정됐어요 ✅');
   renderBizNewsList();
 }
