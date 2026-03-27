@@ -11156,6 +11156,9 @@ function renderNotifView(){
       restock:{icon:'📦',bg:'rgba(108,99,255,.15)',title:'재입고 알림',action:''},
       reservation_remind:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 알림',action:"showView('my-reservations');renderMyReservations()"},
       follow_news:{icon:'📢',bg:'rgba(255,111,0,.15)',title:'단골 소식',action:''},
+      dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:''},
+      dangol_new:{icon:'🆕',bg:'rgba(108,99,255,.15)',title:'단골 신상품',action:''},
+      dangol_urgent:{icon:'⚡',bg:'rgba(255,101,132,.15)',title:'단골 급처',action:''},
       fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:''},
   };
   const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
