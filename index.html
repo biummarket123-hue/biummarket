@@ -4473,6 +4473,9 @@ async function doSignup(){
     } else {
       showView('list');showListSkeleton();loadProductsFromSupabase();
       setTimeout(()=>openWelcomeModal(curUser.name||name),800);
+      // 일반회원 이용가이드 알림 발송
+      sendNotification(curUser.id||curUser.email,'guide_member','🎉 비움마켓 이용가이드','비움마켓 사용법을 확인해보세요!',{});
+      addAppNotification(curUser.id||curUser.email,'guide_member','비움마켓 사용법을 확인해보세요!',{});
     }
   }catch(e){showToast('회원가입 중 오류가 발생했어요');console.error(e);}
 }
@@ -11111,6 +11114,9 @@ async function adminApproveSeller(idx){
   }
 
   addAppNotification(u.id||u.email,'seller_approved','✅ 사업자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
+  // 사업자 이용가이드 알림 발송
+  sendNotification(u.id||u.email,'guide_seller','✅ 사업자 이용가이드','이제 상품을 등록하고 판매를 시작해보세요!',{});
+  addAppNotification(u.id||u.email,'guide_seller','이제 상품을 등록하고 판매를 시작해보세요!',{});
   showToast('✅ 사업자 승인 완료!');
   showAdminUsers && showAdminUsers();
 }
@@ -11677,6 +11683,134 @@ function markAllAppNotificationsRead(userId){
   lsSet('appNotifications',appNotifications);
   updateNotifDot();
 }
+function openGuideModal(type){
+  const guides={
+    member:{
+      title:'🎉 비움마켓 이용가이드',
+      content:`<div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:6px">비움마켓에 오신 것을 환영해요!</div>
+<div style="font-size:13px;color:#666;margin-bottom:20px;line-height:1.6">원단 B2B 거래 플랫폼 비움마켓 사용법을 안내해드릴게요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">🔍 상품 검색</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 홈 화면에서 키워드로 검색하거나 카테고리별로 원단을 찾을 수 있어요.<br>
+• 염색지, 나염지, 생지, 수입원단, 홈/인테리어 5가지 대분류로 구분돼요.<br>
+• 카메라 버튼으로 사진을 찍으면 AI가 비슷한 원단을 찾아드려요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">💬 판매자와 소통</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 마음에 드는 상품에서 채팅 버튼을 누르면 판매자와 바로 대화할 수 있어요.<br>
+• 가격제안 기능으로 원하는 가격을 제안해볼 수 있어요.<br>
+• 구매 의사가 있다면 예약 신청으로 상품을 미리 잡아두세요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">🤍 관심 목록</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 상품의 하트 버튼을 누르면 관심 목록에 저장돼요.<br>
+• MY 메뉴 > 관심 목록에서 언제든지 확인할 수 있어요.<br>
+• 관심 원단을 설정하면 맞춤 상품을 추천해드려요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">🤖 AI 원단 감별</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 원단 사진을 올리면 AI가 소재, 중량, 조직 구조를 분석해드려요.<br>
+• 라벨 사진을 함께 올리면 더욱 정확한 분석이 가능해요.<br>
+• MY 메뉴 > 원단 감별 AI에서 이용할 수 있어요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">🔔 알림 설정</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 키워드 알림을 설정하면 원하는 원단이 등록될 때 알림을 받을 수 있어요.<br>
+• 설정 > 알림에서 채팅/가격제안/예약 알림 소리를 변경할 수 있어요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:8px">💡 이용 팁</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 프로필에 지역을 등록하면 근처 판매자 상품을 먼저 볼 수 있어요.<br>
+• 단골 판매자를 등록하면 신상품 알림을 받을 수 있어요.<br>
+• 거래가 쌓일수록 등급이 올라가요.<br>
+&nbsp;&nbsp;🌱루키 → 🥉브론즈 → 🥈실버 → 🥇골드 → 💎다이아</div>
+
+<div style="text-align:center;padding:16px;background:#f8f8fa;border-radius:12px;margin-top:8px">
+<div style="font-size:13px;color:#888;margin-bottom:4px">궁금한 점은 고객센터로 문의해주세요.</div>
+<a href="tel:031-824-3303" style="font-size:14px;font-weight:700;color:#6c63ff;text-decoration:none">📞 031-824-3303</a>
+</div>`
+    },
+    seller:{
+      title:'✅ 사업자 이용가이드',
+      content:`<div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:6px">사업자 승인이 완료됐어요!</div>
+<div style="font-size:13px;color:#666;margin-bottom:20px;line-height:1.6">이제 비움마켓에서 원단을 판매할 수 있어요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">📦 상품 등록</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 홈 화면 우측 하단 + 버튼 또는 MY 메뉴 > 상품 등록에서 상품을 올릴 수 있어요.<br>
+• 사진은 최대 10장까지 등록 가능해요. 첫 번째 사진이 대표 이미지가 돼요.<br>
+• AI 자동 입력 기능을 사용하면 사진 한 장으로 소재, 중량, 설명을 자동 완성해드려요.<br>
+• 급처 상품은 급처 표시를 켜면 홈 화면 상단에 노출돼요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">💬 구매자와 소통</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 채팅으로 구매자와 자유롭게 대화할 수 있어요.<br>
+• 가격제안이 들어오면 수락/거절/역제안이 가능해요.<br>
+• 예약 신청이 들어오면 확인 후 수락하면 거래가 확정돼요.<br>
+• 빠른 응답일수록 구매자 신뢰도가 높아져요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">👥 단골 관리</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• MY 메뉴 > 단골 관리에서 나를 단골로 등록한 구매자를 확인할 수 있어요.<br>
+• 단골 전용 할인율을 설정할 수 있어요.<br>
+• 신상품 입고 시 단골에게 자동으로 알림을 보낼 수 있어요.<br>
+• 단골 전체에게 일괄 메시지 발송도 가능해요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">📢 소식 올리기</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• MY 메뉴 > 소식 올리기에서 입고 소식, 이벤트 등을 올릴 수 있어요.<br>
+• 등록한 소식은 단골 구매자에게 알림으로 전달돼요.<br>
+• 내 프로필 페이지 소식 탭에도 표시돼요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">📊 거래 통계</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• MY 메뉴 > 거래 통계에서 거래 현황을 확인할 수 있어요.<br>
+• 상품별 조회수, 찜 수, 가격제안 수를 볼 수 있어요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">🏪 사업자 프로필</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• MY 메뉴 > 사업자 프로필 보기에서 구매자에게 보이는 내 프로필을 확인할 수 있어요.<br>
+• 회사 소개, 취급 품목, 연락처를 등록하면 신뢰도가 높아져요.<br>
+• 프로필이 잘 갖춰질수록 구매자 유입이 늘어나요.</div>
+
+<div style="font-size:14px;font-weight:700;color:#ff6f00;margin-bottom:8px">💡 판매 팁</div>
+<div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
+• 상품 사진은 밝고 선명하게 찍을수록 클릭률이 높아요.<br>
+• 상품 설명에 소재, 중량, 폭, 색상을 정확히 기재해주세요.<br>
+• 거래가 쌓일수록 판매자 등급이 올라가요.<br>
+&nbsp;&nbsp;🌱루키 → 🥉브론즈 → 🥈실버 → 🥇골드 → 💎다이아<br>
+• 다이아 등급이 되면 홈 화면 상단에 우선 노출돼요. (예정)</div>
+
+<div style="text-align:center;padding:16px;background:#f8f8fa;border-radius:12px;margin-top:8px">
+<div style="font-size:13px;color:#888;margin-bottom:4px">궁금한 점은 고객센터로 문의해주세요.</div>
+<a href="tel:031-824-3303" style="font-size:14px;font-weight:700;color:#ff6f00;text-decoration:none">📞 031-824-3303</a>
+<div style="font-size:12px;color:#888;margin-top:4px">✉ lowhigh_market@naver.com</div>
+</div>`
+    }
+  };
+  const g=guides[type];if(!g)return;
+  const existing=document.getElementById('guide-modal-overlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='guide-modal-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px';
+  overlay.onclick=function(e){if(e.target===overlay){overlay.remove();}};
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+      <div style="padding:20px 20px 12px;border-bottom:1px solid #f0f0f5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div style="font-size:17px;font-weight:800;color:#1a1a1a">${g.title}</div>
+        <button onclick="document.getElementById('guide-modal-overlay').remove()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;padding:0 4px">×</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px;-webkit-overflow-scrolling:touch">
+        ${g.content}
+      </div>
+      <div style="padding:12px 20px 20px;flex-shrink:0">
+        <button onclick="document.getElementById('guide-modal-overlay').remove()" style="width:100%;padding:14px;background:linear-gradient(135deg,${type==='seller'?'#ff6f00,#ff6584':'#6c63ff,#a78bfa'});color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">확인했어요!</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
 function renderNotifView(){
   const el=document.getElementById('notif-items-list');if(!el)return;
   const items=lsGet('notifHistory',[]);
@@ -11685,6 +11819,8 @@ function renderNotifView(){
   const TYPE_META={
     seller_request:{icon:'📋',bg:'rgba(201,168,76,.15)',title:'사업자 전환 신청',action:"showView('admin')"},
     seller_approved:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'사업자 승인',action:"showView('mypage')"},
+    guide_member:{icon:'🎉',bg:'rgba(108,99,255,.15)',title:'이용가이드',action:"openGuideModal('member')"},
+    guide_seller:{icon:'📦',bg:'rgba(255,111,0,.15)',title:'사업자 가이드',action:"openGuideModal('seller')"},
     seller_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'사업자 거절',action:"showView('mypage')"},
     price_offer:{icon:'💰',bg:'rgba(201,168,76,.15)',title:'가격제안 도착',action:"showView('my-offers');renderMyOffers()"},
     offer_accepted:{icon:'✅',bg:'rgba(0,200,100,.15)',title:'가격제안 수락',action:"showView('my-offers');renderMyOffers()"},
@@ -11736,6 +11872,8 @@ function renderNotifView(){
     '사업자 전환 신청':{bg:'#fffbeb',color:'#c8962a'},
     '사업자 승인':{bg:'#e8f5e9',color:'#2e7d32'},
     '사업자 거절':{bg:'#fff5f5',color:'#e53935'},
+      '이용가이드':{bg:'#ede9fe',color:'#6c63ff'},
+      '사업자 가이드':{bg:'#fff3e0',color:'#e65100'},
       '키워드 알림':{bg:'#fff9e6',color:'#856404'},
       '가격 인하':{bg:'#e8f5e9',color:'#2e7d32'},
       '재입고 알림':{bg:'#ede9fe',color:'#6c63ff'},
