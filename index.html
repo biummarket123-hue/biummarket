@@ -10308,54 +10308,83 @@ function _filterAdminUsers(){
   else if(_adminUserSort==='name')list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   return list;
 }
+let _adminSearchTimer=null;
 function _renderAdminUserList(){
   const el=document.getElementById('admin-content');if(!el)return;
-  const list=_filterAdminUsers();
-  _adminUserList=list;
   const totalCnt=_adminUserAll.length;
   const bizCnt=_adminUserAll.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both').length;
   const memCnt=_adminUserAll.filter(u=>!u.type||u.type==='member'||u.type==='buyer'||u.type==='guest').length;
   const pendCnt=_adminUserAll.filter(u=>(u.sellerStatus||u.seller_status)==='pending').length;
   const suspCnt=_adminUserAll.filter(u=>u.status==='suspended').length;
-  const typeBtn=(key,label,cnt,color)=>`<button onclick="_adminUserType='${key}';_renderAdminUserList()" style="padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid ${_adminUserType===key?color:'#e0e0ea'};background:${_adminUserType===key?color+'18':'#f8f8fa'};color:${_adminUserType===key?color:'#666'};cursor:pointer;white-space:nowrap">${label} ${cnt}</button>`;
+  const typeBtn=(key,label,cnt,color)=>`<button onclick="_adminUserType='${key}';_updateAdminListOnly()" style="padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid ${_adminUserType===key?color:'#e0e0ea'};background:${_adminUserType===key?color+'18':'#f8f8fa'};color:${_adminUserType===key?color:'#666'};cursor:pointer;white-space:nowrap">${label} ${cnt}</button>`;
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 관리</span>
       <span style="font-size:13px;color:#6c63ff;font-weight:700">${totalCnt}명</span>
     </div>
-    <!-- 검색 -->
     <div style="padding:10px 16px 0">
-      <input type="text" id="adm-user-search" placeholder="🔍 이름, 이메일, 전화번호 검색" value="${_adminUserSearch}" oninput="_adminUserSearch=this.value;_renderAdminUserList()" style="width:100%;padding:10px 14px;border:1.5px solid #e0e0ea;border-radius:12px;font-size:13px;background:#f8f8fa;box-sizing:border-box"/>
+      <input type="text" id="adm-user-search" placeholder="🔍 이름, 이메일, 전화번호 검색" value="${_adminUserSearch}" style="width:100%;padding:10px 14px;border:1.5px solid #e0e0ea;border-radius:12px;font-size:13px;background:#f8f8fa;box-sizing:border-box"/>
     </div>
-    <!-- 유형 필터 -->
-    <div style="padding:10px 16px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <div id="adm-type-btns" style="padding:10px 16px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch">
       ${typeBtn('all','전체',totalCnt,'#6c63ff')}
       ${typeBtn('business','사업자',bizCnt,'#00875a')}
       ${typeBtn('member','일반',memCnt,'#3366cc')}
       ${pendCnt?typeBtn('pending','승인대기',pendCnt,'#c8962a'):''}
       ${suspCnt?typeBtn('suspended','정지',suspCnt,'#e53935'):''}
     </div>
-    <!-- 정렬 -->
     <div style="padding:10px 16px 6px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;color:#888">${list.length}명 표시</span>
-      <select onchange="_adminUserSort=this.value;_renderAdminUserList()" style="padding:5px 10px;border:1px solid #e0e0ea;border-radius:8px;font-size:12px;color:#666;background:#fff">
+      <span id="adm-list-count" style="font-size:12px;color:#888"></span>
+      <select id="adm-sort-sel" style="padding:5px 10px;border:1px solid #e0e0ea;border-radius:8px;font-size:12px;color:#666;background:#fff">
         <option value="newest"${_adminUserSort==='newest'?' selected':''}>최신 가입순</option>
         <option value="oldest"${_adminUserSort==='oldest'?' selected':''}>오래된순</option>
         <option value="name"${_adminUserSort==='name'?' selected':''}>이름순</option>
       </select>
     </div>
-    <!-- 목록 -->
-    <div style="padding:4px 16px 20px">
-      ${list.length?list.map((u,i)=>`<div onclick="showAdminUserDetail(${i})" style="background:${u.status==='suspended'?'#fff5f5':'#f8f8fa'};border:1px solid ${u.status==='suspended'?'#ffcdd2':'#e0e0ea'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
-        <div style="width:38px;height:38px;border-radius:50%;background:${u.status==='suspended'?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'} ${u.adminMemo?'📝':''}${u.status==='suspended'?'<span style="color:#e53935;font-size:11px;font-weight:700;margin-left:4px">정지</span>':''}${(u.sellerStatus||u.seller_status)==='pending'?'<span style="color:#c8962a;font-size:11px;font-weight:700;margin-left:4px">승인대기</span>':''}</div>
-          <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
-        </div>
-        <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${(u.sellerStatus||u.seller_status)==='pending'?'#fffbeb':_roleBg(u.type||'user')};color:${(u.sellerStatus||u.seller_status)==='pending'?'#c8962a':_roleColor(u.type||'user')};flex-shrink:0">${(u.sellerStatus||u.seller_status)==='pending'?'승인대기':_roleLabel(u.type||'user')}</span>
-      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:13px">검색 결과가 없어요</div>'}
-    </div>`;
+    <div id="adm-user-list-body" style="padding:4px 16px 20px"></div>`;
+  // 이벤트 바인딩 (검색: debounce, 정렬: change)
+  const searchInput=document.getElementById('adm-user-search');
+  if(searchInput){
+    searchInput.addEventListener('input',function(){
+      _adminUserSearch=this.value;
+      clearTimeout(_adminSearchTimer);
+      _adminSearchTimer=setTimeout(()=>_updateAdminListOnly(),250);
+    });
+  }
+  const sortSel=document.getElementById('adm-sort-sel');
+  if(sortSel)sortSel.addEventListener('change',function(){_adminUserSort=this.value;_updateAdminListOnly();});
+  _updateAdminListOnly();
+}
+function _updateAdminListOnly(){
+  const list=_filterAdminUsers();
+  _adminUserList=list;
+  const countEl=document.getElementById('adm-list-count');
+  if(countEl)countEl.textContent=list.length+'명 표시';
+  // 유형 버튼 상태 업데이트
+  const typeBtns=document.getElementById('adm-type-btns');
+  if(typeBtns){
+    typeBtns.querySelectorAll('button').forEach(btn=>{
+      const key=btn.textContent.split(' ')[0];
+      const keyMap={'전체':'all','사업자':'business','일반':'member','승인대기':'pending','정지':'suspended'};
+      const k=keyMap[key]||'';
+      const colorMap={all:'#6c63ff',business:'#00875a',member:'#3366cc',pending:'#c8962a',suspended:'#e53935'};
+      const c=colorMap[k]||'#6c63ff';
+      const isOn=_adminUserType===k;
+      btn.style.borderColor=isOn?c:'#e0e0ea';
+      btn.style.background=isOn?c+'18':'#f8f8fa';
+      btn.style.color=isOn?c:'#666';
+    });
+  }
+  const body=document.getElementById('adm-user-list-body');
+  if(!body)return;
+  body.innerHTML=list.length?list.map((u,i)=>`<div onclick="showAdminUserDetail(${i})" style="background:${u.status==='suspended'?'#fff5f5':'#f8f8fa'};border:1px solid ${u.status==='suspended'?'#ffcdd2':'#e0e0ea'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+    <div style="width:38px;height:38px;border-radius:50%;background:${u.status==='suspended'?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'} ${u.adminMemo?'📝':''}${u.status==='suspended'?'<span style="color:#e53935;font-size:11px;font-weight:700;margin-left:4px">정지</span>':''}${(u.sellerStatus||u.seller_status)==='pending'?'<span style="color:#c8962a;font-size:11px;font-weight:700;margin-left:4px">승인대기</span>':''}</div>
+      <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
+    </div>
+    <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${(u.sellerStatus||u.seller_status)==='pending'?'#fffbeb':_roleBg(u.type||'user')};color:${(u.sellerStatus||u.seller_status)==='pending'?'#c8962a':_roleColor(u.type||'user')};flex-shrink:0">${(u.sellerStatus||u.seller_status)==='pending'?'승인대기':_roleLabel(u.type||'user')}</span>
+  </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:13px">검색 결과가 없어요</div>';
 }
 function showAdminUserDetail(idx){
   if(!isAdmin())return;
