@@ -2283,11 +2283,15 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 <div id="view-biz-followers" class="view">
   <div class="hdr">
     <button class="hdr-btn" onclick="goBack()">←</button>
-    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">❤️ 단골 관리</div>
+    <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">🏪 단골 관리</div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px">
-    <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px;text-align:center;color:#888;font-size:13px">❤️ 단골 기능은 준비 중이에요</div>
+  <!-- 탭 -->
+  <div id="dangol-tabs" style="display:flex;border-bottom:1px solid #eee;background:#fff">
+    <div class="dangol-tab on" onclick="switchDangolTab('list',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">단골 목록</div>
+    <div class="dangol-tab" onclick="switchDangolTab('benefit',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">혜택 관리</div>
+    <div class="dangol-tab" onclick="switchDangolTab('message',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666;cursor:pointer">메시지</div>
   </div>
+  <div id="dangol-content" style="flex:1;overflow-y:auto;padding:14px 14px 80px"></div>
 </div>
 
 <!-- ========== MY RESERVATIONS ========== -->
@@ -3893,6 +3897,7 @@ function showView(name,push=true){
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
   if(name==='biz-news')renderBizNewsList();
+  if(name==='biz-followers')renderDangolPage();
   if(name==='chat'&&_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
     _sb.from('chat_rooms')
@@ -6312,7 +6317,7 @@ function renderSellerPage(seller){
   switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
 }
-function toggleSellerFollow(){
+async function toggleSellerFollow(){
   if(!curUser){showToast('로그인이 필요해요');return;}
   const seller=curSellerData||{};
   const key=seller.id||seller.name;
@@ -6322,10 +6327,23 @@ function toggleSellerFollow(){
   if(idx>-1){
     myFollows.splice(idx,1);
     followers[key]=Math.max((followers[key]||1)-1,0);
+    // Supabase에서 삭제
+    if(_sb&&curUser.id&&seller.id){
+      _sb.from('follows').delete().eq('follower_id',curUser.id).eq('seller_id',seller.id).then(()=>{});
+    }
     showToast('단골을 취소했어요');
   }else{
     myFollows.push(key);
     followers[key]=(followers[key]||0)+1;
+    // Supabase에 저장
+    if(_sb&&curUser.id&&seller.id){
+      _sb.from('follows').upsert({
+        follower_id:curUser.id,
+        seller_id:seller.id,
+        follower_name:curUser.name||'',
+        created_at:new Date().toISOString()
+      },{onConflict:'follower_id,seller_id'}).then(()=>{});
+    }
     showToast('단골이 됐어요! ❤️');
   }
   lsSet('myFollows',myFollows);
@@ -6339,6 +6357,199 @@ function toggleSellerFollow(){
   }
   const followerEl=document.getElementById('sh-follower-cnt');
   if(followerEl)followerEl.textContent=`단골 ${followers[key]||0}`;
+}
+// ── 단골 관리 페이지 ──
+function switchDangolTab(tab,el){
+  document.querySelectorAll('#dangol-tabs .dangol-tab').forEach(t=>{
+    t.style.borderBottomColor='transparent';t.style.color='#666';
+  });
+  if(el){el.style.borderBottomColor='#ff6f00';el.style.color='#ff6f00';}
+  renderDangolTab(tab);
+}
+async function renderDangolPage(){
+  renderDangolTab('list');
+}
+async function renderDangolTab(tab){
+  const content=document.getElementById('dangol-content');
+  if(!content)return;
+  if(tab==='list'){
+    content.innerHTML='<div style="text-align:center;padding:20px;color:#888">불러오는 중...</div>';
+    let followers=[];
+    if(_sb&&curUser){
+      const{data}=await _sb.from('follows').select('*').eq('seller_id',curUser.id).order('created_at',{ascending:false});
+      followers=data||[];
+    }
+    // 거래 통계 (가격제안 기반)
+    const offers=lsGet('priceOffers',[]);
+    const resvs=lsGet('reservationList',[]);
+    const followerStats=followers.map(f=>{
+      const fOffers=offers.filter(o=>o.buyerId===f.follower_id&&(o.sellerId===curUser?.id||o.sellerName===curUser?.name));
+      const fResvs=resvs.filter(r=>r.buyerId===f.follower_id&&(r.sellerId===curUser?.id||r.sellerName===curUser?.name));
+      const dealCount=fOffers.filter(o=>o.status==='accepted').length+fResvs.filter(r=>r.status==='confirmed').length;
+      const totalAmt=fOffers.filter(o=>o.status==='accepted').reduce((a,o)=>a+(o.price||0),0);
+      return {...f,dealCount,totalAmt};
+    });
+    if(!followers.length){
+      content.innerHTML=`
+        <div style="text-align:center;padding:40px 16px">
+          <div style="font-size:48px;margin-bottom:12px">🏪</div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">아직 단골이 없어요</div>
+          <div style="font-size:13px;color:#888;line-height:1.6">구매자가 프로필에서 "단골맺기"를<br>누르면 여기에 표시돼요</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML=`
+      <div style="background:linear-gradient(135deg,#fff5eb,#fff0f5);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-around;text-align:center">
+          <div><div style="font-size:22px;font-weight:800;color:#ff6f00">${followers.length}</div><div style="font-size:12px;color:#888;margin-top:2px">총 단골</div></div>
+          <div><div style="font-size:22px;font-weight:800;color:#6c63ff">${followerStats.filter(f=>f.dealCount>0).length}</div><div style="font-size:12px;color:#888;margin-top:2px">거래 단골</div></div>
+          <div><div style="font-size:22px;font-weight:800;color:#2ed573">${followerStats.reduce((a,f)=>a+f.dealCount,0)}</div><div style="font-size:12px;color:#888;margin-top:2px">총 거래</div></div>
+        </div>
+      </div>
+      ${followerStats.map(f=>`
+        <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ff6f00,#ff6584);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px">${(f.follower_name||'?')[0]}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a">${f.follower_name||'구매자'}</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">단골 등록 ${new Date(f.created_at).toLocaleDateString('ko-KR')}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:#6c63ff">${f.dealCount}회 거래</div>
+              ${f.totalAmt?`<div style="font-size:11px;color:#888;margin-top:2px">${f.totalAmt.toLocaleString()}원</div>`:''}
+            </div>
+          </div>
+        </div>`).join('')}`;
+  } else if(tab==='benefit'){
+    const settings=lsGet('dangolSettings',{discountRate:0,priorityView:false,autoNotify:true,urgentNotify:true});
+    content.innerHTML=`
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;overflow:hidden;margin-bottom:14px">
+        <div style="padding:16px;border-bottom:1px solid #f0f0f5">
+          <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px">💰 단골 전용 할인</div>
+          <div style="font-size:12px;color:#888;margin-bottom:12px">단골 구매자에게 자동으로 할인율을 적용해요</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="dangol-discount" min="0" max="20" step="1" value="${settings.discountRate}" oninput="document.getElementById('dangol-discount-val').textContent=this.value+'%'" style="flex:1;accent-color:#ff6f00"/>
+            <div id="dangol-discount-val" style="font-size:18px;font-weight:800;color:#ff6f00;min-width:40px;text-align:right">${settings.discountRate}%</div>
+          </div>
+        </div>
+        <div style="padding:16px;border-bottom:1px solid #f0f0f5">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a">👀 신상품 먼저 보기</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">단골에게 신상품을 우선 노출해요</div>
+            </div>
+            <label style="position:relative;width:48px;height:26px;cursor:pointer">
+              <input type="checkbox" id="dangol-priority" ${settings.priorityView?'checked':''} style="opacity:0;width:0;height:0"/>
+              <span style="position:absolute;inset:0;background:${settings.priorityView?'#ff6f00':'#ccc'};border-radius:13px;transition:.3s" onclick="this.style.background=this.previousElementSibling.checked?'#ccc':'#ff6f00'"></span>
+              <span style="position:absolute;top:3px;left:${settings.priorityView?'25px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)" onclick="this.style.left=this.parentElement.querySelector('input').checked?'3px':'25px'"></span>
+            </label>
+          </div>
+        </div>
+        <div style="padding:16px;border-bottom:1px solid #f0f0f5">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a">🔔 신상품 자동 알림</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">새 상품 등록 시 단골에게 알림을 보내요</div>
+            </div>
+            <label style="position:relative;width:48px;height:26px;cursor:pointer">
+              <input type="checkbox" id="dangol-auto-notify" ${settings.autoNotify?'checked':''} style="opacity:0;width:0;height:0"/>
+              <span style="position:absolute;inset:0;background:${settings.autoNotify?'#ff6f00':'#ccc'};border-radius:13px;transition:.3s" onclick="this.style.background=this.previousElementSibling.checked?'#ccc':'#ff6f00'"></span>
+              <span style="position:absolute;top:3px;left:${settings.autoNotify?'25px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)" onclick="this.style.left=this.parentElement.querySelector('input').checked?'3px':'25px'"></span>
+            </label>
+          </div>
+        </div>
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1a1a1a">⚡ 급처 상품 우선 알림</div>
+              <div style="font-size:12px;color:#888;margin-top:2px">급처 등록 시 단골에게 먼저 알려요</div>
+            </div>
+            <label style="position:relative;width:48px;height:26px;cursor:pointer">
+              <input type="checkbox" id="dangol-urgent-notify" ${settings.urgentNotify?'checked':''} style="opacity:0;width:0;height:0"/>
+              <span style="position:absolute;inset:0;background:${settings.urgentNotify?'#ff6f00':'#ccc'};border-radius:13px;transition:.3s" onclick="this.style.background=this.previousElementSibling.checked?'#ccc':'#ff6f00'"></span>
+              <span style="position:absolute;top:3px;left:${settings.urgentNotify?'25px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)" onclick="this.style.left=this.parentElement.querySelector('input').checked?'3px':'25px'"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <button onclick="saveDangolSettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">저장하기</button>`;
+  } else if(tab==='message'){
+    content.innerHTML=`
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px">📨 단골 일괄 메시지</div>
+        <div style="font-size:12px;color:#888;margin-bottom:14px">단골 전체에게 한 번에 메시지를 보내요</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+          <button onclick="document.getElementById('dangol-msg').value='이번 주 신상이 입고됐어요! 확인해보세요 🆕'" style="padding:6px 12px;background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;font-size:12px;color:#555;cursor:pointer">🆕 신상 입고</button>
+          <button onclick="document.getElementById('dangol-msg').value='급처 상품 올렸어요! 단골 우선 안내드려요 ⚡'" style="padding:6px 12px;background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;font-size:12px;color:#555;cursor:pointer">⚡ 급처 안내</button>
+          <button onclick="document.getElementById('dangol-msg').value='단골 감사 이벤트! 이번 주 추가 할인 드려요 💝'" style="padding:6px 12px;background:#f5f5f5;border:1px solid #e0e0ea;border-radius:20px;font-size:12px;color:#555;cursor:pointer">💝 감사 이벤트</button>
+        </div>
+        <textarea id="dangol-msg" class="fi" placeholder="메시지 내용을 입력하세요" style="width:100%;box-sizing:border-box;height:120px;resize:none;margin-bottom:12px"></textarea>
+        <button onclick="sendDangolMessage()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">📨 단골 전체에게 보내기</button>
+      </div>
+      <div id="dangol-msg-history" style="margin-top:8px"></div>`;
+    loadDangolMsgHistory();
+  }
+}
+function saveDangolSettings(){
+  const discountRate=parseInt(document.getElementById('dangol-discount')?.value||'0');
+  const priorityView=document.getElementById('dangol-priority')?.checked||false;
+  const autoNotify=document.getElementById('dangol-auto-notify')?.checked||false;
+  const urgentNotify=document.getElementById('dangol-urgent-notify')?.checked||false;
+  lsSet('dangolSettings',{discountRate,priorityView,autoNotify,urgentNotify});
+  showToast('단골 혜택 설정이 저장됐어요 ✅');
+}
+async function sendDangolMessage(){
+  const msg=document.getElementById('dangol-msg')?.value.trim();
+  if(!msg){showToast('메시지를 입력해주세요');return;}
+  if(!_sb||!curUser){showToast('로그인이 필요해요');return;}
+  const{data:followers}=await _sb.from('follows').select('follower_id').eq('seller_id',curUser.id);
+  if(!followers||!followers.length){showToast('단골이 없어요');return;}
+  let sent=0;
+  for(const f of followers){
+    await sendNotification(f.follower_id,'dangol_msg','💌 단골 메시지',`${curUser.name||'업체'}: ${msg}`,{senderId:curUser.id,senderName:curUser.name});
+    sent++;
+  }
+  // 발송 기록 저장
+  const history=lsGet('dangolMsgHistory',[]);
+  history.unshift({msg,sentCount:sent,date:new Date().toISOString()});
+  if(history.length>20)history.length=20;
+  lsSet('dangolMsgHistory',history);
+  document.getElementById('dangol-msg').value='';
+  showToast(`단골 ${sent}명에게 메시지를 보냈어요 📨`);
+  loadDangolMsgHistory();
+}
+function loadDangolMsgHistory(){
+  const el=document.getElementById('dangol-msg-history');
+  if(!el)return;
+  const history=lsGet('dangolMsgHistory',[]);
+  if(!history.length){el.innerHTML='';return;}
+  el.innerHTML=`
+    <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">발송 기록</div>
+    ${history.map(h=>`
+      <div style="background:#f8f8fa;border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:13px;color:#333;line-height:1.5">${h.msg}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <span style="font-size:11px;color:#888">${new Date(h.date).toLocaleDateString('ko-KR')} ${new Date(h.date).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</span>
+          <span style="font-size:11px;color:#ff6f00;font-weight:600">${h.sentCount}명 발송</span>
+        </div>
+      </div>`).join('')}`;
+}
+// 단골에게 새 상품 등록 알림
+async function notifyDangolNewProduct(productTitle,productId,isUrgent){
+  if(!_sb||!curUser)return;
+  const settings=lsGet('dangolSettings',{autoNotify:true,urgentNotify:true});
+  if(!isUrgent&&!settings.autoNotify)return;
+  if(isUrgent&&!settings.urgentNotify)return;
+  const{data:followers}=await _sb.from('follows').select('follower_id').eq('seller_id',curUser.id);
+  if(!followers||!followers.length)return;
+  const type=isUrgent?'dangol_urgent':'dangol_new';
+  const title=isUrgent?'⚡ 단골 급처 알림':'🆕 단골 신상품 알림';
+  const message=isUrgent
+    ?`${curUser.name||'단골 업체'}에서 급처 상품을 올렸어요: ${productTitle}`
+    :`${curUser.name||'단골 업체'}에서 새 상품을 등록했어요: ${productTitle}`;
+  for(const f of followers){
+    await sendNotification(f.follower_id,type,title,message,{productId:String(productId),sellerId:curUser.id,sellerName:curUser.name});
+  }
 }
 function toggleSellerWish(){
   showToast('저장됐어요 🤍');
@@ -6777,6 +6988,8 @@ async function submitForm(){
         }
         // 로컬 키워드 알림 (본인 기기)
         {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase())){addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품: '+payload.title);if(_sb&&curUser)sendNotification(curUser.id||curUser.email,'keyword_alert','🔔 키워드 알림',`"${kw}" 관련 새 상품이 등록됐어요: ${payload.title}`,{productId:String(inserted?.id||'')});}});}}
+      // 단골에게 새 상품 알림
+      notifyDangolNewProduct(payload.title,inserted?.id||'',payload.is_urgent||false);
       lsDelTTL('products_sb');await loadProductsFromSupabase();
     }
   }catch(e){
@@ -7955,21 +8168,14 @@ async function submitBizNews(){
     images:bizNewsImgs||[]
   }).select().single();
   if(error){showToast('소식 저장 실패: '+error.message);return;}
-  // 단골(팔로워)에게 소식 알림
+  // 단골(팔로워)에게 소식 알림 (Supabase follows 테이블 기반)
   if(_sb&&curUser){
-    const myFollowers=lsGet('sellerFollowers',{});
-    const myKey=curUser.id||curUser.name||'';
-    const followerCount=myFollowers[myKey]||0;
-    if(followerCount>0){
-      // 팔로워 목록에서 알림 발송 (myFollows 기반)
-      _sb.from('users').select('id').then(async({data:allUsers})=>{
-        if(!allUsers)return;
-        for(const u of allUsers){
-          if(u.id===curUser.id)continue;
-          await sendNotification(u.id,'follow_news','📢 단골 업체 소식',`${curUser.name||'업체'}에서 새 소식을 올렸어요: ${title}`,{authorId:curUser.id,authorName:curUser.name});
-        }
-      });
-    }
+    _sb.from('follows').select('follower_id').eq('seller_id',curUser.id).then(async({data:followers})=>{
+      if(!followers||!followers.length)return;
+      for(const f of followers){
+        await sendNotification(f.follower_id,'follow_news','📢 단골 업체 소식',`${curUser.name||'업체'}에서 새 소식을 올렸어요: ${title}`,{authorId:curUser.id,authorName:curUser.name});
+      }
+    });
   }
   bizNewsImgs=[];
   renderBizNewsImgPreview();
