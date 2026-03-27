@@ -10261,157 +10261,210 @@ function adminDeleteNotice(id){
   }
   showAdminNotices();showToast('공지가 삭제됐어요');
 }
-let _adminUserList=[];
+let _adminUserList=[],_adminUserAll=[],_adminUserSearch='',_adminUserSort='newest',_adminUserType='all';
 function showAdminUsers(){
   const el=document.getElementById('admin-content');if(!el)return;
   if(!isAdmin()){showToast('관리자만 접근 가능');return;}
   const _ab=document.querySelector('#view-admin .hdr-back');if(_ab)_ab.style.display='';
-  const roleLabel=(t)=>({admin:'관리자',business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원','seller+buyer':'사업자 회원',buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'})[t]||'일반 회원';
-  const roleBg=(t)=>t==='admin'?'#fff0e6':t==='seller'||t==='both'||t==='seller+buyer'?'#e6f7ef':'#e8f0fb';
-  const roleColor=(t)=>t==='admin'?'#c8622a':t==='seller'||t==='both'||t==='seller+buyer'?'#00875a':'#3366cc';
-  const renderList=(list)=>{
-    _adminUserList=list;
-    el.innerHTML=`
+  el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
+  _adminUserSearch='';_adminUserSort='newest';_adminUserType='all';
+  if(_sb){
+    _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
+      if(error)console.error('[관리자] users 조회 오류:',error.message,error.code);
+      _adminUserAll=_mergeAdminUsers(!error&&data?data:[]);
+      _renderAdminUserList();
+    });
+  }else{_adminUserAll=_mergeAdminUsers([]);_renderAdminUserList();}
+}
+function _mergeAdminUsers(sbList){
+  const result=(sbList||[]).map(sbUser=>{
+    const localUser=users.find(u=>u.id===sbUser.id||u.email===sbUser.email);
+    const sellerStatus=sbUser.seller_status||(localUser?.sellerStatus)||'none';
+    const requestedRole=sbUser.requested_role||(localUser?.requestedRole)||'';
+    return localUser?{...sbUser,...localUser,sellerStatus,requestedRole}:{...sbUser,role:sbUser.type||'buyer',sellerStatus,requestedRole};
+  });
+  const sbIds=new Set((sbList||[]).map(u=>u.id||u.email));
+  const localOnly=users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
+  return [...result,...localOnly];
+}
+const _roleLabel=(t)=>({admin:'관리자',business:'사업자',both:'사업자',seller:'사업자','seller+buyer':'사업자',buyer:'일반',member:'일반',guest:'일반'})[t]||'일반';
+const _roleBg=(t)=>t==='admin'?'#fff0e6':(t==='seller'||t==='both'||t==='business'||t==='seller+buyer')?'#e6f7ef':'#e8f0fb';
+const _roleColor=(t)=>t==='admin'?'#c8622a':(t==='seller'||t==='both'||t==='business'||t==='seller+buyer')?'#00875a':'#3366cc';
+function _filterAdminUsers(){
+  let list=[..._adminUserAll];
+  // 검색
+  if(_adminUserSearch){
+    const q=_adminUserSearch.toLowerCase();
+    list=list.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)||(u.tel||'').includes(q));
+  }
+  // 유형 필터
+  if(_adminUserType==='business')list=list.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both'||u.type==='seller+buyer');
+  else if(_adminUserType==='member')list=list.filter(u=>!u.type||u.type==='member'||u.type==='buyer'||u.type==='guest');
+  else if(_adminUserType==='pending')list=list.filter(u=>(u.sellerStatus||u.seller_status)==='pending');
+  else if(_adminUserType==='suspended')list=list.filter(u=>u.status==='suspended');
+  // 정렬
+  if(_adminUserSort==='newest')list.sort((a,b)=>new Date(b.created_at||b.join_date||0)-new Date(a.created_at||a.join_date||0));
+  else if(_adminUserSort==='oldest')list.sort((a,b)=>new Date(a.created_at||a.join_date||0)-new Date(b.created_at||b.join_date||0));
+  else if(_adminUserSort==='name')list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  return list;
+}
+function _renderAdminUserList(){
+  const el=document.getElementById('admin-content');if(!el)return;
+  const list=_filterAdminUsers();
+  _adminUserList=list;
+  const totalCnt=_adminUserAll.length;
+  const bizCnt=_adminUserAll.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both').length;
+  const memCnt=_adminUserAll.filter(u=>!u.type||u.type==='member'||u.type==='buyer'||u.type==='guest').length;
+  const pendCnt=_adminUserAll.filter(u=>(u.sellerStatus||u.seller_status)==='pending').length;
+  const suspCnt=_adminUserAll.filter(u=>u.status==='suspended').length;
+  const typeBtn=(key,label,cnt,color)=>`<button onclick="_adminUserType='${key}';_renderAdminUserList()" style="padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid ${_adminUserType===key?color:'#e0e0ea'};background:${_adminUserType===key?color+'18':'#f8f8fa'};color:${_adminUserType===key?color:'#666'};cursor:pointer;white-space:nowrap">${label} ${cnt}</button>`;
+  el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
       <button onclick="renderAdmin()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 관리</span>
-      <span style="font-size:13px;color:#6c63ff;font-weight:700">${list.length}명</span>
+      <span style="font-size:13px;color:#6c63ff;font-weight:700">${totalCnt}명</span>
     </div>
-    <div style="padding:12px 16px 20px">
-      ${list.map((u,i)=>`<div onclick="showAdminUserDetail(${i})" style="background:${u.status==='suspended'?'#fff5f5':'#f8f8fa'};border:1px solid ${u.status==='suspended'?'#ffcdd2':'#e0e0ea'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+    <!-- 검색 -->
+    <div style="padding:10px 16px 0">
+      <input type="text" id="adm-user-search" placeholder="🔍 이름, 이메일, 전화번호 검색" value="${_adminUserSearch}" oninput="_adminUserSearch=this.value;_renderAdminUserList()" style="width:100%;padding:10px 14px;border:1.5px solid #e0e0ea;border-radius:12px;font-size:13px;background:#f8f8fa;box-sizing:border-box"/>
+    </div>
+    <!-- 유형 필터 -->
+    <div style="padding:10px 16px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+      ${typeBtn('all','전체',totalCnt,'#6c63ff')}
+      ${typeBtn('business','사업자',bizCnt,'#00875a')}
+      ${typeBtn('member','일반',memCnt,'#3366cc')}
+      ${pendCnt?typeBtn('pending','승인대기',pendCnt,'#c8962a'):''}
+      ${suspCnt?typeBtn('suspended','정지',suspCnt,'#e53935'):''}
+    </div>
+    <!-- 정렬 -->
+    <div style="padding:10px 16px 6px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:#888">${list.length}명 표시</span>
+      <select onchange="_adminUserSort=this.value;_renderAdminUserList()" style="padding:5px 10px;border:1px solid #e0e0ea;border-radius:8px;font-size:12px;color:#666;background:#fff">
+        <option value="newest"${_adminUserSort==='newest'?' selected':''}>최신 가입순</option>
+        <option value="oldest"${_adminUserSort==='oldest'?' selected':''}>오래된순</option>
+        <option value="name"${_adminUserSort==='name'?' selected':''}>이름순</option>
+      </select>
+    </div>
+    <!-- 목록 -->
+    <div style="padding:4px 16px 20px">
+      ${list.length?list.map((u,i)=>`<div onclick="showAdminUserDetail(${i})" style="background:${u.status==='suspended'?'#fff5f5':'#f8f8fa'};border:1px solid ${u.status==='suspended'?'#ffcdd2':'#e0e0ea'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
         <div style="width:38px;height:38px;border-radius:50%;background:${u.status==='suspended'?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${(u.name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#1a1a1a">${u.name||u.email||'-'} ${u.adminMemo?'📝':''}${u.status==='suspended'?'<span style="color:#e53935;font-size:11px;font-weight:700;margin-left:4px">정지</span>':''}${(u.sellerStatus||u.seller_status)==='pending'?'<span style="color:#c8962a;font-size:11px;font-weight:700;margin-left:4px">승인대기</span>':''}</div>
           <div style="font-size:11px;color:#666677;margin-top:2px">${u.email||'-'} · ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
         </div>
-        <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${(u.sellerStatus||u.seller_status)==='pending'?'#fffbeb':roleBg(u.type||'user')};color:${(u.sellerStatus||u.seller_status)==='pending'?'#c8962a':roleColor(u.type||'user')};flex-shrink:0">${(u.sellerStatus||u.seller_status)==='pending'?'승인대기':roleLabel(u.type||'user')}</span>
-      </div>`).join('')}
+        <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;background:${(u.sellerStatus||u.seller_status)==='pending'?'#fffbeb':_roleBg(u.type||'user')};color:${(u.sellerStatus||u.seller_status)==='pending'?'#c8962a':_roleColor(u.type||'user')};flex-shrink:0">${(u.sellerStatus||u.seller_status)==='pending'?'승인대기':_roleLabel(u.type||'user')}</span>
+      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:13px">검색 결과가 없어요</div>'}
     </div>`;
-  };
-  const mergeUsers=(sbList)=>{
-    const result = (sbList||[]).map(sbUser => {
-      const localUser = users.find(u => u.id === sbUser.id || u.email === sbUser.email);
-      // sellerStatus: Supabase 우선, 없으면 로컬 사용
-      const sellerStatus = sbUser.seller_status || (localUser?.sellerStatus) || 'none';
-      const requestedRole = sbUser.requested_role || (localUser?.requestedRole) || '';
-      if(localUser){
-        return {
-          ...sbUser,
-          ...localUser,
-          sellerStatus,
-          requestedRole,
-        };
-      }
-      return {
-        ...sbUser,
-        role: sbUser.type || 'buyer',
-        sellerStatus,
-        requestedRole,
-      };
-    });
-    const sbIds = new Set((sbList||[]).map(u=>u.id||u.email));
-    const localOnly = users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
-    return [...result, ...localOnly];
-  };
-  el.innerHTML='<div style="padding:40px;text-align:center;color:#6c63ff;font-size:14px">⏳ 로딩중...</div>';
-  if(_sb){
-    _sb.from('users').select('*').order('created_at',{ascending:false}).then(({data,error})=>{
-      if(error)console.error('[관리자] users 조회 오류:',error.message,error.code);
-      console.log('[관리자] users 조회 결과:',data?.length||0,'명');
-      renderList(mergeUsers(!error&&data?data:[]));
-    });
-  }else{renderList(mergeUsers([]));}
 }
 function showAdminUserDetail(idx){
   if(!isAdmin())return;
   const u=_adminUserList[idx];if(!u)return;
   const el=document.getElementById('admin-content');if(!el)return;
-  const roleLabel=(t)=>({admin:'관리자',business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원','seller+buyer':'사업자 회원',buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'})[t]||'일반 회원';
+  const rl=(t)=>({admin:'관리자',business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원','seller+buyer':'사업자 회원',buyer:'일반 회원',member:'일반 회원',guest:'일반 회원'})[t]||'일반 회원';
   const isSuspended=u.status==='suspended';
   const ss=u.sellerStatus||u.seller_status||'none';
   const rr=u.requestedRole||u.requested_role||'';
+  let extra={};try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
   const sellerApprovalHtml=ss==='pending'?`
       <div style="background:#fffbeb;border:1.5px solid #ffe082;border-radius:14px;padding:14px 16px">
         <div style="font-size:14px;font-weight:700;color:#c8962a;margin-bottom:4px">⏳ 사업자 승인 대기 중</div>
-        <div style="font-size:12px;color:#888;margin-bottom:10px">신청 역할: <b style="color:#6c63ff">${roleLabel(rr)}</b></div>
+        <div style="font-size:12px;color:#888;margin-bottom:10px">신청 역할: <b style="color:#6c63ff">${rl(rr)}</b></div>
         <div style="display:flex;gap:8px">
           <button onclick="adminApproveSeller(${idx})" style="flex:1;padding:12px;background:#00b386;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">✅ 승인</button>
           <button onclick="adminRejectSeller(${idx})" style="flex:1;padding:12px;background:#e53935;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">❌ 거절</button>
         </div>
       </div>`:ss==='approved'?`
       <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:14px;padding:12px 16px">
-        <div style="font-size:13px;font-weight:700;color:#2e7d32">✅ 승인된 사업자 회원 (${roleLabel(u.type||rr)})</div>
+        <div style="font-size:13px;font-weight:700;color:#2e7d32">✅ 승인된 사업자 회원 (${rl(u.type||rr)})</div>
       </div>`:ss==='rejected'?`
       <div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;padding:12px 16px">
         <div style="font-size:13px;font-weight:700;color:#e53935">❌ 사업자 전환 신청 거절됨</div>
       </div>`:'';
+  // 기본 정보 행
+  const infoRow=(label,val)=>val?`<div style="display:flex;gap:8px;padding:9px 0;border-bottom:1px solid #f0f0f5"><span style="font-size:12px;color:#888;min-width:100px;flex-shrink:0;font-weight:600">${label}</span><span style="font-size:13px;color:#1a1a1a;flex:1;word-break:break-all">${val}</span></div>`:'';
   el.innerHTML=`
     <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e0e0ea">
-      <button onclick="showAdminUsers()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
+      <button onclick="_renderAdminUserList()" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0 4px">←</button>
       <span style="font-size:16px;font-weight:700;color:#1a1a1a;flex:1">회원 상세</span>
     </div>
     <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <!-- 프로필 카드 -->
       <div style="display:flex;align-items:center;gap:12px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:16px">
         <div style="width:50px;height:50px;border-radius:50%;background:${isSuspended?'#e53935':'#6c63ff'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff">${(u.name||'?')[0]}</div>
-        <div>
+        <div style="flex:1">
           <div style="font-size:16px;font-weight:800;color:#1a1a1a">${u.name||'-'} ${isSuspended?'<span style="color:#e53935;font-size:12px">🚫 정지됨</span>':''}</div>
           <div style="font-size:12px;color:#888;margin-top:2px">${u.email||'-'}</div>
-          <div style="font-size:11px;color:#aaa;margin-top:2px">가입일: ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+            <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:${_roleBg(u.type)};color:${_roleColor(u.type)};font-weight:700">${rl(u.type)}</span>
+            <span style="font-size:11px;color:#aaa">가입 ${u.joinDate||u.join_date||u.created_at?.slice(0,10)||'-'}</span>
+          </div>
         </div>
       </div>
       ${sellerApprovalHtml}
-      <div>
-        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">역할 변경</div>
-        <select id="adm-user-role" onchange="adminChangeUserRole(${idx},this.value)" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
-          ${['admin','business','member'].map(r=>`<option value="${r}" ${(u.type||'member')===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
-        </select>
+      <!-- 기본 가입 정보 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">👤 기본 정보</div>
+        ${infoRow('이름',u.name)}
+        ${infoRow('이메일',u.email)}
+        ${infoRow('전화번호',u.tel||extra.tel)}
+        ${infoRow('지역',u.loc||extra.address)}
+        ${infoRow('회원유형',rl(u.type))}
+        ${infoRow('가입일',u.joinDate||u.join_date||u.created_at?.slice(0,10))}
+        ${infoRow('ID',u.id)}
       </div>
-      <div>
-        <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">관리자 메모</div>
-        <textarea id="adm-user-memo" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;color:#1a1a1a;resize:vertical;min-height:60px;box-sizing:border-box" placeholder="메모 입력...">${u.adminMemo||''}</textarea>
-        <button onclick="adminSaveUserMemo(${idx})" style="margin-top:6px;padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 메모 저장</button>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="adminToggleUserStatus(${idx})" style="flex:1;padding:14px;background:${isSuspended?'#e8f5e9':'#fff5f5'};border:1px solid ${isSuspended?'#c8e6c9':'#ffcdd2'};border-radius:14px;font-size:14px;font-weight:700;color:${isSuspended?'#2e7d32':'#e53935'};cursor:pointer">${isSuspended?'✅ 활성화':'🚫 정지'}</button>
-        <button onclick="adminDeleteUser(${idx})" style="flex:1;padding:14px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;font-size:14px;font-weight:700;color:#e53935;cursor:pointer">🗑️ 강제 탈퇴</button>
-      </div>
-      ${(()=>{
-        // extra_info 파싱
-        let extra={};
-        try{extra=JSON.parse(u.extra_info||'{}');}catch(e){}
-        const tel=u.tel||extra.tel||'';
-        const hasExtra=Object.keys(extra).some(k=>extra[k]);
-        if(!hasExtra&&!tel)return '';
-        const rows=[];
-        if(tel)rows.push(['📞 전화번호',tel]);
-        if(extra.intro||u.intro)rows.push(['💬 인사말',extra.intro||u.intro||'']);
-        if(extra.address||u.loc)rows.push(['📍 주소',extra.address||u.loc||'']);
-        if(extra.bizName)rows.push(['🏢 회사명',extra.bizName]);
-        if(extra.ceo)rows.push(['👤 대표자',extra.ceo]);
-        if(extra.biznum)rows.push(['📄 사업자번호',extra.biznum]);
-        if(extra.founded)rows.push(['📅 설립년도',extra.founded]);
-        if(extra.hours)rows.push(['🕐 영업시간',extra.hours]);
-        if(extra.moq)rows.push(['📦 최소주문량',extra.moq]);
-        if(extra.ship)rows.push(['🚚 배송방법',extra.ship]);
-        if(extra.pay)rows.push(['💳 결제방법',extra.pay]);
-        if(extra.tags&&extra.tags.length)rows.push(['🏷️ 태그',Array.isArray(extra.tags)?extra.tags.join(', '):extra.tags]);
-        const tableHtml=rows.map(([k,v])=>`
-          <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f5">
-            <span style="font-size:12px;color:#888;min-width:90px;flex-shrink:0">${k}</span>
-            <span style="font-size:12px;color:#1a1a1a;flex:1;word-break:break-all">${v}</span>
-          </div>`).join('');
-        const bizfileHtml=extra.bizfile?`
+      <!-- 사업자 정보 -->
+      ${(extra.bizName||extra.ceo||extra.biznum||extra.bizType||extra.category)?`
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">🏢 사업자 정보</div>
+        ${infoRow('회사명',extra.bizName||extra.companyName)}
+        ${infoRow('대표자',extra.ceo||extra.representative)}
+        ${infoRow('사업자번호',extra.biznum||extra.bizNumber)}
+        ${infoRow('업종',extra.bizType||extra.category)}
+        ${infoRow('설립년도',extra.founded)}
+        ${infoRow('사업장 주소',extra.address||extra.bizAddress)}
+        ${infoRow('영업시간',extra.hours)}
+        ${infoRow('주거래 소재',extra.mainMaterial||extra.speciality)}
+        ${infoRow('최소주문량',extra.moq)}
+        ${infoRow('배송방법',extra.ship)}
+        ${infoRow('결제방법',extra.pay)}
+        ${infoRow('소개',extra.intro||u.intro)}
+        ${extra.tags&&extra.tags.length?infoRow('태그',Array.isArray(extra.tags)?extra.tags.join(', '):extra.tags):''}
+        ${extra.bizfile?`
           <div style="margin-top:10px">
             <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">📎 사업자등록증</div>
-            <img src="${extra.bizfile}" style="width:100%;border-radius:10px;border:1px solid #e0e0ea;cursor:pointer;transition:opacity .15s" onclick="openBizfileViewer(this.src)" alt="사업자등록증"/>
-          </div>`:'';
-        return `
-          <div style="background:#f8f8fa;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
-            <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">📋 추가 정보</div>
-            ${tableHtml}
-            ${bizfileHtml}
-          </div>`;
+            <img src="${extra.bizfile}" style="width:100%;border-radius:10px;border:1px solid #e0e0ea;cursor:pointer" onclick="openBizfileViewer(this.src)" alt="사업자등록증"/>
+          </div>`:''}
+      </div>`:''}
+      <!-- 추가 정보 (나머지) -->
+      ${(()=>{
+        const shown=['bizName','companyName','ceo','representative','biznum','bizNumber','bizType','category','founded','address','bizAddress','hours','mainMaterial','speciality','moq','ship','pay','intro','tags','bizfile','tel'];
+        const remaining=Object.entries(extra).filter(([k,v])=>v&&!shown.includes(k)&&k!=='profileImage'&&k!=='avatar');
+        if(!remaining.length)return '';
+        return `<div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">📋 기타 정보</div>
+          ${remaining.map(([k,v])=>infoRow(k,typeof v==='object'?JSON.stringify(v):String(v))).join('')}
+        </div>`;
       })()}
+      <!-- 관리 도구 -->
+      <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">⚙️ 관리</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">역할 변경</div>
+          <select id="adm-user-role" onchange="adminChangeUserRole(${idx},this.value)" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
+            ${['admin','business','member'].map(r=>`<option value="${r}" ${(u.type||'member')===r?'selected':''}>${rl(r)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">관리자 메모</div>
+          <textarea id="adm-user-memo" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:13px;color:#1a1a1a;resize:vertical;min-height:60px;box-sizing:border-box" placeholder="메모 입력...">${u.adminMemo||''}</textarea>
+          <button onclick="adminSaveUserMemo(${idx})" style="margin-top:6px;padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 메모 저장</button>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="adminToggleUserStatus(${idx})" style="flex:1;padding:14px;background:${isSuspended?'#e8f5e9':'#fff5f5'};border:1px solid ${isSuspended?'#c8e6c9':'#ffcdd2'};border-radius:14px;font-size:14px;font-weight:700;color:${isSuspended?'#2e7d32':'#e53935'};cursor:pointer">${isSuspended?'✅ 활성화':'🚫 정지'}</button>
+          <button onclick="adminDeleteUser(${idx})" style="flex:1;padding:14px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:14px;font-size:14px;font-weight:700;color:#e53935;cursor:pointer">🗑️ 강제 탈퇴</button>
+        </div>
+      </div>
     </div>`;
 }
 function showEmailVerifyScreen(email, isBusiness){
