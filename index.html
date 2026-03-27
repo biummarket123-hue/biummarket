@@ -1407,11 +1407,12 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <input type="number" class="fi" id="f-bulk-moq" placeholder="수량" min="0" style="width:70px;text-align:center"/>
           <span style="font-size:12px;color:#888;white-space:nowrap" id="bulk-unit-label">yard</span>
           <span style="font-size:12px;color:#888">이상 구매 시</span>
-          <input type="number" class="fi" id="f-bulk-price" placeholder="단가" min="0" style="width:80px;text-align:center"/>
+          <input type="number" class="fi" id="f-bulk-price" placeholder="단가" min="0" oninput="calcBulkDiscount()" style="width:80px;text-align:center"/>
           <span class="price-sfx" id="price-sfx-3" style="font-size:12px;color:#888">원/yard</span>
         </div>
       </div>
-      <div style="font-size:11px;color:#aaa;padding-left:2px">💡 대량 기준수량 이상 주문 시 할인가 적용</div>
+      <div id="form-bulk-discount-badge" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:10px;text-align:center;font-size:13px;font-weight:700;color:#6c63ff"></div>
+      <div style="font-size:11px;color:#aaa;padding-left:2px;margin-top:6px">💡 대량 기준수량 이상 주문 시 할인가 적용</div>
     </div>
 
     <!-- 샘플 -->
@@ -8588,6 +8589,20 @@ function calcFormDiscount(){
   if(listPrice>0&&salePrice>0&&listPrice>salePrice){
     const pct=Math.round((1-salePrice/listPrice)*100);
     badge.textContent=`🔥 ${pct}% 할인 (${(listPrice-salePrice).toLocaleString()}원 절약)`;
+    badge.style.display='block';
+  }else{
+    badge.style.display='none';
+  }
+  calcBulkDiscount();
+}
+function calcBulkDiscount(){
+  const salePrice=parseFloat(document.getElementById('f-price')?.value)||0;
+  const bulkPrice=parseFloat(document.getElementById('f-bulk-price')?.value)||0;
+  const badge=document.getElementById('form-bulk-discount-badge');
+  if(!badge)return;
+  if(salePrice>0&&bulkPrice>0&&salePrice>bulkPrice){
+    const pct=Math.round((1-bulkPrice/salePrice)*100);
+    badge.textContent=`📦 대량 구매 시 ${pct}% 추가 할인 (${(salePrice-bulkPrice).toLocaleString()}원 절약)`;
     badge.style.display='block';
   }else{
     badge.style.display='none';
