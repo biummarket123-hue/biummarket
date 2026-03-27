@@ -599,7 +599,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .my-card-del-btn{padding:5px 12px;background:rgba(255,80,80,.12);border:1.5px solid #ff5050;border-radius:10px;color:#ff5050;font-size:12px;font-weight:700;cursor:pointer}
 
 /* PRODUCT DETAIL v2 */
-#view-detail{background:#ffffff}
+#view-detail{background:#ffffff;padding-bottom:80px}
 .pd-hdr{position:sticky;top:0;z-index:100;height:56px;display:flex;align-items:center;gap:4px;padding:0 10px;background:transparent;transition:background .3s}
 .pd-hdr.scrolled{background:rgba(248,248,250,.95);backdrop-filter:blur(8px);border-bottom:1px solid #e0e0ea}
 .pd-scroll{flex:1;overflow-y:auto;padding-bottom:80px}
@@ -631,7 +631,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-spec-val{font-size:13px;font-weight:600;color:#1a1a1a;flex:1}
 .pd-tag-row{display:flex;flex-wrap:wrap;gap:6px;padding:14px;border-top:1px solid #e0e0ea}
 .pd-stats{padding:10px 14px 14px;font-size:12px;color:#666677;border-top:1px solid #e0e0ea;display:flex;gap:16px;flex-wrap:wrap}
-.pd-action-bar{position:sticky;bottom:0;background:#f8f8fa;border-top:1px solid #e0e0ea;padding:10px 14px;display:flex;gap:8px;align-items:center;z-index:100}
+.pd-action-bar{position:fixed;bottom:0;left:0;right:0;background:#f8f8fa;border-top:1px solid #e0e0ea;padding:10px 14px;display:flex;gap:8px;align-items:center;z-index:100;max-width:100%;box-sizing:border-box}
 .pd-like-btn{width:52px;height:52px;border-radius:14px;background:#eeeeee;border:1.5px solid #d8d8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;cursor:pointer;transition:all .2s}
 .pd-like-btn .pd-hicon{font-size:20px;line-height:1}
 .pd-like-btn .pd-lcnt{font-size:10px;color:#666677}
