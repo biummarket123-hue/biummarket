@@ -672,12 +672,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-spec-cell{background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px}
 .pd-spec-cell-key{font-size:11px;color:#666677;margin-bottom:4px}
 .pd-spec-cell-val{font-size:14px;font-weight:700;color:#1a1a1a}
-.pd-stock-wrap{margin-top:4px}
-.pd-stock-info{display:flex;justify-content:space-between;font-size:12px;color:#666677;margin-bottom:6px}
-.pd-stock-warn{color:#ff6584;font-weight:600}
-.pd-stock-good{color:#2ed573;font-weight:600}
-.pd-stock-track{height:6px;background:#eeeeee;border-radius:3px;overflow:hidden}
-.pd-stock-fill{height:100%;border-radius:3px;transition:width .5s}
 .pd-ai-box{background:#f8f8fa;border:1px solid rgba(108,99,255,.3);border-radius:14px;padding:14px 16px}
 .pd-ai-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .pd-ai-num{font-size:12px;color:#666677;white-space:nowrap}
@@ -1198,7 +1192,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="pd-section" id="pd-spec-section">
       <div class="pd-section-title">원단 스펙</div>
       <div class="pd-spec-grid" id="pd-spec-grid"></div>
-      <div id="pd-stock-bar"></div>
     </div>
     <!-- 9. 상세 설명 -->
     <div class="pd-section" id="pd-desc-section">
@@ -5190,14 +5183,6 @@ function openDetail(id){
       p.width&&['📏 폭',p.width+'cm'],
     ].filter(Boolean);
     specGrid.innerHTML=cells.map(kv=>'<div class="pd-spec-cell"><div class="pd-spec-cell-key">'+kv[0]+'</div><div class="pd-spec-cell-val">'+kv[1]+'</div></div>').join('');
-  }
-
-  // 재고 프로그레스 바
-  const stockBar=document.getElementById('pd-stock-bar');
-  if(stockBar){
-    const pct=Math.min(100,Math.round(p.qty/1000*100));
-    const isLow=p.qty<100;
-    stockBar.innerHTML='<div class="pd-stock-wrap"><div class="pd-stock-info"><span>재고 현황</span><span class="'+(isLow?'pd-stock-warn':'pd-stock-good')+'">'+p.qty+unit+(isLow?' ⚠ 재고 부족':'')+'</span></div><div class="pd-stock-track"><div class="pd-stock-fill" style="width:'+pct+'%;background:'+(isLow?'linear-gradient(135deg,#ff6584,#ff8fab)':'linear-gradient(135deg,#6c63ff,#a89dff)')+'"></div></div></div>';
   }
 
   // 9. 설명
