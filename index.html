@@ -3891,6 +3891,7 @@ function showView(name,push=true){
   if(name==='mypage'){renderMypage();checkReservationReminders();}
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
+  if(name==='biz-news')renderBizNewsList();
   if(name==='chat'&&_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
     _sb.from('chat_rooms')
@@ -7978,7 +7979,7 @@ async function submitBizNews(){
   },300);
 }
 async function loadBizNewsList(){
-  if(!_sb||!curUser)return;
+  if(!_sb||!curUser)return[];
   const{data}=await _sb.from('biz_news').select('*').eq('seller_id',curUser.id).order('created_at',{ascending:false});
   return data||[];
 }
