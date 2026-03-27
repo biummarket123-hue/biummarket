@@ -710,6 +710,23 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cp-sort-btn.on{background:rgba(108,99,255,.15);color:#6c63ff;border-color:#6c63ff}
 .cp-list{padding:8px 0 8px}
 .cp-empty{padding:60px 20px;text-align:center;color:#666677;font-size:13px}
+/* 필터 바 */
+.cp-filter-bar{display:flex;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #e0e0ea;position:sticky;top:0;z-index:50;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cp-filter-btn{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.cp-filter-btn.on{background:rgba(108,99,255,.12);color:#6c63ff;border-color:#6c63ff}
+/* 바텀시트 */
+.fs-dim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s}
+.fs-dim.show{opacity:1;pointer-events:auto}
+.fs-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;background:#fff;border-radius:20px 20px 0 0;z-index:9999;transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+.fs-sheet.show{transform:translateX(-50%) translateY(0)}
+.fs-handle{padding:12px 0 4px;display:flex;justify-content:center}
+.fs-handle-bar{width:36px;height:4px;border-radius:2px;background:#d0d0d8}
+.fs-chip{display:inline-flex;align-items:center;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #e0e0ea;background:#f8f8fa;color:#333;cursor:pointer;transition:all .15s}
+.fs-chip.on{background:rgba(108,99,255,.12);color:#6c63ff;border-color:#6c63ff}
+.fs-radio{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #f0f0f5;cursor:pointer;font-size:14px;color:#1a1a1a}
+.fs-radio .fs-dot{width:20px;height:20px;border-radius:50%;border:2px solid #d0d0d8;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.fs-radio.on .fs-dot{border-color:#6c63ff;background:#6c63ff}
+.fs-radio.on .fs-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
 
 /* SEARCH OVERLAY */
 #view-search-view{display:none;position:fixed;top:0;left:0;right:0;width:100%;max-width:430px;margin:0 auto;bottom:72px;z-index:200;flex-direction:column;overflow:hidden;background:#ffffff;min-height:unset;overscroll-behavior:none;touch-action:pan-y;height:calc(100vh - 72px)}
@@ -1139,11 +1156,15 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="width:38px"></div>
   </header>
   <div class="cp-scroll">
-    <div class="cp-sort-bar">
-      <button class="cp-sort-btn on" id="cpSort-latest" onclick="setCatSort('latest')" data-i18n="sort_latest">최신순</button>
-      <button class="cp-sort-btn" id="cpSort-price" onclick="setCatSort('price')" data-i18n="sort_price">가격순</button>
-      <button class="cp-sort-btn" id="cpSort-popular" onclick="setCatSort('popular')" data-i18n="sort_popular">인기순</button>
+    <!-- 필터 바 -->
+    <div class="cp-filter-bar" id="cp-filter-bar">
+      <button class="cp-filter-btn" id="cpF-sub" onclick="openFilterSheet('sub')">중분류 ▾</button>
+      <button class="cp-filter-btn" id="cpF-item" onclick="openFilterSheet('item')">소분류 ▾</button>
+      <button class="cp-filter-btn" id="cpF-sort" onclick="openFilterSheet('sort')">정렬 ▾</button>
+      <button class="cp-filter-btn" id="cpF-price" onclick="openFilterSheet('price')">가격 ▾</button>
     </div>
+    <!-- 선택된 필터 표시 -->
+    <div id="cp-active-filters" style="display:none;padding:6px 14px;display:flex;flex-wrap:wrap;gap:6px"></div>
     <div class="cp-list" id="cp-list"></div>
   </div>
   <nav class="tabbar">
@@ -1152,6 +1173,12 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <button class="tab" onclick="showView('chat')"><span class="ti">💬</span><span data-i18n="tab_chat">채팅</span></button>
     <button class="tab" onclick="showView('mypage')"><span class="ti">👤</span><span data-i18n="tab_me">MY</span></button>
   </nav>
+</div>
+<!-- 바텀시트 -->
+<div id="filter-sheet-dim" class="fs-dim" onclick="closeFilterSheet()"></div>
+<div id="filter-sheet" class="fs-sheet">
+  <div class="fs-handle"><div class="fs-handle-bar"></div></div>
+  <div id="fs-body"></div>
 </div>
 
 <!-- ========== DETAIL ========== -->
@@ -4756,17 +4783,19 @@ function catGoBack(){
   if(catStep===2){catStep=1;renderCategoryView();}
   else if(catStep===1){catStep=0;renderCategoryView();}
 }
-function catGoProducts(catId,keyword){curViewMode='';curCatSubKey='';curCatItemKey='';openCatProducts(catId,keyword);}
-function catGoProductsBySub(catId,subName){curViewMode='';curCatSubKey=subName;curCatItemKey='';openCatProducts(catId,subName);}
-function catGoProductsByItem(catId,subName,itemName){curViewMode='';curCatSubKey=subName;curCatItemKey=itemName;openCatProducts(catId,catId+' › '+subName+' › '+itemName);}
+function catGoProducts(catId,keyword){curViewMode='';curCatSubKey='';curCatItemKey='';_fsSubs=[];_fsItem='';openCatProducts(catId,keyword);}
+function catGoProductsBySub(catId,subName){curViewMode='';curCatSubKey=subName;curCatItemKey='';_fsSubs=[subName];_fsItem='';openCatProducts(catId,subName);}
+function catGoProductsByItem(catId,subName,itemName){curViewMode='';curCatSubKey=subName;curCatItemKey=itemName;_fsSubs=[subName];_fsItem=itemName;openCatProducts(catId,catId+' › '+subName+' › '+itemName);}
 
 function openCatProducts(key,label){
-  curCatKey=key;curCatSort='latest';
+  curCatKey=key;curCatSort='latest';_fsSort='latest';
+  // 필터 상태 유지 (sub/item에서 진입 시)
+  if(!curCatSubKey)_fsSubs=[];
+  else if(!_fsSubs.includes(curCatSubKey))_fsSubs=[curCatSubKey];
+  _fsItem=curCatItemKey||'';
+  _fsPriceMin=0;_fsPriceMax=0;
   document.getElementById('cp-hdr-title').textContent=label;
-  ['latest','price','popular'].forEach(s=>{
-    const btn=document.getElementById('cpSort-'+s);
-    if(btn)btn.classList.toggle('on',s==='latest');
-  });
+  updateFilterBtns();
   renderCatProducts();
   showView('cat-products');
 }
@@ -4778,6 +4807,171 @@ function setCatSort(sort){
     const btn=document.getElementById('cpSort-'+s);
     if(btn)btn.classList.toggle('on',s===sort);
   });
+  renderCatProducts();
+}
+
+// ── 바텀시트 필터 ──
+let _fsSubs=[],_fsItem='',_fsSort='latest',_fsPriceMin=0,_fsPriceMax=0;
+function openFilterSheet(type){
+  const dim=document.getElementById('filter-sheet-dim');
+  const sheet=document.getElementById('filter-sheet');
+  const body=document.getElementById('fs-body');
+  if(!dim||!sheet||!body)return;
+  const catData=CATEGORY_DATA.find(c=>c.id===curCatKey);
+
+  if(type==='sub'){
+    const subs=catData?catData.sub.map(s=>s.name):[];
+    body.innerHTML=`
+      <div style="padding:4px 20px 8px">
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:14px">중분류</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${subs.map(s=>`<div class="fs-chip${_fsSubs.includes(s)?' on':''}" onclick="toggleFsSub(this,'${s}')">${s}</div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;padding:16px 20px 24px">
+        <button onclick="_fsSubs=[];renderFsSubChips();updateFilterBtns()" style="flex:1;padding:12px;border:1.5px solid #e0e0ea;border-radius:12px;background:#fff;font-size:14px;font-weight:600;color:#666;cursor:pointer">초기화</button>
+        <button onclick="applySubFilter()" style="flex:2;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;font-size:14px;font-weight:700;cursor:pointer">적용하기</button>
+      </div>`;
+  } else if(type==='item'){
+    const catData2=CATEGORY_DATA.find(c=>c.id===curCatKey);
+    let allItems=[];
+    if(catData2){
+      if(_fsSubs.length){
+        catData2.sub.filter(s=>_fsSubs.includes(s.name)).forEach(s=>s.items.forEach(it=>{if(!allItems.includes(it))allItems.push(it);}));
+      }else{
+        catData2.sub.forEach(s=>s.items.forEach(it=>{if(!allItems.includes(it))allItems.push(it);}));
+      }
+    }
+    body.innerHTML=`
+      <div style="padding:4px 20px 8px">
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:14px">소분류</div>
+        ${allItems.length?`<div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${allItems.map(it=>`<div class="fs-chip${_fsItem===it?' on':''}" onclick="selectFsItem(this,'${it}')">${it}</div>`).join('')}
+        </div>`:'<div style="color:#888;font-size:13px;padding:8px 0">중분류를 먼저 선택해주세요</div>'}
+      </div>
+      <div style="display:flex;gap:10px;padding:16px 20px 24px">
+        <button onclick="_fsItem='';updateFilterBtns();closeFilterSheet()" style="flex:1;padding:12px;border:1.5px solid #e0e0ea;border-radius:12px;background:#fff;font-size:14px;font-weight:600;color:#666;cursor:pointer">초기화</button>
+        <button onclick="applyItemFilter()" style="flex:2;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;font-size:14px;font-weight:700;cursor:pointer">적용하기</button>
+      </div>`;
+  } else if(type==='sort'){
+    const sorts=[{key:'latest',label:'최신순'},{key:'price',label:'가격 낮은순'},{key:'priceDesc',label:'가격 높은순'},{key:'popular',label:'인기순'}];
+    body.innerHTML=`
+      <div style="padding:4px 20px 16px">
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:10px">정렬</div>
+        ${sorts.map(s=>`
+          <div class="fs-radio${_fsSort===s.key?' on':''}" onclick="selectFsSort('${s.key}')">
+            <div class="fs-dot"></div>
+            <span>${s.label}</span>
+          </div>`).join('')}
+      </div>`;
+  } else if(type==='price'){
+    body.innerHTML=`
+      <div style="padding:4px 20px 8px">
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:14px">가격 범위</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <input type="number" id="fs-price-min" placeholder="최소" value="${_fsPriceMin||''}" style="flex:1;padding:10px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center"/>
+          <span style="color:#aaa;font-weight:700">~</span>
+          <input type="number" id="fs-price-max" placeholder="최대" value="${_fsPriceMax||''}" style="flex:1;padding:10px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center"/>
+          <span style="font-size:13px;color:#888">원</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          ${[{l:'~1만',mn:0,mx:10000},{l:'1~3만',mn:10000,mx:30000},{l:'3~5만',mn:30000,mx:50000},{l:'5~10만',mn:50000,mx:100000},{l:'10만~',mn:100000,mx:0}].map(p=>`
+            <div class="fs-chip" onclick="document.getElementById('fs-price-min').value='${p.mn}';document.getElementById('fs-price-max').value='${p.mx||''}'">${p.l}</div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;padding:16px 20px 24px">
+        <button onclick="_fsPriceMin=0;_fsPriceMax=0;updateFilterBtns();closeFilterSheet()" style="flex:1;padding:12px;border:1.5px solid #e0e0ea;border-radius:12px;background:#fff;font-size:14px;font-weight:600;color:#666;cursor:pointer">초기화</button>
+        <button onclick="applyPriceFilter()" style="flex:2;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;font-size:14px;font-weight:700;cursor:pointer">적용하기</button>
+      </div>`;
+  }
+  dim.classList.add('show');
+  sheet.classList.add('show');
+}
+function closeFilterSheet(){
+  document.getElementById('filter-sheet-dim')?.classList.remove('show');
+  document.getElementById('filter-sheet')?.classList.remove('show');
+}
+function toggleFsSub(el,name){
+  const idx=_fsSubs.indexOf(name);
+  if(idx>-1)_fsSubs.splice(idx,1);else _fsSubs.push(name);
+  el.classList.toggle('on');
+}
+function renderFsSubChips(){
+  document.querySelectorAll('#fs-body .fs-chip').forEach(c=>{
+    c.classList.toggle('on',_fsSubs.includes(c.textContent));
+  });
+}
+function selectFsItem(el,name){
+  _fsItem=_fsItem===name?'':name;
+  el.parentElement.querySelectorAll('.fs-chip').forEach(c=>c.classList.remove('on'));
+  if(_fsItem)el.classList.add('on');
+}
+function selectFsSort(key){
+  _fsSort=key;
+  curCatSort=key==='priceDesc'?'priceDesc':key;
+  updateFilterBtns();
+  renderCatProducts();
+  closeFilterSheet();
+}
+function applySubFilter(){
+  curCatSubKey=_fsSubs.length===1?_fsSubs[0]:'';
+  _fsItem='';curCatItemKey='';
+  updateFilterBtns();
+  renderCatProducts();
+  closeFilterSheet();
+}
+function applyItemFilter(){
+  curCatItemKey=_fsItem;
+  updateFilterBtns();
+  renderCatProducts();
+  closeFilterSheet();
+}
+function applyPriceFilter(){
+  _fsPriceMin=parseInt(document.getElementById('fs-price-min')?.value)||0;
+  _fsPriceMax=parseInt(document.getElementById('fs-price-max')?.value)||0;
+  updateFilterBtns();
+  renderCatProducts();
+  closeFilterSheet();
+}
+function updateFilterBtns(){
+  const subBtn=document.getElementById('cpF-sub');
+  const itemBtn=document.getElementById('cpF-item');
+  const sortBtn=document.getElementById('cpF-sort');
+  const priceBtn=document.getElementById('cpF-price');
+  if(subBtn){
+    subBtn.textContent=_fsSubs.length?_fsSubs.join(', ')+' ▾':'중분류 ▾';
+    subBtn.classList.toggle('on',_fsSubs.length>0);
+  }
+  if(itemBtn){
+    itemBtn.textContent=_fsItem?_fsItem+' ▾':'소분류 ▾';
+    itemBtn.classList.toggle('on',!!_fsItem);
+  }
+  if(sortBtn){
+    const sortLabels={latest:'최신순',price:'가격 낮은순',priceDesc:'가격 높은순',popular:'인기순'};
+    sortBtn.textContent=(sortLabels[_fsSort]||'최신순')+' ▾';
+    sortBtn.classList.toggle('on',_fsSort!=='latest');
+  }
+  if(priceBtn){
+    const hasPrice=_fsPriceMin||_fsPriceMax;
+    priceBtn.textContent=hasPrice?(_fsPriceMin?_fsPriceMin.toLocaleString():'0')+'~'+(_fsPriceMax?_fsPriceMax.toLocaleString():'∞')+' ▾':'가격 ▾';
+    priceBtn.classList.toggle('on',!!hasPrice);
+  }
+  // 활성 필터 태그
+  const af=document.getElementById('cp-active-filters');
+  if(af){
+    const tags=[];
+    _fsSubs.forEach(s=>tags.push(`<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,99,255,.1);color:#6c63ff;border-radius:12px;font-size:11px;font-weight:600">${s} <span onclick="removeFsSub('${s}')" style="cursor:pointer;font-size:14px;line-height:1">×</span></span>`));
+    if(_fsItem)tags.push(`<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,99,255,.1);color:#6c63ff;border-radius:12px;font-size:11px;font-weight:600">${_fsItem} <span onclick="_fsItem='';curCatItemKey='';updateFilterBtns();renderCatProducts()" style="cursor:pointer;font-size:14px;line-height:1">×</span></span>`);
+    if(_fsPriceMin||_fsPriceMax)tags.push(`<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,99,255,.1);color:#6c63ff;border-radius:12px;font-size:11px;font-weight:600">${_fsPriceMin?.toLocaleString()||'0'}~${_fsPriceMax?.toLocaleString()||'∞'}원 <span onclick="_fsPriceMin=0;_fsPriceMax=0;updateFilterBtns();renderCatProducts()" style="cursor:pointer;font-size:14px;line-height:1">×</span></span>`);
+    af.style.display=tags.length?'flex':'none';
+    af.innerHTML=tags.join('');
+  }
+}
+function removeFsSub(name){
+  _fsSubs=_fsSubs.filter(s=>s!==name);
+  if(_fsSubs.length===1)curCatSubKey=_fsSubs[0];
+  else curCatSubKey='';
+  updateFilterBtns();
   renderCatProducts();
 }
 
@@ -4796,15 +4990,24 @@ function renderCatProducts(){
   if(curViewMode==='my-products'){renderMyProductsSorted();return;}
   const el=document.getElementById('cp-list');
   if(!el)return;
-  let items;
-  if(curCatItemKey){
-    items=filterByCat3(products,curCatKey,curCatSubKey,curCatItemKey);
+  let items=filterByCategory(products,curCatKey);
+  // 중분류 필터 (다중 선택)
+  if(_fsSubs.length){
+    items=items.filter(p=>_fsSubs.includes(p.cat2));
   }else if(curCatSubKey){
-    items=filterByCat2(products,curCatKey,curCatSubKey);
-  }else{
-    items=filterByCategory(products,curCatKey);
+    items=items.filter(p=>p.cat2===curCatSubKey);
   }
+  // 소분류 필터
+  if(curCatItemKey||_fsItem){
+    const itemKey=_fsItem||curCatItemKey;
+    items=items.filter(p=>p.cat3===itemKey||(p.tags||[]).some(t=>t===itemKey));
+  }
+  // 가격 필터
+  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin);
+  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax);
+  // 정렬
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
+  else if(curCatSort==='priceDesc')items=[...items].sort((a,b)=>b.price-a.price);
   else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else items=[...items].sort((a,b)=>b.id-a.id);
   if(!items.length){el.innerHTML=`<div class="cp-empty">📭<br>해당 카테고리에 상품이 없어요</div>`;return;}
