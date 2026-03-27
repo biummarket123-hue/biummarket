@@ -1112,6 +1112,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #f8f8fa"></span></button>
   </header>
+  <!-- 위치 바 -->
+  <div id="home-loc-bar" onclick="openSettLocModal()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border-bottom:1px solid #f0f0f5;cursor:pointer">
+    <span style="font-size:14px">📍</span>
+    <span id="home-loc-text" style="font-size:13px;font-weight:600;color:#1a1a1a">위치 설정</span>
+    <span style="font-size:11px;color:#aaa">▾</span>
+    <span style="flex:1"></span>
+    <span id="home-loc-nearby" style="font-size:11px;color:#6c63ff;font-weight:600"></span>
+  </div>
   <!-- 레거시 호환용 숨김 요소 -->
   <input type="text" id="search-input" placeholder="원단 종류, 색상, 업체명 검색" autocomplete="off" style="display:none"/>
   <div id="filter-chips" style="display:none"></div>
@@ -5325,6 +5333,22 @@ function renderHomeSections(){
   const sections=homeCurCat==='전체'?HOME_SECTIONS:[{key:homeCurCat,label:HOME_CATS.find(c=>c.key===homeCurCat)?.label||homeCurCat}];
   let html='';
 
+  // 내 근처 상품 (위치 설정 시, 전체 탭일 때만)
+  const myLoc=curUser?.loc||'';
+  if(homeCurCat==='전체'&&myLoc){
+    const locKey=myLoc.split(' ').slice(0,2).join(' ');
+    const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).slice(0,5);
+    if(nearbyProds.length){
+      html+=`<div class="cat-section" style="border:1.5px solid rgba(0,179,134,.2);border-radius:16px;padding:12px;background:rgba(0,179,134,.03);margin-bottom:8px">
+        <div class="cat-section-hd">
+          <span class="cat-section-title">📍 ${myLoc.split(' ').slice(-1)[0]} 근처 상품</span>
+          <span class="cat-section-more" onclick="openSettLocModal()">위치 변경 →</span>
+        </div>
+        ${nearbyProds.map(p=>renderHomeProduct(p)).join('')}
+      </div>`;
+    }
+  }
+
   // 관심 카테고리 섹션 (전체 탭일 때만)
   if(homeCurCat==='전체'&&interestCats.length){
     const interestProds=interestCats.flatMap(cat=>getProductsByHomeCat(cat).slice(0,3));
@@ -5441,6 +5465,7 @@ function openCategorySheet(){
 }
 
 function renderList(){
+  updateHomeLocBar();
   renderHomeCats();
   renderAiRecs();
   renderHomeSections();
@@ -8446,8 +8471,11 @@ async function saveProfile(){
 
 /* ==================== SETTINGS ==================== */
 const LOCATION_OPTIONS=[
-  '서울 중구 동대문','서울 성동구 성수동','서울 중구 을지로',
-  '서울 종로구 창신동','서울 중구 신당동','서울 동대문구 답십리',
+  '서울 중구 동대문','서울 중구 을지로','서울 종로구 창신동',
+  '서울 중구 신당동','서울 성동구 성수동','서울 동대문구 답십리',
+  '서울 광진구','서울 강남구','서울 서초구','서울 마포구',
+  '경기 양주시','경기 파주시','경기 고양시','경기 성남시','경기 부천시',
+  '대구 북구','부산 동구','인천 남동구','광주 북구',
 ];
 function renderSettings(){
   const u=curUser||{};
@@ -8518,17 +8546,24 @@ function openSettLocModal(){
   const curLoc=u.loc||u.location||'';
   const el=document.getElementById('loc-options');
   if(el){
-    el.innerHTML=LOCATION_OPTIONS.map(loc=>`
+    el.innerHTML=`
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <input type="text" id="loc-custom-input" placeholder="직접 입력 (예: 서울 강남구)" value="" style="flex:1;padding:10px 12px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:13px"/>
+        <button onclick="const v=document.getElementById('loc-custom-input').value.trim();if(v)doChangeLoc(v);else showToast('위치를 입력해주세요')" style="padding:10px 14px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">설정</button>
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">주요 지역</div>
+      ${LOCATION_OPTIONS.map(loc=>`
       <button onclick="doChangeLoc('${loc}')" style="
         display:flex;align-items:center;justify-content:space-between;
-        padding:13px 14px;border-radius:12px;font-size:13px;font-weight:600;
+        padding:12px 14px;border-radius:10px;font-size:13px;font-weight:600;
         background:${loc===curLoc?'rgba(108,99,255,.15)':'#f0f0f5'};
         color:${loc===curLoc?'#6c63ff':'#1a1a1a'};
         border:1.5px solid ${loc===curLoc?'#6c63ff':'transparent'};
         cursor:pointer;text-align:left;width:100%">
         <span>📍 ${loc}</span>
         ${loc===curLoc?'<span style="color:#6c63ff;font-size:16px">✓</span>':''}
-      </button>`).join('');
+      </button>`).join('')}
+      ${curLoc?`<button onclick="doChangeLoc('')" style="margin-top:8px;width:100%;padding:12px;border:1.5px solid #ffcdd2;border-radius:10px;background:#fff5f5;color:#e53935;font-size:13px;font-weight:600;cursor:pointer">📍 위치 설정 해제</button>`:''}`;
   }
   openModal('modal-change-loc');
 }
@@ -8579,8 +8614,27 @@ async function doChangeLoc(loc){
     catch(e){console.error('지역 업데이트 오류:',e);}
   }
   renderSettings();renderMypage();
+  updateHomeLocBar();
+  renderList();
   closeModal('modal-change-loc');
-  showToast('지역이 변경됐어요 📍');
+  showToast(loc?'지역이 변경됐어요 📍':'위치 설정이 해제됐어요');
+}
+function updateHomeLocBar(){
+  const locText=document.getElementById('home-loc-text');
+  const nearby=document.getElementById('home-loc-nearby');
+  if(!locText)return;
+  const loc=curUser?.loc||'';
+  if(loc){
+    const short=loc.split(' ').slice(-1)[0];
+    locText.textContent=loc;
+    if(nearby){
+      const cnt=products.filter(p=>(p.loc||'').includes(loc.split(' ')[0])).length;
+      nearby.textContent=cnt?`근처 ${cnt}개 상품`:'';
+    }
+  }else{
+    locText.textContent='위치를 설정하세요';
+    if(nearby)nearby.textContent='';
+  }
 }
 function updateUnitSuffix(){
   const unit=document.getElementById('f-unit')?.value||'yard';
