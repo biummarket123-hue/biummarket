@@ -5387,7 +5387,7 @@ function openSellerPage(){
     intro:seller.intro||userInfo.intro||'',
     extra_info:seller.extra_info||userInfo.extra_info||'{}',
   };
-  renderSellerPage(mergedSeller);
+  preloadAndRenderSeller(mergedSeller);
 }
 
 /* ==================== SLIDER ==================== */
@@ -6309,13 +6309,24 @@ function renderSellerPage(seller){
       `;
     }
 
-  // 소식 데이터 미리 불러오기
+  // 소식 데이터 미리 불러오기 (프로필 진입 시 즉시)
   cachedSellerNews=null;
   if(isBiz&&_sb&&seller.id){
     _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
   }
   switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
+}
+// 판매자 프로필 진입 전 소식 데이터 미리 로드
+async function preloadAndRenderSeller(seller){
+  if(_sb&&seller.id){
+    const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
+    if(isBiz){
+      const{data}=await _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false});
+      cachedSellerNews=data||[];
+    }
+  }
+  renderSellerPage(seller);
 }
 async function toggleSellerFollow(){
   if(!curUser){showToast('로그인이 필요해요');return;}
@@ -8586,7 +8597,7 @@ function showMySales(){
 }
 function openMySellerPage(){
   if(!curUser){showToast('로그인이 필요해요');return;}
-  renderSellerPage({id:curUser.id,name:curUser.name,temp:curUser.temp,loc:curUser.loc});
+  preloadAndRenderSeller({id:curUser.id,name:curUser.name,temp:curUser.temp,loc:curUser.loc});
 }
 /* ===== MY MENU FEATURES ===== */
 function openKeywordAlert(){
@@ -8648,7 +8659,7 @@ function openTopSellers(){
     const initials=s.name.slice(0,2);
     const medal=MEDALS[i]||`<span style="font-size:14px;font-weight:700;color:#aaa;display:inline-block;width:22px;text-align:center">${i+1}</span>`;
     const stars='⭐'.repeat(Math.min(5,Math.round((s.temp||36.5)/10)));
-    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="goBack();setTimeout(()=>renderSellerPage(window._rankSellers[${i}].seller||window._rankSellers[${i}]),200)">
+    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="goBack();setTimeout(()=>preloadAndRenderSeller(window._rankSellers[${i}].seller||window._rankSellers[${i}]),200)">
       <div style="font-size:22px;width:28px;text-align:center;flex-shrink:0">${medal}</div>
       <div style="width:44px;height:44px;border-radius:50%;background:#d4a017;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
@@ -10297,7 +10308,7 @@ function openMySellerProfile(){
     extra_info:curUser.extra_info||userInfo.extra_info||'{}',
     avatar:curUser.avatar||curUser.profileImage||'',
   };
-  renderSellerPage(sellerData);
+  preloadAndRenderSeller(sellerData);
 }
 async function openWithdrawModal(){
   const confirmed=confirm('정말 탈퇴하시겠습니까?\n탈퇴 시 등록한 상품, 채팅, 거래 내역 등 모든 데이터가 영구 삭제됩니다.');
