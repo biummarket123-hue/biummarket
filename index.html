@@ -1876,6 +1876,55 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <label class="toggle-switch"><input type="checkbox" id="ns-urgent" onchange="toggleNotif('urgent',this.checked)"/><span class="toggle-slider"></span></label>
       </div>
     </div>
+    <!-- 알림 소리 설정 -->
+    <div class="my-section-wrap">
+      <div class="my-section-title">🔔 알림 소리</div>
+      <div style="padding:0 16px 12px">
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600;color:#1a1a1a">💬 채팅 알림 소리</span>
+            <button onclick="playNotifSound('chat')" style="background:none;border:1px solid #e0e0ea;border-radius:16px;padding:4px 10px;font-size:11px;color:#6c63ff;cursor:pointer">▶ 미리듣기</button>
+          </div>
+          <select id="snd-chat" onchange="updateSoundSetting('chat',this.value)" style="width:100%;padding:10px;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;background:#fff;color:#1a1a1a"></select>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600;color:#1a1a1a">💰 가격제안 알림 소리</span>
+            <button onclick="playNotifSound('offer')" style="background:none;border:1px solid #e0e0ea;border-radius:16px;padding:4px 10px;font-size:11px;color:#6c63ff;cursor:pointer">▶ 미리듣기</button>
+          </div>
+          <select id="snd-offer" onchange="updateSoundSetting('offer',this.value)" style="width:100%;padding:10px;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;background:#fff;color:#1a1a1a"></select>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600;color:#1a1a1a">📅 예약 알림 소리</span>
+            <button onclick="playNotifSound('reservation')" style="background:none;border:1px solid #e0e0ea;border-radius:16px;padding:4px 10px;font-size:11px;color:#6c63ff;cursor:pointer">▶ 미리듣기</button>
+          </div>
+          <select id="snd-reservation" onchange="updateSoundSetting('reservation',this.value)" style="width:100%;padding:10px;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;background:#fff;color:#1a1a1a"></select>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:8px">🔊 알림 볼륨</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:16px">🔈</span>
+            <input type="range" id="snd-volume" min="0" max="100" step="10" value="80" oninput="updateSoundSetting('volume',parseInt(this.value));document.getElementById('snd-vol-val').textContent=this.value+'%'" style="flex:1;accent-color:#6c63ff"/>
+            <span id="snd-vol-val" style="font-size:13px;font-weight:700;color:#6c63ff;min-width:36px;text-align:right">80%</span>
+          </div>
+        </div>
+        <div class="toggle-row" style="padding:0;border:none">
+          <div class="toggle-label">
+            <div class="toggle-title">📳 진동</div>
+            <div class="toggle-desc">알림 수신 시 진동</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="snd-vibrate" onchange="updateSoundSetting('vibrate',this.checked)"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row" style="padding:0;padding-top:8px;border:none">
+          <div class="toggle-label">
+            <div class="toggle-title">🌙 방해금지</div>
+            <div class="toggle-desc">모든 알림 소리/진동 끄기</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="snd-dnd" onchange="updateSoundSetting('dnd',this.checked)"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
     <!-- 거래 설정 -->
     <div class="my-section-wrap">
       <div class="my-section-title">거래 설정</div>
@@ -3578,6 +3627,37 @@ let chatRooms=lsGet('chatRooms',{});
 let appNotifications=lsGet('appNotifications',[]);
 let curChatRoomId=null;
 let notifSettings=lsGet('notifSettings',{newMsg:true,reservation:true,priceChange:false,event:false,push:true,chat:true,newProd:false,urgent:false});
+let soundSettings=lsGet('soundSettings',{chat:'bell',offer:'bright',reservation:'pack',general:'bell',vibrate:true,dnd:false,volume:80});
+// 알림 소리 시스템 (Web Audio API)
+const _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+const NOTIF_SOUNDS={
+  bell:{name:'기본벨',notes:[{f:880,d:.1,t:0},{f:1100,d:.15,t:.12}]},
+  chat:{name:'채팅',notes:[{f:600,d:.08,t:0},{f:800,d:.08,t:.1},{f:1000,d:.1,t:.2}]},
+  bright:{name:'맑은소리',notes:[{f:1200,d:.1,t:0},{f:1500,d:.12,t:.1},{f:1800,d:.15,t:.22}]},
+  pack:{name:'택배도착',notes:[{f:523,d:.15,t:0},{f:659,d:.15,t:.15},{f:784,d:.2,t:.3}]},
+  soft:{name:'부드러운벨',notes:[{f:440,d:.2,t:0},{f:550,d:.25,t:.2}]},
+  none:{name:'무음',notes:[]}
+};
+function playNotifSound(type){
+  const s=soundSettings;
+  if(s.dnd)return;
+  const soundKey=s[type]||s.general||'bell';
+  const sound=NOTIF_SOUNDS[soundKey];
+  if(!sound||!sound.notes.length)return;
+  if(_audioCtx.state==='suspended')_audioCtx.resume();
+  const vol=Math.max(0,Math.min(1,(s.volume||80)/100));
+  sound.notes.forEach(n=>{
+    const osc=_audioCtx.createOscillator();
+    const gain=_audioCtx.createGain();
+    osc.type='sine';osc.frequency.value=n.f;
+    gain.gain.setValueAtTime(vol*.3,_audioCtx.currentTime+n.t);
+    gain.gain.exponentialRampToValueAtTime(0.001,_audioCtx.currentTime+n.t+n.d);
+    osc.connect(gain);gain.connect(_audioCtx.destination);
+    osc.start(_audioCtx.currentTime+n.t);
+    osc.stop(_audioCtx.currentTime+n.t+n.d+.05);
+  });
+  if(s.vibrate&&navigator.vibrate)navigator.vibrate([100,50,100]);
+}
 let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
 let urgent=false;
 let formEditId=null;
@@ -7657,6 +7737,26 @@ function toggleNotif(key,val){
   lsSet('notifSettings',notifSettings);
   showToast(val?'알림이 켜졌어요 🔔':'알림이 꺼졌어요 🔕');
 }
+function updateSoundSetting(key,val){
+  soundSettings[key]=val;
+  lsSet('soundSettings',soundSettings);
+}
+function initSoundSettingsUI(){
+  const keys=['chat','offer','reservation'];
+  const soundOpts=Object.entries(NOTIF_SOUNDS).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+  keys.forEach(k=>{
+    const sel=document.getElementById('snd-'+k);
+    if(sel){sel.innerHTML=soundOpts;sel.value=soundSettings[k]||'bell';}
+  });
+  const vol=document.getElementById('snd-volume');
+  if(vol){vol.value=soundSettings.volume||80;}
+  const volVal=document.getElementById('snd-vol-val');
+  if(volVal)volVal.textContent=(soundSettings.volume||80)+'%';
+  const vib=document.getElementById('snd-vibrate');
+  if(vib)vib.checked=soundSettings.vibrate!==false;
+  const dnd=document.getElementById('snd-dnd');
+  if(dnd)dnd.checked=soundSettings.dnd||false;
+}
 function toggleTrade(key,val){
   tradeSettings[key]=val;
   lsSet('tradeSettings',tradeSettings);
@@ -7954,6 +8054,7 @@ function renderSettings(){
       storEl.textContent=total>1024*1024?`${(total/1024/1024).toFixed(1)}MB`:`${Math.round(total/1024)}KB`;
     }catch(e){storEl.textContent='–';}
   }
+  initSoundSettingsUI();
 }
 function openSettLocModal(){
   const u=curUser||{};
@@ -11083,6 +11184,7 @@ function addNotif(icon,bg,title,desc,productId){
   lsSet('notifHistory',items);
   const dot=document.getElementById('notif-dot');
   if(dot)dot.style.display='block';
+  playNotifSound('general');
 }
 function updateNotifDot(){
   const items=lsGet('notifHistory',[]);
@@ -11749,6 +11851,37 @@ function renderBizStats(tab){
     loadFontSize();
   }else{
     showView('login');
+  }
+  // Supabase 리얼타임 알림 구독
+  if(_sb&&curUser){
+    _sb.channel('notif-'+curUser.id)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+curUser.id},payload=>{
+        const n=payload.new;
+        if(!n)return;
+        const soundMap={chat_msg:'chat',chat_new:'chat',price_offer:'offer',offer_accepted:'offer',offer_rejected:'offer',reservation_new:'reservation',reservation_confirmed:'reservation',dangol_msg:'general',dangol_new:'general',follow_news:'general'};
+        playNotifSound(soundMap[n.type]||'general');
+        updateNotifDot();
+        // 토스트 표시
+        showToast(n.title||'새 알림이 도착했어요');
+      }).subscribe();
+    // 채팅 메시지 리얼타임 구독
+    _sb.channel('chat-realtime')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
+        const msg=payload.new;
+        if(!msg||msg.sender_id===curUser.id)return;
+        // 현재 열려있는 채팅방이면 메시지 추가
+        if(curChatRoomId&&msg.room_id===curChatRoomId){
+          const chatBody=document.getElementById('chat-body');
+          if(chatBody){
+            const div=document.createElement('div');
+            div.className='chat-msg other';
+            div.innerHTML=`<div class="chat-bubble">${msg.text}</div><div class="chat-time">${formatChatTime(new Date(msg.created_at))}</div>`;
+            chatBody.appendChild(div);
+            chatBody.scrollTop=chatBody.scrollHeight;
+          }
+        }
+        playNotifSound('chat');
+      }).subscribe();
   }
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
