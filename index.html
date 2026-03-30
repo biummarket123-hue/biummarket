@@ -3536,14 +3536,9 @@ try{
             curUser=mergeWithLocalUser(profile);
             lsSet('curUser',curUser);
           }else{
-            const localMatch=users.find(x=>x.id===u.id||x.email===u.email);
-            if(localMatch){
-              curUser=localMatch;
-            }else{
-              // 신규 소셜 로그인 → 회원가입 폼으로 이동 (insert는 가입 완료 시)
-              isNewUser=true;
-              _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0]};
-            }
+            // users 테이블에 없음 → 신규 소셜 로그인 → 회원가입 폼으로 이동
+            isNewUser=true;
+            _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0]};
           }
           if(isNewUser){
             sessionStorage.setItem('bium_new_user','1');
@@ -11289,9 +11284,16 @@ async function openWithdrawModal(){
     if(!res.ok)throw new Error('탈퇴 처리 실패');
     // 로컬 데이터 정리
     const activeId=localStorage.getItem('bium_activeUserId')||'';
+    // users 배열에서 해당 유저 제거
+    const uidx=users.findIndex(u=>u.id===uid||u.email===curUser?.email);
+    if(uidx>-1){users.splice(uidx,1);lsSet('users',users);}
+    // localStorage 전체 정리
     localStorage.removeItem('bium_u_'+activeId+'_curUser');
     localStorage.removeItem('bium_activeUserId');
+    lsSet('curUser',null);
     curUser=null;
+    // Supabase 세션 로그아웃
+    if(_sb)try{await _sb.auth.signOut();}catch(e){}
     showToast('탈퇴가 완료됐습니다. 이용해주셔서 감사합니다 🙏');
     setTimeout(()=>location.replace('./landing.html'),1500);
   }catch(e){
@@ -12830,11 +12832,8 @@ function renderBizStats(tab){
           // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
           if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email))_preserveLocalFields(curUser,prevUser);
           lsSet('curUser',curUser);
-        }else if(localUser){
-          curUser=localUser;
-          lsSet('curUser',curUser);
         }else{
-          // users 테이블에 없는 소셜 로그인 유저 → 회원가입 폼으로
+          // users 테이블에 없음 → 소셜 로그인 신규/탈퇴 유저 → 회원가입 폼으로
           const u=session.user;
           _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email?.split('@')[0]||''};
           curUser=null;lsSet('curUser',null);
