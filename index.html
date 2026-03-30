@@ -12787,15 +12787,20 @@ function renderBizStats(tab){
       if(session){
         const prevUser=lsGet('curUser',null);
         const{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',session.user.id).single();
-        if(profile&&!profileErr){
+        const isComplete=profile&&!profileErr&&profile.tel;
+        if(isComplete){
           curUser=mergeWithLocalUser({...profile});
           // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
           if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email))_preserveLocalFields(curUser,prevUser);
           lsSet('curUser',curUser);
         }else{
-          // users 테이블에 없음 → 소셜 로그인 신규/탈퇴 유저 → 회원가입 폼으로
+          // users 테이블에 없거나 필수정보(tel) 미입력 → 회원가입 폼으로
           const u=session.user;
-          _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email?.split('@')[0]||''};
+          _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||profile?.name||u.email?.split('@')[0]||''};
+          // 불완전한 레코드 삭제 (재가입 시 중복 방지)
+          if(profile&&!profile.tel){
+            await _sb.from('users').delete().eq('id',session.user.id);
+          }
           curUser=null;lsSet('curUser',null);
         }
       }
