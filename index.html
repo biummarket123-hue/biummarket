@@ -5611,7 +5611,7 @@ function renderCard(p, idx){
       })()}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
     </div>
-    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${p.liked?'❤️':'🤍'}</button>
+    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
@@ -5627,12 +5627,17 @@ function renderCard(p, idx){
 /* ==================== LIKE ==================== */
 function toggleLike(id){
   const p=products.find(x=>x.id===id);if(!p)return;
-  p.liked=!p.liked;p.likes+=p.liked?1:-1;saveProducts();
-  const likedMap=lsGet('likedMap',{});likedMap[id]=p.liked;lsSet('likedMap',likedMap);
-  _sb.from('products').update({likes:p.likes}).eq('id',id).then();
+  const likedMap=lsGet('likedMap',{});
+  const nowLiked=!likedMap[id];
+  likedMap[id]=nowLiked||undefined;
+  if(!nowLiked)delete likedMap[id];
+  lsSet('likedMap',likedMap);
+  p.likes=Math.max(0,(p.likes||0)+(nowLiked?1:-1));
+  saveProducts();
+  if(_sb)_sb.from('products').update({likes:p.likes}).eq('id',id).then();
   renderList();
-  showToast(p.liked?t('like_add'):t('like_remove'));
-  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',id);
+  showToast(nowLiked?t('like_add'):t('like_remove'));
+  if(nowLiked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',id);
 }
 
 /* ==================== DETAIL ==================== */
@@ -5889,10 +5894,11 @@ function openDetail(id){
   if(scroll&&hdr){scroll.onscroll=()=>hdr.classList.toggle('scrolled',scroll.scrollTop>20);}
 }
 function updateDetailHeart(p){
+  const liked=!!lsGet('likedMap',{})[p.id];
   const btn=document.getElementById('d-heart');
   const icon=document.getElementById('d-hicon');
-  if(btn)btn.className=(btn.className.split(' on')[0])+(p.liked?' on':'');
-  if(icon)icon.textContent=p.liked?'❤️':'🤍';
+  if(btn)btn.className=(btn.className.split(' on')[0])+(liked?' on':'');
+  if(icon)icon.textContent=liked?'❤️':'🤍';
   const cnt=document.getElementById('d-lcnt');
   if(cnt)cnt.textContent=p.likes;
 }
@@ -7882,7 +7888,7 @@ function renderSearchView(){
             })()}
             <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
           </div>
-          <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${p.liked?'❤️':'🤍'}</button>
+          <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
           <div class="pinfo">
             <div class="pname">${p.title}</div>
             <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
@@ -8073,7 +8079,7 @@ function renderRecentSearches(){
 /* ==================== WISHLIST ==================== */
 function renderWishlist(){
   const likedMap=lsGet('likedMap',{});
-  const liked=products.filter(p=>likedMap[p.id]||p.liked);
+  const liked=products.filter(p=>likedMap[p.id]);
   const list=document.getElementById('wishlist-list');
   const empty=document.getElementById('wishlist-empty');
   if(!liked.length){list.innerHTML='';list.style.display='none';empty.style.display='flex';}
