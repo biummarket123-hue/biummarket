@@ -4368,9 +4368,16 @@ async function doLogin(){
       }
       return;
     }
+    const prevUser=lsGet('curUser',null);
     const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    // localStorage에 저장된 값 보존 (Supabase에 컬럼 없는 경우)
+    if(prevUser&&(prevUser.id===curUser.id||prevUser.email===email)){
+      if(!curUser.loc&&prevUser.loc)curUser.loc=prevUser.loc;
+      if(!curUser.locDetail&&prevUser.locDetail)curUser.locDetail=prevUser.locDetail;
+      if(!curUser.tel&&prevUser.tel)curUser.tel=prevUser.tel;
+    }
     if(curUser.status==='suspended'){curUser=null;showToast('계정이 정지되었습니다');return;}
     // 활성 userId 설정 (계정별 데이터 분리용)
     localStorage.setItem('bium_activeUserId', curUser.id||curUser.email||'guest');
@@ -12704,14 +12711,21 @@ function renderBizStats(tab){
     try{
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
+        const prevUser=lsGet('curUser',null);
         const{data:profile}=await _sb.from('users').select('*').eq('id',session.user.id).single();
         const localUser=users.find(u=>u.id===session.user.id||u.email===session.user.email);
         if(profile){
           curUser=mergeWithLocalUser({...profile});
+          // localStorage에 저장된 값이 있으면 Supabase에 없는 필드 보존
+          if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email)){
+            if(!curUser.loc&&prevUser.loc)curUser.loc=prevUser.loc;
+            if(!curUser.locDetail&&prevUser.locDetail)curUser.locDetail=prevUser.locDetail;
+            if(!curUser.tel&&prevUser.tel)curUser.tel=prevUser.tel;
+          }
         }else if(localUser){
           curUser=localUser;
         }else{
-          curUser=lsGet('curUser',null);
+          curUser=prevUser;
         }
         if(curUser)lsSet('curUser',curUser);
       }
