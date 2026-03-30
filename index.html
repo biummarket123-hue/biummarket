@@ -5877,6 +5877,8 @@ function shareProduct(){openModal('modal-share')}
 function openSellerPage(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
   const seller=p.seller||{};
+  // seller_id fallback
+  if(!seller.id&&p.seller_id)seller.id=p.seller_id;
   // users 배열에서 추가 정보 찾기 (이메일, id 등으로 매칭)
   const userInfo=users.find(u=>
     u.id===seller.id||
@@ -5887,6 +5889,7 @@ function openSellerPage(){
   // seller 객체에 type 보완
   const mergedSeller={
     ...seller,
+    id:seller.id||p.seller_id||userInfo.id||'',
     type:seller.type||userInfo.type||userInfo.role||'member',
     role:seller.role||userInfo.role||userInfo.type||'member',
     loc:userInfo.loc||seller.loc||'',
@@ -6815,7 +6818,7 @@ function renderSellerPage(seller){
   const followerEl=document.getElementById('sh-follower-cnt');
   if(followerEl)followerEl.textContent=`단골 ${followers}`;
   const locEl=document.getElementById('sh-loc');
-  const sellerLocStr=isMySelf?(curUser.loc||''):(extra.address||userInfo.loc||seller.loc||'');
+  const sellerLocStr=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
   if(locEl){
     if(sellerLocStr){
       locEl.innerHTML=`<span style="color:#6c63ff;font-weight:600">📍 ${sellerLocStr}</span>${userInfo.category?' · '+userInfo.category:''}`;
@@ -6915,16 +6918,25 @@ function preloadAndRenderSeller(seller){
       _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
     }
     // Supabase에서 최신 프로필 가져와서 반영
-    _sb.from('users').select('*').eq('id',seller.id).single().then(({data:sbUser})=>{
+    _sb.from('users').select('*').eq('id',seller.id).single().then(({data:sbUser,error})=>{
+      if(error){console.error('판매자 프로필 조회 오류:',error);return;}
       if(sbUser){
-        seller.name=sbUser.name||seller.name;
-        seller.loc=sbUser.loc||seller.loc;
-        seller.tel=sbUser.tel||seller.tel;
-        seller.intro=sbUser.intro||seller.intro;
-        seller.type=sbUser.type||seller.type;
-        seller.category=sbUser.category||seller.category;
-        if(sbUser.profile&&typeof sbUser.profile==='object')seller.profile=sbUser.profile;
+        if(sbUser.name)seller.name=sbUser.name;
+        if(sbUser.loc)seller.loc=sbUser.loc;
+        if(sbUser.tel)seller.tel=sbUser.tel;
+        if(sbUser.intro)seller.intro=sbUser.intro;
+        if(sbUser.category)seller.category=sbUser.category;
         if(sbUser.loc_detail)seller.locDetail=sbUser.loc_detail;
+        // type은 사업자 승인 상태 반영
+        const sbStatus=sbUser.seller_status||'none';
+        if(sbStatus==='approved'){seller.type='business';seller.role='business';}
+        else if(sbUser.type)seller.type=sbUser.type;
+        // profile JSON 파싱 (문자열일 수 있음)
+        let sbProfile=sbUser.profile;
+        if(typeof sbProfile==='string'){try{sbProfile=JSON.parse(sbProfile);}catch(e){sbProfile=null;}}
+        if(sbProfile&&typeof sbProfile==='object'){
+          seller.profile=sbProfile;
+        }
         // 최신 정보로 다시 렌더링
         renderSellerPage(seller);
       }
