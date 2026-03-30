@@ -3527,7 +3527,8 @@ try{
     (async()=>{
       try{
         const{data:{session}}=await _sb.auth.getSession();
-        if(session&&session.user&&!lsGet('curUser',null)){
+        const _prevCur=lsGet('curUser',null);
+        if(session&&session.user&&(!_prevCur||_prevCur.id!==session.user.id)){
           const u=session.user;
           const{data:profile}=await _sb.from('users').select('*').eq('id',u.id).single();
           let isNewUser=false;
@@ -12828,12 +12829,16 @@ function renderBizStats(tab){
           curUser=mergeWithLocalUser({...profile});
           // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
           if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email))_preserveLocalFields(curUser,prevUser);
+          lsSet('curUser',curUser);
         }else if(localUser){
           curUser=localUser;
+          lsSet('curUser',curUser);
         }else{
-          curUser=prevUser;
+          // users 테이블에 없는 소셜 로그인 유저 → 회원가입 폼으로
+          const u=session.user;
+          _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email?.split('@')[0]||''};
+          curUser=null;lsSet('curUser',null);
         }
-        if(curUser)lsSet('curUser',curUser);
       }
     }catch(e){console.error('세션 복원 오류:',e);}
   }
@@ -12862,6 +12867,19 @@ function renderBizStats(tab){
     renderMypage();
     loadAppSettings();
     loadFontSize();
+  }else if(_oauthPendingUser){
+    // 소셜 로그인 신규 유저 → 회원가입 폼
+    showView('signup');
+    setTimeout(()=>{
+      const emailRow=document.getElementById('s-email');
+      const pwRow=document.getElementById('s-pw');
+      const pwcRow=document.getElementById('s-pw-confirm');
+      if(emailRow)emailRow.closest('.fg').style.display='none';
+      if(pwRow)pwRow.closest('.fg').style.display='none';
+      if(pwcRow)pwcRow.closest('.fg').style.display='none';
+      const nameEl=document.getElementById('s-name');
+      if(nameEl&&_oauthPendingUser)nameEl.value=_oauthPendingUser.name||'';
+    },100);
   }else if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
     loadAppSettings();
