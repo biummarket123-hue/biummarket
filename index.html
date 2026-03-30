@@ -1649,7 +1649,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
         <div class="my-menu-info">
           <div class="my-menu-title">가격제안 내역</div>
-          <div class="my-menu-sub">제안/수락/역제안 관리</div>
+          <div class="my-menu-sub">내가 보낸 가격제안 현황</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -1657,7 +1657,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <div class="my-icon-box" style="background:rgba(100,200,150,.15)">📅</div>
         <div class="my-menu-info">
           <div class="my-menu-title">예약 내역</div>
-          <div class="my-menu-sub">예약/수락/거절 관리</div>
+          <div class="my-menu-sub">내가 신청한 예약 현황</div>
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
@@ -9464,17 +9464,26 @@ function applyRoleVisibility(){
     setFab(true);
     return;
   }
-  // 사업자 회원: 관리자전용 숨김, 상품관리 표시
+  // 사업자 회원: 관리자전용 숨김, 판매관리+구매활동 모두 표시
   if(isBusiness()){
     hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
     showIds(['menu-register','menu-my-products']);
+    const sellSection=document.getElementById('section-sell-mgmt');
+    if(sellSection)sellSection.style.display='';
+    const bizSection=document.getElementById('menu-biz-section');
+    if(bizSection)bizSection.style.display='block';
+    const upgradeBtn=document.getElementById('menu-upgrade-biz');
+    if(upgradeBtn)upgradeBtn.style.display='none';
     setFab(true);
     return;
   }
-  // 일반 회원: 상품등록/내상품관리 표시 (하루 3개 제한은 submitForm에서 처리)
-  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section']);
-  showIds(['menu-register','menu-my-products']);
-  setFab(true);
+  // 일반 회원: 판매 관리 섹션 숨김, 구매 활동만 표시
+  hideIds(['menu-top-sellers','menu-admin-dashboard','menu-data-section','menu-register','menu-my-products']);
+  const sellSection=document.getElementById('section-sell-mgmt');
+  if(sellSection)sellSection.style.display='none';
+  const upgradeBtn=document.getElementById('menu-upgrade-biz');
+  if(upgradeBtn)upgradeBtn.style.display='block';
+  setFab(false);
 }
 function showMySales(){
   const u=curUser;
