@@ -2854,10 +2854,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       </div>
     </div>
     <div class="suggest-form" style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0ea">
-      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (상대방에게 전달돼요)</div>
+      <div style="font-size:var(--fs-sm);font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (상대방에게 전달돼요)</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button type="button" id="res-fill-my" onclick="fillResContactMy()" style="flex:1;padding:10px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:var(--fs-base);font-weight:700;cursor:pointer">📋 내 정보</button>
+        <button type="button" id="res-fill-manual" onclick="fillResContactManual()" style="flex:1;padding:10px;background:#f0f0f5;color:#1a1a1a;border:none;border-radius:10px;font-size:var(--fs-base);font-weight:700;cursor:pointer">✏️ 직접 입력</button>
+      </div>
       <div class="fg"><label>이름 / 업체명</label><input type="text" class="fi" id="res-contact-name" placeholder="예) 홍길동 / (주)패션하우스"/></div>
       <div class="fg"><label>전화번호</label><input type="text" class="fi" id="res-contact-tel" placeholder="예) 010-1234-5678"/></div>
-      <div class="fg"><label>주소 (샘플 배송지)</label><input type="text" class="fi" id="res-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
+      <div class="fg"><label>주소</label><input type="text" class="fi" id="res-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
     </div>
     <button class="submit-btn" onclick="submitReservation()" style="margin-top:4px">예약하기</button>
   </div>
@@ -6002,7 +6006,7 @@ function reOffer(offerId){
   showToast('재제안을 보냈어요! 💰');
   renderMyOffers();
 }
-function openResModal(){openModal('modal-res')}
+function openResModal(){openModal('modal-res');if(curUser)setTimeout(()=>fillResContactMy(),100);}
 
 let curResvFilter='all';
 function setResvFilter(filter){
@@ -6195,6 +6199,37 @@ function selectResModal(type,el){
   curResType=type;
   document.querySelectorAll('.res-type-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
+}
+// 예약 연락처 자동 채움
+function fillResContactMy(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  let extra={};
+  try{extra=JSON.parse(curUser.extra_info||'{}');}catch(e){}
+  const nameEl=document.getElementById('res-contact-name');
+  const telEl=document.getElementById('res-contact-tel');
+  const addrEl=document.getElementById('res-contact-addr');
+  if(nameEl)nameEl.value=curUser.name||'';
+  if(telEl)telEl.value=curUser.tel||'';
+  if(addrEl)addrEl.value=extra.address||curUser.loc||'';
+  // 버튼 스타일 토글
+  const myBtn=document.getElementById('res-fill-my');
+  const manBtn=document.getElementById('res-fill-manual');
+  if(myBtn){myBtn.style.background='#6c63ff';myBtn.style.color='#fff';}
+  if(manBtn){manBtn.style.background='#f0f0f5';manBtn.style.color='#1a1a1a';}
+  showToast('내 정보가 입력됐어요');
+}
+function fillResContactManual(){
+  const nameEl=document.getElementById('res-contact-name');
+  const telEl=document.getElementById('res-contact-tel');
+  const addrEl=document.getElementById('res-contact-addr');
+  if(nameEl){nameEl.value='';nameEl.focus();}
+  if(telEl)telEl.value='';
+  if(addrEl)addrEl.value='';
+  // 버튼 스타일 토글
+  const myBtn=document.getElementById('res-fill-my');
+  const manBtn=document.getElementById('res-fill-manual');
+  if(myBtn){myBtn.style.background='#f0f0f5';myBtn.style.color='#1a1a1a';}
+  if(manBtn){manBtn.style.background='#6c63ff';manBtn.style.color='#fff';}
 }
 async function submitReservation(){
   const date=document.getElementById('res-date').value;
