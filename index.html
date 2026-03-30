@@ -4510,7 +4510,7 @@ async function doSignup(){
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
     const newProfile={id:userId,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     const{error:insErr}=await _sb.from('users').insert(newProfile);
-    if(insErr)console.error('[회원가입] users insert 오류:',insErr.message,insErr.code,insErr.details);
+    if(insErr){console.error('[회원가입] users insert 오류:',insErr.message,insErr.code,insErr.details);showToast('가입 저장 오류: '+insErr.message);return;}
     localStorage.setItem('bium_activeUserId', userId||email||'guest');
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
@@ -4604,7 +4604,7 @@ async function handleKakaoCode(code){
       }else{
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
-        _oauthPendingUser={id:'kakao_'+kakaoId,email,name:nickname,provider:'kakao'};
+        _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
         showView('signup');
         setTimeout(()=>{
           const emailRow=document.getElementById('s-email');
@@ -4618,7 +4618,7 @@ async function handleKakaoCode(code){
         },100);
       }
     }else{
-      _oauthPendingUser={id:'kakao_'+kakaoId,email,name:nickname,provider:'kakao'};
+      _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
       showView('signup');
     }
   }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
@@ -4665,7 +4665,7 @@ async function handleNaverCode(code,state){
       }else{
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
-        _oauthPendingUser={id:'naver_'+naverId,email,name:nickname,provider:'naver'};
+        _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
         showView('signup');
         setTimeout(()=>{
           const emailRow=document.getElementById('s-email');
@@ -4679,7 +4679,7 @@ async function handleNaverCode(code,state){
         },100);
       }
     }else{
-      _oauthPendingUser={id:'naver_'+naverId,email,name:nickname,provider:'naver'};
+      _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
       showView('signup');
     }
   }catch(e){showToast('네이버 로그인 오류: '+e.message);console.error(e);}
