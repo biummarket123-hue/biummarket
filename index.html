@@ -4214,13 +4214,46 @@ function showView(name,push=true){
   if(name==='analytics')renderAnalytics();
   if(name==='biz-news')renderBizNewsList();
   if(name==='biz-stats')renderBizStats('overview');
-  if(name==='biz-followers')renderDangolPage();
+  if(name==='biz-followers'){
+    // 일반회원: 단골 업체 목록 모드 (내가 맺은 단골만)
+    if(!isBusiness()&&!isAdmin()){
+      document.getElementById('dangol-tabs').style.display='none';
+      const titleEl=document.querySelector('#view-biz-followers .hdr-title');
+      if(titleEl)titleEl.textContent='🏪 단골 업체 목록';
+      renderDangolMyList();
+    }else{
+      document.getElementById('dangol-tabs').style.display='flex';
+      const titleEl=document.querySelector('#view-biz-followers .hdr-title');
+      if(titleEl)titleEl.textContent='🏪 단골 관리';
+      renderDangolPage();
+    }
+  }
   if(name==='chat'&&_sb&&curUser){
     loadChatRoomsFromSB().then(()=>renderChatList());
   }
   if(name==='chat')renderChatList();
-  if(name==='my-reservations')renderMyReservations();
-  if(name==='my-offers')renderMyOffers();
+  if(name==='my-reservations'){
+    // 일반회원: 구매 탭 고정, 탭 바 숨김
+    const resvTabs=document.querySelector('#view-my-reservations > div:nth-child(2)');
+    if(!isBusiness()&&!isAdmin()){
+      if(resvTabs)resvTabs.style.display='none';
+      curResvFilter='buy';
+    }else{
+      if(resvTabs)resvTabs.style.display='flex';
+    }
+    renderMyReservations();
+  }
+  if(name==='my-offers'){
+    // 일반회원: 구매 탭 고정, 탭 바 숨김
+    const offerTabs=document.querySelector('#view-my-offers > div:nth-child(2)');
+    if(!isBusiness()&&!isAdmin()){
+      if(offerTabs)offerTabs.style.display='none';
+      curOfferFilter='buy';
+    }else{
+      if(offerTabs)offerTabs.style.display='flex';
+    }
+    renderMyOffers();
+  }
   if(name==='wishlist')renderWishlist();
   if(name==='chat-room')renderChatRoom(curChatRoomId);
   if(name==='reservations')renderReservations();
@@ -7057,6 +7090,35 @@ function switchDangolTab(tab,el){
   });
   if(el){el.style.borderBottomColor='#ff6f00';el.style.color='#ff6f00';}
   renderDangolTab(tab);
+}
+// 일반회원용: 내가 단골 맺은 업체 목록만 표시
+function renderDangolMyList(){
+  const content=document.getElementById('dangol-content');if(!content)return;
+  const myFollows=lsGet('myFollows',[]);
+  if(!myFollows.length){
+    content.innerHTML=`<div style="text-align:center;padding:40px 16px"><div style="font-size:48px;margin-bottom:12px">🏪</div><div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">단골 업체가 없어요</div><div style="font-size:13px;color:#888;line-height:1.6">판매자 프로필에서 "단골맺기"를<br>눌러보세요</div></div>`;
+    return;
+  }
+  // 단골 맺은 업체 정보 조회
+  const sellerList=myFollows.map(key=>{
+    const u=users.find(x=>x.id===key||x.name===key)||{};
+    const prods=products.filter(p=>p.seller?.id===key||p.seller?.name===key||p.seller_id===key);
+    return{key,name:u.name||key,loc:u.loc||'',type:u.type||'',prodCount:prods.length};
+  });
+  content.innerHTML=`
+    <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center">
+      <div style="font-size:22px;font-weight:800;color:#6c63ff">${myFollows.length}</div>
+      <div style="font-size:12px;color:#888;margin-top:2px">단골 업체</div>
+    </div>
+    ${sellerList.map(s=>`
+      <div onclick="preloadAndRenderSeller({id:'${s.key}',name:'${s.name}',loc:'${s.loc}',type:'${s.type}'})" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;cursor:pointer">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0">${(s.name||'?')[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:var(--fs-md);font-weight:700;color:#1a1a1a">${s.name}</div>
+          <div style="font-size:var(--fs-sm);color:#888">${s.loc?'📍 '+s.loc:''}${s.prodCount?' · 상품 '+s.prodCount+'개':''}</div>
+        </div>
+        <span style="color:#aaa;font-size:16px">›</span>
+      </div>`).join('')}`;
 }
 async function renderDangolPage(){
   renderDangolTab('list');
