@@ -566,7 +566,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .ai-card-info{padding:8px 8px 9px}
 .ai-card-name{font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;line-clamp:1}
 .ai-card-price{font-size:var(--fs-base);font-weight:700;color:#1a1a1a}
-.ai-card-disc{font-size:10px;color:#ff6584;font-weight:600;margin-left:4px}
 .cat-section{margin:0 0 24px;padding-top:16px}
 .cat-section-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px;margin-bottom:10px}
 .cat-section-title{font-size:var(--fs-xl);font-weight:800;color:#1a1a1a}
@@ -5174,19 +5173,56 @@ function setHomeCat(key){
 function renderAiRecs(){
   const el=document.getElementById('ai-rec-scroll');
   if(!el)return;
-  const pool=products.slice(0,Math.min(8,products.length));
-  if(!pool.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">상품을 불러오는 중...</div>';return;}
-  el.innerHTML=pool.map(p=>{
+  if(!products.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">상품을 불러오는 중...</div>';return;}
+  // 내 상품, 이미 찜한 상품 제외
+  const likedMap=lsGet('likedMap',{});
+  const pool=products.filter(p=>!isMyProduct(p,curUser||{})&&!likedMap[p.id]);
+  if(!pool.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">추천할 상품이 없어요</div>';return;}
+  // 관심 카테고리
+  const interestCats=lsGet('interestCats',[])||[];
+  // 내 위치
+  const myLoc=curUser?.loc||'';
+  const myLocKey=myLoc?myLoc.split(' ').slice(0,2).join(' '):'';
+  // 7일 기준
+  const now=Date.now();
+  const weekMs=7*24*60*60*1000;
+  // 점수 계산
+  const scored=pool.map(p=>{
+    let score=0;
+    // 관심 카테고리 매칭
+    if(interestCats.length&&(interestCats.includes(p.cat)||interestCats.includes(p.type)))score+=5;
+    // 지역 매칭
+    const pLoc=p.loc||p.seller?.loc||'';
+    if(myLocKey&&pLoc.includes(myLocKey))score+=2;
+    // 인기도
+    score+=(p.likes||0)*2;
+    score+=(p.chats||0)*1;
+    // 급처
+    if(p.is_urgent)score+=3;
+    // 최근 등록 (7일 이내)
+    const created=p.created_at?new Date(p.created_at).getTime():0;
+    if(created&&(now-created)<weekMs)score+=2;
+    // 뱃지 결정
+    const badges=[];
+    if(p.is_urgent)badges.push('급처');
+    else if(myLocKey&&pLoc.includes(myLocKey))badges.push('내 지역');
+    else if((p.likes||0)>=3||(p.chats||0)>=2)badges.push('인기');
+    return{p,score,badges};
+  });
+  // 점수 내림차순 정렬 후 상위 8개
+  scored.sort((a,b)=>b.score-a.score);
+  const top=scored.slice(0,8);
+  el.innerHTML=top.map(({p,badges})=>{
     const bg=getFColor(p.type,p.color);
-    const disc=Math.floor(Math.random()*25)+5;
+    const badgeHtml=badges.length?`<span class="ai-badge-gold">${badges[0]==='급처'?'⚡ 급처':badges[0]==='내 지역'?'📍 내 지역':'🔥 인기'}</span>`:'<span class="ai-badge-gold">AI추천</span>';
     return `<div class="ai-card" onclick="openDetail(${p.id})">
       <div class="ai-card-thumb" style="background:${bg}">
         ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
-        <span class="ai-badge-gold">AI추천</span>
+        ${badgeHtml}
       </div>
       <div class="ai-card-info">
         <div class="ai-card-name">${p.title}</div>
-        <div><span class="ai-card-price">${fmtPrice(p.price)}/m</span><span class="ai-card-disc">-${disc}%</span></div>
+        <div><span class="ai-card-price">${fmtPrice(p.price)}/m</span></div>
       </div>
     </div>`;
   }).join('');
