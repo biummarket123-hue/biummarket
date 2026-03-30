@@ -8081,7 +8081,15 @@ function renderWishlist(){
 }
 
 /* ==================== CHAT ==================== */
-function formatChatTime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function formatChatTime(d){
+  const now=new Date();
+  const hm=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate())return hm;
+  const yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
+  if(d.getFullYear()===yesterday.getFullYear()&&d.getMonth()===yesterday.getMonth()&&d.getDate()===yesterday.getDate())return '어제';
+  if(d.getFullYear()===now.getFullYear())return(d.getMonth()+1)+'/'+d.getDate();
+  return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+}
 async function openChatRoom(productId){
   if(!curUser){showToast('로그인 후 채팅할 수 있어요');showView('login');return;}
   const p=products.find(x=>x.id===productId);if(!p)return;
@@ -8129,6 +8137,7 @@ async function openChatRoom(productId){
     bgColor:getFColor(p.type,p.color),
     messages:[],
     lastMsg:`"${p.title}" 상품 문의`,
+    lastTimeRaw:new Date().toISOString(),
     lastTime:formatChatTime(new Date()),
     unread:0,
     ...(chatRooms[roomId]||{})
@@ -8199,6 +8208,7 @@ async function loadChatRoomsFromSB(){
       id:r.id,productId:r.product_id,productTitle:r.product_title,productImg:r.product_img||'',
       sellerName:isSeller?r.buyer_name:r.seller_name,sellerId:r.seller_id,buyerId:r.buyer_id,buyerName:r.buyer_name,
       bgColor:chatRooms[r.id]?.bgColor||'#6c63ff',lastMsg:r.last_msg||'',
+      lastTimeRaw:r.last_time||'',
       lastTime:r.last_time?formatChatTime(new Date(r.last_time)):'',
       unread:isSeller?(r.unread_seller||0):(r.unread_buyer||0)
     };
@@ -8239,7 +8249,13 @@ function renderChatList(){
   const unreadTab=document.getElementById('chat-tab-unread');
   if(unreadTab)unreadTab.textContent=totalUnread>0?`안읽음 ${totalUnread}`:'안읽음';
 
-  wrap.innerHTML=rooms.slice().reverse().map(r=>{
+  // 최신순 정렬 (lastTimeRaw 기준)
+  rooms.sort((a,b)=>{
+    const ta=a.lastTimeRaw?new Date(a.lastTimeRaw).getTime():0;
+    const tb=b.lastTimeRaw?new Date(b.lastTimeRaw).getTime():0;
+    return tb-ta;
+  });
+  wrap.innerHTML=rooms.map(r=>{
     const isSellChat=r.sellerId===myId;
     const typeLabel=isSellChat?
       `<span style="font-size:10px;background:rgba(255,111,0,.1);color:#ff6f00;padding:2px 6px;border-radius:10px;font-weight:700">판매</span>`:
