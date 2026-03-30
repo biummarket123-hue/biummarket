@@ -5889,9 +5889,11 @@ function openSellerPage(){
     ...seller,
     type:seller.type||userInfo.type||userInfo.role||'member',
     role:seller.role||userInfo.role||userInfo.type||'member',
-    loc:seller.loc||userInfo.loc||'',
-    tel:seller.tel||userInfo.tel||'',
-    intro:seller.intro||userInfo.intro||'',
+    loc:userInfo.loc||seller.loc||'',
+    tel:userInfo.tel||seller.tel||'',
+    intro:userInfo.intro||seller.intro||'',
+    category:userInfo.category||seller.category||'',
+    profile:userInfo.profile||seller.profile||{},
     extra_info:seller.extra_info||userInfo.extra_info||'{}',
   };
   preloadAndRenderSeller(mergedSeller);
@@ -6912,6 +6914,21 @@ function preloadAndRenderSeller(seller){
     if(isBiz){
       _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
     }
+    // Supabase에서 최신 프로필 가져와서 반영
+    _sb.from('users').select('*').eq('id',seller.id).single().then(({data:sbUser})=>{
+      if(sbUser){
+        seller.name=sbUser.name||seller.name;
+        seller.loc=sbUser.loc||seller.loc;
+        seller.tel=sbUser.tel||seller.tel;
+        seller.intro=sbUser.intro||seller.intro;
+        seller.type=sbUser.type||seller.type;
+        seller.category=sbUser.category||seller.category;
+        if(sbUser.profile&&typeof sbUser.profile==='object')seller.profile=sbUser.profile;
+        if(sbUser.loc_detail)seller.locDetail=sbUser.loc_detail;
+        // 최신 정보로 다시 렌더링
+        renderSellerPage(seller);
+      }
+    });
   }
   renderSellerPage(seller);
 }
