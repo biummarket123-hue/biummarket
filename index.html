@@ -4421,7 +4421,8 @@ function toggleAgreeAll(){
 }
 async function doSignup(){
   // 필수 약관 동의 확인
-  if(!_agreeState.terms||!_agreeState.privacy){showToast('이용약관과 개인정보처리방침에 동의해주세요');return;}
+  if(!_agreeState.terms){showToast('이용약관에 동의해주세요');return;}
+  if(!_agreeState.privacy){showToast('개인정보 수집·이용에 동의해주세요');return;}
   const isOAuth=!!_oauthPendingUser;
   const name=document.getElementById('s-name').value.trim();
   const email=isOAuth?_oauthPendingUser.email:(document.getElementById('s-email').value.trim());
@@ -4429,7 +4430,8 @@ async function doSignup(){
   const tel=document.getElementById('s-tel')?.value.trim()||'';
   const loc=document.getElementById('s-loc')?.value.trim()||'';
   if(!name){showToast('이름을 입력해주세요');return;}
-  if(!isOAuth&&(!email||!pw)){showToast('필수 항목을 입력해주세요');return;}
+  if(!isOAuth&&!email){showToast('이메일을 입력해주세요');return;}
+  if(!isOAuth&&!pw){showToast('비밀번호를 입력해주세요');return;}
   if(!tel){showToast('전화번호를 입력해주세요');return;}
   // 개인 판매자 추가 정보
   const sellerExtra=selectedUserType==='seller'?{
