@@ -4509,8 +4509,19 @@ async function doSignup(){
     const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
     const newProfile={id:userId,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
-    const{error:insErr}=await _sb.from('users').insert(newProfile);
-    if(insErr){console.error('[회원가입] users insert 오류:',insErr.message,insErr.code,insErr.details);showToast('가입 저장 오류: '+insErr.message);return;}
+    let insErr=null;
+    if(isOAuth){
+      // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
+      try{
+        const apiRes=await fetch('/api/create-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:newProfile})});
+        const apiData=await apiRes.json();
+        if(!apiRes.ok)insErr={message:apiData.error||'서버 오류'};
+      }catch(e){insErr={message:e.message};}
+    }else{
+      const res=await _sb.from('users').insert(newProfile);
+      insErr=res.error;
+    }
+    if(insErr){console.error('[회원가입] users insert 오류:',insErr.message);showToast('가입 저장 오류: '+insErr.message);return;}
     localStorage.setItem('bium_activeUserId', userId||email||'guest');
     curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
