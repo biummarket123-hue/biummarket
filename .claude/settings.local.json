@@ -34,7 +34,8 @@
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1638..1660\\)\")",
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1764..1770\\)\")",
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1927..1937\\)\")",
-      "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1486..1522\\)\")"
+      "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1486..1522\\)\")",
+      "Read(//c/Users/박상민/biummarket/public/**)"
     ]
   }
 }
