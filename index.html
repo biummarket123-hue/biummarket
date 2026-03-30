@@ -1596,7 +1596,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           </div>
           <span class="my-menu-arrow">›</span>
         </div>
-        <div class="my-menu-item" onclick="showView('biz-followers')">
+        <div class="my-menu-item" onclick="_dangolViewMode='manage';showView('biz-followers')">
           <div class="my-icon-box" style="background:rgba(255,101,132,.15)">❤️</div>
           <div class="my-menu-info">
             <div class="my-menu-title">단골 관리</div>
@@ -1668,7 +1668,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('biz-followers')">
+      <div class="my-menu-item" onclick="_dangolViewMode='my';showView('biz-followers')">
         <div class="my-icon-box ib-blue">🏪</div>
         <div class="my-menu-info">
           <div class="my-menu-title">단골 업체 목록</div>
@@ -3725,6 +3725,7 @@ let sliderTotal=0;
 let uploadedImgs=[];
 let curResType='reservation';
 let _oauthPendingUser=null; // 소셜 로그인 신규 유저 임시 저장
+let _dangolViewMode='my'; // 'my'=단골업체목록, 'manage'=단골관리
 let curSellerData=null;
 let cachedSellerNews=null;
 let selectedUserType='member';
@@ -4214,18 +4215,19 @@ function showView(name,push=true){
   if(name==='biz-news')renderBizNewsList();
   if(name==='biz-stats')renderBizStats('overview');
   if(name==='biz-followers'){
-    // 일반회원: 단골 업체 목록 모드 (내가 맺은 단골만)
-    if(!isBusiness()&&!isAdmin()){
-      document.getElementById('dangol-tabs').style.display='none';
-      const titleEl=document.querySelector('#view-biz-followers .hdr-title');
-      if(titleEl)titleEl.textContent='🏪 단골 업체 목록';
-      renderDangolMyList();
-    }else{
+    const titleEl=document.querySelector('#view-biz-followers .hdr-title');
+    if(_dangolViewMode==='manage'&&(isBusiness()||isAdmin())){
+      // 판매관리 → 단골 관리 (사업자/관리자만)
       document.getElementById('dangol-tabs').style.display='flex';
-      const titleEl=document.querySelector('#view-biz-followers .hdr-title');
       if(titleEl)titleEl.textContent='🏪 단골 관리';
       renderDangolPage();
+    }else{
+      // 구매활동 → 내가 단골 맺은 업체 목록
+      document.getElementById('dangol-tabs').style.display='none';
+      if(titleEl)titleEl.textContent='🏪 단골 업체 목록';
+      renderDangolMyList();
     }
+    _dangolViewMode='my'; // 초기화
   }
   if(name==='chat'&&_sb&&curUser){
     loadChatRoomsFromSB().then(()=>renderChatList());
@@ -7146,29 +7148,46 @@ function switchDangolTab(tab,el){
   renderDangolTab(tab);
 }
 // 일반회원용: 내가 단골 맺은 업체 목록만 표시
-function renderDangolMyList(){
+async function renderDangolMyList(){
   const content=document.getElementById('dangol-content');if(!content)return;
   const myFollows=lsGet('myFollows',[]);
   if(!myFollows.length){
     content.innerHTML=`<div style="text-align:center;padding:40px 16px"><div style="font-size:48px;margin-bottom:12px">🏪</div><div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">단골 업체가 없어요</div><div style="font-size:13px;color:#888;line-height:1.6">판매자 프로필에서 "단골맺기"를<br>눌러보세요</div></div>`;
     return;
   }
-  // 단골 맺은 업체 정보 조회
+  content.innerHTML='<div style="text-align:center;padding:20px;color:#888">불러오는 중...</div>';
+  // 로컬 + 상품에서 업체 정보 수집
   const sellerList=myFollows.map(key=>{
     const u=users.find(x=>x.id===key||x.name===key)||{};
+    // 상품에서 판매자 정보 찾기
+    const sellerProd=products.find(p=>p.seller?.id===key||p.seller?.name===key||p.seller_id===key);
+    const sellerInfo=sellerProd?.seller||{};
+    const name=u.name||sellerInfo.name||'';
+    const loc=u.loc||sellerInfo.loc||'';
+    const type=u.type||sellerInfo.type||'';
     const prods=products.filter(p=>p.seller?.id===key||p.seller?.name===key||p.seller_id===key);
-    return{key,name:u.name||key,loc:u.loc||'',type:u.type||'',prodCount:prods.length};
+    return{key,name,loc,type,prodCount:prods.length};
   });
+  // Supabase에서 최신 정보 보강
+  if(_sb){
+    for(const s of sellerList){
+      if(!s.name&&s.key.length>10){
+        const{data}=await _sb.from('users').select('name,loc,type').eq('id',s.key).maybeSingle();
+        if(data){s.name=data.name||s.name;s.loc=data.loc||s.loc;s.type=data.type||s.type;}
+      }
+    }
+  }
+  const _esc=(str)=>(str||'').replace(/'/g,"\\'");
   content.innerHTML=`
     <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center">
       <div style="font-size:22px;font-weight:800;color:#6c63ff">${myFollows.length}</div>
       <div style="font-size:12px;color:#888;margin-top:2px">단골 업체</div>
     </div>
     ${sellerList.map(s=>`
-      <div onclick="preloadAndRenderSeller({id:'${s.key}',name:'${s.name}',loc:'${s.loc}',type:'${s.type}'})" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;cursor:pointer">
+      <div onclick="preloadAndRenderSeller({id:'${_esc(s.key)}',name:'${_esc(s.name)}',loc:'${_esc(s.loc)}',type:'${_esc(s.type)}'})" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;cursor:pointer">
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0">${(s.name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:var(--fs-md);font-weight:700;color:#1a1a1a">${s.name}</div>
+          <div style="font-size:var(--fs-md);font-weight:700;color:#1a1a1a">${s.name||'업체'}</div>
           <div style="font-size:var(--fs-sm);color:#888">${s.loc?'📍 '+s.loc:''}${s.prodCount?' · 상품 '+s.prodCount+'개':''}</div>
         </div>
         <span style="color:#aaa;font-size:16px">›</span>
