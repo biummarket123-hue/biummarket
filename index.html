@@ -6478,7 +6478,7 @@ async function switchSellerTab(tab,el){
   if(el){el.style.borderBottomColor='#ff6f00';el.style.color='#ff6f00';}
   const content=document.getElementById('sh-tab-content');
   const seller=curSellerData||{};
-  const isMySelf=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
+  const isMySelf=curUser&&curUser.id!=='admin'&&(curUser.id===seller.id||(curUser.email&&curUser.email===seller.email));
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
   let extra={};
   try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
@@ -6567,7 +6567,7 @@ async function switchSellerTab(tab,el){
     const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'재고원단 전문 업체입니다.');
     const insta=isMySelf?(curUser.profile?.insta||''):(seller.profile?.insta||userInfo.profile?.insta||extra.insta||'');
     const blog=isMySelf?(curUser.profile?.blog||''):(seller.profile?.blog||userInfo.profile?.blog||extra.blog||'');
-    const address=isMySelf?(curUser.loc||''):(extra.address||userInfo.loc||seller.loc||'');
+    const address=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
 
     // 기본 정보 rows
     const rows=[];
@@ -6792,7 +6792,7 @@ async function switchSellerTab(tab,el){
 function renderSellerPage(seller){
   curSellerData=seller;
   // 본인 프로필이면 curUser 기준으로 최신 정보 사용
-  const isMySelf=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
+  const isMySelf=curUser&&curUser.id!=='admin'&&(curUser.id===seller.id||(curUser.email&&curUser.email===seller.email));
   if(isMySelf){
     seller.loc=curUser.loc||seller.loc;
     seller.intro=curUser.intro||seller.intro;
