@@ -1009,7 +1009,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 <!-- ========== SIGNUP ========== -->
 <div id="view-signup" class="view">
   <header class="hdr">
-    <button class="hdr-back" onclick="showView('login')">←</button>
+    <button class="hdr-back" onclick="if(_oauthPendingUser){_oauthPendingUser=null;if(_sb)_sb.auth.signOut();}showView('login')">←</button>
     <div class="hdr-title" data-i18n="signup_title">회원가입</div>
     <div style="width:38px"></div>
   </header>
@@ -3539,28 +3539,29 @@ try{
             if(localMatch){
               curUser=localMatch;
             }else{
-              const newProfile={
-                id:u.id,
-                email:u.email,
-                name:u.user_metadata?.full_name||u.email.split('@')[0],
-                type:'member',
-                temp:36.5,
-                join_date:new Date().toISOString().slice(0,10),
-                created_at:new Date().toISOString(),
-                seller_status:'none',
-                requested_role:''
-              };
-              const{error:insertErr}=await _sb.from('users').insert(newProfile);
-              if(insertErr)console.error('신규 유저 insert 오류:',insertErr);
-              curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus:'none'};
+              // 신규 소셜 로그인 → 회원가입 폼으로 이동 (insert는 가입 완료 시)
               isNewUser=true;
+              _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0]};
             }
           }
-          lsSet('curUser',curUser);
           if(isNewUser){
             sessionStorage.setItem('bium_new_user','1');
-            if(typeof showView==='function'){showView('profile-edit');if(typeof renderProfileEdit==='function')renderProfileEdit();}
+            if(typeof showView==='function'){
+              showView('signup');
+              // 소셜 가입 모드: 이메일/비밀번호 숨기고, 이름 자동채움
+              setTimeout(()=>{
+                const emailRow=document.getElementById('s-email');
+                const pwRow=document.getElementById('s-pw');
+                const pwcRow=document.getElementById('s-pw-confirm');
+                if(emailRow)emailRow.closest('.fg').style.display='none';
+                if(pwRow)pwRow.closest('.fg').style.display='none';
+                if(pwcRow)pwcRow.closest('.fg').style.display='none';
+                const nameEl=document.getElementById('s-name');
+                if(nameEl&&_oauthPendingUser)nameEl.value=_oauthPendingUser.name||'';
+              },100);
+            }
           }else{
+            lsSet('curUser',curUser);
             if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
           }
         }
@@ -3768,6 +3769,7 @@ let sliderIdx=0;
 let sliderTotal=0;
 let uploadedImgs=[];
 let curResType='reservation';
+let _oauthPendingUser=null; // 소셜 로그인 신규 유저 임시 저장
 let curSellerData=null;
 let cachedSellerNews=null;
 let selectedUserType='seller';
@@ -4463,12 +4465,14 @@ function toggleAgreeAll(){
 async function doSignup(){
   // 필수 약관 동의 확인
   if(!_agreeState.terms||!_agreeState.privacy){showToast('이용약관과 개인정보처리방침에 동의해주세요');return;}
+  const isOAuth=!!_oauthPendingUser;
   const name=document.getElementById('s-name').value.trim();
-  const email=document.getElementById('s-email').value.trim();
-  const pw=document.getElementById('s-pw').value;
+  const email=isOAuth?_oauthPendingUser.email:(document.getElementById('s-email').value.trim());
+  const pw=isOAuth?'oauth':(document.getElementById('s-pw').value);
   const tel=document.getElementById('s-tel')?.value.trim()||'';
   const loc=document.getElementById('s-loc')?.value.trim()||'';
-  if(!name||!email||!pw){showToast('필수 항목을 입력해주세요');return;}
+  if(!name){showToast('이름을 입력해주세요');return;}
+  if(!isOAuth&&(!email||!pw)){showToast('필수 항목을 입력해주세요');return;}
   if(!tel){showToast('전화번호를 입력해주세요');return;}
   // 개인 판매자 추가 정보
   const sellerExtra=selectedUserType==='seller'?{
@@ -4480,7 +4484,7 @@ async function doSignup(){
     pay:document.getElementById('s-pay')?.value.trim()||'',
   }:null;
   // 업체 판매자 추가 정보
-  const companyExtra=selectedUserType==='both'?{
+  const companyExtra=selectedUserType==='business'?{
     bizName:document.getElementById('s-bizname')?.value.trim()||'',
     ceo:document.getElementById('s-ceo')?.value.trim()||'',
     biznum:document.getElementById('s-biznum')?.value.trim()||'',
@@ -4489,16 +4493,18 @@ async function doSignup(){
     intro:document.getElementById('s-bizintro')?.value.trim()||'',
   }:null;
   // 업체 판매자 필수값 체크
-  if(selectedUserType==='both'){
+  if(selectedUserType==='business'){
     if(!companyExtra.bizName){showToast('회사명을 입력해주세요');return;}
     if(!companyExtra.ceo){showToast('대표자명을 입력해주세요');return;}
     if(!companyExtra.biznum){showToast('사업자등록번호를 입력해주세요');return;}
     if(!companyExtra.address){showToast('사업장 주소를 입력해주세요');return;}
     if(!document.getElementById('s-bizfile')?.files[0]){showToast('사업자등록증을 첨부해주세요');return;}
   }
-  if(pw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
-  const pwConfirm=document.getElementById('s-pw-confirm')?.value;
-  if(pw!==pwConfirm){showToast('비밀번호가 일치하지 않아요 🔑');return;}
+  if(!isOAuth){
+    if(pw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
+    const pwConfirm=document.getElementById('s-pw-confirm')?.value;
+    if(pw!==pwConfirm){showToast('비밀번호가 일치하지 않아요 🔑');return;}
+  }
   // 판매자 선택 시 → buyer + pending 처리
   const wantsBusiness=selectedUserType==='business';
   const actualType=selectedUserType||'member';
@@ -4524,8 +4530,15 @@ async function doSignup(){
     return;
   }
   try{
-    const{data,error}=await _sb.auth.signUp({email,password:pw});
-    if(error){showToast(error.message||'회원가입에 실패했어요');return;}
+    let userId;
+    if(isOAuth){
+      // 소셜 로그인: 이미 auth 세션 있음, users 테이블에만 insert
+      userId=_oauthPendingUser.id;
+    }else{
+      const{data,error}=await _sb.auth.signUp({email,password:pw});
+      if(error){showToast(error.message||'회원가입에 실패했어요');return;}
+      userId=data.user.id;
+    }
     // 사업자등록증 base64 변환
     let bizfileBase64='';
     const bizfileInput=document.getElementById('s-bizfile');
@@ -4536,13 +4549,13 @@ async function doSignup(){
         reader.readAsDataURL(bizfileInput.files[0]);
       });
     }
-    const extraData={...sellerExtra,...companyExtra};
+    const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:data.user.id,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const newProfile={id:userId,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     const{error:insErr}=await _sb.from('users').insert(newProfile);
     if(insErr)console.error('[회원가입] users insert 오류:',insErr.message,insErr.code,insErr.details);
-    localStorage.setItem('bium_activeUserId', data.user.id||email||'guest');
-    curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,profile:{...sellerExtra,...companyExtra}};
+    localStorage.setItem('bium_activeUserId', userId||email||'guest');
+    curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra}};
     // users 로컬 배열에도 추가
     users.push({...curUser});
     lsSet('users',users);
@@ -4557,8 +4570,10 @@ async function doSignup(){
     lsSet('chatRooms',{});
     lsSet('lastUserId',curUser.id||curUser.email||'');
     lsSet('interestCatsSet',false);
-    // 이메일 인증 필요 여부 확인
-    if(data.user && !data.user.confirmed_at && !data.user.email_confirmed_at){
+    // 소셜 로그인 완료 후 임시 데이터 클리어
+    if(isOAuth)_oauthPendingUser=null;
+    // 이메일 인증 필요 여부 확인 (소셜 로그인은 이미 인증됨)
+    if(!isOAuth&&!curUser?.email_confirmed_at){
       // 이메일 인증 필요 → 안내 화면 표시
       curUser=null; lsSet('curUser',null);
       showEmailVerifyScreen(email, wantsBusiness);
