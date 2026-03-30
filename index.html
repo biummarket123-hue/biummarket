@@ -6822,21 +6822,21 @@ function renderSellerPage(seller){
       `;
     }
 
-  // 소식 데이터 미리 불러오기 (프로필 진입 시 즉시)
-  cachedSellerNews=null;
-  if(isBiz&&_sb&&seller.id){
+  // 소식 데이터: preloadAndRenderSeller에서 이미 로드된 경우 재요청 생략
+  if(!cachedSellerNews&&isBiz&&_sb&&seller.id){
     _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
   }
   switchSellerTab('home',document.querySelector('#sh-tabs .seller-tab'));
   showView('seller');
 }
 // 판매자 프로필 진입 전 소식 데이터 미리 로드
-async function preloadAndRenderSeller(seller){
+function preloadAndRenderSeller(seller){
+  // 소식 데이터를 백그라운드로 로드하고, 화면은 즉시 렌더링
+  cachedSellerNews=null;
   if(_sb&&seller.id){
     const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
     if(isBiz){
-      const{data}=await _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false});
-      cachedSellerNews=data||[];
+      _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
     }
   }
   renderSellerPage(seller);
