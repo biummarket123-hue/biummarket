@@ -5891,15 +5891,14 @@ function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)docu
 function openSuggestModal(){openModal('modal-suggest');if(curUser)setTimeout(()=>fillOfferContactMy(),100);}
 function fillOfferContactMy(){
   if(!curUser){showToast('로그인이 필요해요');return;}
-  let extra={};try{extra=JSON.parse(curUser.extra_info||'{}');}catch(e){}
   const nameEl=document.getElementById('offer-contact-name');
   const telEl=document.getElementById('offer-contact-tel');
   const addrEl=document.getElementById('offer-contact-addr');
   if(nameEl)nameEl.value=curUser.name||'';
   if(telEl)telEl.value=curUser.tel||'';
-  const baseLoc=extra.address||curUser.loc||'';
+  const baseLoc=curUser.loc||'';
   const detailLoc=curUser.locDetail||'';
-  if(addrEl)addrEl.value=detailLoc?(baseLoc+' '+detailLoc).trim():baseLoc;
+  if(addrEl)addrEl.value=(baseLoc+(detailLoc?' '+detailLoc:'')).trim();
   const myBtn=document.getElementById('offer-fill-my');
   const manBtn=document.getElementById('offer-fill-manual');
   if(myBtn){myBtn.style.background='#6c63ff';myBtn.style.color='#fff';}
@@ -6241,17 +6240,15 @@ function selectResModal(type,el){
 // 예약 연락처 자동 채움
 function fillResContactMy(){
   if(!curUser){showToast('로그인이 필요해요');return;}
-  let extra={};
-  try{extra=JSON.parse(curUser.extra_info||'{}');}catch(e){}
   const nameEl=document.getElementById('res-contact-name');
   const telEl=document.getElementById('res-contact-tel');
   const addrEl=document.getElementById('res-contact-addr');
   if(nameEl)nameEl.value=curUser.name||'';
   if(telEl)telEl.value=curUser.tel||'';
-  // 기본주소 + 상세주소 합쳐서 표시
-  const baseLoc=extra.address||curUser.loc||'';
+  // 기본주소(지역) + 상세주소 합쳐서 표시
+  const baseLoc=curUser.loc||'';
   const detailLoc=curUser.locDetail||'';
-  if(addrEl)addrEl.value=detailLoc?(baseLoc+' '+detailLoc).trim():baseLoc;
+  if(addrEl)addrEl.value=(baseLoc+(detailLoc?' '+detailLoc:'')).trim();
   // 버튼 스타일 토글
   const myBtn=document.getElementById('res-fill-my');
   const manBtn=document.getElementById('res-fill-manual');
