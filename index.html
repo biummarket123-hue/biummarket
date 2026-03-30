@@ -4371,7 +4371,7 @@ async function doLogin(){
       return;
     }
     const prevUser=lsGet('curUser',null);
-    const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).single();
+    const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).maybeSingle();
     const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
@@ -4604,7 +4604,7 @@ async function handleKakaoCode(code){
     const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
     if(_sb){
-      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
+      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).maybeSingle();
       if(sbProfile&&sbProfile.tel){
         // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
@@ -4665,7 +4665,7 @@ async function handleNaverCode(code,state){
     const nickname=profile.name||profile.nickname||'네이버사용자';
     const email=profile.email||('naver_'+naverId+'@naver.com');
     if(_sb){
-      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
+      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).maybeSingle();
       if(sbProfile&&sbProfile.tel){
         // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
@@ -6937,7 +6937,7 @@ function preloadAndRenderSeller(seller){
       _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
     }
     // Supabase에서 최신 프로필 가져와서 반영
-    _sb.from('users').select('*').eq('id',seller.id).single().then(({data:sbUser,error})=>{
+    _sb.from('users').select('*').eq('id',seller.id).maybeSingle().then(({data:sbUser,error})=>{
       if(error){console.error('판매자 프로필 조회 오류:',error);return;}
       if(sbUser){
         // extra_info에서 프로필 데이터 추출
@@ -12811,7 +12811,7 @@ function renderBizStats(tab){
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
         const prevUser=lsGet('curUser',null);
-        const{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',session.user.id).single();
+        const{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',session.user.id).maybeSingle();
         const isComplete=profile&&!profileErr&&profile.tel;
         if(isComplete){
           curUser=mergeWithLocalUser({...profile});
