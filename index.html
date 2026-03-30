@@ -5615,7 +5615,7 @@ function renderCard(p, idx){
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-      <div class="pprice">${fmtPrice(total)}<span class="pu"> (${fmtPrice(p.price)}/m)</span></div>
+      <div class="pprice">${(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price?_f(p.bulk_price)+'-'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
       <div class="pfoot">
         <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
         <span class="pcnt"><span>🤍${p.likes}</span><span>💬${p.chats}</span></span>
