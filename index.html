@@ -4513,10 +4513,12 @@ async function doSignup(){
     if(isOAuth){
       // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
       try{
+        console.log('[doSignup] create-user API 호출:', newProfile.id, newProfile.email);
         const apiRes=await fetch('/api/create-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:newProfile})});
         const apiData=await apiRes.json();
-        if(!apiRes.ok)insErr={message:apiData.error||'서버 오류'};
-      }catch(e){insErr={message:e.message};}
+        console.log('[doSignup] create-user 응답:', apiRes.status, JSON.stringify(apiData).slice(0,200));
+        if(!apiRes.ok)insErr={message:apiData.error||'서버 오류 ('+apiRes.status+')'};
+      }catch(e){insErr={message:e.message};console.error('[doSignup] create-user 예외:',e);}
     }else{
       const res=await _sb.from('users').insert(newProfile);
       insErr=res.error;
