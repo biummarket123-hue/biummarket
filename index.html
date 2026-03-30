@@ -1223,7 +1223,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="flex:1"></div>
     <button id="pd-hdr-edit" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#C9A84C;" onclick="editProduct()">✏️</button>
     <button id="pd-hdr-delete" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#ff5050;" onclick="deleteProduct()">🗑️</button>
-    <button class="hdr-btn" onclick="shareProduct()">⤴</button>
+    <button class="hdr-btn" onclick="shareProduct()" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
   </header>
   <div class="pd-scroll" id="d-scroll">
     <!-- 1. 이미지 슬라이더 -->
@@ -1492,7 +1492,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="position:sticky;top:0;z-index:100;background:#fff;display:flex;align-items:center;padding:0 14px;height:56px;border-bottom:1px solid #e0e0ea">
       <button onclick="goBack()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
       <div style="flex:1;font-size:var(--fs-xl);font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
-      <button onclick="showToast('공유됐어요!')" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer">⬆</button>
+      <button onclick="showToast('공유됐어요!')" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
       <button id="sh-wish-btn" onclick="toggleSellerWish()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;margin-left:4px">🤍</button>
     </div>
     <!-- 업체명 + 기본 정보 -->
