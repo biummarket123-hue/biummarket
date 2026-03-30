@@ -4592,28 +4592,35 @@ async function handleKakaoCode(code){
     const kakaoId=res.id;
     const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
-    let kakaoIsNew=false;
     if(_sb){
       const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
-      if(sbProfile){
+      if(sbProfile&&sbProfile.tel){
+        // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        lsSet('curUser',curUser);
+        localStorage.setItem('bium_activeUserId',curUser.id||email);
+        showToast('카카오 로그인 성공! 환영합니다 '+nickname);
+        showView('list');showListSkeleton();loadProductsFromSupabase();
       }else{
-        let user=users.find(u=>u.email===email||u.kakaoId===String(kakaoId));
-        if(!user){
-          user={id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
-          users.push(user);lsSet('users',users);
-          const{error:ke}=await _sb.from('users').upsert(user);if(ke)console.error('카카오 upsert 오류:',ke);
-          kakaoIsNew=true;
-        }
-        curUser=user;
+        // 신규 또는 가입 미완료 → 회원가입 폼으로
+        if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
+        _oauthPendingUser={id:'kakao_'+kakaoId,email,name:nickname,provider:'kakao'};
+        showView('signup');
+        setTimeout(()=>{
+          const emailRow=document.getElementById('s-email');
+          const pwRow=document.getElementById('s-pw');
+          const pwcRow=document.getElementById('s-pw-confirm');
+          if(emailRow)emailRow.closest('.fg').style.display='none';
+          if(pwRow)pwRow.closest('.fg').style.display='none';
+          if(pwcRow)pwcRow.closest('.fg').style.display='none';
+          const nameEl=document.getElementById('s-name');
+          if(nameEl)nameEl.value=nickname;
+        },100);
       }
     }else{
-      curUser=users.find(u=>u.email===email||u.kakaoId===String(kakaoId))||{id:'kakao_'+kakaoId,kakaoId:String(kakaoId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
+      _oauthPendingUser={id:'kakao_'+kakaoId,email,name:nickname,provider:'kakao'};
+      showView('signup');
     }
-    lsSet('curUser',curUser);
-    if(kakaoIsNew){ sessionStorage.setItem('bium_new_user','1'); }
-    showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
   }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
 }
 function doNaverLogin(){
@@ -4646,28 +4653,35 @@ async function handleNaverCode(code,state){
     const naverId=profile.id;
     const nickname=profile.name||profile.nickname||'네이버사용자';
     const email=profile.email||('naver_'+naverId+'@naver.com');
-    let naverIsNew=false;
     if(_sb){
       const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).single();
-      if(sbProfile){
+      if(sbProfile&&sbProfile.tel){
+        // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        lsSet('curUser',curUser);
+        localStorage.setItem('bium_activeUserId',curUser.id||email);
+        showToast('네이버 로그인 성공! 환영합니다 '+nickname);
+        showView('list');showListSkeleton();loadProductsFromSupabase();
       }else{
-        let user=users.find(u=>u.email===email||u.naverId===String(naverId));
-        if(!user){
-          user={id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:'none',requested_role:'',joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
-          users.push(user);lsSet('users',users);
-          const{error:ne}=await _sb.from('users').upsert(user);if(ne)console.error('네이버 upsert 오류:',ne);
-          naverIsNew=true;
-        }
-        curUser=user;
+        // 신규 또는 가입 미완료 → 회원가입 폼으로
+        if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
+        _oauthPendingUser={id:'naver_'+naverId,email,name:nickname,provider:'naver'};
+        showView('signup');
+        setTimeout(()=>{
+          const emailRow=document.getElementById('s-email');
+          const pwRow=document.getElementById('s-pw');
+          const pwcRow=document.getElementById('s-pw-confirm');
+          if(emailRow)emailRow.closest('.fg').style.display='none';
+          if(pwRow)pwRow.closest('.fg').style.display='none';
+          if(pwcRow)pwcRow.closest('.fg').style.display='none';
+          const nameEl=document.getElementById('s-name');
+          if(nameEl)nameEl.value=nickname;
+        },100);
       }
     }else{
-      curUser=users.find(u=>u.email===email||u.naverId===String(naverId))||{id:'naver_'+naverId,naverId:String(naverId),name:nickname,email,type:'member',temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus:'none'};
+      _oauthPendingUser={id:'naver_'+naverId,email,name:nickname,provider:'naver'};
+      showView('signup');
     }
-    lsSet('curUser',curUser);
-    if(naverIsNew){ sessionStorage.setItem('bium_new_user','1'); }
-    showToast('네이버 로그인 성공! 환영합니다 '+nickname);
-    showView('list');showListSkeleton();if(_sb)loadProductsFromSupabase();
   }catch(e){showToast('네이버 로그인 오류: '+e.message);console.error(e);}
 }
 function selectType(type,el){
