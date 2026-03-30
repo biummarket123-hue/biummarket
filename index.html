@@ -1490,45 +1490,45 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <div style="flex:1;overflow-y:auto;padding-bottom:80px">
     <!-- 헤더 -->
     <div style="position:sticky;top:0;z-index:100;background:#fff;display:flex;align-items:center;padding:0 14px;height:56px;border-bottom:1px solid #e0e0ea">
-      <button onclick="goBack()" style="background:none;border:none;font-size:22px;cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
-      <div style="flex:1;font-size:16px;font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
-      <button onclick="showToast('공유됐어요!')" style="background:none;border:none;font-size:20px;cursor:pointer">⬆</button>
-      <button id="sh-wish-btn" onclick="toggleSellerWish()" style="background:none;border:none;font-size:20px;cursor:pointer;margin-left:4px">🤍</button>
+      <button onclick="goBack()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
+      <div style="flex:1;font-size:var(--fs-xl);font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
+      <button onclick="showToast('공유됐어요!')" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer">⬆</button>
+      <button id="sh-wish-btn" onclick="toggleSellerWish()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;margin-left:4px">🤍</button>
     </div>
     <!-- 업체명 + 기본 정보 -->
     <div style="padding:16px 16px 0">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div>
-          <div style="font-size:22px;font-weight:800;color:#1a1a1a" id="sh-name"></div>
+          <div style="font-size:var(--fs-3xl);font-weight:800;color:#1a1a1a" id="sh-name"></div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
-            <span style="font-size:14px;color:#f5c518;font-weight:700" id="sh-rating">⭐ 0.0</span>
-            <span style="font-size:13px;color:#666" id="sh-review-cnt">후기 0</span>
-            <span style="font-size:13px;color:#666">·</span>
-            <span style="font-size:13px;color:#666" id="sh-follower-cnt">단골 0</span>
+            <span style="font-size:var(--fs-md);color:#f5c518;font-weight:700" id="sh-rating">⭐ 0.0</span>
+            <span style="font-size:var(--fs-base);color:#666" id="sh-review-cnt">후기 0</span>
+            <span style="font-size:var(--fs-base);color:#666">·</span>
+            <span style="font-size:var(--fs-base);color:#666" id="sh-follower-cnt">단골 0</span>
           </div>
-          <div style="font-size:13px;color:#888;margin-top:4px" id="sh-loc"></div>
+          <div style="font-size:var(--fs-base);color:#888;margin-top:4px" id="sh-loc"></div>
           <div id="sh-cert-badge" style="margin-top:6px"></div>
         </div>
-        <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:8px 16px;background:#ff6f00;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
+        <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:8px 16px;background:#ff6f00;color:#fff;border:none;border-radius:20px;font-size:var(--fs-md);font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
       </div>
     </div>
     <!-- 사진 갤러리 -->
     <div id="sh-photos-gallery" style="display:flex;gap:4px;overflow-x:auto;padding:12px 16px;scrollbar-width:none"></div>
     <!-- 탭 메뉴 -->
     <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff;position:sticky;top:56px;z-index:50" id="sh-tabs">
-      <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
-      <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
-      <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 0</div>
-      <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-      <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
+      <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
+      <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
+      <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 0</div>
+      <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+      <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
     </div>
     <!-- 탭 컨텐츠 -->
     <div id="sh-tab-content" style="padding-bottom:20px"></div>
   </div>
   <!-- 하단 버튼 -->
   <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e0ea;padding:12px 16px;display:flex;gap:10px">
-    <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
-    <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+    <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
+    <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
   </div>
 </div>
 
@@ -6431,17 +6431,17 @@ async function switchSellerTab(tab,el){
         <!-- 등급 + 통계 -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:8px solid #f5f5f5;padding:16px 0">
           <div style="text-align:center;border-right:1px solid #f0f0f5">
-            <div style="font-size:22px;margin-bottom:4px">${grade.icon}</div>
-            <div style="font-size:13px;font-weight:700;color:#6c63ff">${grade.label}</div>
-            <div style="font-size:11px;color:#888;margin-top:2px">등급</div>
+            <div style="font-size:var(--fs-3xl);margin-bottom:4px">${grade.icon}</div>
+            <div style="font-size:var(--fs-base);font-weight:700;color:#6c63ff">${grade.label}</div>
+            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">등급</div>
           </div>
           <div style="text-align:center;border-right:1px solid #f0f0f5">
-            <div style="font-size:20px;font-weight:800;color:#1a1a1a">${myProdsCount}</div>
-            <div style="font-size:11px;color:#888;margin-top:2px">등록 상품</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${myProdsCount}</div>
+            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">등록 상품</div>
           </div>
           <div style="text-align:center">
-            <div style="font-size:20px;font-weight:800;color:#1a1a1a">${reviews.length}</div>
-            <div style="font-size:11px;color:#888;margin-top:2px">받은 후기</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${reviews.length}</div>
+            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">받은 후기</div>
           </div>
         </div>
         ${isMine?`
@@ -6449,22 +6449,22 @@ async function switchSellerTab(tab,el){
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:16px 0;border-bottom:8px solid #f5f5f5">
           <div onclick="showView('form')" style="text-align:center;cursor:pointer">
             <div style="font-size:28px;margin-bottom:4px">➕</div>
-            <div style="font-size:11px;color:#666">상품 등록</div>
+            <div style="font-size:var(--fs-sm);color:#666">상품 등록</div>
           </div>
           <div onclick="showView('my-offers');renderMyOffers()" style="text-align:center;cursor:pointer">
             <div style="font-size:28px;margin-bottom:4px">💰</div>
-            <div style="font-size:11px;color:#666">가격제안</div>
+            <div style="font-size:var(--fs-sm);color:#666">가격제안</div>
           </div>
           <div onclick="showView('my-reservations');renderMyReservations()" style="text-align:center;cursor:pointer">
             <div style="font-size:28px;margin-bottom:4px">📅</div>
-            <div style="font-size:11px;color:#666">예약내역</div>
+            <div style="font-size:var(--fs-sm);color:#666">예약내역</div>
           </div>
         </div>`:''}
         ${intro?`
         <!-- 소개 -->
         <div style="padding:16px;border-bottom:8px solid #f5f5f5">
-          <div style="font-size:15px;font-weight:700;margin-bottom:8px">소개</div>
-          <div style="font-size:14px;color:#444;line-height:1.7">${intro}</div>
+          <div style="font-size:var(--fs-lg);font-weight:700;margin-bottom:8px">소개</div>
+          <div style="font-size:var(--fs-md);color:#444;line-height:1.7">${intro}</div>
           ${getFabricScoreHtml(seller.id||seller.name,'detail')}
         </div>`:`
         <div style="padding:16px;border-bottom:8px solid #f5f5f5">
@@ -6473,8 +6473,8 @@ async function switchSellerTab(tab,el){
         <!-- 등록 상품 -->
         <div style="padding:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-size:15px;font-weight:700">등록 상품 <span style="color:#6c63ff">${myProdsCount}</span></div>
-            ${myProdsCount>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:13px;color:#6c63ff;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
+            <div style="font-size:var(--fs-lg);font-weight:700">등록 상품 <span style="color:#6c63ff">${myProdsCount}</span></div>
+            ${myProdsCount>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#6c63ff;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
           </div>
           ${myProds.slice(0,3).map(p=>`
             <div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;align-items:center">
@@ -6482,12 +6482,12 @@ async function switchSellerTab(tab,el){
                 ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧵</div>'}
               </div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-                <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''}</div>
-                <div style="font-size:14px;color:#6c63ff;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
+                <div style="font-size:var(--fs-md);font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+                <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">${p.type||''}</div>
+                <div style="font-size:var(--fs-md);color:#6c63ff;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
               </div>
             </div>`).join('')}
-          ${!myProdsCount?'<div style="text-align:center;padding:20px;color:#888;font-size:14px">등록된 상품이 없어요</div>':''}
+          ${!myProdsCount?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
         </div>
       `;
       return;
@@ -6502,10 +6502,10 @@ async function switchSellerTab(tab,el){
 
     // 기본 정보 rows
     const rows=[];
-    if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">🕐</span><div style="font-size:14px;color:#1a1a1a">${hours}</div></div>`);
-    if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">📞</span><div style="font-size:14px;color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">복사</button></div>`);
-    if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:20px;width:28px;text-align:center">🌐</span><div style="font-size:14px;color:#1565c0">${insta}</div></div>`);
-    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:20px;width:28px;text-align:center">📍</span><div style="font-size:14px;color:#6c63ff;font-weight:600">${address}</div></div>`);
+    if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">🕐</span><div style="font-size:var(--fs-md);color:#1a1a1a">${hours}</div></div>`);
+    if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📞</span><div style="font-size:var(--fs-md);color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:var(--fs-sm);cursor:pointer">복사</button></div>`);
+    if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">🌐</span><div style="font-size:var(--fs-md);color:#1565c0">${insta}</div></div>`);
+    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📍</span><div style="font-size:var(--fs-md);color:#6c63ff;font-weight:600">${address}</div></div>`);
 
     // 통계 (MY 기능 연동)
     const myOffers=lsGet('priceOffers',[]).filter(o=>o.sellerId===seller.id||o.sellerName===seller.name||o.sellerName===seller.email);
@@ -6521,39 +6521,39 @@ async function switchSellerTab(tab,el){
       ${isMine?`
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:8px solid #f5f5f5">
         <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5">
-          <div style="font-size:20px;font-weight:800;color:#ff6f00">${myProds.length}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">상품</div>
+          <div style="font-size:var(--fs-2xl);font-weight:800;color:#ff6f00">${myProds.length}</div>
+          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">상품</div>
         </div>
         <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5;cursor:pointer" onclick="showView('my-offers');renderMyOffers()">
-          <div style="font-size:20px;font-weight:800;color:${pendingOffers>0?'#e53935':'#1a1a1a'}">${pendingOffers}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">가격제안</div>
+          <div style="font-size:var(--fs-2xl);font-weight:800;color:${pendingOffers>0?'#e53935':'#1a1a1a'}">${pendingOffers}</div>
+          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">가격제안</div>
         </div>
         <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5;cursor:pointer" onclick="showView('my-reservations');renderMyReservations()">
-          <div style="font-size:20px;font-weight:800;color:${pendingResvs>0?'#e53935':'#1a1a1a'}">${pendingResvs}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">예약</div>
+          <div style="font-size:var(--fs-2xl);font-weight:800;color:${pendingResvs>0?'#e53935':'#1a1a1a'}">${pendingResvs}</div>
+          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">예약</div>
         </div>
         <div style="padding:16px 8px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:#1a1a1a">${myFollowers}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">단골</div>
+          <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${myFollowers}</div>
+          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">단골</div>
         </div>
       </div>
       <!-- 빠른 메뉴 (본인일 때만) -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:16px 0;border-bottom:8px solid #f5f5f5">
         <div onclick="showView('form')" style="text-align:center;cursor:pointer">
           <div style="font-size:28px;margin-bottom:4px">➕</div>
-          <div style="font-size:11px;color:#666">상품 등록</div>
+          <div style="font-size:var(--fs-sm);color:#666">상품 등록</div>
         </div>
         <div onclick="showView('biz-news')" style="text-align:center;cursor:pointer">
           <div style="font-size:28px;margin-bottom:4px">📢</div>
-          <div style="font-size:11px;color:#666">소식 올리기</div>
+          <div style="font-size:var(--fs-sm);color:#666">소식 올리기</div>
         </div>
         <div onclick="showView('biz-stats')" style="text-align:center;cursor:pointer">
           <div style="font-size:28px;margin-bottom:4px">📊</div>
-          <div style="font-size:11px;color:#666">거래 통계</div>
+          <div style="font-size:var(--fs-sm);color:#666">거래 통계</div>
         </div>
         <div onclick="openProfileEditByType()" style="text-align:center;cursor:pointer">
           <div style="font-size:28px;margin-bottom:4px">✏️</div>
-          <div style="font-size:11px;color:#666">정보 수정</div>
+          <div style="font-size:var(--fs-sm);color:#666">정보 수정</div>
         </div>
       </div>`:''}
 
@@ -6562,17 +6562,17 @@ async function switchSellerTab(tab,el){
 
       <!-- 소개 -->
       <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:${rows.length?8:0}px">
-        <div style="font-size:16px;font-weight:700;margin-bottom:8px">소개</div>
-        <div style="font-size:14px;color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100)+'...<span onclick="document.getElementById(\'sh-intro-text\').innerHTML=\''+intro.replace(/'/g,"\\'").replace(/\n/g,'<br>')+'\';" style="color:#ff6f00;cursor:pointer;font-weight:600"> 더보기</span>':intro}</div>
-        ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:13px;color:#1565c0">🛡️ 사업자등록증 및 인증 정보</div>':''}
+        <div style="font-size:var(--fs-xl);font-weight:700;margin-bottom:8px">소개</div>
+        <div style="font-size:var(--fs-md);color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100)+'...<span onclick="document.getElementById(\'sh-intro-text\').innerHTML=\''+intro.replace(/'/g,"\\'").replace(/\n/g,'<br>')+'\';" style="color:#ff6f00;cursor:pointer;font-weight:600"> 더보기</span>':intro}</div>
+        ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:var(--fs-base);color:#1565c0">🛡️ 사업자등록증 및 인증 정보</div>':''}
         ${getFabricScoreHtml(seller.id||seller.name,'detail')}
       </div>
 
       <!-- 등록 상품 -->
       <div style="padding:16px;border-top:8px solid #f5f5f5">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-size:16px;font-weight:700">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
-          ${myProds.length>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:13px;color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
+          <div style="font-size:var(--fs-xl);font-weight:700">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
+          ${myProds.length>3?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:var(--fs-base);color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
         </div>
         ${myProds.slice(0,3).map(p=>`
           <div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;align-items:center">
@@ -6580,12 +6580,12 @@ async function switchSellerTab(tab,el){
               ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧵</div>'}
             </div>
             <div style="flex:1;min-width:0">
-              <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-              <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''} · ${p.qty||0}m</div>
-              <div style="font-size:14px;color:#ff6f00;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
+              <div style="font-size:var(--fs-md);font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+              <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">${p.type||''} · ${p.qty||0}m</div>
+              <div style="font-size:var(--fs-md);color:#ff6f00;font-weight:700;margin-top:2px">${(p.price||0).toLocaleString()}원/m</div>
             </div>
           </div>`).join('')}
-        ${!myProds.length?'<div style="text-align:center;padding:20px;color:#888;font-size:14px">등록된 상품이 없어요</div>':''}
+        ${!myProds.length?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
       </div>
 
       <!-- 최근 소식 -->
@@ -6594,13 +6594,13 @@ async function switchSellerTab(tab,el){
         if(!news.length)return '';
         return `<div style="padding:16px;border-top:8px solid #f5f5f5">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-size:16px;font-weight:700">최근 소식</div>
-            <div onclick="switchSellerTab('news',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:13px;color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>
+            <div style="font-size:var(--fs-xl);font-weight:700">최근 소식</div>
+            <div onclick="switchSellerTab('news',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>
           </div>
           ${news.map(n=>`
             <div style="padding:10px 0;border-bottom:1px solid #f5f5f5">
-              <div style="font-size:14px;font-weight:600;color:#1a1a1a">${n.title}</div>
-              <div style="font-size:12px;color:#888;margin-top:4px">${new Date(n.createdAt).toLocaleDateString()}</div>
+              <div style="font-size:var(--fs-md);font-weight:600;color:#1a1a1a">${n.title}</div>
+              <div style="font-size:var(--fs-sm);color:#888;margin-top:4px">${new Date(n.createdAt).toLocaleDateString()}</div>
             </div>`).join('')}
         </div>`;
       })()}
@@ -6618,15 +6618,15 @@ async function switchSellerTab(tab,el){
     }
     content.innerHTML=`
       ${isMine?`<div style="padding:12px 16px;border-bottom:8px solid #f5f5f5">
-        <button onclick="showView('biz-news')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📢 새 소식 올리기</button>
+        <button onclick="showView('biz-news')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:var(--fs-md);font-weight:700;cursor:pointer">📢 새 소식 올리기</button>
       </div>`:''}
       <div style="padding:16px">${news.length?news.map(n=>`
         <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
-          <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
-          <div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:8px">${n.content}</div>
+          <div style="font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;margin-bottom:6px">${n.title}</div>
+          <div style="font-size:var(--fs-md);color:#444;line-height:1.6;margin-bottom:8px">${n.content}</div>
           ${n.images&&n.images.length?`<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">${n.images.map(src=>`<img src="${src}" style="width:150px;height:110px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('')}</div>`:''}
-          <div style="font-size:12px;color:#aaa">${new Date(n.created_at||n.createdAt).toLocaleDateString('ko-KR')}</div>
-        </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 소식이 없어요</div>'}</div>`;
+          <div style="font-size:var(--fs-sm);color:#aaa">${new Date(n.created_at||n.createdAt).toLocaleDateString('ko-KR')}</div>
+        </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 소식이 없어요</div>'}</div>`;
     } else if(tab==='review'){
       const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
       const avgRating=reviews.length?(reviews.reduce((a,r)=>a+(r.rating||0),0)/reviews.length).toFixed(1):0;
@@ -6646,38 +6646,38 @@ async function switchSellerTab(tab,el){
         <!-- 평균 별점 -->
         <div style="padding:24px 16px;text-align:center;border-bottom:1px solid #f0f0f5">
           <div style="font-size:40px;font-weight:800;color:#1a1a1a">${avgRating||'0.0'}</div>
-          <div style="font-size:20px;color:#f5c518;margin:6px 0">${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5-Math.round(avgRating))}</div>
-          <div style="font-size:13px;color:#888">후기 ${reviews.length}개</div>
+          <div style="font-size:var(--fs-icon);color:#f5c518;margin:6px 0">${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5-Math.round(avgRating))}</div>
+          <div style="font-size:var(--fs-base);color:#888">후기 ${reviews.length}개</div>
         </div>
 
         <!-- 후기 작성 폼 -->
         ${!isMine&&curUser?(
           alreadyReviewed?
-          `<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center;color:#888;font-size:13px">✅ 이미 후기를 작성하셨어요</div>`:
+          `<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center;color:#888;font-size:var(--fs-base)">✅ 이미 후기를 작성하셨어요</div>`:
           hasCompletedDeal?
           `<div style="padding:16px;border-bottom:8px solid #f5f5f5">
-            <div style="font-size:15px;font-weight:700;margin-bottom:12px">${curUser.name}님, 거래는 어떠셨나요?</div>
+            <div style="font-size:var(--fs-lg);font-weight:700;margin-bottom:12px">${curUser.name}님, 거래는 어떠셨나요?</div>
             <!-- 항목별 별점 -->
             <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px">
               <div style="display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:13px;color:#555;font-weight:600">⭐ 원단 품질 <span style="font-size:11px;color:#888;font-weight:400">설명과 실제가 일치하나요?</span></span>
+                <span style="font-size:var(--fs-base);color:#555;font-weight:600">⭐ 원단 품질 <span style="font-size:var(--fs-sm);color:#888;font-weight:400">설명과 실제가 일치하나요?</span></span>
                 <div style="display:flex;gap:2px" id="sh-star-quality">${[1,2,3,4,5].map(i=>`<span onclick="setReviewStarItem('quality',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:13px;color:#555;font-weight:600">⭐ 거래 태도 <span style="font-size:11px;color:#888;font-weight:400">소통이 원활했나요?</span></span>
+                <span style="font-size:var(--fs-base);color:#555;font-weight:600">⭐ 거래 태도 <span style="font-size:var(--fs-sm);color:#888;font-weight:400">소통이 원활했나요?</span></span>
                 <div style="display:flex;gap:2px" id="sh-star-manner">${[1,2,3,4,5].map(i=>`<span onclick="setReviewStarItem('manner',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:13px;color:#555;font-weight:600">⭐ 배송 속도 <span style="font-size:11px;color:#888;font-weight:400">빠르게 처리됐나요?</span></span>
+                <span style="font-size:var(--fs-base);color:#555;font-weight:600">⭐ 배송 속도 <span style="font-size:var(--fs-sm);color:#888;font-weight:400">빠르게 처리됐나요?</span></span>
                 <div style="display:flex;gap:2px" id="sh-star-delivery">${[1,2,3,4,5].map(i=>`<span onclick="setReviewStarItem('delivery',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
               </div>
             </div>
             <textarea id="sh-review-text" class="fi" placeholder="후기를 남겨주세요 (선택)" style="min-height:80px;margin-bottom:8px"></textarea>
-            <button onclick="submitSellerReview('${seller.id||seller.name}')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">후기 작성하기</button>
+            <button onclick="submitSellerReview('${seller.id||seller.name}')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:var(--fs-md);font-weight:700;cursor:pointer">후기 작성하기</button>
           </div>`:
           `<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center">
-            <div style="font-size:13px;color:#888;margin-bottom:4px">거래 완료 후 후기를 작성할 수 있어요</div>
-            <div style="font-size:12px;color:#aaa">예약 확정 또는 가격제안 수락 후 작성 가능</div>
+            <div style="font-size:var(--fs-base);color:#888;margin-bottom:4px">거래 완료 후 후기를 작성할 수 있어요</div>
+            <div style="font-size:var(--fs-sm);color:#aaa">예약 확정 또는 가격제안 수락 후 작성 가능</div>
           </div>`
         ):''}
 
@@ -6685,21 +6685,21 @@ async function switchSellerTab(tab,el){
         <div style="padding:16px">${reviews.length?reviews.map(r=>`
           <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${(r.author||'?')[0]}</div>
+              <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-sm);font-weight:700">${(r.author||'?')[0]}</div>
               <div>
-                <div style="font-size:13px;font-weight:700">${r.author}</div>
-                <div style="font-size:11px;color:#aaa">${new Date(r.createdAt).toLocaleDateString()}</div>
+                <div style="font-size:var(--fs-base);font-weight:700">${r.author}</div>
+                <div style="font-size:var(--fs-sm);color:#aaa">${new Date(r.createdAt).toLocaleDateString()}</div>
               </div>
-              <div style="margin-left:auto;color:#f5c518;font-size:13px">${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</div>
+              <div style="margin-left:auto;color:#f5c518;font-size:var(--fs-base)">${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</div>
             </div>
             ${r.quality||r.manner||r.delivery?`
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-              ${r.quality?`<span style="background:#f0fdf4;color:#15803d;font-size:11px;padding:3px 8px;border-radius:10px">품질 ${'★'.repeat(r.quality)}</span>`:''}
-              ${r.manner?`<span style="background:#eff6ff;color:#1d4ed8;font-size:11px;padding:3px 8px;border-radius:10px">태도 ${'★'.repeat(r.manner)}</span>`:''}
-              ${r.delivery?`<span style="background:#fefce8;color:#a16207;font-size:11px;padding:3px 8px;border-radius:10px">배송 ${'★'.repeat(r.delivery)}</span>`:''}
+              ${r.quality?`<span style="background:#f0fdf4;color:#15803d;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">품질 ${'★'.repeat(r.quality)}</span>`:''}
+              ${r.manner?`<span style="background:#eff6ff;color:#1d4ed8;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">태도 ${'★'.repeat(r.manner)}</span>`:''}
+              ${r.delivery?`<span style="background:#fefce8;color:#a16207;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">배송 ${'★'.repeat(r.delivery)}</span>`:''}
             </div>`:''}
-            <div style="font-size:14px;color:#444;line-height:1.6">${r.text||''}</div>
-          </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">아직 후기가 없어요</div>'}</div>
+            <div style="font-size:var(--fs-md);color:#444;line-height:1.6">${r.text||''}</div>
+          </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">아직 후기가 없어요</div>'}</div>
       `;
     } else if(tab==='products'){
     content.innerHTML=`<div style="padding:16px">${myProds.length?myProds.map(p=>`
@@ -6708,14 +6708,14 @@ async function switchSellerTab(tab,el){
           ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🧵</div>'}
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-          <div style="font-size:12px;color:#888;margin-top:2px">${p.type||''}</div>
-          <div style="font-size:15px;color:#ff6f00;font-weight:700;margin-top:4px">${(p.price||0).toLocaleString()}원/m</div>
+          <div style="font-size:var(--fs-md);font-weight:600;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">${p.type||''}</div>
+          <div style="font-size:var(--fs-lg);color:#ff6f00;font-weight:700;margin-top:4px">${(p.price||0).toLocaleString()}원/m</div>
         </div>
-      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:14px">등록된 상품이 없어요</div>'}</div>`;
+      </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div>`;
   } else if(tab==='photos'){
     const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
-    content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:14px">등록된 사진이 없어요</div>'}</div>`;
+    content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 사진이 없어요</div>'}</div>`;
   }
 }
 function renderSellerPage(seller){
@@ -6749,7 +6749,7 @@ function renderSellerPage(seller){
   }
   const certBadge=document.getElementById('sh-cert-badge');
   if(certBadge){
-    if(isBiz)certBadge.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;color:#1565c0;font-size:13px;font-weight:600">🛡️ 사업자인증</span>';
+    if(isBiz)certBadge.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;color:#1565c0;font-size:var(--fs-base);font-weight:600">🛡️ 사업자인증</span>';
     else certBadge.innerHTML='';
   }
   const followBtn=document.getElementById('sh-follow-btn');
@@ -6784,16 +6784,16 @@ function renderSellerPage(seller){
       // 탭 구성 변경 (홈/상품/후기만)
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
       `;
       // 단골맺기 버튼 색상 변경 (보라색)
       if(followBtn&&!isFollowing){followBtn.style.background='#6c63ff';}
       // 하단 버튼 - 채팅만
       const bottomBtns=document.querySelector('#view-seller > div:last-child');
       if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+        <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
       `;
       // 사진 갤러리 숨김
       const galleryEl=document.getElementById('sh-photos-gallery');
@@ -6803,22 +6803,22 @@ function renderSellerPage(seller){
       const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
       const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
       const certBadgeEl=document.getElementById('sh-cert-badge');
-      if(certBadgeEl)certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">${grade.icon} ${grade.label} 회원</span>`;
+      if(certBadgeEl)certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:20px">${grade.icon} ${grade.label} 회원</span>`;
     } else {
       // 사업자 회원 - 기존 탭 유지
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
+        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
+        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
       `;
       // 하단 버튼 - 전화+채팅
       const bottomBtns=document.querySelector('#view-seller > div:last-child');
       if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
-        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+        <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
+        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
       `;
     }
 
