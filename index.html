@@ -3416,7 +3416,7 @@ function fmtPrice(n){return n.toLocaleString('ko-KR')+'원'}
 
 /* ==================== LOCAL STORAGE ==================== */
 // 계정별로 분리해야 하는 키 목록
-const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser'];
+const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser','companyPhotos'];
 function _lsUserKey(k){
   // 계정별 분리가 필요한 키는 userId prefix 추가
   if(!USER_SCOPED_KEYS.includes(k))return 'bium_'+k;
@@ -6807,7 +6807,7 @@ async function switchSellerTab(tab,el){
         </div>
       </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div>`;
   } else if(tab==='photos'){
-    const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+    const photos=isMySelf?lsGet('companyPhotos',[]):[];
     content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 사진이 없어요</div>'}</div>`;
   }
 }
@@ -6862,7 +6862,7 @@ function renderSellerPage(seller){
     followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
   }
   const gallery=document.getElementById('sh-photos-gallery');
-  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  const photos=isMySelf?lsGet('companyPhotos',[]):[];
   if(gallery){
     if(photos.length){
       gallery.innerHTML=photos.map(src=>`<img src="${src}" style="width:200px;height:150px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('');
@@ -8550,14 +8550,14 @@ function renderProfileEdit(){
 }
 async function addCompanyPhotos(input){
   const files=Array.from(input.files);
-  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  const photos=lsGet('companyPhotos',[]);
   if(photos.length+files.length>10){showToast('사진은 최대 10장까지 등록할 수 있어요');input.value='';return;}
   for(const file of files){
     if(photos.length>=10)break;
     try{
       const compressed=await _compressPhoto(file);
       photos.push(compressed);
-      localStorage.setItem('companyPhotos',JSON.stringify(photos));
+      lsSet('companyPhotos',photos);
       renderCompanyPhotos();
     }catch(e){console.error('사진 추가 오류:',e);}
   }
@@ -8587,7 +8587,7 @@ function _compressPhoto(file,maxSize=600,quality=0.7){
   });
 }
 function renderCompanyPhotos(){
-  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  const photos=lsGet('companyPhotos',[]);
   const el=document.getElementById('pe-photos');if(!el)return;
   el.innerHTML=photos.map((src,i)=>`
     <div style="position:relative;width:80px;height:80px">
@@ -8596,9 +8596,9 @@ function renderCompanyPhotos(){
     </div>`).join('');
 }
 function removeCompanyPhoto(idx){
-  const photos=JSON.parse(localStorage.getItem('companyPhotos')||'[]');
+  const photos=lsGet('companyPhotos',[]);
   photos.splice(idx,1);
-  localStorage.setItem('companyPhotos',JSON.stringify(photos));
+  lsSet('companyPhotos',photos);
   renderCompanyPhotos();
 }
 async function saveProfile(){
