@@ -3434,7 +3434,7 @@ function mergeWithLocalUser(sbProfile){
   if(!localUser){
     let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
     const sbStatus=sbProfile.seller_status||'none';
-    const finalType=sbStatus==='approved'?'business':(sbProfile.type||'member');
+    const finalType=sbStatus==='approved'?'business':'member';
     // extra_info에서 profile 복원
     const profileFromExtra={};
     ['hours','moq','insta','blog','ceo','founded','biznum','tel'].forEach(k=>{if(extra[k])profileFromExtra[k]=extra[k];});
@@ -3462,7 +3462,7 @@ function mergeWithLocalUser(sbProfile){
   const finalStatus=sbStatus==='approved'?'approved':(localStatus==='approved'?'approved':(sbStatus==='rejected'?'rejected':(localStatus==='rejected'?'rejected':sbStatus||localStatus||'none')));
   const sbType=sbProfile.type||'member';
   const localType=localUser.type||localUser.role||'member';
-  const finalType=finalStatus==='approved'?'business':(sbType==='business'||localType==='business'?'business':sbType||localType||'member');
+  const finalType=finalStatus==='approved'?'business':'member';
   let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
   const rejectReason=extra.rejectReason||localUser.rejectReason||'';
   // extra_info에서 profile 복원
@@ -3729,7 +3729,7 @@ let curResType='reservation';
 let _oauthPendingUser=null; // 소셜 로그인 신규 유저 임시 저장
 let curSellerData=null;
 let cachedSellerNews=null;
-let selectedUserType='seller';
+let selectedUserType='member';
 let svSearch='';
 let svFilter='전체';
 let svLocFilter='';
@@ -4464,7 +4464,7 @@ async function doSignup(){
   }
   // 판매자 선택 시 → buyer + pending 처리
   const wantsBusiness=selectedUserType==='business';
-  const actualType=selectedUserType||'member';
+  const actualType='member'; // 가입 시 항상 일반회원, 관리자 승인 후 business로 변경
   const sellerStatus=wantsBusiness?'pending':'none';
   const bizStatus=wantsBusiness?'pending':'none';
   const requestedRole=wantsBusiness?'business':'';
@@ -5534,8 +5534,7 @@ function renderCard(p, idx){
       ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
       ${(()=>{
         const stype=p.seller?.type||p.sellerType||'';
-        if(stype==='both')return '<div class="badge-cert company">🏢 인증업체</div>';
-        if(stype==='seller')return '<div class="badge-cert personal">✅ 인증회원</div>';
+        if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
         return '';
       })()}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
@@ -5685,9 +5684,7 @@ function openDetail(id){
     +'<div style="flex:1;min-width:0">'
     +(()=>{
       const stype=p.seller?.type||p.sellerType||'';
-      const badge=stype==='business'||stype==='both'
-        ?'<span class="pd-cert-badge company">🏢 인증업체</span>'
-        :(stype==='seller'?'<span class="pd-cert-badge personal">✅ 인증회원</span>':'');
+      const badge=(stype==='business'||stype==='both'||stype==='seller')?'<span class="pd-cert-badge company">🏢 인증업체</span>':'';
       return '<div class="pd-seller-name">'+sellerName+badge+'</div>';
     })()
     +(()=>{
@@ -6505,7 +6502,7 @@ async function switchSellerTab(tab,el){
   try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
   const myProds=products.filter(p=>isMyProduct(p,seller));
 
-    const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
+    const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
 
     if(tab==='home'&&!isBiz){
       // 일반 회원 홈탭
@@ -6827,7 +6824,7 @@ function renderSellerPage(seller){
   const reviewCount=userInfo.reviewCount||0;
   const rating=userInfo.rating||0;
   const followers=lsGet('sellerFollowers',{})[seller.id||seller.name]||0;
-  const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
+  const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
   const hdrTitle=document.getElementById('sh-hdr-title');
   if(hdrTitle)hdrTitle.textContent=seller.name||'업체 정보';
   const nameEl=document.getElementById('sh-name');
@@ -6934,7 +6931,7 @@ function preloadAndRenderSeller(seller){
   // 소식 데이터를 백그라운드로 로드하고, 화면은 즉시 렌더링
   cachedSellerNews=null;
   if(_sb&&seller.id){
-    const isBiz=seller.type==='business'||seller.type==='both'||seller.role==='business'||seller.role==='both';
+    const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
     if(isBiz){
       _sb.from('biz_news').select('*').eq('seller_id',seller.id).order('created_at',{ascending:false}).then(({data})=>{cachedSellerNews=data||[];});
     }
@@ -7730,8 +7727,7 @@ function renderSearchView(){
             ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
             ${(()=>{
               const stype=p.seller?.type||p.sellerType||'';
-              if(stype==='business'||stype==='both')return '<div class="badge-cert company">🏢 인증업체</div>';
-              if(stype==='seller')return '<div class="badge-cert personal">✅ 인증회원</div>';
+              if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
               return '';
             })()}
             <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
@@ -8468,8 +8464,8 @@ function renderProfileEdit(){
   // 유형별 섹션 표시/숨김
   const companySection=document.getElementById('pe-company-section');
   if(companySection)companySection.style.display=role==='both'?'block':'none';
-  const isBuyerRole=role==='buyer'||role===''||role==='guest'||role==='member';
-  const isSellerRole=role==='seller'||role==='both'||role==='business';
+  const isBuyerRole=role==='member'||role===''||role==='buyer'||role==='guest';
+  const isSellerRole=role==='business'||role==='seller'||role==='both';
   // 영업·거래 조건 - 판매자만
   const tradeSection=document.getElementById('pe-trade-section');
   if(tradeSection)tradeSection.style.display=isSellerRole?'block':'none';
@@ -10767,8 +10763,8 @@ function _filterAdminUsers(){
     list=list.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)||(u.tel||'').includes(q));
   }
   // 유형 필터
-  if(_adminUserType==='business')list=list.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both'||u.type==='seller+buyer');
-  else if(_adminUserType==='member')list=list.filter(u=>!u.type||u.type==='member'||u.type==='buyer'||u.type==='guest');
+  if(_adminUserType==='business')list=list.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both');
+  else if(_adminUserType==='member')list=list.filter(u=>!u.type||u.type==='member');
   else if(_adminUserType==='pending')list=list.filter(u=>(u.sellerStatus||u.seller_status)==='pending');
   else if(_adminUserType==='suspended')list=list.filter(u=>u.status==='suspended');
   // 정렬
@@ -10782,7 +10778,7 @@ function _renderAdminUserList(){
   const el=document.getElementById('admin-content');if(!el)return;
   const totalCnt=_adminUserAll.length;
   const bizCnt=_adminUserAll.filter(u=>u.type==='business'||u.type==='seller'||u.type==='both').length;
-  const memCnt=_adminUserAll.filter(u=>!u.type||u.type==='member'||u.type==='buyer'||u.type==='guest').length;
+  const memCnt=_adminUserAll.filter(u=>!u.type||u.type==='member').length;
   const pendCnt=_adminUserAll.filter(u=>(u.sellerStatus||u.seller_status)==='pending').length;
   const suspCnt=_adminUserAll.filter(u=>u.status==='suspended').length;
   const typeBtn=(key,label,cnt,color)=>`<button onclick="_adminUserType='${key}';_updateAdminListOnly()" style="padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid ${_adminUserType===key?color:'#e0e0ea'};background:${_adminUserType===key?color+'18':'#f8f8fa'};color:${_adminUserType===key?color:'#666'};cursor:pointer;white-space:nowrap">${label} ${cnt}</button>`;
