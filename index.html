@@ -1480,8 +1480,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="position:sticky;top:0;z-index:100;background:#fff;display:flex;align-items:center;padding:0 14px;height:56px;border-bottom:1px solid #e0e0ea">
       <button onclick="goBack()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
       <div style="flex:1;font-size:var(--fs-xl);font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
-      <button onclick="showToast('공유됐어요!')" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
-      <button id="sh-wish-btn" onclick="toggleSellerWish()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;margin-left:4px">🤍</button>
+      <button onclick="shareSellerProfile()" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
     </div>
     <!-- 업체명 + 기본 정보 -->
     <div style="padding:16px 16px 0">
@@ -2963,8 +2962,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="mhandle"></div>
     <div class="mtitle">공유하기</div>
     <div style="display:flex;justify-content:center;gap:16px;margin:16px 0">
-      <button onclick="showToast('링크가 복사됐어요!');closeModal('modal-share')" style="display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--g700)"><span style="font-size:32px;background:var(--g100);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center">🔗</span>링크복사</button>
-      <button onclick="showToast('카카오톡 공유 준비중');closeModal('modal-share')" style="display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--g700)"><span style="font-size:32px;background:#FFE812;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center">💛</span>카카오톡</button>
+      <button onclick="doCopyShareLink()" style="display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--g700)"><span style="font-size:32px;background:var(--g100);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center">🔗</span>링크복사</button>
+      <button onclick="doKakaoShare()" style="display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--g700)"><span style="font-size:32px;background:#FFE812;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center">💛</span>카카오톡</button>
     </div>
     <button class="mclose" onclick="closeModal('modal-share')">닫기</button>
   </div>
@@ -5964,7 +5963,53 @@ async function deleteProduct(){
   goBack();
 }
 function openChatModal(){if(curProductId)openChatRoom(curProductId);}
-function shareProduct(){openModal('modal-share')}
+let _shareContext=null; // {type:'product'|'seller', title, desc, url, imageUrl}
+function shareProduct(){
+  const p=products.find(x=>x.id===curProductId);
+  _shareContext={
+    type:'product',
+    title:p?p.title:'비움마켓 상품',
+    desc:p?`${p.type} · ${(p.price||0).toLocaleString()}원/${p.unit||'m'}`:'재고원단 B2B 거래 플랫폼',
+    url:'https://www.biummarket.com',
+    imageUrl:p?.image_url||'https://www.biummarket.com/og-image.png'
+  };
+  openModal('modal-share');
+}
+function shareSellerProfile(){
+  const s=curSellerData||{};
+  _shareContext={
+    type:'seller',
+    title:s.name?s.name+' - 비움마켓':'비움마켓 판매자',
+    desc:s.intro||s.loc||'재고원단 B2B 거래 플랫폼',
+    url:'https://www.biummarket.com',
+    imageUrl:'https://www.biummarket.com/og-image.png'
+  };
+  openModal('modal-share');
+}
+function doCopyShareLink(){
+  const ctx=_shareContext||{url:'https://www.biummarket.com'};
+  navigator.clipboard.writeText(ctx.url).then(()=>{
+    showToast('링크가 복사됐어요!');
+  }).catch(()=>{showToast('복사 실패');});
+  closeModal('modal-share');
+}
+function doKakaoShare(){
+  const ctx=_shareContext||{};
+  if(!window.Kakao||!window.Kakao.isInitialized()){showToast('카카오 SDK 로드 실패');closeModal('modal-share');return;}
+  try{
+    window.Kakao.Share.sendDefault({
+      objectType:'feed',
+      content:{
+        title:ctx.title||'비움마켓',
+        description:ctx.desc||'재고원단 B2B 거래 플랫폼',
+        imageUrl:ctx.imageUrl||'https://www.biummarket.com/og-image.png',
+        link:{mobileWebUrl:ctx.url||'https://www.biummarket.com',webUrl:ctx.url||'https://www.biummarket.com'}
+      },
+      buttons:[{title:'비움마켓에서 보기',link:{mobileWebUrl:ctx.url||'https://www.biummarket.com',webUrl:ctx.url||'https://www.biummarket.com'}}]
+    });
+  }catch(e){console.error('카카오 공유 오류:',e);showToast('카카오톡 공유에 실패했어요');}
+  closeModal('modal-share');
+}
 function openSellerPage(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
   const seller=p.seller||{};
