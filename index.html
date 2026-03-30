@@ -3435,11 +3435,22 @@ function mergeWithLocalUser(sbProfile){
     let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
     const sbStatus=sbProfile.seller_status||'none';
     const finalType=sbStatus==='approved'?'business':(sbProfile.type||'member');
+    // extra_info에서 profile 복원
+    const profileFromExtra={};
+    ['hours','moq','insta','blog','ceo','founded','biznum','tel'].forEach(k=>{if(extra[k])profileFromExtra[k]=extra[k];});
+    if(extra.tags&&Array.isArray(extra.tags))profileFromExtra.tags=extra.tags;
+    if(extra.ship&&Array.isArray(extra.ship))profileFromExtra.ship=extra.ship;
+    if(extra.pay&&Array.isArray(extra.pay))profileFromExtra.pay=extra.pay;
+    let sbProf=sbProfile.profile;
+    if(typeof sbProf==='string'){try{sbProf=JSON.parse(sbProf);}catch(e){sbProf=null;}}
     return {
       ...sbProfile,
       type:finalType,
       role:finalType,
-      locDetail:sbProfile.loc_detail||'',
+      intro:extra.intro||sbProfile.intro||'',
+      tel:sbProfile.tel||extra.tel||'',
+      locDetail:extra.loc_detail||sbProfile.loc_detail||'',
+      profile:{...(sbProf||{}),...profileFromExtra},
       sellerStatus:sbStatus,
       bizStatus:sbStatus,
       rejectReason:extra.rejectReason||'',
@@ -3454,15 +3465,26 @@ function mergeWithLocalUser(sbProfile){
   const finalType=finalStatus==='approved'?'business':(sbType==='business'||localType==='business'?'business':sbType||localType||'member');
   let extra={};try{extra=JSON.parse(sbProfile.extra_info||'{}');}catch(e){}
   const rejectReason=extra.rejectReason||localUser.rejectReason||'';
+  // extra_info에서 profile 복원
+  const profileFromExtra={};
+  ['hours','moq','insta','blog','ceo','founded','biznum','tel'].forEach(k=>{if(extra[k])profileFromExtra[k]=extra[k];});
+  if(extra.tags&&Array.isArray(extra.tags))profileFromExtra.tags=extra.tags;
+  if(extra.ship&&Array.isArray(extra.ship))profileFromExtra.ship=extra.ship;
+  if(extra.pay&&Array.isArray(extra.pay))profileFromExtra.pay=extra.pay;
+  let sbProf=sbProfile.profile;
+  if(typeof sbProf==='string'){try{sbProf=JSON.parse(sbProf);}catch(e){sbProf=null;}}
   return {
     ...sbProfile,
     type:finalType,
     role:finalType,
+    intro:extra.intro||sbProfile.intro||localUser.intro||'',
+    tel:sbProfile.tel||extra.tel||localUser.tel||'',
     sellerStatus:finalStatus,
     bizStatus:finalStatus,
     rejectReason,
     requestedRole:sbProfile.requested_role||localUser.requestedRole||sbProfile.requestedRole||'',
-    locDetail:sbProfile.loc_detail||localUser.locDetail||'',
+    locDetail:extra.loc_detail||sbProfile.loc_detail||localUser.locDetail||'',
+    profile:{...(localUser.profile||{}),...(sbProf||{}),...profileFromExtra},
     pw:localUser.pw||sbProfile.pw||''
   };
 }
@@ -6921,22 +6943,29 @@ function preloadAndRenderSeller(seller){
     _sb.from('users').select('*').eq('id',seller.id).single().then(({data:sbUser,error})=>{
       if(error){console.error('판매자 프로필 조회 오류:',error);return;}
       if(sbUser){
+        // extra_info에서 프로필 데이터 추출
+        let ex={};
+        try{ex=JSON.parse(sbUser.extra_info||'{}');}catch(e){}
         if(sbUser.name)seller.name=sbUser.name;
         if(sbUser.loc)seller.loc=sbUser.loc;
-        if(sbUser.tel)seller.tel=sbUser.tel;
-        if(sbUser.intro)seller.intro=sbUser.intro;
-        if(sbUser.category)seller.category=sbUser.category;
-        if(sbUser.loc_detail)seller.locDetail=sbUser.loc_detail;
+        seller.tel=sbUser.tel||ex.tel||seller.tel||'';
+        seller.intro=ex.intro||sbUser.intro||seller.intro||'';
+        seller.category=sbUser.category||ex.category||seller.category||'';
+        seller.locDetail=ex.loc_detail||sbUser.loc_detail||'';
         // type은 사업자 승인 상태 반영
         const sbStatus=sbUser.seller_status||'none';
         if(sbStatus==='approved'){seller.type='business';seller.role='business';}
         else if(sbUser.type)seller.type=sbUser.type;
-        // profile JSON 파싱 (문자열일 수 있음)
+        // profile: extra_info에서 복원
+        const profileFromExtra={};
+        ['hours','moq','insta','blog','ceo','founded','biznum'].forEach(k=>{if(ex[k])profileFromExtra[k]=ex[k];});
+        if(ex.tags&&Array.isArray(ex.tags))profileFromExtra.tags=ex.tags;
+        if(ex.ship&&Array.isArray(ex.ship))profileFromExtra.ship=ex.ship;
+        if(ex.pay&&Array.isArray(ex.pay))profileFromExtra.pay=ex.pay;
+        // 기존 profile 컬럼도 체크
         let sbProfile=sbUser.profile;
         if(typeof sbProfile==='string'){try{sbProfile=JSON.parse(sbProfile);}catch(e){sbProfile=null;}}
-        if(sbProfile&&typeof sbProfile==='object'){
-          seller.profile=sbProfile;
-        }
+        seller.profile={...(sbProfile||{}),...profileFromExtra};
         // 최신 정보로 다시 렌더링
         renderSellerPage(seller);
       }
@@ -8609,7 +8638,14 @@ async function saveProfile(){
     if(productsUpdated)lsSet('products',products);
     lsSet('curUser',curUser);
     if(_sb&&curUser.id&&curUser.id!=='admin'){
-      try{await _sb.from('users').update({name,intro,loc,loc_detail:locDetail,tel:curUser.tel,category:curUser.category||'',profile:curUser.profile}).eq('id',curUser.id);}
+      // extra_info에 모든 프로필 데이터 통합 저장 (확실히 존재하는 컬럼)
+      const extraForSave={
+        ...profileData,
+        intro,
+        address:loc,
+        loc_detail:locDetail,
+      };
+      try{await _sb.from('users').update({name,loc,tel:curUser.tel,extra_info:JSON.stringify(extraForSave)}).eq('id',curUser.id);}
       catch(e){console.error('프로필 업데이트 오류:',e);}
     }
   }
