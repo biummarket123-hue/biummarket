@@ -2228,7 +2228,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'이름'" style="color:#1a1a1a"/>
       </div>
       <div class="fg"><label>전화번호</label><input type="text" class="fi" id="pe-tel" placeholder="예) 010-1234-5678"/></div>
-      <div class="fg"><label>위치</label><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문"/></div>
+      <div class="fg"><label>위치 (지역)</label><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문"/></div>
+      <div class="fg"><label>상세 주소</label><input type="text" class="fi" id="pe-loc-detail" placeholder="예) 옥정동 123 OO빌딩 2층"/></div>
       <!-- 업체 판매자 전용 -->
       <div id="pe-company-section" style="display:none">
         <div class="fg"><label>대표자</label><input type="text" class="fi" id="pe-ceo" placeholder="대표자명"/></div>
@@ -2757,7 +2758,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       </div>
     </div>
     <div class="suggest-form" style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0ea">
-      <div style="font-size:12px;font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (거래 성사 시 공개돼요)</div>
+      <div style="font-size:var(--fs-sm);font-weight:700;color:#666677;margin-bottom:8px">📋 연락처 정보 (거래 성사 시 공개돼요)</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button type="button" id="offer-fill-my" onclick="fillOfferContactMy()" style="flex:1;padding:10px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:var(--fs-base);font-weight:700;cursor:pointer">📋 내 정보</button>
+        <button type="button" id="offer-fill-manual" onclick="fillOfferContactManual()" style="flex:1;padding:10px;background:#f0f0f5;color:#1a1a1a;border:none;border-radius:10px;font-size:var(--fs-base);font-weight:700;cursor:pointer">✏️ 직접 입력</button>
+      </div>
       <div class="fg"><label>이름 / 업체명</label><input type="text" class="fi" id="offer-contact-name" placeholder="예) 홍길동 / (주)패션하우스"/></div>
       <div class="fg"><label>전화번호</label><input type="text" class="fi" id="offer-contact-tel" placeholder="예) 010-1234-5678"/></div>
       <div class="fg"><label>주소</label><input type="text" class="fi" id="offer-contact-addr" placeholder="예) 서울시 중구 을지로 1길 10"/></div>
@@ -3433,6 +3438,7 @@ function mergeWithLocalUser(sbProfile){
       ...sbProfile,
       type:finalType,
       role:finalType,
+      locDetail:sbProfile.loc_detail||'',
       sellerStatus:sbStatus,
       bizStatus:sbStatus,
       rejectReason:extra.rejectReason||'',
@@ -3455,6 +3461,7 @@ function mergeWithLocalUser(sbProfile){
     bizStatus:finalStatus,
     rejectReason,
     requestedRole:sbProfile.requested_role||localUser.requestedRole||sbProfile.requestedRole||'',
+    locDetail:sbProfile.loc_detail||localUser.locDetail||'',
     pw:localUser.pw||sbProfile.pw||''
   };
 }
@@ -5879,7 +5886,36 @@ slider.addEventListener('touchend',e=>{if(Math.abs(e.changedTouches[0].clientX-t
 /* ==================== MODALS ==================== */
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)document.getElementById(id).classList.remove('open')}
-function openSuggestModal(){openModal('modal-suggest')}
+function openSuggestModal(){openModal('modal-suggest');if(curUser)setTimeout(()=>fillOfferContactMy(),100);}
+function fillOfferContactMy(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  let extra={};try{extra=JSON.parse(curUser.extra_info||'{}');}catch(e){}
+  const nameEl=document.getElementById('offer-contact-name');
+  const telEl=document.getElementById('offer-contact-tel');
+  const addrEl=document.getElementById('offer-contact-addr');
+  if(nameEl)nameEl.value=curUser.name||'';
+  if(telEl)telEl.value=curUser.tel||'';
+  const baseLoc=extra.address||curUser.loc||'';
+  const detailLoc=curUser.locDetail||'';
+  if(addrEl)addrEl.value=detailLoc?(baseLoc+' '+detailLoc).trim():baseLoc;
+  const myBtn=document.getElementById('offer-fill-my');
+  const manBtn=document.getElementById('offer-fill-manual');
+  if(myBtn){myBtn.style.background='#6c63ff';myBtn.style.color='#fff';}
+  if(manBtn){manBtn.style.background='#f0f0f5';manBtn.style.color='#1a1a1a';}
+  showToast('내 정보가 입력됐어요');
+}
+function fillOfferContactManual(){
+  const nameEl=document.getElementById('offer-contact-name');
+  const telEl=document.getElementById('offer-contact-tel');
+  const addrEl=document.getElementById('offer-contact-addr');
+  if(nameEl){nameEl.value='';nameEl.focus();}
+  if(telEl)telEl.value='';
+  if(addrEl)addrEl.value='';
+  const myBtn=document.getElementById('offer-fill-my');
+  const manBtn=document.getElementById('offer-fill-manual');
+  if(myBtn){myBtn.style.background='#f0f0f5';myBtn.style.color='#1a1a1a';}
+  if(manBtn){manBtn.style.background='#6c63ff';manBtn.style.color='#fff';}
+}
 
 let curOfferFilter='all';
 function setOfferFilter(filter){
@@ -6210,7 +6246,10 @@ function fillResContactMy(){
   const addrEl=document.getElementById('res-contact-addr');
   if(nameEl)nameEl.value=curUser.name||'';
   if(telEl)telEl.value=curUser.tel||'';
-  if(addrEl)addrEl.value=extra.address||curUser.loc||'';
+  // 기본주소 + 상세주소 합쳐서 표시
+  const baseLoc=extra.address||curUser.loc||'';
+  const detailLoc=curUser.locDetail||'';
+  if(addrEl)addrEl.value=detailLoc?(baseLoc+' '+detailLoc).trim():baseLoc;
   // 버튼 스타일 토글
   const myBtn=document.getElementById('res-fill-my');
   const manBtn=document.getElementById('res-fill-manual');
@@ -8347,6 +8386,8 @@ function renderProfileEdit(){
   if(telEl)telEl.value=u.tel||extra.tel||profile.tel||'';
   const locEl=document.getElementById('pe-loc');
   if(locEl)locEl.value=u.loc||extra.address||'';
+  const locDetailEl=document.getElementById('pe-loc-detail');
+  if(locDetailEl)locDetailEl.value=u.locDetail||'';
 
   // 업체 판매자 전용
   const ceoEl=document.getElementById('pe-ceo');
@@ -8450,8 +8491,9 @@ async function saveProfile(){
   };
   const intro=document.getElementById('pe-intro').value.trim();
   const loc=document.getElementById('pe-loc').value.trim();
+  const locDetail=(document.getElementById('pe-loc-detail')?.value||'').trim();
   if(curUser){
-    curUser.name=name;curUser.intro=intro;curUser.loc=loc;
+    curUser.name=name;curUser.intro=intro;curUser.loc=loc;curUser.locDetail=locDetail;
     curUser.tel=profileData.tel;
     curUser.profile={...((curUser.profile)||{}),...profileData};
     // 기존 등록 상품의 seller 정보 동기화
@@ -8468,7 +8510,7 @@ async function saveProfile(){
     if(productsUpdated)lsSet('products',products);
     lsSet('curUser',curUser);
     if(_sb&&curUser.id&&curUser.id!=='admin'){
-      try{await _sb.from('users').update({name,intro,loc,profile:curUser.profile}).eq('id',curUser.id);}
+      try{await _sb.from('users').update({name,intro,loc,loc_detail:locDetail,profile:curUser.profile}).eq('id',curUser.id);}
       catch(e){console.error('프로필 업데이트 오류:',e);}
     }
   }
@@ -8551,12 +8593,21 @@ function renderSettings(){
 function openSettLocModal(){
   const u=curUser||{};
   const curLoc=u.loc||u.location||'';
+  const curDetail=u.locDetail||'';
   const el=document.getElementById('loc-options');
   if(el){
     el.innerHTML=`
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <input type="text" id="loc-custom-input" placeholder="직접 입력 (예: 서울 강남구)" value="" style="flex:1;padding:10px 12px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:13px"/>
         <button onclick="const v=document.getElementById('loc-custom-input').value.trim();if(v)doChangeLoc(v);else showToast('위치를 입력해주세요')" style="padding:10px 14px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">설정</button>
+      </div>
+      <div style="background:#f8f8fa;border:1.5px solid #e0e0ea;border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;color:#888;margin-bottom:6px">🏠 상세 주소 (예약/배송 시에만 사용)</div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="loc-detail-input" placeholder="예) 옥정동 123 OO빌딩 2층" value="${curDetail}" style="flex:1;padding:10px 12px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:13px"/>
+          <button onclick="saveLocDetail()" style="padding:10px 14px;background:#ff6f00;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">저장</button>
+        </div>
+        ${curDetail?`<div style="font-size:12px;color:#6c63ff;margin-top:6px">현재: ${curDetail}</div>`:''}
       </div>
       <div style="font-size:11px;color:#888;margin-bottom:10px">주요 지역</div>
       ${LOCATION_OPTIONS.map(loc=>`
@@ -8615,9 +8666,14 @@ async function doChangePw(){
 }
 async function doChangeLoc(loc){
   if(!curUser)return;
+  // 상세주소 입력값도 함께 저장
+  const detailInput=document.getElementById('loc-detail-input');
+  if(detailInput&&detailInput.value.trim()){
+    curUser.locDetail=detailInput.value.trim();
+  }
   curUser.loc=loc;lsSet('curUser',curUser);
   if(_sb&&curUser.id&&curUser.id!=='admin'){
-    try{await _sb.from('users').update({loc}).eq('id',curUser.id);}
+    try{await _sb.from('users').update({loc,loc_detail:curUser.locDetail||''}).eq('id',curUser.id);}
     catch(e){console.error('지역 업데이트 오류:',e);}
   }
   renderSettings();renderMypage();
@@ -8625,6 +8681,17 @@ async function doChangeLoc(loc){
   renderList();
   closeModal('modal-change-loc');
   showToast(loc?'지역이 변경됐어요 📍':'위치 설정이 해제됐어요');
+}
+async function saveLocDetail(){
+  if(!curUser){showToast('로그인이 필요해요');return;}
+  const input=document.getElementById('loc-detail-input');
+  const detail=input?input.value.trim():'';
+  curUser.locDetail=detail;lsSet('curUser',curUser);
+  if(_sb&&curUser.id&&curUser.id!=='admin'){
+    try{await _sb.from('users').update({loc_detail:detail}).eq('id',curUser.id);}
+    catch(e){console.error('상세주소 저장 오류:',e);}
+  }
+  showToast(detail?'상세 주소가 저장됐어요 🏠':'상세 주소가 삭제됐어요');
 }
 function updateHomeLocBar(){
   const locText=document.getElementById('home-loc-text');
