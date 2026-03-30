@@ -6921,7 +6921,7 @@ async function switchSellerTab(tab,el){
         </div>
       </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div>`;
   } else if(tab==='photos'){
-    const photos=isMySelf?lsGet('companyPhotos',[]):[];
+    const photos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
     content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 사진이 없어요</div>'}</div>`;
   }
 }
@@ -6976,9 +6976,10 @@ function renderSellerPage(seller){
     followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
   }
   const gallery=document.getElementById('sh-photos-gallery');
-  const photos=isMySelf?lsGet('companyPhotos',[]):[];
+  const photos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
   if(gallery){
     if(photos.length){
+      gallery.style.display='flex';
       gallery.innerHTML=photos.map(src=>`<img src="${src}" style="width:200px;height:150px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join('');
     } else {
       gallery.style.display='none';
@@ -7010,9 +7011,9 @@ function renderSellerPage(seller){
       if(bottomBtns)bottomBtns.innerHTML=`
         <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
       `;
-      // 사진 갤러리 숨김
+      // 사진 없으면 갤러리 숨김
       const galleryEl=document.getElementById('sh-photos-gallery');
-      if(galleryEl)galleryEl.style.display='none';
+      if(galleryEl&&!galleryEl.innerHTML.trim())galleryEl.style.display='none';
       // 등급 표시
       const myProdsCount=myProds.length;
       const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
@@ -7080,6 +7081,8 @@ function preloadAndRenderSeller(seller){
         let sbProfile=sbUser.profile;
         if(typeof sbProfile==='string'){try{sbProfile=JSON.parse(sbProfile);}catch(e){sbProfile=null;}}
         seller.profile={...(sbProfile||{}),...profileFromExtra};
+        // 사진 데이터 복원
+        if(ex.photos&&Array.isArray(ex.photos))seller.photos=ex.photos;
         // 최신 정보로 다시 렌더링
         renderSellerPage(seller);
       }
@@ -8781,11 +8784,13 @@ async function saveProfile(){
     lsSet('curUser',curUser);
     if(_sb&&curUser.id&&curUser.id!=='admin'){
       // extra_info에 모든 프로필 데이터 통합 저장 (확실히 존재하는 컬럼)
+      const companyPhotos=lsGet('companyPhotos',[]);
       const extraForSave={
         ...profileData,
         intro,
         address:loc,
         loc_detail:locDetail,
+        photos:companyPhotos.slice(0,5), // 최대 5장 (extra_info 용량 제한)
       };
       try{await _sb.from('users').update({name,loc,tel:curUser.tel,extra_info:JSON.stringify(extraForSave)}).eq('id',curUser.id);}
       catch(e){console.error('프로필 업데이트 오류:',e);}
