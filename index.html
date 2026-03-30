@@ -8213,20 +8213,13 @@ function renderChatList(){
   if(!rooms.length){wrap.innerHTML='';wrap.style.display='none';empty.style.display='flex';return;}
 
   // 필터 적용
-  const myId=curUser?.id||'';
-  const myName=curUser?.name||'';
+  const myId=curUser?.id||curUser?.email||'';
   if(curChatFilter==='sell'){
-    // 내 상품에 대한 문의 (상대방이 구매자)
-    rooms=rooms.filter(r=>{
-      const prod=products.find(p=>p.id===r.productId);
-      return prod&&isMyProduct(prod,curUser);
-    });
+    // 내 상품에 대한 문의 (내가 판매자)
+    rooms=rooms.filter(r=>r.sellerId===myId);
   } else if(curChatFilter==='buy'){
     // 내가 문의한 채팅 (내가 구매자)
-    rooms=rooms.filter(r=>{
-      const prod=products.find(p=>p.id===r.productId);
-      return !prod||!isMyProduct(prod,curUser);
-    });
+    rooms=rooms.filter(r=>r.buyerId===myId);
   } else if(curChatFilter==='unread'){
     // 안읽은 채팅만
     rooms=rooms.filter(r=>r.unread&&r.unread>0);
@@ -8247,8 +8240,7 @@ function renderChatList(){
   if(unreadTab)unreadTab.textContent=totalUnread>0?`안읽음 ${totalUnread}`:'안읽음';
 
   wrap.innerHTML=rooms.slice().reverse().map(r=>{
-    const prod=products.find(p=>p.id===r.productId);
-    const isSellChat=prod&&isMyProduct(prod,curUser);
+    const isSellChat=r.sellerId===myId;
     const typeLabel=isSellChat?
       `<span style="font-size:10px;background:rgba(255,111,0,.1);color:#ff6f00;padding:2px 6px;border-radius:10px;font-weight:700">판매</span>`:
       `<span style="font-size:10px;background:rgba(108,99,255,.1);color:#6c63ff;padding:2px 6px;border-radius:10px;font-weight:700">구매</span>`;
