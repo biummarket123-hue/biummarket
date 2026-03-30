@@ -325,12 +325,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .lang-btn.on{background:#6c63ff;color:#fff}
 
 /* RESERVATION */
-.res-type-row{display:flex;gap:8px;margin-bottom:16px}
-.res-card{flex:1;border:1.5px solid #d8d8e8;border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;background:#f8f8fa}
-.res-card:hover,.res-card.sel{border-color:#6c63ff;background:rgba(108,99,255,.12)}
-.res-card .ri{font-size:22px;margin-bottom:5px}
-.res-card .rn{font-size:12px;font-weight:600;color:#1a1a1a}
-.res-card .rd{font-size:10px;color:#666677;margin-top:2px}
 
 /* TOAST */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);background:#333344;border:1px solid #555566;color:#fff;padding:11px 20px;border-radius:22px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s,transform .3s;z-index:999;white-space:nowrap;pointer-events:none}
@@ -766,12 +760,6 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .ai-strategy-text{font-size:13px;color:#888899;line-height:1.7}
 
 /* RESERVATION MODAL ENHANCED */
-.res-type-row-modal{display:flex;gap:8px;margin-bottom:16px}
-.res-type-card{flex:1;border:1.5px solid #d8d8e8;border-radius:16px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .2s;background:#f8f8fa}
-.res-type-card:hover,.res-type-card.sel{border-color:#6c63ff;background:rgba(108,99,255,.15)}
-.res-type-card .ri{font-size:26px;margin-bottom:5px}
-.res-type-card .rn{font-size:12px;font-weight:700;color:#1a1a1a}
-.res-type-card .rd{font-size:9px;color:#666677;margin-top:2px;line-height:1.3}
 .res-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .badge-soldout{position:absolute;top:8px;left:8px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;background:rgba(0,0,0,.7);color:#fff;z-index:3}
 .badge-stopped{position:absolute;top:8px;left:8px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;background:rgba(100,100,100,.8);color:#fff;z-index:3}
@@ -2068,13 +2056,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       </div>
       <div class="toggle-row">
         <div class="toggle-label">
-          <div class="toggle-title">스와치 무료 발송</div>
-          <div class="toggle-desc">스와치 요청 시 무료 발송</div>
-        </div>
-        <label class="toggle-switch"><input type="checkbox" id="ts-swatch" onchange="toggleTrade('freeSwatch',this.checked)"/><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <div class="toggle-label">
           <div class="toggle-title">택배 거래</div>
           <div class="toggle-desc">택배 발송으로 거래</div>
         </div>
@@ -2831,7 +2812,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           ✅ 재고원단 판매/구매<br>
           ✅ AI 원단 가격 분석<br>
           ✅ 실시간 채팅 문의<br>
-          ✅ 방문감별/스와치 예약
+          ✅ 예약 신청
         </div>
       </div>
       <button onclick="closeModal('modal-notice')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;border-radius:14px;font-size:14px;font-weight:700">확인</button>
@@ -2853,23 +2834,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <div class="msheet">
     <div class="mhandle"></div>
     <div class="mtitle">📅 예약 신청</div>
-    <div class="res-type-row-modal">
-      <div class="res-type-card sel" onclick="selectResModal('visit',this)">
-        <div class="ri">🏭</div>
-        <div class="rn">방문 감별</div>
-        <div class="rd">공장 직접 방문</div>
-      </div>
-      <div class="res-type-card" onclick="selectResModal('swatch',this)">
-        <div class="ri">📦</div>
-        <div class="rn">스와치 요청</div>
-        <div class="rd">샘플 받기</div>
-      </div>
-      <div class="res-type-card" onclick="selectResModal('inspect',this)">
-        <div class="ri">🚗</div>
-        <div class="rn">출장 감별</div>
-        <div class="rd">전문가 파견</div>
-      </div>
-    </div>
     <div class="suggest-form">
       <div class="res-date-grid">
         <div class="fg">
@@ -3076,9 +3040,9 @@ const LANGS={
     lbl_weight:'중량',lbl_qty:'수량',lbl_price:'단가',lbl_unknown:'정보 없음',
     stats_interest:'관심',stats_chat:'채팅',
     res_title:'예약 신청',
-    res_visit:'방문 예약',res_visit_sub:'직접 방문',
-    res_swatch:'스와치',res_swatch_sub:'샘플 발송',
-    res_inspect:'출장감별',res_inspect_sub:'전문가 방문',
+    res_visit:'예약 신청',res_visit_sub:'',
+    res_swatch:'',res_swatch_sub:'',
+    res_inspect:'',res_inspect_sub:'',
     btn_reserve:'예약하기',btn_suggest:'가격제안',btn_chat:'채팅',
     login_id_label:'아이디',login_pw_label:'비밀번호',
     btn_login:'로그인',btn_to_signup:'회원가입',test_account:'테스트 계정',
@@ -3141,9 +3105,9 @@ const LANGS={
     lbl_weight:'Weight',lbl_qty:'Qty',lbl_price:'Price/m',lbl_unknown:'N/A',
     stats_interest:'Likes',stats_chat:'Chats',
     res_title:'Reservation',
-    res_visit:'Visit',res_visit_sub:'Direct Visit',
-    res_swatch:'Swatch',res_swatch_sub:'Send Sample',
-    res_inspect:'Inspection',res_inspect_sub:'Expert Visit',
+    res_visit:'Reservation',res_visit_sub:'',
+    res_swatch:'',res_swatch_sub:'',
+    res_inspect:'',res_inspect_sub:'',
     btn_reserve:'Reserve',btn_suggest:'Offer Price',btn_chat:'Chat',
     login_id_label:'Email',login_pw_label:'Password',
     btn_login:'Login',btn_to_signup:'Sign Up',test_account:'Test Account',
@@ -3206,9 +3170,9 @@ const LANGS={
     lbl_weight:'重量',lbl_qty:'数量',lbl_price:'単価',lbl_unknown:'情報なし',
     stats_interest:'いいね',stats_chat:'チャット',
     res_title:'予約申請',
-    res_visit:'訪問予約',res_visit_sub:'直接訪問',
-    res_swatch:'スワッチ',res_swatch_sub:'サンプル送付',
-    res_inspect:'出張鑑定',res_inspect_sub:'専門家訪問',
+    res_visit:'予約申請',res_visit_sub:'',
+    res_swatch:'',res_swatch_sub:'',
+    res_inspect:'',res_inspect_sub:'',
     btn_reserve:'予約する',btn_suggest:'価格提案',btn_chat:'チャット',
     login_id_label:'メールアドレス',login_pw_label:'パスワード',
     btn_login:'ログイン',btn_to_signup:'会員登録',test_account:'テストアカウント',
@@ -3271,9 +3235,9 @@ const LANGS={
     lbl_weight:'克重',lbl_qty:'数量',lbl_price:'单价',lbl_unknown:'暂无信息',
     stats_interest:'关注',stats_chat:'聊天',
     res_title:'预约申请',
-    res_visit:'上门预约',res_visit_sub:'直接到访',
-    res_swatch:'样品',res_swatch_sub:'样品邮寄',
-    res_inspect:'上门鉴定',res_inspect_sub:'专家上门',
+    res_visit:'预约申请',res_visit_sub:'',
+    res_swatch:'',res_swatch_sub:'',
+    res_inspect:'',res_inspect_sub:'',
     btn_reserve:'立即预约',btn_suggest:'报价',btn_chat:'聊天',
     login_id_label:'邮箱',login_pw_label:'密码',
     btn_login:'登录',btn_to_signup:'注册',test_account:'测试账号',
@@ -3336,9 +3300,9 @@ const LANGS={
     lbl_weight:'Trọng lượng',lbl_qty:'Số lượng',lbl_price:'Đơn giá',lbl_unknown:'Không có',
     stats_interest:'Yêu thích',stats_chat:'Chat',
     res_title:'Đặt lịch',
-    res_visit:'Đặt thăm',res_visit_sub:'Thăm trực tiếp',
-    res_swatch:'Mẫu vải',res_swatch_sub:'Gửi mẫu',
-    res_inspect:'Kiểm định',res_inspect_sub:'Chuyên gia thăm',
+    res_visit:'Đặt lịch',res_visit_sub:'',
+    res_swatch:'',res_swatch_sub:'',
+    res_inspect:'',res_inspect_sub:'',
     btn_reserve:'Đặt lịch',btn_suggest:'Đề xuất giá',btn_chat:'Chat',
     login_id_label:'Email',login_pw_label:'Mật khẩu',
     btn_login:'Đăng nhập',btn_to_signup:'Đăng ký',test_account:'Tài khoản test',
@@ -3748,7 +3712,7 @@ let fromMyProducts=false;
 let sliderIdx=0;
 let sliderTotal=0;
 let uploadedImgs=[];
-let curResType='visit';
+let curResType='reservation';
 let curSellerData=null;
 let cachedSellerNews=null;
 let selectedUserType='seller';
@@ -3928,7 +3892,7 @@ function playNotifSound(type){
 
   if(s.vibrate&&navigator.vibrate)navigator.vibrate([100,50,100]);
 }
-let tradeSettings=lsGet('tradeSettings',{priceOffer:false,freeSwatch:false,delivery:true,directTrade:false});
+let tradeSettings=lsGet('tradeSettings',{priceOffer:false,delivery:true,directTrade:false});
 let urgent=false;
 let formEditId=null;
 
@@ -6273,7 +6237,7 @@ async function submitReservation(){
   // localStorage 백업
   const resv={
     id:resvId,productId:curProductId,productTitle:prod?.title||'',
-    productImg:prod?.image_url||null,type:curResType,date,time,note,
+    productImg:prod?.image_url||null,date,time,note,
     buyerId:curUser.id,buyerName:curUser.name||curUser.email,
     sellerId,sellerName:prod?.seller?.name||'판매자',
     buyerContact:{name:contactName,tel:contactTel,addr:contactAddr},
@@ -8129,16 +8093,14 @@ async function renderReservations(){
   try{
     const{data,error}=await _sb.from('reservations').select('*').eq('user_id',curUser.id).order('created_at',{ascending:false});
     if(error||!data||!data.length){list.innerHTML='';empty.style.display='flex';return;}
-    const typeNames={visit:'방문 예약',swatch:'스와치 요청',inspect:'출장감별'};
-    const typeIcons={visit:'🏠',swatch:'🎨',inspect:'🔍'};
     const statusMap={confirmed:'확정',cancelled:'취소',pending:'대기중'};
     const statusBadge={confirmed:'badge-green',cancelled:'badge-gray',pending:'badge-orange'};
     list.innerHTML=data.map(r=>`
       <div class="res-item">
         <div class="res-item-head">
-          <div class="res-item-icon">${typeIcons[r.type]||'📅'}</div>
+          <div class="res-item-icon">📅</div>
           <div class="res-item-info">
-            <div class="res-item-type">${typeNames[r.type]||r.type}</div>
+            <div class="res-item-type">예약 신청</div>
             <div class="res-item-dt">📅 ${r.date} &nbsp;🕐 ${r.time}</div>
           </div>
           <span class="badge ${statusBadge[r.status||'pending']||'badge-orange'}">${statusMap[r.status||'pending']}</span>
@@ -8520,7 +8482,7 @@ function renderSettings(){
   if(label&&info)label.textContent=info.label;
 
   // 거래 토글
-  const tsMap={priceOffer:'price',freeSwatch:'swatch',delivery:'delivery',directTrade:'direct'};
+  const tsMap={priceOffer:'price',delivery:'delivery',directTrade:'direct'};
   Object.entries(tsMap).forEach(([k,id])=>{const el=document.getElementById('ts-'+id);if(el)el.checked=!!tradeSettings[k];});
 
   // 계정 값
