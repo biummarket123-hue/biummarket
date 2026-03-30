@@ -4611,6 +4611,7 @@ async function handleKakaoCode(code){
       if(sbProfile&&sbProfile.tel){
         // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        curUser.provider='kakao';
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
@@ -4672,6 +4673,7 @@ async function handleNaverCode(code,state){
       if(sbProfile&&sbProfile.tel){
         // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        curUser.provider='naver';
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
