@@ -3523,46 +3523,7 @@ try{
         curUser=null;lsSet('curUser',null);showView('login');
       }
     });
-    // OAuth 리다이렉트 후 세션 복구
-    (async()=>{
-      try{
-        const{data:{session}}=await _sb.auth.getSession();
-        const _prevCur=lsGet('curUser',null);
-        if(session&&session.user&&(!_prevCur||_prevCur.id!==session.user.id)){
-          const u=session.user;
-          const{data:profile}=await _sb.from('users').select('*').eq('id',u.id).single();
-          let isNewUser=false;
-          if(profile){
-            curUser=mergeWithLocalUser(profile);
-            lsSet('curUser',curUser);
-          }else{
-            // users 테이블에 없음 → 신규 소셜 로그인 → 회원가입 폼으로 이동
-            isNewUser=true;
-            _oauthPendingUser={id:u.id,email:u.email,name:u.user_metadata?.full_name||u.email.split('@')[0]};
-          }
-          if(isNewUser){
-            sessionStorage.setItem('bium_new_user','1');
-            if(typeof showView==='function'){
-              showView('signup');
-              // 소셜 가입 모드: 이메일/비밀번호 숨기고, 이름 자동채움
-              setTimeout(()=>{
-                const emailRow=document.getElementById('s-email');
-                const pwRow=document.getElementById('s-pw');
-                const pwcRow=document.getElementById('s-pw-confirm');
-                if(emailRow)emailRow.closest('.fg').style.display='none';
-                if(pwRow)pwRow.closest('.fg').style.display='none';
-                if(pwcRow)pwcRow.closest('.fg').style.display='none';
-                const nameEl=document.getElementById('s-name');
-                if(nameEl&&_oauthPendingUser)nameEl.value=_oauthPendingUser.name||'';
-              },100);
-            }
-          }else{
-            lsSet('curUser',curUser);
-            if(typeof showView==='function'){showView('list');if(typeof showListSkeleton==='function')showListSkeleton();if(typeof loadProductsFromSupabase==='function')loadProductsFromSupabase();}
-          }
-        }
-      }catch(e){console.error('OAuth 세션 복구 오류:',e);}
-    })();
+    // OAuth 세션 복구는 앱 초기화에서 통합 처리
   }else{
     console.warn('Supabase SDK 로드 실패 — 로컬 모드로 동작합니다.');
   }
@@ -12825,9 +12786,8 @@ function renderBizStats(tab){
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
         const prevUser=lsGet('curUser',null);
-        const{data:profile}=await _sb.from('users').select('*').eq('id',session.user.id).single();
-        const localUser=users.find(u=>u.id===session.user.id||u.email===session.user.email);
-        if(profile){
+        const{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',session.user.id).single();
+        if(profile&&!profileErr){
           curUser=mergeWithLocalUser({...profile});
           // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
           if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email))_preserveLocalFields(curUser,prevUser);

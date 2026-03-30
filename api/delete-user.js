@@ -19,10 +19,11 @@ export default async function handler(req, res) {
       'Prefer': 'return=minimal'
     };
     // 1. users 테이블 삭제 (service_role로 RLS 우회)
-    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
       method: 'DELETE',
       headers
     });
+    console.log('DB 삭제 응답:', dbRes.status, await dbRes.text());
     // 2. Supabase Auth 계정 삭제
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
       method: 'DELETE',
@@ -30,6 +31,10 @@ export default async function handler(req, res) {
     });
     const authText = await authRes.text();
     console.log('Auth 삭제 응답:', authRes.status, authText);
+    if(!authRes.ok){
+      res.status(200).json({success: true, warning: 'Auth 삭제 실패: '+authRes.status});
+      return;
+    }
     res.status(200).json({success: true});
   }catch(e){
     res.status(500).json({error: e.message});
