@@ -6489,7 +6489,7 @@ async function switchSellerTab(tab,el){
       const avgRating=reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1):0;
       const myProdsCount=myProds.length;
       const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
-      const intro=isMySelf?(curUser.intro||''):(userInfo.intro||extra.intro||'');
+      const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'');
       const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
       content.innerHTML=`
         <!-- 등급 + 통계 -->
@@ -6529,7 +6529,7 @@ async function switchSellerTab(tab,el){
         <div style="padding:16px;border-bottom:8px solid #f5f5f5">
           <div style="font-size:var(--fs-lg);font-weight:700;margin-bottom:8px">소개</div>
           <div style="font-size:var(--fs-md);color:#444;line-height:1.7">${intro}</div>
-          ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
+          ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
           ${getFabricScoreHtml(seller.id||seller.name,'detail')}
         </div>`:`
         <div style="padding:16px;border-bottom:8px solid #f5f5f5">
@@ -6559,11 +6559,11 @@ async function switchSellerTab(tab,el){
     }
 
   if(tab==='home'){
-    const tel=isMySelf?(curUser.tel||''):(userInfo.tel||extra.tel||seller.tel||'');
-    const hours=isMySelf?(curUser.profile?.hours||''):(userInfo.profile?.hours||extra.hours||'');
-    const intro=isMySelf?(curUser.intro||''):(userInfo.intro||extra.intro||'재고원단 전문 업체입니다.');
-    const insta=isMySelf?(curUser.profile?.insta||''):(userInfo.profile?.insta||extra.insta||'');
-    const blog=isMySelf?(curUser.profile?.blog||''):(userInfo.profile?.blog||extra.blog||'');
+    const tel=isMySelf?(curUser.tel||''):(seller.tel||userInfo.tel||extra.tel||'');
+    const hours=isMySelf?(curUser.profile?.hours||''):(seller.profile?.hours||userInfo.profile?.hours||extra.hours||'');
+    const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'재고원단 전문 업체입니다.');
+    const insta=isMySelf?(curUser.profile?.insta||''):(seller.profile?.insta||userInfo.profile?.insta||extra.insta||'');
+    const blog=isMySelf?(curUser.profile?.blog||''):(seller.profile?.blog||userInfo.profile?.blog||extra.blog||'');
     const address=isMySelf?(curUser.loc||''):(extra.address||userInfo.loc||seller.loc||'');
 
     // 기본 정보 rows
@@ -6631,7 +6631,7 @@ async function switchSellerTab(tab,el){
       <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:${rows.length?8:0}px">
         <div style="font-size:var(--fs-xl);font-weight:700;margin-bottom:8px">소개</div>
         <div style="font-size:var(--fs-md);color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100)+'...<span onclick="document.getElementById(\'sh-intro-text\').innerHTML=\''+intro.replace(/'/g,"\\'").replace(/\n/g,'<br>')+'\';" style="color:#ff6f00;cursor:pointer;font-weight:600"> 더보기</span>':intro}</div>
-        ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
+        ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
         ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:var(--fs-base);color:#1565c0">🛡️ 사업자등록증 및 인증 정보</div>':''}
         ${getFabricScoreHtml(seller.id||seller.name,'detail')}
       </div>
