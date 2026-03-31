@@ -7879,6 +7879,7 @@ function calcTotal(){}
 function updateCat2(){}
 
 async function submitForm(){
+  if(!confirm('상품을 등록하시겠습니까?'))return;
   const title=document.getElementById('f-title').value.trim();
   const material=document.getElementById('f-material').value.trim();
   const qty=parseFloat(document.getElementById('f-qty').value);
