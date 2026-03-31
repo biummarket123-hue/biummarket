@@ -9831,8 +9831,8 @@ function renderMypage(){
   // 통계 계산
   const myProducts=products.filter(p=>isMyProduct(p,u));
   const wishes=lsGet('wishlist',[]).length||Object.values(lsGet('likedMap',{})).filter(Boolean).length;
-  const reservations=lsGet('reservations',[]);
-  const done=reservations.filter(r=>r.status==='confirmed'||r.status==='done').length;
+  const localResvs=lsGet('reservationList',[]);
+  let done=localResvs.filter(r=>r.status==='confirmed'||r.status==='done').length;
   const cartCnt=lsGet('cart',[]).length;
 
   // 통계 렌더
@@ -9840,6 +9840,22 @@ function renderMypage(){
   set('my-stat-products',myProducts.length);
   set('my-stat-wish',wishes);
   set('my-stat-done',done);
+
+  // Supabase에서 거래완료 수 조회
+  if(_sb&&curUser){
+    const myId=curUser.id||curUser.email||'';
+    _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
+      if(count!=null&&count>done){set('my-stat-done',count);}
+    });
+    // 수락된 가격제안도 거래완료에 포함
+    _sb.from('price_offers').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','accepted').then(({count:oc})=>{
+      if(oc!=null){
+        const el=document.getElementById('my-stat-done');
+        const cur=parseInt(el?.textContent||'0');
+        set('my-stat-done',cur+oc);
+      }
+    });
+  }
 
   // 메뉴 부제 업데이트
   set('my-sub-products',myProducts.length+t('cnt_reg'));
