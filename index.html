@@ -6081,6 +6081,7 @@ function editProduct(targetId){
   document.getElementById('f-list-price').value=p.list_price||'';
   document.getElementById('f-bulk-price').value=p.bulk_price||'';
   document.getElementById('f-moq').value=p.moq||'';
+  document.getElementById('f-bulk-moq').value=p.bulk_moq||'';
   document.getElementById('f-desc').value=p.description||'';
   urgent=p.is_urgent===true;
   const ut=document.getElementById('urgentToggle');
@@ -6303,7 +6304,7 @@ function selectSuggestPriceType(type){
   }else{
     if(btnB){btnB.style.background='#ff6f00';btnB.style.color='#fff';btnB.style.borderColor='#ff6f00';}
     if(btnN){btnN.style.background='#fff';btnN.style.color='#666';btnN.style.borderColor='#e0e0ea';}
-    if(info)info.innerHTML=`대량가 <b>${(p.bulk_price||0).toLocaleString()}원</b>/${p.unit||'m'} 기준 (MOQ: ${p.moq||'-'}${p.unit||'m'}+)`;
+    if(info)info.innerHTML=`대량가 <b>${(p.bulk_price||0).toLocaleString()}원</b>/${p.unit||'m'} 기준 (${p.bulk_moq||p.moq||'-'}${p.unit||'m'}+)`;
   }
   _applySuggestDiscount();
 }
@@ -6494,12 +6495,13 @@ function openResModal(){
   if(calcEl)calcEl.style.display='none';
   if(p){
     const unit=p.unit||'m';
+    const moq=p.moq||0; // 최소주문수량
+    const bulkMoq=p.bulk_moq||0; // 대량가 기준수량
     if(unitLabel)unitLabel.textContent=unit;
-    const moq=p.moq||0;
     if(hintEl){
       let hint='';
       if(moq)hint+=`최소 주문: ${moq}${unit}`;
-      if(p.bulk_price&&p.bulk_price<p.price)hint+=hint?` · 대량가(${moq}${unit}+): ${p.bulk_price.toLocaleString()}원/${unit}`:`대량가: ${p.bulk_price.toLocaleString()}원/${unit}`;
+      if(p.bulk_price&&p.bulk_price<p.price&&bulkMoq)hint+=hint?` · 대량가(${bulkMoq}${unit}+): ${p.bulk_price.toLocaleString()}원/${unit}`:`대량가(${bulkMoq}${unit}+): ${p.bulk_price.toLocaleString()}원/${unit}`;
       hintEl.textContent=hint;
     }
     if(moq&&qtyEl){qtyEl.min=moq;qtyEl.placeholder=`최소 ${moq}${unit} 이상`;}
@@ -6514,7 +6516,8 @@ function calcResPrice(){
   const totalEl=document.getElementById('res-price-total');
   const qty=parseFloat(qtyEl?.value)||0;
   const unit=p.unit||'m';
-  const moq=p.moq||0;
+  const moq=p.moq||0; // 최소주문수량
+  const bulkMoq=p.bulk_moq||0; // 대량가 기준수량
   if(!qty||qty<=0){if(calcEl)calcEl.style.display='none';return;}
   // 최소수량 체크
   if(moq&&qty<moq){
@@ -6523,8 +6526,8 @@ function calcResPrice(){
     if(totalEl)totalEl.textContent='';
     return;
   }
-  // 대량가 적용 여부
-  const isBulk=p.bulk_price&&p.bulk_price<p.price&&moq&&qty>=moq;
+  // 대량가 적용 여부 (bulk_moq 기준)
+  const isBulk=p.bulk_price&&p.bulk_price<p.price&&bulkMoq&&qty>=bulkMoq;
   const unitPrice=isBulk?p.bulk_price:p.price;
   const total=Math.round(qty*unitPrice);
   if(calcEl)calcEl.style.display='block';
@@ -7985,6 +7988,7 @@ async function submitForm(){
     list_price:parseInt(document.getElementById('f-list-price').value)||null,
     bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
     moq:parseInt(document.getElementById('f-moq').value)||null,
+    bulk_moq:parseInt(document.getElementById('f-bulk-moq').value)||null,
     sample:formSample,is_urgent:urgent,
     description,
     seller:sellerInfo,
