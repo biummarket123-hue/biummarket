@@ -2220,6 +2220,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="hdr-title">알림</div>
     <button class="hdr-btn" onclick="showView('notif-settings')" title="알림 설정">⚙️</button>
   </header>
+  <!-- 전체/안읽음 탭 -->
+  <div id="notif-tabs" style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff">
+    <div class="notif-tab on" onclick="switchNotifTab('all',this)" style="flex:1;text-align:center;padding:12px 0;font-size:14px;font-weight:700;color:#6c63ff;border-bottom:2px solid #6c63ff;cursor:pointer">전체</div>
+    <div class="notif-tab" onclick="switchNotifTab('unread',this)" style="flex:1;text-align:center;padding:12px 0;font-size:14px;font-weight:600;color:#999;border-bottom:2px solid transparent;cursor:pointer">안읽음 <span id="notif-unread-count" style="background:#ff4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none">0</span></div>
+  </div>
   <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="notif-items-list"></div>
 </div>
 
@@ -12307,19 +12312,36 @@ function timeAgo(ts){
 function addNotif(icon,bg,title,desc,productId){
   if(!notifSettings.push)return;
   const items=lsGet('notifHistory',[]);
-  items.unshift({icon,bg,title,desc,ts:Date.now(),productId:productId||null});
+  items.unshift({icon,bg,title,desc,ts:Date.now(),productId:productId||null,read:false});
   if(items.length>50)items.pop();
   lsSet('notifHistory',items);
   const dot=document.getElementById('notif-dot');
   if(dot)dot.style.display='block';
   playNotifSound('general');
 }
+// 알림 읽음 처리 (notifHistory 개별 항목)
+function markNotifRead(idx){
+  const items=lsGet('notifHistory',[]);
+  if(items[idx]){items[idx].read=true;lsSet('notifHistory',items);}
+  updateNotifDot();
+}
+// 전체/안읽음 탭 전환
+let _notifTabFilter='all';
+function switchNotifTab(tab,el){
+  _notifTabFilter=tab;
+  document.querySelectorAll('#notif-tabs .notif-tab').forEach(t=>{
+    t.style.color='#999';t.style.borderBottomColor='transparent';t.style.fontWeight='600';
+    t.classList.remove('on');
+  });
+  if(el){el.style.color='#6c63ff';el.style.borderBottomColor='#6c63ff';el.style.fontWeight='700';el.classList.add('on');}
+  renderNotifView();
+}
 function updateNotifDot(){
   const items=lsGet('notifHistory',[]);
   const dot=document.getElementById('notif-dot');
-  const hasGeneric=items.length>0;
+  const hasUnreadGeneric=items.some(i=>!i.read);
   const hasTargeted=curUser?getUnreadAppNotifications(curUser.id||curUser.email).length>0:false;
-  if(dot)dot.style.display=(hasGeneric||hasTargeted)?'block':'none';
+  if(dot)dot.style.display=(hasUnreadGeneric||hasTargeted)?'block':'none';
   updateChatBadge();
 }
 function updateChatBadge(){
@@ -12541,12 +12563,19 @@ function renderNotifView(){
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
     return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data};
   }):[];
-  const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const dot=document.getElementById('notif-dot');
-  if(dot)dot.style.display='none';
-  if(userId)markAllAppNotificationsRead(userId);
-  if(!allItems.length){
-    el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
+  // allItems에 원본 인덱스 보존 (notifHistory용)
+  const allItems=[...items.map((it,i)=>({...it,_srcType:'local',_localIdx:i})),...myAppNotifs.map(it=>({...it,_srcType:'app'}))].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  // 안읽음 개수 표시
+  const unreadCount=allItems.filter(it=>!it.read).length;
+  const unreadBadge=document.getElementById('notif-unread-count');
+  if(unreadBadge){
+    if(unreadCount>0){unreadBadge.textContent=unreadCount;unreadBadge.style.display='inline';}
+    else{unreadBadge.style.display='none';}
+  }
+  // 탭 필터 적용
+  const filtered=_notifTabFilter==='unread'?allItems.filter(it=>!it.read):allItems;
+  if(!filtered.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">${_notifTabFilter==='unread'?'안읽은 알림이 없어요':'새로운 알림이 없어요'}</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>`;
     return;
   }
   const NOTIF_BADGE={
@@ -12574,24 +12603,42 @@ function renderNotifView(){
       '단골 소식':{bg:'#fff3e0',color:'#e65100'},
       '패브릭 스코어':{bg:'#fff9e6',color:'#f57f17'},
   };
-  el.innerHTML=allItems.map(item=>{
+  el.innerHTML=filtered.map((item,fi)=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
-    // 클릭 액션 결정
-    let onclickAttr='';
-    if((item._type==='chat_new'||item._type==='chat_msg')&&item._data&&item._data.roomId){
-      onclickAttr=`onclick="openChatRoomById('${item._data.roomId}')"`;
-    }else if(item._action){
-      onclickAttr=`onclick="${item._action}"`;
-    }else if(item.productId){
-      onclickAttr=`onclick="openDetail(${item.productId})"`;
+    const isRead=!!item.read;
+    // 읽음 처리 JS (클릭 시)
+    let readAction='';
+    if(!isRead){
+      if(item._srcType==='local'&&typeof item._localIdx==='number'){
+        readAction=`markNotifRead(${item._localIdx});`;
+      } else if(item._srcType==='app'){
+        readAction='';
+      }
     }
-    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s" ${onclickAttr} onmouseenter="this.style.background='#f8f8fa'" onmouseleave="this.style.background=''">
-      <div style="width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${item.icon||'📣'}</div>
+    // 클릭 액션 결정
+    let clickAction=readAction;
+    if((item._type==='chat_new'||item._type==='chat_msg')&&item._data&&item._data.roomId){
+      clickAction+=`openChatRoomById('${item._data.roomId}')`;
+    }else if(item._action){
+      clickAction+=item._action;
+    }else if(item.productId){
+      clickAction+=`openDetail(${item.productId})`;
+    }else{
+      clickAction+=`markNotifRead(${item._localIdx});renderNotifView();`;
+    }
+    const bgColor=isRead?'#fff':'#f0edff';
+    const opacity=isRead?'0.7':'1';
+    return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s;background:${bgColor};opacity:${opacity}" onclick="${clickAction}" onmouseenter="this.style.filter='brightness(0.97)'" onmouseleave="this.style.filter=''">
+      <div style="position:relative;width:40px;height:40px;border-radius:50%;background:${item.bg||'rgba(108,99,255,.15)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+        ${item.icon||'📣'}
+        ${!isRead?'<div style="position:absolute;top:0;right:0;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #fff"></div>':''}
+      </div>
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
           <span style="font-size:10px;font-weight:700;background:${badge.bg};color:${badge.color};padding:2px 7px;border-radius:10px">${item.title}</span>
+          ${!isRead?'<span style="font-size:9px;font-weight:700;color:#ff4444">NEW</span>':''}
         </div>
-        <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">${item.desc||''}</div>
+        <div style="font-size:13px;font-weight:${isRead?'500':'600'};color:${isRead?'#888':'#1a1a1a'};margin-bottom:2px">${item.desc||''}</div>
         <div style="font-size:11px;color:#999999;margin-top:2px">${timeAgo(item.ts)}</div>
       </div>
       <div style="font-size:16px;color:#cccccc;align-self:center">›</div>
