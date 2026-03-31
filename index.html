@@ -6145,6 +6145,44 @@ function openSellerPage(){
   };
   preloadAndRenderSeller(mergedSeller);
 }
+// ID로 판매자 프로필 열기 (알림 클릭 등)
+function openSellerById(sellerId){
+  const userInfo=users.find(u=>u.id===sellerId||u.email===sellerId)||{};
+  // Supabase에서 조회 시도
+  if(_sb&&sellerId){
+    _sb.from('users').select('*').eq('id',sellerId).maybeSingle().then(({data:profile})=>{
+      const merged={
+        id:sellerId,
+        name:profile?.name||userInfo.name||sellerId,
+        type:profile?.type||userInfo.type||userInfo.role||'member',
+        role:profile?.role||userInfo.role||userInfo.type||'member',
+        loc:profile?.loc||userInfo.loc||'',
+        tel:profile?.tel||userInfo.tel||'',
+        intro:profile?.intro||userInfo.intro||'',
+        category:profile?.category||userInfo.category||'',
+        email:profile?.email||userInfo.email||'',
+        profile:profile?.profile||userInfo.profile||{},
+        extra_info:profile?.extra_info||userInfo.extra_info||'{}',
+      };
+      preloadAndRenderSeller(merged);
+    });
+  }else{
+    const merged={
+      id:sellerId,
+      name:userInfo.name||sellerId,
+      type:userInfo.type||userInfo.role||'member',
+      role:userInfo.role||userInfo.type||'member',
+      loc:userInfo.loc||'',
+      tel:userInfo.tel||'',
+      intro:userInfo.intro||'',
+      category:userInfo.category||'',
+      email:userInfo.email||'',
+      profile:userInfo.profile||{},
+      extra_info:userInfo.extra_info||'{}',
+    };
+    preloadAndRenderSeller(merged);
+  }
+}
 
 /* ==================== SLIDER ==================== */
 function slideMove(d){sliderIdx=Math.max(0,Math.min(sliderTotal-1,sliderIdx+d));updateSlider()}
@@ -12541,7 +12579,7 @@ function renderNotifView(){
       restock:{icon:'📦',bg:'rgba(108,99,255,.15)',title:'재입고 알림',action:''},
       reservation_remind:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 알림',action:"showView('my-reservations');renderMyReservations()"},
       follow_news:{icon:'📢',bg:'rgba(255,111,0,.15)',title:'단골 소식',action:''},
-      dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:''},
+      dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:'_openSellerById'},
       dangol_new:{icon:'🆕',bg:'rgba(108,99,255,.15)',title:'단골 신상품',action:''},
       dangol_urgent:{icon:'⚡',bg:'rgba(255,101,132,.15)',title:'단골 급처',action:''},
       fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:''},
@@ -12594,7 +12632,9 @@ function renderNotifView(){
     let navAction='';
     if((item._type==='chat_new'||item._type==='chat_msg')&&item._data&&item._data.roomId){
       navAction=`openChatRoomById('${item._data.roomId}')`;
-    }else if(item._action){
+    }else if(item._action==='_openSellerById'&&item._data&&item._data.senderId){
+      navAction=`openSellerById('${item._data.senderId}')`;
+    }else if(item._action&&item._action!=='_openSellerById'){
       navAction=item._action;
     }else if(item.productId){
       navAction=`openDetail(${item.productId})`;
