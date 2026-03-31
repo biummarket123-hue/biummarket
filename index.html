@@ -994,6 +994,17 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <label data-i18n="login_pw_label">비밀번호</label>
         <input type="password" class="fi" id="l-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()" />
       </div>
+      <!-- 아이디 저장 / 자동 로그인 체크박스 -->
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:14px;margin-top:2px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#555" onclick="toggleSaveId()">
+          <span id="chk-save-id" style="width:20px;height:20px;border:2px solid #d0d0d8;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;transition:all .15s"></span>
+          아이디 저장
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#555" onclick="toggleAutoLogin()">
+          <span id="chk-auto-login" style="width:20px;height:20px;border:2px solid #d0d0d8;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;transition:all .15s"></span>
+          자동 로그인
+        </label>
+      </div>
       <button class="btn-primary" data-i18n="btn_login" onclick="doLogin()" style="margin-bottom:12px">로그인</button>
       <button class="btn-secondary" data-i18n="btn_to_signup" onclick="showView('signup')">회원가입</button>
       <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:20px">
@@ -4386,7 +4397,59 @@ async function doFindPw(){
   }
 }
 
-async function doLogin(){
+// 아이디 저장 / 자동 로그인 체크 상태
+let _saveIdChecked=false, _autoLoginChecked=false;
+function _renderLoginChk(){
+  const s=document.getElementById('chk-save-id');
+  const a=document.getElementById('chk-auto-login');
+  if(s){s.style.background=_saveIdChecked?'#6c63ff':'#fff';s.style.borderColor=_saveIdChecked?'#6c63ff':'#d0d0d8';s.innerHTML=_saveIdChecked?'✓':'';}
+  if(a){a.style.background=_autoLoginChecked?'#6c63ff':'#fff';a.style.borderColor=_autoLoginChecked?'#6c63ff':'#d0d0d8';a.innerHTML=_autoLoginChecked?'✓':'';}
+}
+function toggleSaveId(){
+  _saveIdChecked=!_saveIdChecked;
+  if(!_saveIdChecked&&_autoLoginChecked){_autoLoginChecked=false;}
+  _renderLoginChk();
+}
+function toggleAutoLogin(){
+  _autoLoginChecked=!_autoLoginChecked;
+  if(_autoLoginChecked)_saveIdChecked=true;
+  _renderLoginChk();
+}
+// 로그인 성공 시 아이디 저장/자동 로그인 데이터 처리
+function _handleLoginSave(email,pw){
+  if(_saveIdChecked){localStorage.setItem('bium_saved_email',email);}
+  else{localStorage.removeItem('bium_saved_email');}
+  if(_autoLoginChecked){localStorage.setItem('bium_auto_login',JSON.stringify({email,pw:btoa(pw)}));}
+  else{localStorage.removeItem('bium_auto_login');}
+}
+// 앱 시작 시 저장된 이메일/자동 로그인 복원
+function _restoreLoginFields(){
+  const savedEmail=localStorage.getItem('bium_saved_email');
+  const autoData=localStorage.getItem('bium_auto_login');
+  if(savedEmail){
+    const el=document.getElementById('l-email');
+    if(el)el.value=savedEmail;
+    _saveIdChecked=true;
+  }
+  if(autoData){
+    _autoLoginChecked=true;
+    _saveIdChecked=true;
+  }
+  _renderLoginChk();
+  // 자동 로그인 시도
+  if(autoData){
+    try{
+      const d=JSON.parse(autoData);
+      const emailEl=document.getElementById('l-email');
+      const pwEl=document.getElementById('l-pw');
+      if(emailEl)emailEl.value=d.email;
+      if(pwEl)pwEl.value=atob(d.pw);
+      setTimeout(()=>doLogin(true),100);
+    }catch(e){localStorage.removeItem('bium_auto_login');}
+  }
+}
+
+async function doLogin(isAuto){
   const email=document.getElementById('l-email').value.trim();
   const pw=document.getElementById('l-pw').value;
   // 관리자 계정 특별 처리 (로컬 검증)
@@ -4401,6 +4464,7 @@ async function doLogin(){
     if(user.status==='suspended'){showToast('계정이 정지되었습니다');return;}
     localStorage.setItem('bium_activeUserId', user.id||user.email||'guest');
     curUser=user;lsSet('curUser',curUser);updateNotifDot();
+    if(!isAuto)_handleLoginSave(email,pw);
     const prevUId=lsGet('lastUserId','');
     const newUId=curUser.id||curUser.email||'';
     if(prevUId!==newUId){
@@ -4433,6 +4497,7 @@ async function doLogin(){
     // 활성 userId 설정 (계정별 데이터 분리용)
     localStorage.setItem('bium_activeUserId', curUser.id||curUser.email||'guest');
     lsSet('curUser',curUser);updateNotifDot();
+    if(!isAuto)_handleLoginSave(email,pw);
     // 계정 전환 시 chatRooms 초기화 (다른 계정 데이터 격리)
     const prevUserId=lsGet('lastUserId','');
     const newUserId=curUser.id||curUser.email||'';
@@ -4614,11 +4679,18 @@ async function doSignup(){
 async function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
   try{if(_sb&&curUser?.email!=='admin')await _sb.auth.signOut();}catch(e){console.error('signOut 오류:',e);}
+  // 자동 로그인 데이터가 없으면 저장된 이메일도 삭제 (자동 로그인 체크 해제 상태)
+  const _hadAutoLogin=localStorage.getItem('bium_auto_login');
+  if(!_hadAutoLogin){
+    localStorage.removeItem('bium_saved_email');
+  }
+  // 자동 로그인 데이터는 유지 (다음 접속 시 자동 로그인용)
   localStorage.setItem('bium_activeUserId','guest');
   curUser=null;lsSet('curUser',null);
   chatRooms={};
   lsSet('chatRooms',{});
   lsSet('lastUserId','');
+  _saveIdChecked=false;_autoLoginChecked=false;
   if(document.getElementById('view-login'))showView('login');
   else window.location.reload();
 }
@@ -13096,6 +13168,8 @@ function renderBizStats(tab){
     loadFontSize();
   }else{
     showView('login');
+    // 아이디 저장/자동 로그인 복원
+    setTimeout(()=>_restoreLoginFields(),50);
   }
   // 앱 시작 시 채팅 unread 즉시 로드
   if(_sb&&curUser){
