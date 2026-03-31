@@ -6380,24 +6380,32 @@ async function renderMyOffers(){
       .select('*')
       .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`)
       .order('created_at',{ascending:false});
-    if(data)offers=data.map(o=>({
-      id:o.id,
-      productId:o.product_id,
-      productTitle:o.product_title,
-      productImg:o.product_img||'',
-      productPrice:o.product_price||0,
-      unit:o.unit||'m',
-      offerPrice:o.offer_price,
-      msg:o.message,
-      buyerId:o.buyer_id,
-      buyerName:o.buyer_name,
-      buyerTel:o.buyer_tel||'',
-      buyerAddr:o.buyer_addr||'',
-      sellerId:o.seller_id,
-      sellerName:o.seller_name,
-      status:o.status,
-      createdAt:o.created_at
-    }));
+    if(data)offers=data.map(o=>{
+      const rawMsg=o.message||'';
+      const addrMatch=rawMsg.match(/\[addr:([^\]]*)\]/);
+      const imgMatch=rawMsg.match(/\[img:([^\]]*)\]/);
+      const ppriceMatch=rawMsg.match(/\[pprice:([^\]]*)\]/);
+      const unitMatch=rawMsg.match(/\[unit:([^\]]*)\]/);
+      const cleanMsg=rawMsg.replace(/\n?\[(addr|img|pprice|unit):[^\]]*\]/g,'').trim();
+      return {
+        id:o.id,
+        productId:o.product_id,
+        productTitle:o.product_title,
+        productImg:imgMatch?.[1]||o.product_img||'',
+        productPrice:ppriceMatch?parseInt(ppriceMatch[1]):o.product_price||0,
+        unit:unitMatch?.[1]||o.unit||'m',
+        offerPrice:o.offer_price,
+        msg:cleanMsg,
+        buyerId:o.buyer_id,
+        buyerName:o.buyer_name,
+        buyerTel:o.buyer_tel||'',
+        buyerAddr:addrMatch?.[1]||o.buyer_addr||'',
+        sellerId:o.seller_id,
+        sellerName:o.seller_name,
+        status:o.status,
+        createdAt:o.created_at
+      };
+    });
   } else {
     offers=lsGet('priceOffers',[]);
   }
@@ -6609,25 +6617,30 @@ async function renderMyReservations(){
       .select('*')
       .or(`buyer_id.eq.${myId},seller_id.eq.${myId},user_id.eq.${myId}`)
       .order('created_at',{ascending:false});
-    if(data)resvList=data.map(r=>({
-      id:r.id,
-      productId:r.product_id,
-      productTitle:r.product_title||'상품',
-      productImg:r.product_img,
-      buyerId:r.buyer_id||r.user_id,
-      buyerName:r.buyer_name||'구매자',
-      buyerTel:r.buyer_tel||'',
-      buyerAddr:r.buyer_addr||'',
-      sellerId:r.seller_id||'',
-      sellerName:r.seller_name||'판매자',
-      qty:r.qty||1,
-      unit:r.unit||'m',
-      message:r.message||r.note||'',
-      status:r.status||'pending',
-      createdAt:r.created_at,
-      date:r.date||'',
-      time:r.time||''
-    }));
+    if(data)resvList=data.map(r=>{
+      const rawMsg=r.message||r.note||'';
+      const addrMatch=rawMsg.match(/\[addr:([^\]]*)\]/);
+      const cleanMsg=rawMsg.replace(/\n?\[addr:[^\]]*\]/g,'').trim();
+      return {
+        id:r.id,
+        productId:r.product_id,
+        productTitle:r.product_title||'상품',
+        productImg:r.product_img,
+        buyerId:r.buyer_id||r.user_id,
+        buyerName:r.buyer_name||'구매자',
+        buyerTel:r.buyer_tel||'',
+        buyerAddr:addrMatch?.[1]||r.buyer_addr||'',
+        sellerId:r.seller_id||'',
+        sellerName:r.seller_name||'판매자',
+        qty:r.qty||1,
+        unit:r.unit||'m',
+        message:cleanMsg,
+        status:r.status||'pending',
+        createdAt:r.created_at,
+        date:r.date||'',
+        time:r.time||''
+      };
+    });
   } else {
     resvList=lsGet('reservationList',[]);
   }
@@ -6673,7 +6686,7 @@ async function renderMyReservations(){
           </div>
         </div>
         <div style="font-size:13px;color:#666;margin-bottom:4px">👤 ${isSeller?'구매자':'판매자'}: <b>${isSeller?r.buyerName:r.sellerName}</b></div>
-        ${isSeller&&r.status==='confirmed'&&r.buyerAddr?`<div style="font-size:12px;color:#888;margin-bottom:4px">📍 ${r.buyerAddr}</div>`:''}
+        ${isSeller&&r.buyerAddr?`<div style="font-size:12px;color:#888;margin-bottom:4px">📍 ${r.buyerAddr}</div>`:''}
         ${r.date?`<div style="font-size:13px;color:#666;margin-bottom:4px">📅 ${r.date} ${r.time||''}</div>`:''}
         ${r.message?`<div style="font-size:13px;color:#888;margin-bottom:6px;padding:8px 10px;background:#f8f8fa;border-radius:8px">"${r.message}"</div>`:''}
         <div style="font-size:11px;color:#bbb;margin-bottom:8px">${r.createdAt?new Date(r.createdAt).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</div>
@@ -6739,18 +6752,14 @@ async function submitSuggest(){
       id:sbOfferId,
       product_id:String(prod.id),
       product_title:prod.title,
-      product_img:prod.image_url||'',
-      product_price:prod.price||0,
-      unit:prod.unit||'m',
       buyer_id:curUser.id||curUser.email,
       buyer_name:curUser.name||curUser.email,
       buyer_tel:offerContactTel,
-      buyer_addr:offerContactAddr,
       seller_id:sellerId,
       seller_name:prod.seller?.name||'판매자',
       offer_price:price,
       status:'pending',
-      message:msg,
+      message:msg+(offerContactAddr?`\n[addr:${offerContactAddr}]`:'')+`\n[img:${prod.image_url||''}]\n[pprice:${prod.price||0}]\n[unit:${prod.unit||'m'}]`,
       created_at:new Date().toISOString(),
       updated_at:new Date().toISOString()
     });
@@ -6858,12 +6867,13 @@ async function submitReservation(){
       buyer_id:curUser.id||curUser.email,
       buyer_name:curUser.name||curUser.email,
       buyer_tel:contactTel,
-      buyer_addr:contactAddr,
       seller_id:sellerId,
       seller_name:prod.seller?.name||'판매자',
       qty:resQty,
       unit:prod.unit||'m',
-      message:note,
+      message:note+(contactAddr?`\n[addr:${contactAddr}]`:''),
+      date:date,
+      time:time,
       status:'pending',
       created_at:new Date().toISOString(),
       updated_at:new Date().toISOString()
