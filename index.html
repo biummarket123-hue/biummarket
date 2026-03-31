@@ -1263,6 +1263,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div class="pd-stats-inline" id="pd-stats-row"></div>
       <!-- 5. 가격 카드 -->
       <div class="pd-price-card" id="pd-price-card"></div>
+      <!-- 5-1. 단골 할인 배너 -->
+      <div id="pd-dangol-banner"></div>
       <!-- 6. 뱃지 행 (샘플/재고/급처) -->
       <div class="pd-badges2" id="pd-badges2"></div>
     </div>
@@ -5862,6 +5864,33 @@ function openDetail(id){
       (p.bulk_price&&p.moq?`<div style="margin-top:12px;background:#fffbeb;border:1px solid #f5c518;border-radius:12px;padding:14px 16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:#1a1a1a;font-weight:600">📦 ${p.moq}${unit}+ 대량가</span>${p.price&&p.bulk_price<p.price?`<span style="background:#e53935;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">-${Math.round((1-p.bulk_price/p.price)*100)}%</span>`:''}</div><div style="font-size:22px;font-weight:800;color:#c8962a">${fmtPrice(p.bulk_price)}<span style="font-size:13px;font-weight:400;color:#888">/${unit}</span></div></div>`:'')
   }
 
+  // 5-1. 단골 할인 배너 (비동기)
+  const dangolBannerEl=document.getElementById('pd-dangol-banner');
+  if(dangolBannerEl)dangolBannerEl.innerHTML='';
+  if(_sb&&curUser&&!isMyProduct(p,curUser)){
+    const sellerId=p.seller_id||(p.seller&&p.seller.id);
+    const buyerId=curUser.id||curUser.email||'';
+    if(sellerId&&buyerId){
+      (async()=>{
+        try{
+          const{data:frow}=await _sb.from('follows').select('id').eq('follower_id',buyerId).eq('seller_id',sellerId).maybeSingle();
+          if(!frow)return;
+          const{data:sp}=await _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle();
+          let disc=0;
+          try{disc=JSON.parse(sp?.extra_info||'{}').dangolDiscount||0;}catch(e){}
+          if(disc>0&&dangolBannerEl){
+            const discPrice=Math.round(p.price*(1-disc/100));
+            dangolBannerEl.innerHTML=`<div style="margin:0 16px 12px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border:1px solid #ffe0b2;border-radius:14px;padding:14px 16px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:15px">💝</span><span style="font-size:14px;font-weight:700;color:#e65100">단골 전용 혜택</span></div>
+              <div style="font-size:13px;color:#333;line-height:1.6">단골 할인 <b style="color:#e53935">${disc}%</b> 적용 시 → <b style="color:#e53935;font-size:15px">${discPrice.toLocaleString()}원/${p.unit||'m'}</b></div>
+              <div style="font-size:11px;color:#999;margin-top:4px">가격제안 시 할인가가 자동 적용돼요</div>
+            </div>`;
+          }
+        }catch(e){}
+      })();
+    }
+  }
+
   // 6. 뱃지 행
   const badges2=document.getElementById('pd-badges2');
   if(badges2){
@@ -6199,7 +6228,41 @@ slider.addEventListener('touchend',e=>{if(Math.abs(e.changedTouches[0].clientX-t
 /* ==================== MODALS ==================== */
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id,e){if(!e||e.target===document.getElementById(id)||!e)document.getElementById(id).classList.remove('open')}
-function openSuggestModal(){openModal('modal-suggest');if(curUser)setTimeout(()=>fillOfferContactMy(),100);}
+function openSuggestModal(){
+  openModal('modal-suggest');
+  if(curUser)setTimeout(()=>fillOfferContactMy(),100);
+  // 단골 할인가 자동 입력
+  const p=products.find(x=>x.id===curProductId);
+  if(_sb&&curUser&&p){
+    const sellerId=p.seller_id||(p.seller&&p.seller.id);
+    const buyerId=curUser.id||curUser.email||'';
+    if(sellerId&&buyerId){
+      (async()=>{
+        try{
+          const{data:frow}=await _sb.from('follows').select('id').eq('follower_id',buyerId).eq('seller_id',sellerId).maybeSingle();
+          if(!frow)return;
+          const{data:sp}=await _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle();
+          let disc=0;
+          try{disc=JSON.parse(sp?.extra_info||'{}').dangolDiscount||0;}catch(e){}
+          if(disc>0){
+            const discPrice=Math.round(p.price*(1-disc/100));
+            const priceEl=document.getElementById('suggest-price');
+            if(priceEl&&!priceEl.value)priceEl.value=discPrice;
+            // 안내 표시
+            let hint=document.getElementById('dangol-suggest-hint');
+            if(!hint){
+              hint=document.createElement('div');
+              hint.id='dangol-suggest-hint';
+              hint.style.cssText='margin-top:6px;padding:10px 12px;background:#fff8e1;border:1px solid #ffe0b2;border-radius:10px;font-size:12px;color:#e65100;line-height:1.5';
+              priceEl.parentElement.appendChild(hint);
+            }
+            hint.innerHTML=`💝 단골 ${disc}% 할인 적용: <b>${discPrice.toLocaleString()}원</b> (원가 ${p.price.toLocaleString()}원)`;
+          }
+        }catch(e){}
+      })();
+    }
+  }
+}
 function fillOfferContactMy(){
   if(!curUser){showToast('로그인이 필요해요');return;}
   const nameEl=document.getElementById('offer-contact-name');
@@ -8456,7 +8519,8 @@ async function renderChatRoom(roomId){
         senderId:m.sender_id,
         senderName:m.sender_name,
         text:m.text,
-        time:formatChatTime(new Date(m.created_at))
+        time:formatChatTime(new Date(m.created_at)),
+        isSystem:!!m.is_system
       }));
       room.messages=messages;
       lsSet('chatRooms',chatRooms);
@@ -8466,6 +8530,15 @@ async function renderChatRoom(roomId){
   const body=document.getElementById('cr-body');
   body.innerHTML=messages.map(m=>{
     const isMe=m.senderId&&curUser?(m.senderId===(curUser.id||curUser.email)):m.from==='me';
+    // 시스템 메시지 (단골 할인 안내 등)
+    if(m.isSystem||m.text?.includes('단골 고객님께 특별 혜택')){
+      return `<div style="display:flex;justify-content:center;padding:12px 16px">
+        <div style="background:linear-gradient(135deg,#fff8e1,#fff3e0);border:1px solid #ffe0b2;border-radius:14px;padding:14px 18px;max-width:85%;text-align:center">
+          <div style="font-size:13px;color:#e65100;font-weight:600;white-space:pre-wrap;line-height:1.7">${m.text}</div>
+          <div style="font-size:10px;color:#bbb;margin-top:6px">${m.time}</div>
+        </div>
+      </div>`;
+    }
     const isPriceOffer=m.text&&m.text.includes('💰 가격 제안');
     const isReservation=m.text&&m.text.includes('📅 예약 신청');
     const isAccepted=m.text&&(m.text.includes('✅ 가격제안을 수락') || m.text.includes('✅ 예약이 확정'));
