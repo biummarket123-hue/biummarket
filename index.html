@@ -7360,7 +7360,7 @@ async function renderDangolTab(tab){
           </div>
         </div>`).join('')}`;
   } else if(tab==='benefit'){
-    const settings=lsGet('dangolSettings',{discountRate:0,priorityView:false,autoNotify:true,urgentNotify:true});
+    const settings=lsGet('dangolSettings',{discountRate:0,autoNotify:true,urgentNotify:true});
     content.innerHTML=`
       <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;overflow:hidden;margin-bottom:14px">
         <div style="padding:16px;border-bottom:1px solid #f0f0f5">
@@ -7369,19 +7369,6 @@ async function renderDangolTab(tab){
           <div style="display:flex;align-items:center;gap:10px">
             <input type="range" id="dangol-discount" min="0" max="20" step="1" value="${settings.discountRate}" oninput="document.getElementById('dangol-discount-val').textContent=this.value+'%'" style="flex:1;accent-color:#ff6f00"/>
             <div id="dangol-discount-val" style="font-size:18px;font-weight:800;color:#ff6f00;min-width:40px;text-align:right">${settings.discountRate}%</div>
-          </div>
-        </div>
-        <div style="padding:16px;border-bottom:1px solid #f0f0f5">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:14px;font-weight:700;color:#1a1a1a">👀 신상품 먼저 보기</div>
-              <div style="font-size:12px;color:#888;margin-top:2px">단골에게 신상품을 우선 노출해요</div>
-            </div>
-            <label style="position:relative;width:48px;height:26px;cursor:pointer">
-              <input type="checkbox" id="dangol-priority" ${settings.priorityView?'checked':''} style="opacity:0;width:0;height:0"/>
-              <span style="position:absolute;inset:0;background:${settings.priorityView?'#ff6f00':'#ccc'};border-radius:13px;transition:.3s" onclick="this.style.background=this.previousElementSibling.checked?'#ccc':'#ff6f00'"></span>
-              <span style="position:absolute;top:3px;left:${settings.priorityView?'25px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)" onclick="this.style.left=this.parentElement.querySelector('input').checked?'3px':'25px'"></span>
-            </label>
           </div>
         </div>
         <div style="padding:16px;border-bottom:1px solid #f0f0f5">
@@ -7431,10 +7418,17 @@ async function renderDangolTab(tab){
 }
 function saveDangolSettings(){
   const discountRate=parseInt(document.getElementById('dangol-discount')?.value||'0');
-  const priorityView=document.getElementById('dangol-priority')?.checked||false;
   const autoNotify=document.getElementById('dangol-auto-notify')?.checked||false;
   const urgentNotify=document.getElementById('dangol-urgent-notify')?.checked||false;
-  lsSet('dangolSettings',{discountRate,priorityView,autoNotify,urgentNotify});
+  lsSet('dangolSettings',{discountRate,autoNotify,urgentNotify});
+  // Supabase에도 할인율 저장 (구매자가 조회할 수 있도록)
+  if(_sb&&curUser&&curUser.id){
+    const curExtra=JSON.parse(curUser.extra_info||'{}');
+    curExtra.dangolDiscount=discountRate;
+    _sb.from('users').update({extra_info:JSON.stringify(curExtra)}).eq('id',curUser.id).then();
+    curUser.extra_info=JSON.stringify(curExtra);
+    lsSet('curUser',curUser);
+  }
   showToast('단골 혜택 설정이 저장됐어요 ✅');
 }
 async function sendDangolMessage(){
@@ -8255,7 +8249,27 @@ async function openChatRoom(productId){
         unread_seller:1,
         unread_buyer:0
       });
-      // 채팅 알림은 배지로만 표시 (알림 내역에 쌓지 않음)
+      // 단골이면 할인 안내 메시지 자동 발송
+      try{
+        const{data:followRow}=await _sb.from('follows').select('id').eq('follower_id',buyerId).eq('seller_id',sellerId).maybeSingle();
+        if(followRow){
+          // 판매자의 할인율 조회
+          const{data:sellerProfile}=await _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle();
+          let discount=0;
+          try{discount=JSON.parse(sellerProfile?.extra_info||'{}').dangolDiscount||0;}catch(e){}
+          if(discount>0){
+            const autoMsg=`안녕하세요! 단골 고객님께 특별 혜택을 드려요 😊\n✅ 단골 전용 할인: ${discount}%\n💰 할인된 가격으로 구매를 원하시면 가격제안 버튼을 이용해주세요!\n궁금한 점은 편하게 채팅 주세요 🙌`;
+            await _sb.from('chat_messages').insert({
+              room_id:roomId,
+              sender_id:sellerId,
+              sender_name:p.seller?.name||'판매자',
+              text:autoMsg,
+              created_at:new Date().toISOString(),
+              is_system:true
+            });
+          }
+        }
+      }catch(e){console.error('단골 할인 안내 오류:',e);}
     } else {
       // 기존 채팅방 - 판매자 읽음 처리 안함, 구매자 unread 0으로
       await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
