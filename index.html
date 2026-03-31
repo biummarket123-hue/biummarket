@@ -8385,6 +8385,31 @@ async function openChatRoom(productId,fromDetail){
     } else {
       // 기존 채팅방 - 판매자 읽음 처리 안함, 구매자 unread 0으로
       await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
+      // 기존 채팅방이지만 단골 안내 메시지가 없으면 발송 (상세페이지에서만)
+      if(fromDetail){
+        try{
+          const{data:sysMsg}=await _sb.from('chat_messages').select('id').eq('room_id',roomId).eq('is_system',true).limit(1);
+          if(!sysMsg||!sysMsg.length){
+            const{data:followRow}=await _sb.from('follows').select('id').eq('follower_id',buyerId).eq('seller_id',sellerId).maybeSingle();
+            if(followRow){
+              const{data:sellerProfile}=await _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle();
+              let discount=0;
+              try{discount=JSON.parse(sellerProfile?.extra_info||'{}').dangolDiscount||0;}catch(e){}
+              if(discount>0){
+                const autoMsg=`안녕하세요! 단골 고객님께 특별 혜택을 드려요 😊\n✅ 단골 전용 할인: ${discount}%\n💰 할인된 가격으로 구매를 원하시면 가격제안 버튼을 이용해주세요!\n궁금한 점은 편하게 채팅 주세요 🙌`;
+                await _sb.from('chat_messages').insert({
+                  room_id:roomId,
+                  sender_id:sellerId,
+                  sender_name:p.seller?.name||'판매자',
+                  text:autoMsg,
+                  created_at:new Date().toISOString(),
+                  is_system:true
+                });
+              }
+            }
+          }
+        }catch(e){console.error('단골 할인 안내 오류:',e);}
+      }
     }
   }
 
