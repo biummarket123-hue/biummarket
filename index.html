@@ -12314,15 +12314,14 @@ function addNotif(icon,bg,title,desc,productId){
   if(dot)dot.style.display='block';
   playNotifSound('general');
 }
-// 알림 클릭 읽음 처리 (notifHistory 개별 항목)
-function markNotifRead(idx){
-  const items=lsGet('notifHistory',[]);
-  if(items[idx]){items[idx].clicked=true;lsSet('notifHistory',items);}
+// 알림 클릭 읽음 처리 (ts 기반으로 별도 저장)
+function markNotifClicked(ts){
+  const clicked=JSON.parse(localStorage.getItem('bium_notif_clicked')||'[]');
+  if(!clicked.includes(ts)){clicked.push(ts);localStorage.setItem('bium_notif_clicked',JSON.stringify(clicked.slice(-100)));}
 }
-// 알림 클릭 읽음 처리 (appNotifications 개별 항목)
-function markAppNotifRead(id){
-  const n=appNotifications.find(x=>x.id===id);
-  if(n){n.clicked=true;lsSet('appNotifications',appNotifications);}
+function isNotifClicked(ts){
+  const clicked=JSON.parse(localStorage.getItem('bium_notif_clicked')||'[]');
+  return clicked.includes(ts);
 }
 function updateNotifDot(){
   const items=lsGet('notifHistory',[]);
@@ -12549,7 +12548,7 @@ function renderNotifView(){
   };
   const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
-    return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data,id:n.id,clicked:!!n.clicked};
+    return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data,id:n.id};
   }):[];
   // 알림창 진입 시: 빨간점 끄기 + notifHistory 전체 읽음 + appNotifications 전체 읽음
   const dot=document.getElementById('notif-dot');
@@ -12557,8 +12556,7 @@ function renderNotifView(){
   items.forEach(it=>it.read=true);
   lsSet('notifHistory',items);
   if(userId)markAllAppNotificationsRead(userId);
-  // allItems에 원본 인덱스 보존 (개별 클릭 읽음용)
-  const allItems=[...items.map((it,i)=>({...it,_srcType:'local',_localIdx:i})),...myAppNotifs.map(it=>({...it,_srcType:'app'}))].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!allItems.length){
     el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
     return;
@@ -12588,32 +12586,20 @@ function renderNotifView(){
       '단골 소식':{bg:'#fff3e0',color:'#e65100'},
       '패브릭 스코어':{bg:'#fff9e6',color:'#f57f17'},
   };
-  el.innerHTML=allItems.map((item,fi)=>{
+  el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
-    const isClicked=!!item.clicked;
-    // 클릭 읽음 처리 (local + app)
-    let readAction='';
-    if(!isClicked){
-      if(item._srcType==='local'&&typeof item._localIdx==='number'){
-        readAction=`markNotifRead(${item._localIdx});`;
-      }
-      if(item._srcType==='app'&&item.id){
-        readAction+=`markAppNotifRead(${JSON.stringify(item.id).replace(/"/g,'&quot;')});`;
-      }
-    }
-    // 클릭 액션 결정
-    let clickAction=readAction;
+    const isClicked=isNotifClicked(item.ts);
+    // 클릭 시: ts 저장 + 해당 액션 실행
+    const markAction=`markNotifClicked(${item.ts});`;
+    let navAction='';
     if((item._type==='chat_new'||item._type==='chat_msg')&&item._data&&item._data.roomId){
-      clickAction+=`openChatRoomById('${item._data.roomId}')`;
+      navAction=`openChatRoomById('${item._data.roomId}')`;
     }else if(item._action){
-      clickAction+=item._action;
+      navAction=item._action;
     }else if(item.productId){
-      clickAction+=`openDetail(${item.productId})`;
+      navAction=`openDetail(${item.productId})`;
     }
-    // 액션 없으면 읽음 처리만 하고 리렌더
-    if(!clickAction.replace(readAction,'').trim()){
-      clickAction=readAction+`renderNotifView();`;
-    }
+    const clickAction=navAction?markAction+navAction:markAction+`renderNotifView();`;
     const bgColor=isClicked?'#fff':'#f0edff';
     const opacity=isClicked?'0.7':'1';
     return `<div style="padding:16px;border-bottom:1px solid #e0e0ea;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s;background:${bgColor};opacity:${opacity}" onclick="${clickAction}" onmouseenter="this.style.filter='brightness(0.97)'" onmouseleave="this.style.filter=''">
