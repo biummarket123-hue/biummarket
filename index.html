@@ -6980,10 +6980,10 @@ async function acceptReservation(resvId){
       room_id:roomId,
       sender_id:curUser.id||curUser.email,
       sender_name:curUser.name||'판매자',
-      text:`✅ 예약이 확정됐어요! 거래를 진행해주세요.`,
+      text:`✅ 예약이 확정됐어요! 거래가 완료되었습니다.\n\n거래는 어떠셨나요? 판매자에게 후기를 남겨주세요! 😊\n[review_link:${curUser.id||curUser.email}:${curUser.name||'판매자'}]`,
       created_at:new Date().toISOString()
     });
-    await _sb.from('chat_rooms').update({last_msg:'✅ 예약 확정',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
+    await _sb.from('chat_rooms').update({last_msg:'✅ 예약 확정 · 거래 완료',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
   }
   const resvList=lsGet('reservationList',[]);
   const idx=resvList.findIndex(r=>r.id===resvId);
@@ -8776,9 +8776,13 @@ async function renderChatRoom(roomId){
     } else if(isAccepted){
       // 수락 메시지에서 상품ID/가격 파싱
       const _oaMatch=m.text.match(/\[offer_accepted:(\d+):(\d+):([^\]]+)\]/);
+      // 후기 링크 파싱
+      const _rvMatch=m.text.match(/\[review_link:([^:]+):([^\]]+)\]/);
       if(_oaMatch&&!isMe){
-        // 구매자에게만 예약 버튼 표시
         actionBtn=`<button onclick="openResFromOffer(${_oaMatch[1]},${_oaMatch[2]},'${_oaMatch[3]}')" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">📅 이 가격으로 예약하기 (${parseInt(_oaMatch[2]).toLocaleString()}원/${_oaMatch[3]})</button>`;
+      } else if(_rvMatch&&!isMe){
+        // 구매자에게 후기 작성 버튼
+        actionBtn=`<button onclick="openSellerById('${_rvMatch[1]}');setTimeout(()=>{const t=document.querySelectorAll('#sh-tabs .seller-tab');t.forEach(x=>{if(x.textContent.includes('후기'))x.click();});},500)" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ ${_rvMatch[2]}님에게 후기 작성하기</button>`;
       } else {
         actionBtn=`<button onclick="showView('my-reservations');renderMyReservations()" style="margin-top:6px;width:100%;padding:8px;background:rgba(16,185,129,.1);border:1px solid #10b981;border-radius:8px;color:#10b981;font-size:12px;font-weight:700;cursor:pointer">✅ 거래 내역 확인하기 →</button>`;
       }
@@ -8788,7 +8792,7 @@ async function renderChatRoom(roomId){
     return `<div class="msg-row ${isMe?'me':'other'}">
       ${!isMe?`<div class="msg-av" style="background:${room.bgColor||'#6c63ff'}">${(room.sellerName||'?')[0]}</div>`:''}
       <div class="msg-col">
-        <div class="msg-bubble" style="white-space:pre-wrap">${m.text.replace(/\n?\[offer_accepted:[^\]]*\]/g,'')}</div>
+        <div class="msg-bubble" style="white-space:pre-wrap">${m.text.replace(/\n?\[(offer_accepted|review_link):[^\]]*\]/g,'').trim()}</div>
         ${actionBtn}
         <div class="msg-time">${m.time}</div>
       </div>
@@ -13141,10 +13145,27 @@ function switchBizStatsTab(tab,el){
   if(el){el.style.borderBottomColor='#6c63ff';el.style.color='#6c63ff';}
   renderBizStats(tab);
 }
+let _cachedBizOffers=null,_cachedBizResvs=null;
+async function _loadBizStatsFromSB(){
+  if(!_sb||!curUser)return;
+  const myId=curUser.id||curUser.email||'';
+  const{data:oData}=await _sb.from('price_offers').select('*').eq('seller_id',myId).order('created_at',{ascending:false});
+  if(oData)_cachedBizOffers=oData.map(o=>{const rawMsg=o.message||'';const pp=rawMsg.match(/\[pprice:([^\]]*)\]/);return{id:o.id,productId:o.product_id,productTitle:o.product_title,offerPrice:o.offer_price,price:o.offer_price,sellerId:o.seller_id,buyerId:o.buyer_id,status:o.status,createdAt:o.created_at,date:o.created_at};});
+  const{data:rData}=await _sb.from('reservations').select('*').eq('seller_id',myId).order('created_at',{ascending:false});
+  if(rData){
+    _cachedBizResvs=rData.map(r=>{
+      const prod=products.find(x=>String(x.id)===String(r.product_id));
+      const unitPrice=prod?.price||0;
+      return{id:r.id,productId:r.product_id,productTitle:r.product_title,sellerId:r.seller_id,buyerId:r.buyer_id,qty:r.qty||0,unit:r.unit||'m',price:unitPrice*(r.qty||0),status:r.status,createdAt:r.created_at,date:r.created_at};
+    });
+  }
+}
 function _getBizStatsData(){
   const myProds=curUser?products.filter(p=>isMyProduct(p,curUser)):[];
-  const offers=lsGet('priceOffers',[]).filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name);
-  const resvs=lsGet('reservationList',[]).filter(r=>r.sellerId===curUser?.id||r.sellerName===curUser?.name);
+  const localOffers=lsGet('priceOffers',[]).filter(o=>o.sellerId===curUser?.id||o.sellerName===curUser?.name);
+  const localResvs=lsGet('reservationList',[]).filter(r=>r.sellerId===curUser?.id||r.sellerName===curUser?.name);
+  const offers=_cachedBizOffers||localOffers;
+  const resvs=_cachedBizResvs||localResvs;
   const now=new Date();
   const thisMonth=now.getMonth();
   const thisYear=now.getFullYear();
@@ -13176,9 +13197,10 @@ function _pctChange(cur,prev){
   return pct>0?`<span style="color:#00b386">↑${pct}%</span>`:pct<0?`<span style="color:#e53935">↓${Math.abs(pct)}%</span>`:'<span style="color:#888">—</span>';
 }
 function _fmtAmt(n){return n>=10000?(n/10000).toFixed(1)+'만':n>=1000?(n/1000).toFixed(0)+'천':n.toLocaleString();}
-function renderBizStats(tab){
+async function renderBizStats(tab){
   const ct=document.getElementById('biz-stats-content');
   if(!ct)return;
+  if(!_cachedBizOffers)await _loadBizStatsFromSB();
   const d=_getBizStatsData();
 
   if(tab==='overview'){
