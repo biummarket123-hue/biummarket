@@ -6956,6 +6956,8 @@ async function switchSellerTab(tab,el){
     const blog=isMySelf?(curUser.profile?.blog||''):(seller.profile?.blog||userInfo.profile?.blog||extra.blog||'');
     const address=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
 
+    // 본인 여부 판별 (전화번호 노출 제어용)
+    const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
     // 기본 정보 rows
     const rows=[];
     if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">🕐</span><div style="font-size:var(--fs-md);color:#1a1a1a">${hours}</div></div>`);
@@ -6979,7 +6981,6 @@ async function switchSellerTab(tab,el){
     const pendingOffers=myOffers.filter(o=>o.status==='pending').length;
     const pendingResvs=myResvs.filter(r=>r.status==='pending').length;
     const totalLikes=myProds.reduce((a,p)=>a+(p.likes||0),0);
-    const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
 
     content.innerHTML=`
       <!-- 통계 카드 (본인일 때만 표시) -->
