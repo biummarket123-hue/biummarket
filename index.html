@@ -6959,7 +6959,15 @@ async function switchSellerTab(tab,el){
     // 기본 정보 rows
     const rows=[];
     if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">🕐</span><div style="font-size:var(--fs-md);color:#1a1a1a">${hours}</div></div>`);
-    if(tel)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📞</span><div style="font-size:var(--fs-md);color:#1565c0;font-weight:600;cursor:pointer" onclick="callSeller()">${tel}</div><button onclick="navigator.clipboard.writeText('${tel}');showToast('복사됐어요')" style="margin-left:8px;background:#f0f0f5;border:none;border-radius:6px;padding:4px 8px;font-size:var(--fs-sm);cursor:pointer">복사</button></div>`);
+    if(tel){
+      if(isMine){
+        // 본인 프로필: 번호 표시
+        rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📞</span><div style="font-size:var(--fs-md);color:#1565c0;font-weight:600">${tel}</div></div>`);
+      }else{
+        // 다른 사람: 번호 숨기고 전화 연결 버튼만
+        rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📞</span><button onclick="callSeller()" style="padding:8px 16px;background:#1565c0;color:#fff;border:none;border-radius:10px;font-size:var(--fs-md);font-weight:600;cursor:pointer">📞 전화 문의하기</button></div>`);
+      }
+    }
     if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="5" stroke="#E1306C" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="#E1306C"/></svg></span><div style="font-size:var(--fs-md);color:#E1306C;font-weight:600">${insta}</div></div>`);
     if(blog)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#03C75A" stroke-width="2" rx="2"/><path d="M8 8h3v8H8V8zm5 3.5L15.5 16H13v-4.5zM15.5 8H13v3l2.5-3z" fill="#03C75A"/></svg></span><div style="font-size:var(--fs-md);color:#03C75A;font-weight:600">${blog}</div></div>`);
     if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📍</span><div style="font-size:var(--fs-md);color:#6c63ff;font-weight:600">${address}</div></div>`);
