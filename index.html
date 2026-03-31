@@ -12325,6 +12325,12 @@ function markNotifRead(idx){
   if(items[idx]){items[idx].read=true;lsSet('notifHistory',items);}
   updateNotifDot();
 }
+// 알림 읽음 처리 (appNotifications 개별 항목)
+function markAppNotifRead(id){
+  const n=appNotifications.find(x=>x.id===id);
+  if(n){n.read=true;lsSet('appNotifications',appNotifications);}
+  updateNotifDot();
+}
 // 전체/안읽음 탭 전환
 let _notifTabFilter='all';
 function switchNotifTab(tab,el){
@@ -12606,13 +12612,14 @@ function renderNotifView(){
   el.innerHTML=filtered.map((item,fi)=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
     const isRead=!!item.read;
-    // 읽음 처리 JS (클릭 시)
+    // 읽음 처리 (local + app 모두)
     let readAction='';
     if(!isRead){
       if(item._srcType==='local'&&typeof item._localIdx==='number'){
         readAction=`markNotifRead(${item._localIdx});`;
-      } else if(item._srcType==='app'){
-        readAction='';
+      }
+      if(item._srcType==='app'&&item.id){
+        readAction+=`markAppNotifRead(${JSON.stringify(item.id).replace(/"/g,'&quot;')});`;
       }
     }
     // 클릭 액션 결정
@@ -12623,8 +12630,10 @@ function renderNotifView(){
       clickAction+=item._action;
     }else if(item.productId){
       clickAction+=`openDetail(${item.productId})`;
-    }else{
-      clickAction+=`markNotifRead(${item._localIdx});renderNotifView();`;
+    }
+    // 액션 없으면 읽음 처리만 하고 리렌더
+    if(!clickAction.replace(readAction,'').trim()){
+      clickAction=readAction+`renderNotifView();`;
     }
     const bgColor=isRead?'#fff':'#f0edff';
     const opacity=isRead?'0.7':'1';
