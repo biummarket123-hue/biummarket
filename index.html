@@ -6482,7 +6482,23 @@ function reOffer(offerId){
   showToast('재제안을 보냈어요! 💰');
   renderMyOffers();
 }
-function openResModal(){
+// 가격제안 수락 후 채팅에서 예약하기
+let _offerAcceptedPrice=0;
+function openResFromOffer(productId,price,unit){
+  _offerAcceptedPrice=price;
+  curProductId=productId;
+  openResModal(true);
+  // 가격 안내 표시
+  setTimeout(()=>{
+    const calcEl=document.getElementById('res-price-calc');
+    const detailEl=document.getElementById('res-price-detail');
+    const totalEl=document.getElementById('res-price-total');
+    const hintEl=document.getElementById('res-qty-hint');
+    if(hintEl)hintEl.innerHTML=`💰 수락된 가격: <b style="color:#10b981">${price.toLocaleString()}원/${unit}</b>으로 예약됩니다`;
+  },150);
+}
+function openResModal(fromOffer){
+  if(!fromOffer)_offerAcceptedPrice=0;
   openModal('modal-res');
   if(curUser)setTimeout(()=>fillResContactMy(),100);
   // 수량/가격 초기화
@@ -6528,6 +6544,14 @@ function calcResPrice(){
     if(calcEl)calcEl.style.display='block';
     if(detailEl)detailEl.innerHTML=`<span style="color:#e53935">⚠️ 최소 주문 수량은 ${minQty}${unit}입니다</span>`;
     if(totalEl)totalEl.textContent='';
+    return;
+  }
+  // 수락된 가격이 있으면 우선 적용
+  if(_offerAcceptedPrice>0){
+    const total=Math.round(qty*_offerAcceptedPrice);
+    if(calcEl)calcEl.style.display='block';
+    if(detailEl)detailEl.innerHTML=`${qty}${unit} × ${_offerAcceptedPrice.toLocaleString()}원/${unit} <span style="color:#10b981;font-weight:700">(수락 가격)</span>`;
+    if(totalEl)totalEl.textContent=`총 ${total.toLocaleString()}원`;
     return;
   }
   // 대량가 적용 여부
@@ -6859,7 +6883,7 @@ async function acceptOffer(offerId){
       room_id:roomId,
       sender_id:curUser.id||curUser.email,
       sender_name:curUser.name||'판매자',
-      text:`✅ 가격제안을 수락했어요! ${offer.offer_price.toLocaleString()}원/m으로 거래를 진행해주세요.`,
+      text:`✅ 가격제안을 수락했어요! ${offer.offer_price.toLocaleString()}원/${offer.unit||'m'}으로 거래를 진행해주세요.\n[offer_accepted:${offer.product_id}:${offer.offer_price}:${offer.unit||'m'}]`,
       created_at:new Date().toISOString()
     });
     await _sb.from('chat_rooms').update({last_msg:'✅ 가격제안 수락',last_time:new Date().toISOString(),unread_buyer:1}).eq('id',roomId);
@@ -8701,14 +8725,21 @@ async function renderChatRoom(roomId){
     } else if(isReservation){
       actionBtn=`<button onclick="showView('my-reservations');renderMyReservations()" style="margin-top:6px;width:100%;padding:8px;background:rgba(108,99,255,.1);border:1px solid #6c63ff;border-radius:8px;color:#6c63ff;font-size:12px;font-weight:700;cursor:pointer">📅 예약 내역 보기 →</button>`;
     } else if(isAccepted){
-      actionBtn=`<button onclick="showView('my-reservations');renderMyReservations()" style="margin-top:6px;width:100%;padding:8px;background:rgba(16,185,129,.1);border:1px solid #10b981;border-radius:8px;color:#10b981;font-size:12px;font-weight:700;cursor:pointer">✅ 거래 내역 확인하기 →</button>`;
+      // 수락 메시지에서 상품ID/가격 파싱
+      const _oaMatch=m.text.match(/\[offer_accepted:(\d+):(\d+):([^\]]+)\]/);
+      if(_oaMatch&&!isMe){
+        // 구매자에게만 예약 버튼 표시
+        actionBtn=`<button onclick="openResFromOffer(${_oaMatch[1]},${_oaMatch[2]},'${_oaMatch[3]}')" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">📅 이 가격으로 예약하기 (${parseInt(_oaMatch[2]).toLocaleString()}원/${_oaMatch[3]})</button>`;
+      } else {
+        actionBtn=`<button onclick="showView('my-reservations');renderMyReservations()" style="margin-top:6px;width:100%;padding:8px;background:rgba(16,185,129,.1);border:1px solid #10b981;border-radius:8px;color:#10b981;font-size:12px;font-weight:700;cursor:pointer">✅ 거래 내역 확인하기 →</button>`;
+      }
     } else if(isRejected){
       actionBtn=`<button onclick="showView('my-offers');renderMyOffers()" style="margin-top:6px;width:100%;padding:8px;background:rgba(239,68,68,.1);border:1px solid #ef4444;border-radius:8px;color:#ef4444;font-size:12px;font-weight:700;cursor:pointer">❌ 내역 확인하기 →</button>`;
     }
     return `<div class="msg-row ${isMe?'me':'other'}">
       ${!isMe?`<div class="msg-av" style="background:${room.bgColor||'#6c63ff'}">${(room.sellerName||'?')[0]}</div>`:''}
       <div class="msg-col">
-        <div class="msg-bubble" style="white-space:pre-wrap">${m.text}</div>
+        <div class="msg-bubble" style="white-space:pre-wrap">${m.text.replace(/\n?\[offer_accepted:[^\]]*\]/g,'')}</div>
         ${actionBtn}
         <div class="msg-time">${m.time}</div>
       </div>
