@@ -3442,6 +3442,32 @@ function getTexture(type){
   return m[type]||'none';
 }
 function fmtPrice(n){return n.toLocaleString('ko-KR')+'원'}
+// 2열 그리드용 상품 카드 (홈화면 카드와 동일 정보 표시)
+function gridCardHtml(s){
+  const _f=n=>n?.toLocaleString('ko-KR')||'0';
+  const u=s.unit||'m';
+  const priceStr=s.bulk_price&&s.price?_f(s.bulk_price)+'~'+_f(s.price)+'<span style="font-size:var(--fs-xs);font-weight:400">원/'+u+'</span>':_f(s.price)+'<span style="font-size:var(--fs-xs);font-weight:400">원/'+u+'</span>';
+  const stype=s.seller?.type||s.sellerType||'';
+  const isBizSeller=stype==='business'||stype==='both'||stype==='seller';
+  const isSoldout=(s.qty||0)<=0;
+  return `<div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
+    <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
+      ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
+      ${isSoldout?'<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">재고소진</div>':s.is_urgent?'<div style="position:absolute;top:6px;left:6px;background:#ff5722;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</div>':''}
+      ${isBizSeller?'<div style="position:absolute;top:6px;right:6px;background:rgba(21,101,194,.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">🏢 인증업체</div>':''}
+      <span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px">${s.type||''}</span>
+    </div>
+    <div style="padding:8px">
+      <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:3px">${s.title||''}</div>
+      <div style="font-size:var(--fs-xs);color:#888;margin-bottom:3px">${s.color||''} · ${s.width||''}cm · ${s.qty||0}m</div>
+      <div style="font-size:var(--fs-sm);color:#e53935;font-weight:700;margin-bottom:3px">${priceStr}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-xs);color:#999">
+        <span>${s.loc?'📍'+s.loc.split(' ').slice(-1)[0]:''}</span>
+        <span>🤍${s.likes||0} 💬${s.chats||0}</span>
+      </div>
+    </div>
+  </div>`;
+}
 
 /* ==================== LOCAL STORAGE ==================== */
 // 계정별로 분리해야 하는 키 목록
@@ -5900,16 +5926,7 @@ function openDetail(id){
   if(simSection&&simScroll){
     const similar=products.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,20);
     if(similar.length){
-      simScroll.innerHTML=similar.map(s=>`
-        <div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
-          <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
-            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
-          </div>
-          <div style="padding:8px">
-            <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${s.title||''}</div>
-            <div style="font-size:var(--fs-xs);color:#e53935;font-weight:700">${fmtPrice(s.price)}/${s.unit||'m'}</div>
-          </div>
-        </div>`).join('');
+      simScroll.innerHTML=similar.map(s=>gridCardHtml(s)).join('');
       simSection.style.display='';
       // 더보기 버튼 (중복 방지)
       const existSimMore=simSection.querySelector('.sim-more-btn');
@@ -5929,16 +5946,7 @@ function openDetail(id){
     const sellerId=p.seller_id||(p.seller&&p.seller.id);
     const sellerProds=products.filter(x=>x.id!==p.id&&(x.seller_id===sellerId||(x.seller&&x.seller.id===sellerId))).slice(0,4);
     if(sellerProds.length){
-      sellerScroll.innerHTML=sellerProds.map(s=>`
-        <div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
-          <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
-            ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
-          </div>
-          <div style="padding:8px">
-            <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${s.title||''}</div>
-            <div style="font-size:var(--fs-xs);color:#e53935;font-weight:700">${fmtPrice(s.price)}/${s.unit||'m'}</div>
-          </div>
-        </div>`).join('');
+      sellerScroll.innerHTML=sellerProds.map(s=>gridCardHtml(s)).join('');
       sellerSection.style.display='';
       // 판매자 더보기 버튼 (중복 방지)
       const existSellerMore=sellerSection.querySelector('.seller-more-btn');
@@ -6781,16 +6789,7 @@ async function switchSellerTab(tab,el){
             ${myProdsCount>4?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#6c63ff;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${myProds.slice(0,4).map(p=>`
-            <div onclick="openDetail(${p.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
-              <div style="width:100%;aspect-ratio:1;background:#f0f0f5;position:relative;overflow:hidden">
-                ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🧵</div>'}
-              </div>
-              <div style="padding:8px">
-                <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${p.title||''}</div>
-                <div style="font-size:var(--fs-xs);color:#6c63ff;font-weight:700">${(p.price||0).toLocaleString()}원/${p.unit||'m'}</div>
-              </div>
-            </div>`).join('')}
+          ${myProds.slice(0,4).map(p=>gridCardHtml(p)).join('')}
           </div>
           ${!myProdsCount?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
         </div>
@@ -6883,16 +6882,7 @@ async function switchSellerTab(tab,el){
           ${myProds.length>4?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:var(--fs-base);color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${myProds.slice(0,4).map(p=>`
-          <div onclick="openDetail(${p.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
-            <div style="width:100%;aspect-ratio:1;background:#f0f0f5;position:relative;overflow:hidden">
-              ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🧵</div>'}
-            </div>
-            <div style="padding:8px">
-              <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${p.title||''}</div>
-              <div style="font-size:var(--fs-xs);color:#ff6f00;font-weight:700">${(p.price||0).toLocaleString()}원/${p.unit||'m'}</div>
-            </div>
-          </div>`).join('')}
+        ${myProds.slice(0,4).map(p=>gridCardHtml(p)).join('')}
         </div>
         ${!myProds.length?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
       </div>
@@ -7011,16 +7001,7 @@ async function switchSellerTab(tab,el){
           </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">아직 후기가 없어요</div>'}</div>
       `;
     } else if(tab==='products'){
-    content.innerHTML=`<div style="padding:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${myProds.length?myProds.map(p=>`
-      <div onclick="openDetail(${p.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
-        <div style="width:100%;aspect-ratio:1;background:#f0f0f5;position:relative;overflow:hidden">
-          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🧵</div>'}
-        </div>
-        <div style="padding:8px">
-          <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:4px">${p.title||''}</div>
-          <div style="font-size:var(--fs-xs);color:#ff6f00;font-weight:700">${(p.price||0).toLocaleString()}원/${p.unit||'m'}</div>
-        </div>
-      </div>`).join(''):'<div style="grid-column:span 2;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div></div>`;
+    content.innerHTML=`<div style="padding:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${myProds.length?myProds.map(p=>gridCardHtml(p)).join(''):'<div style="grid-column:span 2;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div></div>`;
   } else if(tab==='photos'){
     const photos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
     content.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px">${photos.length?photos.map(src=>`<img src="${src}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openBizfileViewer(this.src)"/>`).join(''):'<div style="grid-column:span 3;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 사진이 없어요</div>'}</div>`;
