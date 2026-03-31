@@ -8444,6 +8444,12 @@ function addViewLog(id){
   log.unshift({id,date:mo});
   if(log.length>300)log.length=300;
   lsSet('viewLog',log);
+  // 상품 조회수 증가
+  const p=products.find(x=>x.id===id);
+  if(p){
+    p.views=(p.views||0)+1;
+    if(_sb)_sb.from('products').update({views:p.views}).eq('id',id).then();
+  }
 }
 function removeRecentSearch(q){
   recentSearches=recentSearches.filter(s=>s!==q);
@@ -8554,6 +8560,9 @@ async function openChatRoom(productId,fromDetail){
         unread_seller:1,
         unread_buyer:0
       });
+      // 상품 채팅수 증가
+      p.chats=(p.chats||0)+1;
+      _sb.from('products').update({chats:p.chats}).eq('id',productId).then();
       // 단골이면 할인 안내 메시지 자동 발송 (상세페이지 채팅 버튼에서만)
       if(fromDetail) await _sendDangolChatHint(roomId,buyerId,sellerId,p);
     } else {
