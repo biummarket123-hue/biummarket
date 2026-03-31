@@ -12717,24 +12717,13 @@ function addNotif(icon,bg,title,desc,productId){
   playNotifSound('general');
 }
 // 알림 클릭 읽음 처리 (ts 기반으로 별도 저장)
-function markNotifClicked(ts){
-  try{
-    const clicked=JSON.parse(localStorage.getItem('bium_notif_clicked')||'[]');
-    if(!clicked.includes(ts)){
-      const trimmed=clicked.slice(-50);
-      trimmed.push(ts);
-      localStorage.setItem('bium_notif_clicked',JSON.stringify(trimmed));
-    }
-  }catch(e){
-    // 용량 초과 시 기존 데이터 정리 후 재시도
-    try{localStorage.setItem('bium_notif_clicked',JSON.stringify([ts]));}catch(e2){}
-  }
-}
+// 알림 읽음: 알림창 열었던 시점(lastNotifOpen)보다 이전 알림은 읽음, 개별 클릭은 ts를 세션 메모리에 저장
+let _notifClickedSet=new Set();
+function markNotifClicked(ts){_notifClickedSet.add(ts);}
 function isNotifClicked(ts){
-  try{
-    const clicked=JSON.parse(localStorage.getItem('bium_notif_clicked')||'[]');
-    return clicked.includes(ts);
-  }catch(e){return false;}
+  // 세션에서 클릭한 것이거나, 마지막 알림창 오픈 시점 이전 알림이면 읽음
+  if(_notifClickedSet.has(ts))return true;
+  try{const t=parseInt(localStorage.getItem('bium_lastNotifOpen')||'0');return ts<=t;}catch(e){return false;}
 }
 function updateNotifDot(){
   const items=lsGet('notifHistory',[]);
@@ -12963,11 +12952,13 @@ function renderNotifView(){
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
     return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data,id:n.id};
   }):[];
-  // 알림창 진입 시: 빨간점 끄기 + notifHistory 전체 읽음 + appNotifications 전체 읽음
+  // 알림창 진입 시: 빨간점 끄기 + 전체 읽음 처리
   const dot=document.getElementById('notif-dot');
   if(dot)dot.style.display='none';
   items.forEach(it=>it.read=true);
   lsSet('notifHistory',items);
+  // 알림창 오픈 시점 기록 + 기존 용량 큰 데이터 정리
+  try{localStorage.removeItem('bium_notif_clicked');localStorage.setItem('bium_lastNotifOpen',String(Date.now()));}catch(e){}
   if(userId)markAllAppNotificationsRead(userId);
   const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!allItems.length){
