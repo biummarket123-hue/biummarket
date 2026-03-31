@@ -2895,6 +2895,20 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           </select>
         </div>
       </div>
+      <!-- 수량 입력 -->
+      <div class="fg">
+        <label>주문 수량</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" class="fi" id="res-qty" placeholder="수량 입력" min="1" oninput="calcResPrice()" style="flex:1"/>
+          <span id="res-unit-label" style="font-size:14px;font-weight:600;color:#666;min-width:20px">m</span>
+        </div>
+        <div id="res-qty-hint" style="font-size:12px;color:#888;margin-top:4px"></div>
+      </div>
+      <!-- 자동 가격 계산 -->
+      <div id="res-price-calc" style="display:none;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:12px 14px;margin-bottom:12px">
+        <div id="res-price-detail" style="font-size:13px;color:#333;line-height:1.6"></div>
+        <div id="res-price-total" style="font-size:18px;font-weight:800;color:#6c63ff;margin-top:6px"></div>
+      </div>
       <div class="fg">
         <label>메모 · 요청 사항</label>
         <textarea class="fi" id="res-note" placeholder="특이사항이 있으면 입력해주세요" style="min-height:72px"></textarea>
@@ -6467,7 +6481,60 @@ function reOffer(offerId){
   showToast('재제안을 보냈어요! 💰');
   renderMyOffers();
 }
-function openResModal(){openModal('modal-res');if(curUser)setTimeout(()=>fillResContactMy(),100);}
+function openResModal(){
+  openModal('modal-res');
+  if(curUser)setTimeout(()=>fillResContactMy(),100);
+  // 수량/가격 초기화
+  const p=products.find(x=>x.id===curProductId);
+  const qtyEl=document.getElementById('res-qty');
+  const unitLabel=document.getElementById('res-unit-label');
+  const hintEl=document.getElementById('res-qty-hint');
+  const calcEl=document.getElementById('res-price-calc');
+  if(qtyEl)qtyEl.value='';
+  if(calcEl)calcEl.style.display='none';
+  if(p){
+    const unit=p.unit||'m';
+    if(unitLabel)unitLabel.textContent=unit;
+    const moq=p.moq||0;
+    if(hintEl){
+      let hint='';
+      if(moq)hint+=`최소 주문: ${moq}${unit}`;
+      if(p.bulk_price&&p.bulk_price<p.price)hint+=hint?` · 대량가(${moq}${unit}+): ${p.bulk_price.toLocaleString()}원/${unit}`:`대량가: ${p.bulk_price.toLocaleString()}원/${unit}`;
+      hintEl.textContent=hint;
+    }
+    if(moq&&qtyEl){qtyEl.min=moq;qtyEl.placeholder=`최소 ${moq}${unit} 이상`;}
+    else if(qtyEl){qtyEl.min=1;qtyEl.placeholder='수량 입력';}
+  }
+}
+function calcResPrice(){
+  const p=products.find(x=>x.id===curProductId);if(!p)return;
+  const qtyEl=document.getElementById('res-qty');
+  const calcEl=document.getElementById('res-price-calc');
+  const detailEl=document.getElementById('res-price-detail');
+  const totalEl=document.getElementById('res-price-total');
+  const qty=parseFloat(qtyEl?.value)||0;
+  const unit=p.unit||'m';
+  const moq=p.moq||0;
+  if(!qty||qty<=0){if(calcEl)calcEl.style.display='none';return;}
+  // 최소수량 체크
+  if(moq&&qty<moq){
+    if(calcEl)calcEl.style.display='block';
+    if(detailEl)detailEl.innerHTML=`<span style="color:#e53935">⚠️ 최소 주문 수량은 ${moq}${unit}입니다</span>`;
+    if(totalEl)totalEl.textContent='';
+    return;
+  }
+  // 대량가 적용 여부
+  const isBulk=p.bulk_price&&p.bulk_price<p.price&&moq&&qty>=moq;
+  const unitPrice=isBulk?p.bulk_price:p.price;
+  const total=Math.round(qty*unitPrice);
+  if(calcEl)calcEl.style.display='block';
+  if(detailEl){
+    let html=`${qty}${unit} × ${unitPrice.toLocaleString()}원/${unit}`;
+    if(isBulk)html+=` <span style="color:#ff6f00;font-weight:700">(대량가 적용)</span>`;
+    detailEl.innerHTML=html;
+  }
+  if(totalEl)totalEl.textContent=`총 ${total.toLocaleString()}원`;
+}
 
 let curResvFilter='all';
 function setResvFilter(filter){
@@ -6697,9 +6764,13 @@ async function submitReservation(){
   const date=document.getElementById('res-date').value;
   const time=document.getElementById('res-time').value;
   const note=document.getElementById('res-note').value.trim();
+  const resQty=parseFloat(document.getElementById('res-qty')?.value)||0;
   if(!date){showToast('희망 날짜를 선택해주세요');return;}
+  if(!resQty||resQty<=0){showToast('주문 수량을 입력해주세요');return;}
   if(!curUser){showToast('로그인이 필요해요');return;}
   const prod=products.find(x=>x.id===curProductId);if(!prod)return;
+  const moq=prod.moq||0;
+  if(moq&&resQty<moq){showToast(`최소 주문 수량은 ${moq}${prod.unit||'m'}입니다`);return;}
   const contactName=document.getElementById('res-contact-name')?.value.trim()||curUser.name||'';
   const contactTel=document.getElementById('res-contact-tel')?.value.trim()||curUser.tel||'';
   const contactAddr=document.getElementById('res-contact-addr')?.value.trim()||curUser.loc||'';
@@ -6719,7 +6790,7 @@ async function submitReservation(){
       buyer_tel:contactTel,
       seller_id:sellerId,
       seller_name:prod.seller?.name||'판매자',
-      qty:prod.moq||1,
+      qty:resQty,
       unit:prod.unit||'m',
       message:note,
       status:'pending',
@@ -6728,7 +6799,7 @@ async function submitReservation(){
     });
     if(error)console.error('예약 저장 오류:',error);
     // 판매자 알림
-    await sendNotification(sellerId,'reservation_new','📅 새 예약 신청이 왔어요',`${curUser.name||'구매자'}님이 "${prod.title}" 상품 ${date} ${time} 예약을 신청했어요`,{resvId,productId:String(prod.id)});
+    await sendNotification(sellerId,'reservation_new','📅 새 예약 신청이 왔어요',`${curUser.name||'구매자'}님이 "${prod.title}" ${resQty}${prod.unit||'m'} ${date} ${time} 예약을 신청했어요`,{resvId,productId:String(prod.id)});
   }
 
   // localStorage 백업
@@ -6755,7 +6826,7 @@ async function submitReservation(){
         room_id:curChatRoomId,
         sender_id:curUser.id||curUser.email,
         sender_name:curUser.name||'구매자',
-        text:`📅 예약 신청: ${date} ${time}${note?'\n메모: '+note:''}`,
+        text:`📅 예약 신청: ${resQty}${prod.unit||'m'} / ${date} ${time}${note?'\n메모: '+note:''}`,
         created_at:new Date().toISOString()
       });
       await _sb.from('chat_rooms').update({
