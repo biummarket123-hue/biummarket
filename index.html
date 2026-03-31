@@ -3483,7 +3483,7 @@ function gridCardHtml(s){
 
 /* ==================== LOCAL STORAGE ==================== */
 // 계정별로 분리해야 하는 키 목록
-const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser','companyPhotos'];
+const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser','companyPhotos','alertKeywords'];
 function _lsUserKey(k){
   // 계정별 분리가 필요한 키는 userId prefix 추가
   if(!USER_SCOPED_KEYS.includes(k))return 'bium_'+k;
@@ -4546,6 +4546,7 @@ async function doLogin(isAuto){
       lsSet('interestCatsSet',false);
     }
     showView('list');showListSkeleton();loadProductsFromSupabase();
+    syncKeywordsFromSupabase();
     setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
 }
@@ -8023,19 +8024,30 @@ async function submitForm(){
       }
       resetForm();showView('list');showToast(t('registered'));
       {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
-      // 키워드 알림 - 모든 사용자의 키워드와 매칭
-        if(_sb){
-          const{data:allUsers}=await _sb.from('users').select('id,email');
-          if(allUsers){
-            allUsers.forEach(async u=>{
-              if(u.id===curUser?.id||u.email===curUser?.email)return; // 본인 제외
-              // 각 사용자의 키워드는 localStorage 기반이라 서버에서 직접 체크 불가
-              // 대신 상품 등록 시 카테고리/타입 기반으로 알림
+      // 키워드 알림 - Supabase에서 매칭되는 키워드 조회 후 알림 발송
+      if(_sb){
+        try{
+          const{data:allKws}=await _sb.from('keyword_alerts').select('user_id,keyword');
+          if(allKws&&allKws.length){
+            const searchText=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')+' '+(payload.material||'')+' '+(payload.color||'')).toLowerCase();
+            const myId=curUser?.id||curUser?.email||'';
+            // 사용자별로 매칭된 키워드 그룹핑
+            const matched={};
+            allKws.forEach(row=>{
+              if(row.user_id===myId)return; // 본인 제외
+              if(searchText.includes(row.keyword.toLowerCase())){
+                if(!matched[row.user_id])matched[row.user_id]=[];
+                matched[row.user_id].push(row.keyword);
+              }
             });
+            // 매칭된 사용자에게 알림 발송
+            for(const [userId,kws] of Object.entries(matched)){
+              const kwStr=kws.join(', ');
+              await sendNotification(userId,'keyword_alert','🔔 키워드 알림',`"${kwStr}" 관련 새 상품이 등록됐어요: ${payload.title}`,{productId:String(inserted?.id||'')});
+            }
           }
-        }
-        // 로컬 키워드 알림 (본인 기기)
-        {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase())){addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품: '+payload.title);if(_sb&&curUser)sendNotification(curUser.id||curUser.email,'keyword_alert','🔔 키워드 알림',`"${kw}" 관련 새 상품이 등록됐어요: ${payload.title}`,{productId:String(inserted?.id||'')});}});}}
+        }catch(e){console.error('키워드 알림 발송 오류:',e);}
+      }
       // 단골에게 새 상품 알림
       notifyDangolNewProduct(payload.title,inserted?.id||'',payload.is_urgent||false);
       lsDelTTL('products_sb');await loadProductsFromSupabase();
@@ -9928,6 +9940,10 @@ function addKeyword(){
   if(kws.includes(kw)){showToast('이미 등록된 키워드예요');return;}
   if(kws.length>=10){showToast('키워드는 최대 10개까지 저장할 수 있어요');return;}
   kws.push(kw);lsSet('alertKeywords',kws);
+  // Supabase에 저장
+  if(_sb&&curUser&&curUser.id){
+    _sb.from('keyword_alerts').upsert({user_id:curUser.id,keyword:kw},{onConflict:'user_id,keyword'}).then();
+  }
   input.value='';renderKeywords();
   showToast(`"${kw}" 키워드 알림이 등록됐어요 🔔`);
 }
@@ -9935,12 +9951,40 @@ function addKeywordDirect(kw){
   const kws=lsGet('alertKeywords',[]);
   if(kws.includes(kw)){showToast('이미 등록된 키워드예요');return;}
   if(kws.length>=10){showToast('키워드는 최대 10개까지 저장할 수 있어요');return;}
-  kws.push(kw);lsSet('alertKeywords',kws);renderKeywords();
+  kws.push(kw);lsSet('alertKeywords',kws);
+  if(_sb&&curUser&&curUser.id){
+    _sb.from('keyword_alerts').upsert({user_id:curUser.id,keyword:kw},{onConflict:'user_id,keyword'}).then();
+  }
+  renderKeywords();
   showToast(`"${kw}" 키워드 알림이 등록됐어요 🔔`);
 }
 function removeKeyword(i){
   const kws=lsGet('alertKeywords',[]);
-  kws.splice(i,1);lsSet('alertKeywords',kws);renderKeywords();
+  const removed=kws.splice(i,1)[0];
+  lsSet('alertKeywords',kws);
+  // Supabase에서 삭제
+  if(_sb&&curUser&&curUser.id&&removed){
+    _sb.from('keyword_alerts').delete().eq('user_id',curUser.id).eq('keyword',removed).then();
+  }
+  renderKeywords();
+}
+// Supabase에서 내 키워드 불러와서 localStorage와 병합
+async function syncKeywordsFromSupabase(){
+  if(!_sb||!curUser||!curUser.id)return;
+  try{
+    const{data}=await _sb.from('keyword_alerts').select('keyword').eq('user_id',curUser.id);
+    if(!data)return;
+    const sbKws=data.map(r=>r.keyword);
+    const localKws=lsGet('alertKeywords',[]);
+    // 병합 (중복 제거)
+    const merged=[...new Set([...localKws,...sbKws])].slice(0,10);
+    lsSet('alertKeywords',merged);
+    // 로컬에만 있는 키워드를 Supabase에도 동기화
+    const newKws=merged.filter(k=>!sbKws.includes(k));
+    for(const kw of newKws){
+      await _sb.from('keyword_alerts').upsert({user_id:curUser.id,keyword:kw},{onConflict:'user_id,keyword'});
+    }
+  }catch(e){console.error('키워드 동기화 오류:',e);}
 }
 
 function openTopSellers(){
@@ -13350,6 +13394,7 @@ function renderBizStats(tab){
     },100);
   }else if(curUser){
     showView('list');showListSkeleton();loadProductsFromSupabase();
+    syncKeywordsFromSupabase();
     loadAppSettings();
     loadFontSize();
   }else{
