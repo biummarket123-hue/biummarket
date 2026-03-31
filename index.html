@@ -13002,6 +13002,14 @@ function renderNotifView(){
       navAction=item._action;
     }else if(item.productId){
       navAction=`openDetail(${item.productId})`;
+    }else if(item._data&&item._data.productId){
+      navAction=`openDetail(${item._data.productId})`;
+    }
+    // navAction 없는 알림은 타입에 따라 기본 이동
+    if(!navAction){
+      if(item._type==='dangol_new'||item._type==='dangol_urgent'||item._type==='follow_news')navAction=`showView('list')`;
+      else if(item._type==='price_drop'||item._type==='restock')navAction=item._data?.productId?`openDetail(${item._data.productId})`:`showView('list')`;
+      else if(item._type==='fabric_review')navAction=`showView('mypage')`;
     }
     const clickAction=navAction?markAction+navAction:markAction+`renderNotifView();`;
     const bgColor=isClicked?'#fff':'#f0edff';
