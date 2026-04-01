@@ -4280,7 +4280,7 @@ function renderSimilarFabrics(type,color,data){
 
   // 관련 상품 필터링
   let similar=products.filter(p=>{
-    if(!p||p.status==='stopped'||(p.qty||0)<=0)return false;
+    if(!p||p.is_hidden||(p.qty||0)<=0)return false;
     const pType=(p.type||'').toLowerCase();
     const pTitle=(p.title||'').toLowerCase();
     const typeMatch=searchTypes.some(t=>
@@ -5549,6 +5549,7 @@ function renderAiRecs(){
 }
 
 function renderHomeProduct(p){
+  if(p.is_hidden)return '';
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
@@ -5602,7 +5603,7 @@ function renderMyProductCard(p){
     ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
     :`<span style="color:${priceColor}">${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`;
   const isSoldout=(p.qty||0)<=0;
-  const isHidden=p.status==='stopped';
+  const isHidden=p.is_hidden===true;
   return `<div class="h-product-card" onclick="openDetailFromMyProducts(${p.id})" style="${isHidden?'opacity:.5':''}">
     <div class="h-product-img${isSoldout?' soldout':''}" style="background:${bg};position:relative">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
@@ -5699,15 +5700,15 @@ function confirmStockSoldout(){
 }
 async function toggleProductStop(productId){
   const p=products.find(x=>x.id===productId);if(!p)return;
-  const isStopped=p.status==='stopped';
-  const newStatus=isStopped?'active':'stopped';
+  const wasHidden=p.is_hidden===true;
+  const newVal=!wasHidden;
   if(_sb){
-    const{error}=await _sb.from('products').update({status:newStatus}).eq('id',p.id);
+    const{error}=await _sb.from('products').update({is_hidden:newVal}).eq('id',p.id);
     if(error){console.error('숨김 상태 업데이트 오류:',error);showToast('처리 실패: '+error.message);return;}
   }
-  p.status=newStatus;
+  p.is_hidden=newVal;
   lsSet('products',products);
-  showToast(isStopped?'상품이 다시 노출돼요 👁️':'상품이 숨김 처리됐어요 🙈');
+  showToast(wasHidden?'상품이 다시 노출돼요 👁️':'상품이 숨김 처리됐어요 🙈');
   showMySales();
 }
 function editProductById(id){editProduct(id);}
@@ -5730,7 +5731,7 @@ function renderHomeSections(){
 
   // 카테고리/정렬/급처 필터가 적용된 경우 → 전체 상품을 플랫 리스트로 표시
   if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly||_sbFreeOnly){
-    const items=products.filter(p=>p.status!=='stopped'&&!p.deleted_at);
+    const items=products.filter(p=>!p.is_hidden&&!p.deleted_at);
     el.innerHTML=items.length?items.map(p=>renderHomeProduct(p)).join('')
       :`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 조건의 상품이 없어요</div>`;
     return;
@@ -5902,8 +5903,7 @@ function renderCard(p, idx){
   const isNew=p.id>10;
   const delay=typeof idx==='number'?(idx%PAGE_SIZE)*0.04:0;
   const isSoldout=(p.qty||0)<=0;
-  const isStopped=p.status==='stopped';
-  if(isStopped)return '';
+  if(p.is_hidden)return '';
   return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})" style="animation-delay:${delay}s">
     ${isNew?'<div class="badge-new">NEW</div>':''}
     <div class="pthumb" style="background:${bg};background-image:${tex}">
@@ -8466,8 +8466,7 @@ function _renderSvCard(p){
   const bg=getFColor(p.type,p.color);
   const tex=getTexture(p.type);
   const isSoldout=(p.qty||0)<=0;
-  const isStopped=p.status==='stopped';
-  if(isStopped)return '';
+  if(p.is_hidden)return '';
   return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})">
     <div class="pthumb" style="background:${bg};background-image:${tex}">
       ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
