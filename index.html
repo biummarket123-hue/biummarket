@@ -3817,28 +3817,12 @@ async function loadProductsFromSupabase(reset){
   try{
     const from=_sbPage*_SB_PAGE_SIZE;
     const to=from+_SB_PAGE_SIZE-1;
-    function _buildProductQuery(){
-      let q=_sb.from('products').select('*').is('deleted_at',null);
-      if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타')q=q.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
-      if(_sbCatFilter==='기타'){CATEGORY_DATA.map(c=>c.id).forEach(c=>{q=q.neq('cat',c);});}
-      if(_sbUrgentOnly)q=q.eq('is_urgent',true);
-      if(_sbFreeOnly)q=q.eq('is_free',true);
-      if(_sbSortKey==='price')q=q.order('price',{ascending:true});
-      else if(_sbSortKey==='priceDesc')q=q.order('price',{ascending:false});
-      else q=q.order('created_at',{ascending:false});
-      return q;
-    }
-    let{data,error}=await _buildProductQuery().range(from,to);
-    // deleted_at 컬럼 없으면 필터 없이 재시도
+    // 항상 전체 상품 로드 (필터는 렌더링 시 클라이언트에서 적용)
+    let query=_sb.from('products').select('*').is('deleted_at',null).order('created_at',{ascending:false});
+    let{data,error}=await query.range(from,to);
+    // deleted_at 컬럼 없으면 재시도
     if(error&&error.message&&error.message.includes('deleted_at')){
-      console.warn('[loadProducts] deleted_at 컬럼 없음, 필터 없이 재시도');
-      let q=_sb.from('products').select('*');
-      if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타')q=q.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
-      if(_sbCatFilter==='기타'){CATEGORY_DATA.map(c=>c.id).forEach(c=>{q=q.neq('cat',c);});}
-      if(_sbSortKey==='price')q=q.order('price',{ascending:true});
-      else if(_sbSortKey==='priceDesc')q=q.order('price',{ascending:false});
-      else q=q.order('created_at',{ascending:false});
-      ({data,error}=await q.range(from,to));
+      ({data,error}=await _sb.from('products').select('*').order('created_at',{ascending:false}).range(from,to));
     }
     if(error){console.error('[loadProducts] 오류:',error);_sbLoading=false;_showScrollLoading(false);return;}
     if(!data||data.length<_SB_PAGE_SIZE){_sbHasMore=false;}
@@ -5465,15 +5449,12 @@ function setHomeCat(key){
   homeCurCat=key;
   _sbCatFilter=key;
   renderHomeCats();
-  // 배너/특수 섹션은 전체 탭에서만 표시
   const bannerEl=document.getElementById('home-premium-banner');
   if(bannerEl)bannerEl.style.display=key==='전체'?'':'none';
   ['home-urgent-section','home-new-section','home-popular-section','home-infeed-ad'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display=key==='전체'?el.dataset.hasItems?'block':'none':'none';
+    const el=document.getElementById(id);if(el)el.style.display=key==='전체'?'':'none';
   });
-  // Supabase에서 필터링된 상품 다시 로드
-  showListSkeleton();
-  loadProductsFromSupabase(true);
+  renderList();
 }
 
 // 홈 정렬 바텀시트
@@ -5506,8 +5487,7 @@ function setHomeSort(key){
     btn.style.borderColor=key!=='latest'?'#6c63ff':'#e0e0ea';
   }
   closeFilterSheet();
-  showListSkeleton();
-  loadProductsFromSupabase(true);
+  renderList();
 }
 function toggleHomeUrgent(){
   _sbUrgentOnly=!_sbUrgentOnly;
@@ -5520,8 +5500,7 @@ function toggleHomeUrgent(){
     btn.style.borderColor=_sbUrgentOnly?'#ff6b35':'#e0e0ea';
   }
   if(freeBtn){freeBtn.style.background='#f0f0f5';freeBtn.style.color='#666677';freeBtn.style.borderColor='#e0e0ea';}
-  showListSkeleton();
-  loadProductsFromSupabase(true);
+  renderList();
 }
 function toggleHomeFree(){
   _sbFreeOnly=!_sbFreeOnly;
@@ -5534,8 +5513,7 @@ function toggleHomeFree(){
     btn.style.borderColor=_sbFreeOnly?'#00b386':'#e0e0ea';
   }
   if(urgBtn){urgBtn.style.background='#f0f0f5';urgBtn.style.color='#666677';urgBtn.style.borderColor='#e0e0ea';}
-  showListSkeleton();
-  loadProductsFromSupabase(true);
+  renderList();
 }
 
 function renderAiRecs(){
@@ -5777,9 +5755,26 @@ function renderHomeSections(){
   const el=document.getElementById('home-category-sections');
   if(!el)return;
 
-  // 카테고리/정렬/급처 필터가 적용된 경우 → 전체 상품을 플랫 리스트로 표시
+  // 홈 필터를 클라이언트에서 적용
+  let _homeFiltered=products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0);
+  // 카테고리 필터
+  if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타'){
+    _homeFiltered=_homeFiltered.filter(p=>p.cat===_sbCatFilter||p.type===_sbCatFilter);
+  }
+  if(_sbCatFilter==='기타'){
+    const allCats=CATEGORY_DATA.map(c=>c.id);
+    _homeFiltered=_homeFiltered.filter(p=>!allCats.includes(p.cat)&&!allCats.includes(p.type));
+  }
+  if(_sbUrgentOnly)_homeFiltered=_homeFiltered.filter(p=>p.is_urgent);
+  if(_sbFreeOnly)_homeFiltered=_homeFiltered.filter(p=>p.is_free);
+  // 정렬
+  if(_sbSortKey==='price')_homeFiltered.sort((a,b)=>(a.price||0)-(b.price||0));
+  else if(_sbSortKey==='priceDesc')_homeFiltered.sort((a,b)=>(b.price||0)-(a.price||0));
+  else _homeFiltered.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+
+  // 필터 적용 시 → 플랫 리스트
   if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly||_sbFreeOnly){
-    const items=products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0);
+    const items=_homeFiltered;
     el.innerHTML=items.length?items.map(p=>renderHomeProduct(p)).join('')
       :`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 조건의 상품이 없어요</div>`;
     return;
