@@ -1171,7 +1171,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <div id="filter-chips" style="display:none"></div>
   <div class="home-scroll">
     <!-- 1. 대형 슬라이드 배너 -->
-    <div id="home-premium-banner" style="background:#1a1208;border-radius:0;padding:28px 20px 20px;position:relative;overflow:hidden;min-height:200px">
+    <div id="home-premium-banner" class="premium-banner">
       <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
     </div>
 
@@ -11230,11 +11230,7 @@ function renderHomeBanners(){
     return `<div style="font-size:11px;font-weight:700;color:#c8a84b;letter-spacing:1px;margin-bottom:6px">★ BIUM MARKET</div>
     <div style="font-size:22px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:6px">${b.title}</div>
     <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:14px">${b.desc||b.description||''}</div>
-    <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="event.stopPropagation();document.querySelector('.home-scroll').scrollTo({top:600,behavior:'smooth'})" style="padding:10px 18px;background:#c8a84b;color:#1a1208;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">지금 둘러보기</button>
-      <button onclick="event.stopPropagation();showView('signup')" style="padding:10px 18px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">사업자 입점</button>
-    </div>
+    <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
     ${dots}`;
   };
   const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:10px;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'};transition:.3s"></div>`).join('')}</div>`:'';
