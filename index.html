@@ -11095,7 +11095,15 @@ function renderHomeBanners(){
 function updateBannerStats(){
   const el=document.getElementById('banner-stats');if(!el)return;
   const totalProducts=products.length;
-  const totalQty=products.reduce((a,p)=>a+(p.qty||0),0);
+  // 단위별 재고 합산
+  let qtyYard=0,qtyMeter=0,qtyKg=0;
+  products.forEach(p=>{
+    const q=p.qty||0;if(q<=0)return;
+    const u=(p.unit||'yard').toLowerCase();
+    if(u==='kg')qtyKg+=q;
+    else if(u==='m')qtyMeter+=q;
+    else qtyYard+=q; // yard, 마
+  });
   const totalSellers=new Set(products.map(p=>p.seller?.name||p.seller_id).filter(Boolean)).size;
   const urgentCount=products.filter(p=>p.is_urgent||(p.tags||[]).includes('급처')).length;
   const todayCount=products.filter(p=>{
@@ -11103,32 +11111,44 @@ function updateBannerStats(){
     const d=new Date(p.created_at);
     return(Date.now()-d.getTime())<86400000;
   }).length;
+  const stockParts=[
+    qtyYard?qtyYard.toLocaleString()+'마':null,
+    qtyMeter?qtyMeter.toLocaleString()+'M':null,
+    qtyKg?qtyKg.toLocaleString()+'kg':null
+  ].filter(Boolean);
   const stats=[
     {label:'총 상품',value:totalProducts+'개',icon:'🧵'},
-    {label:'총 재고',value:totalQty.toLocaleString()+'마',icon:'📦'},
+  ];
+  // 재고를 단위별로 각각 표시
+  if(stockParts.length<=1){
+    stats.push({label:'총 재고',value:stockParts[0]||'0마',icon:'📦'});
+  }
+  const row1=stats.slice(0,2);
+  const extraStats=[
     {label:'사업자',value:totalSellers+'명',icon:'🏪'},
     {label:'급처',value:urgentCount+'개',icon:'⚡'},
     {label:'오늘 신규',value:todayCount+'개',icon:'🆕'},
   ];
-  const row1=stats.slice(0,2);
-  const row2=stats.slice(2,5);
+  const row2=extraStats;
   el.style.cssText='margin-top:10px;display:flex;flex-direction:column;gap:6px';
+  const _statCard=(s)=>`<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
+    <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
+    <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
+    <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
+  </div>`;
+  // 재고 단위별 카드
+  const stockCards=[];
+  if(qtyYard)stockCards.push({label:'재고(마)',value:qtyYard.toLocaleString()+'마',icon:'📦'});
+  if(qtyMeter)stockCards.push({label:'재고(M)',value:qtyMeter.toLocaleString()+'M',icon:'📐'});
+  if(qtyKg)stockCards.push({label:'재고(kg)',value:qtyKg.toLocaleString()+'kg',icon:'⚖️'});
+  if(!stockCards.length)stockCards.push({label:'총 재고',value:'0',icon:'📦'});
+  const topRow=[{label:'총 상품',value:totalProducts+'개',icon:'🧵'},...stockCards];
   el.innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-      ${row1.map(s=>`
-      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
-        <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
-        <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
-      </div>`).join('')}
+    <div style="display:grid;grid-template-columns:repeat(${Math.min(topRow.length,4)},1fr);gap:6px">
+      ${topRow.map(s=>_statCard(s)).join('')}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-      ${row2.map(s=>`
-      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
-        <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
-        <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
-      </div>`).join('')}
+      ${row2.map(s=>_statCard(s)).join('')}
     </div>`;
 }
 function renderAdmin(){
