@@ -1153,6 +1153,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 카테고리 칩 -->
     <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin:0 14px 8px;display:block">대분류</div>
     <div class="home-cats" id="home-cats"></div>
+    <!-- 홈 정렬/필터 바 -->
+    <div id="home-sort-bar" style="display:flex;align-items:center;gap:8px;padding:8px 14px 4px;background:#fff">
+      <button id="home-sort-btn" onclick="openHomeSortSheet()" style="padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer">최신순 ▾</button>
+      <button id="home-urgent-btn" onclick="toggleHomeUrgent()" style="padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer">⚡ 급처</button>
+    </div>
     <!-- 프리미엄 배너 -->
     <div id="home-premium-banner" class="premium-banner">
       <div class="premium-badge">★ BIUM MARKET</div>
@@ -3664,6 +3669,10 @@ syncSellerInfoToProducts();
 // 무한스크롤 상태 변수
 let _sbPage=0,_sbLoading=false,_sbHasMore=true;
 const _SB_PAGE_SIZE=20;
+// 홈 필터/정렬 상태
+let _sbCatFilter='전체'; // 카테고리 필터
+let _sbSortKey='latest'; // latest, price, priceDesc
+let _sbUrgentOnly=false;  // 급처 필터
 
 function _mapSbProduct(p){
   const likedMap=lsGet('likedMap',{});
@@ -3703,7 +3712,23 @@ async function loadProductsFromSupabase(reset){
   try{
     const from=_sbPage*_SB_PAGE_SIZE;
     const to=from+_SB_PAGE_SIZE-1;
-    const{data,error}=await _sb.from('products').select('*').order('created_at',{ascending:false}).range(from,to);
+    let query=_sb.from('products').select('*');
+    // 카테고리 필터
+    if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타'){
+      query=query.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
+    }
+    // 기타: CATEGORY_DATA에 없는 cat/type만
+    if(_sbCatFilter==='기타'){
+      const allCats=CATEGORY_DATA.map(c=>c.id);
+      allCats.forEach(c=>{query=query.neq('cat',c);});
+    }
+    // 급처 필터
+    if(_sbUrgentOnly)query=query.eq('is_urgent',true);
+    // 정렬
+    if(_sbSortKey==='price')query=query.order('price',{ascending:true});
+    else if(_sbSortKey==='priceDesc')query=query.order('price',{ascending:false});
+    else query=query.order('created_at',{ascending:false});
+    const{data,error}=await query.range(from,to);
     if(error){console.error('[loadProducts] 오류:',error);_sbLoading=false;_showScrollLoading(false);return;}
     if(!data||data.length<_SB_PAGE_SIZE){_sbHasMore=false;}
     const sbProducts=(data||[]).map(p=>_mapSbProduct(p));
@@ -5313,20 +5338,62 @@ function renderHomeCats(){
 }
 
 function setHomeCat(key){
-  if(key!=='전체'){
-    showView('category');
-    setTimeout(()=>{
-      catGoStep1(key);
-    },100);
-    return;
-  }
   homeCurCat=key;
+  _sbCatFilter=key;
   renderHomeCats();
-  renderHomeSections();
+  // 배너/AI 추천은 전체 탭에서만 표시
   const bannerEl=document.getElementById('home-premium-banner');
   const aiEl=document.getElementById('ai-rec-section');
-  if(bannerEl)bannerEl.style.display='';
-  if(aiEl)aiEl.style.display='';
+  if(bannerEl)bannerEl.style.display=key==='전체'?'':'none';
+  if(aiEl)aiEl.style.display=key==='전체'?'':'none';
+  // Supabase에서 필터링된 상품 다시 로드
+  showListSkeleton();
+  loadProductsFromSupabase(true);
+}
+
+// 홈 정렬 바텀시트
+function openHomeSortSheet(){
+  const sorts=[{key:'latest',label:'최신순'},{key:'price',label:'가격 낮은순'},{key:'priceDesc',label:'가격 높은순'}];
+  const dim=document.getElementById('filter-sheet-dim');
+  const sheet=document.getElementById('filter-sheet');
+  const body=document.getElementById('fs-body');
+  if(!dim||!sheet||!body)return;
+  body.innerHTML=`
+    <div style="padding:4px 20px 20px">
+      <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:14px">정렬</div>
+      ${sorts.map(s=>`
+        <div class="fs-radio${_sbSortKey===s.key?' on':''}" onclick="setHomeSort('${s.key}')">
+          <div class="fs-dot"></div>
+          <span style="font-size:15px">${s.label}</span>
+        </div>`).join('')}
+    </div>`;
+  dim.classList.add('show');
+  sheet.classList.add('show');
+}
+function setHomeSort(key){
+  _sbSortKey=key;
+  const btn=document.getElementById('home-sort-btn');
+  const labels={latest:'최신순',price:'가격 낮은순',priceDesc:'가격 높은순'};
+  if(btn){
+    btn.textContent=(labels[key]||'최신순')+' ▾';
+    btn.style.background=key!=='latest'?'rgba(108,99,255,.15)':'#f0f0f5';
+    btn.style.color=key!=='latest'?'#6c63ff':'#666677';
+    btn.style.borderColor=key!=='latest'?'#6c63ff':'#e0e0ea';
+  }
+  closeFilterSheet();
+  showListSkeleton();
+  loadProductsFromSupabase(true);
+}
+function toggleHomeUrgent(){
+  _sbUrgentOnly=!_sbUrgentOnly;
+  const btn=document.getElementById('home-urgent-btn');
+  if(btn){
+    btn.style.background=_sbUrgentOnly?'rgba(255,107,53,.15)':'#f0f0f5';
+    btn.style.color=_sbUrgentOnly?'#ff6b35':'#666677';
+    btn.style.borderColor=_sbUrgentOnly?'#ff6b35':'#e0e0ea';
+  }
+  showListSkeleton();
+  loadProductsFromSupabase(true);
 }
 
 function renderAiRecs(){
@@ -5550,13 +5617,22 @@ async function deleteProductById(id){
 function renderHomeSections(){
   const el=document.getElementById('home-category-sections');
   if(!el)return;
+
+  // 카테고리/정렬/급처 필터가 적용된 경우 → 전체 상품을 플랫 리스트로 표시
+  if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly){
+    const items=products.filter(p=>p.status!=='stopped');
+    el.innerHTML=items.length?items.map(p=>renderHomeProduct(p)).join('')
+      :`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 조건의 상품이 없어요</div>`;
+    return;
+  }
+
   const interestCats=lsGet('interestCats',[]);
-  const sections=homeCurCat==='전체'?HOME_SECTIONS:[{key:homeCurCat,label:HOME_CATS.find(c=>c.key===homeCurCat)?.label||homeCurCat}];
+  const sections=HOME_SECTIONS;
   let html='';
 
-  // 내 근처 상품 (위치 설정 시, 전체 탭일 때만)
+  // 내 근처 상품 (위치 설정 시)
   const myLoc=curUser?.loc||'';
-  if(homeCurCat==='전체'&&myLoc){
+  if(myLoc){
     const locKey=myLoc.split(' ').slice(0,2).join(' ');
     const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).slice(0,5);
     if(nearbyProds.length){
@@ -5570,8 +5646,8 @@ function renderHomeSections(){
     }
   }
 
-  // 관심 카테고리 섹션 (전체 탭일 때만)
-  if(homeCurCat==='전체'&&interestCats.length){
+  // 관심 카테고리 섹션
+  if(interestCats.length){
     const interestProds=interestCats.flatMap(cat=>getProductsByHomeCat(cat).slice(0,3));
     if(interestProds.length){
       html+=`<div class="cat-section" style="border:1.5px solid rgba(108,99,255,.2);border-radius:16px;padding:12px;background:rgba(108,99,255,.03);margin-bottom:8px">
@@ -5659,20 +5735,9 @@ function closeInterestModal(){
 }
 
 function goSearchCat(cat){
-  // 카테고리 필터 설정 후 카테고리 뷰로 이동
-  homeCurCat=cat;
+  // 홈에서 해당 카테고리로 Supabase 필터 적용
   showView('list');
-  // 홈 카테고리 탭도 해당 카테고리로 선택
-  document.querySelectorAll('.hcat-btn').forEach(btn=>{
-    const isActive=btn.textContent.trim()===cat||btn.dataset.cat===cat;
-    btn.classList.toggle('on',isActive);
-  });
-  renderHomeSections();
-  // 해당 섹션으로 스크롤
-  setTimeout(()=>{
-    const sections=document.querySelectorAll('.cat-section');
-    if(sections.length){sections[0].scrollIntoView({behavior:'smooth',block:'start'});}
-  },300);
+  setHomeCat(cat);
 }
 
 function openNoticeModal(){openModal('modal-notice')}
