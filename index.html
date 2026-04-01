@@ -3739,7 +3739,7 @@ async function loadProductsFromSupabase(reset){
   try{
     const from=_sbPage*_SB_PAGE_SIZE;
     const to=from+_SB_PAGE_SIZE-1;
-    let query=_sb.from('products').select('*');
+    let query=_sb.from('products').select('*').is('deleted_at',null);
     // 카테고리 필터
     if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타'){
       query=query.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
@@ -5637,7 +5637,7 @@ async function deleteProductById(id){
   const p=products.find(x=>x.id===id);if(!p)return;
   if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
   if(_sb){
-    const{error}=await _sb.from('products').delete().eq('id',id);
+    const{error}=await _sb.from('products').update({deleted_at:new Date().toISOString()}).eq('id',id);
     if(error){showToast('삭제 실패: '+error.message);return;}
   }
   products=products.filter(x=>x.id!==id);
@@ -5652,7 +5652,7 @@ function renderHomeSections(){
 
   // 카테고리/정렬/급처 필터가 적용된 경우 → 전체 상품을 플랫 리스트로 표시
   if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly){
-    const items=products.filter(p=>p.status!=='stopped');
+    const items=products.filter(p=>p.status!=='stopped'&&!p.deleted_at);
     el.innerHTML=items.length?items.map(p=>renderHomeProduct(p)).join('')
       :`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 조건의 상품이 없어요</div>`;
     return;
@@ -6209,7 +6209,7 @@ async function deleteProduct(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
   if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
   if(_sb){
-    const{error}=await _sb.from('products').delete().eq('id',curProductId);
+    const{error}=await _sb.from('products').update({deleted_at:new Date().toISOString()}).eq('id',curProductId);
     if(error){showToast('삭제 실패: '+error.message);return;}
   }
   products=products.filter(x=>x.id!==curProductId);
@@ -8395,7 +8395,7 @@ async function _svSearchSupabase(reset){
     const from=_svPage*_SB_PAGE_SIZE;
     const to=from+_SB_PAGE_SIZE-1;
     const likeQ=`%${q}%`;
-    let query=_sb.from('products').select('*')
+    let query=_sb.from('products').select('*').is('deleted_at',null)
       .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
       .order('created_at',{ascending:false});
     // 필터 적용
@@ -12488,7 +12488,7 @@ function filterAdminProducts(q){
 }
 async function adminDeleteProduct(id){
   if(!confirm('정말 삭제할까요?'))return;
-  if(_sb){const{error}=await _sb.from('products').delete().eq('id',id);if(error)console.error('delete error:',error);}
+  if(_sb){const{error}=await _sb.from('products').update({deleted_at:new Date().toISOString()}).eq('id',id);if(error)console.error('delete error:',error);}
   products=products.filter(p=>p.id!==id);saveProducts();showAdminProducts();showToast('삭제됐어요');
 }
 function adminViewProduct(id){
