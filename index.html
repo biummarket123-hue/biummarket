@@ -12212,10 +12212,10 @@ function openHomeMoreView(title,subtitle,items){
 }
 function openPopularRankingView(){
   const items=[...products].filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0)
-    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,10);
+    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,30);
   const el=document.getElementById('cp-list');if(!el)return;
   curCatKey='';curViewMode='home-more';
-  const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='🔥 인기 원단 랭킹 TOP 10';
+  const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='🔥 인기 원단 랭킹';
   const sortBar=document.querySelector('.cp-sort-bar');if(sortBar)sortBar.style.display='none';
   const subChips=document.getElementById('cp-sub-chips');if(subChips)subChips.innerHTML='';
   const itemChips=document.getElementById('cp-item-chips');if(itemChips){itemChips.style.display='none';itemChips.innerHTML='';}
@@ -12223,45 +12223,72 @@ function openPopularRankingView(){
   const activeFilters=document.getElementById('cp-active-filters');if(activeFilters)activeFilters.style.display='none';
 
   const medalColors={1:'#FFD700',2:'#C0C0C0',3:'#CD7F32'};
-  el.innerHTML='<div style="padding:10px 14px 20px;display:flex;flex-direction:column;gap:12px">'+items.map((p,i)=>{
-    const rank=i+1;
+  function _rankCard(p,rank){
     const bg=getFColor(p.type,p.color);
     const unit=p.unit||'m';
     const medal=medalColors[rank]||'#c8a84b';
     const seller=p.seller||{};
     const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-    return `<div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:14px;background:#fff;border:1.5px solid ${rank<=3?medal+'55':'#f0f0f5'};border-radius:16px;cursor:pointer;${rank<=3?'box-shadow:0 2px 12px '+medal+'22':''}">
-      <!-- 순위 -->
+    const priceStr=p.is_free?'무료나눔':p.bulk_price&&p.price&&p.bulk_price<p.price?(p.bulk_price).toLocaleString()+'~'+(p.price).toLocaleString()+'원/'+unit:(p.price||0).toLocaleString()+'원/'+unit;
+    const isTop3=rank<=3;
+    // 1~3등: 1열 큰 카드 (가로 레이아웃)
+    if(isTop3) return `<div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:14px;background:#fff;border:1.5px solid ${medal}55;border-radius:16px;cursor:pointer;box-shadow:0 2px 12px ${medal}22">
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
         <div style="width:32px;height:32px;border-radius:50%;background:${medal};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 2px 6px ${medal}66">${rank}</div>
-        <div style="width:64px;height:64px;border-radius:12px;overflow:hidden;background:${bg}">
+        <div style="width:72px;height:72px;border-radius:12px;overflow:hidden;background:${bg}">
           ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
         </div>
       </div>
-      <!-- 상품 정보 -->
       <div style="flex:1;min-width:0">
         <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
           <span style="font-size:10px;padding:2px 6px;background:#f0f0f5;border-radius:4px;color:#555">${p.type||p.cat||''}</span>
           ${p.is_urgent?'<span style="font-size:10px;padding:2px 6px;background:#fff0eb;border-radius:4px;color:#ff6b35;font-weight:600">⚡ 급처</span>':''}
           ${p.is_free?'<span style="font-size:10px;padding:2px 6px;background:#e6f9f1;border-radius:4px;color:#00b386;font-weight:600">🎁 나눔</span>':''}
         </div>
-        <div style="font-size:11px;color:#888;line-height:1.6;margin-bottom:6px">
-          ${seller.name?'<span>🏪 '+seller.name+'</span> · ':''}${p.loc?'<span>📍'+p.loc.split(' ').slice(-1)[0]+'</span> · ':''}${_productTimeAgo(p.created_at)?'<span>🕐 '+_productTimeAgo(p.created_at)+'</span>':''}
+        <div style="font-size:11px;color:#888;line-height:1.5;margin-bottom:4px">
+          ${seller.name?'🏪 '+seller.name+' · ':''}${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]+' · ':''}${_productTimeAgo(p.created_at)?'🕐 '+_productTimeAgo(p.created_at):''}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-bottom:4px">
-          <span style="font-size:16px;font-weight:900;color:${p.is_free?'#00b386':'#e53935'}">${p.is_free?'무료나눔':p.bulk_price&&p.price&&p.bulk_price<p.price?(p.bulk_price).toLocaleString()+'~'+(p.price).toLocaleString()+'원/'+unit:(p.price||0).toLocaleString()+'원/'+unit}</span>
+          <span style="font-size:16px;font-weight:900;color:${p.is_free?'#00b386':'#e53935'}">${priceStr}</span>
           ${discPct?`<span style="font-size:11px;font-weight:700;color:#fff;background:#e53935;padding:1px 6px;border-radius:4px">-${discPct}%</span>`:''}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;color:#888">
-          ${p.weight?'<span>⚖️ '+p.weight+'g</span>':''}
-          ${p.moq?'<span>📦 MOQ '+p.moq+unit+'</span>':''}
-          <span>🤍 ${p.likes||0}</span>
-          <span>💬 ${p.chats||0}</span>
+          ${p.weight?'⚖️ '+p.weight+'g · ':''}${p.moq?'📦 MOQ '+p.moq+unit+' · ':''}🤍 ${p.likes||0} · 💬 ${p.chats||0}
         </div>
       </div>
     </div>`;
-  }).join('')+'</div>';
+    // 4~10등, 11등~: 세로 카드
+    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #f0f0f5;cursor:pointer;position:relative">
+      <div style="width:100%;aspect-ratio:1;background:${bg};position:relative;overflow:hidden">
+        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
+        <div style="position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;background:${medal};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;box-shadow:0 2px 4px rgba(0,0,0,.3)">${rank}</div>
+        ${p.is_urgent?'<span style="position:absolute;top:6px;right:6px;background:#ff6b35;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px">⚡</span>':''}
+        ${p.is_free?'<span style="position:absolute;top:6px;right:6px;background:#00b386;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px">🎁</span>':''}
+      </div>
+      <div style="padding:8px 10px">
+        <div style="font-size:12px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${seller.name||''} ${p.loc?'· 📍'+p.loc.split(' ').slice(-1)[0]:''}</div>
+        <div style="font-size:13px;font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${priceStr}</div>
+        ${discPct?`<span style="font-size:9px;font-weight:700;color:#e53935">-${discPct}%</span>`:''}
+        <div style="font-size:9px;color:#aaa;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px">
+          ${p.weight?'⚖️'+p.weight+'g':''}${p.moq?' 📦MOQ'+p.moq:''}
+          <span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span>
+          <span>${_productTimeAgo(p.created_at)}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  let html='<div style="padding:10px 14px 6px;font-size:12px;color:#888">찜·채팅이 많은 인기 상품 · '+items.length+'개</div>';
+  const top3=items.slice(0,3);
+  if(top3.length)html+=`<div style="display:flex;flex-direction:column;gap:10px;padding:0 14px 12px">${top3.map((p,i)=>_rankCard(p,i+1)).join('')}</div>`;
+  const mid=items.slice(3,10);
+  if(mid.length)html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 12px">${mid.map((p,i)=>_rankCard(p,i+4)).join('')}</div>`;
+  const rest=items.slice(10);
+  if(rest.length)html+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 20px">${rest.map((p,i)=>_rankCard(p,i+11)).join('')}</div>`;
+
+  el.innerHTML=html;
   viewHistory=['list'];
   showView('cat-products',false);
 }
