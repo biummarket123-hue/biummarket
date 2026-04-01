@@ -1233,8 +1233,9 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 푸터 -->
     <footer style="background:#f8f8fa;padding:24px 16px 90px;margin-top:20px;border-top:1px solid #e0e0ea">
       <div style="font-size:12px;color:#888;line-height:1.9">
-        <div style="font-weight:700;color:#666;margin-bottom:4px">(주) 로하이마켓 &nbsp; 대표 이소영</div>
-        <div>주소 경기도 양주시 평화로 1215 별관 205호</div>
+        <div style="font-weight:700;color:#666;margin-bottom:4px">로하이마켓 &nbsp; 대표 이소영</div>
+        <div>[본사] 경기도 양주시 평화로 1215 별관 205호</div>
+        <div>[전시장] 경기도 양주시 화합로1710번길12 옥정듀클레스 312호</div>
         <div>사업자번호 447-65-00488</div>
         <div>통신판매업신고 제2023-경기양주-0123호</div>
         <div>호스팅 사업자 Vercel Inc.</div>
@@ -1243,7 +1244,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div style="border-top:1px solid #e0e0ea;margin:14px 0;"></div>
       <div style="font-size:11px;color:#999;line-height:1.8">
         비움마켓에서 판매하는 상품 중에는 개별 판매자가 판매하는 상품이 포함되어 있습니다.<br>
-        개별 판매자가 판매하는 상품의 경우 (주)로하이마켓은 통신판매중개자로써 통신판매의 당사자가 아니며,<br>
+        개별 판매자가 판매하는 상품의 경우 로하이마켓은 통신판매중개자로써 통신판매의 당사자가 아니며,<br>
         상품, 상품정보, 상품 거래에 대한 책임과 의무는 각 판매자에게 있습니다.
       </div>
       <div style="border-top:1px solid #e0e0ea;margin:14px 0;"></div>
@@ -1252,7 +1253,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <a href="#" onclick="event.preventDefault();openModal('modal-terms')" style="color:#666;text-decoration:none">이용약관</a>
         <a href="#" onclick="event.preventDefault();openModal('modal-privacy')" style="color:#666;text-decoration:none">개인정보처리방침</a>
       </div>
-      <div style="margin-top:12px;font-size:10px;color:#bbb">Copyright 2025 (주)로하이마켓. All rights reserved.</div>
+      <div style="margin-top:12px;font-size:10px;color:#bbb">Copyright 2025 로하이마켓. All rights reserved.</div>
     </footer>
   </div>
   <nav class="tabbar">
@@ -3242,7 +3243,7 @@ const LANGS={
     mnu_trade_stats:'거래 통계 리포트',mnu_trade_stats_sub:'월간 거래·카테고리 비중',
     mnu_lang:'언어 설정',mnu_lang_sub:'한국어 · English · 日本語 외',mnu_logout:'🚪 로그아웃',
     home_search_ph:'원단명, 색상, 종류 검색...',notice_text:'[공지] 비움마켓 베타 오픈 안내',
-    prem_title:'동대문 재고원단 프리미엄 거래',prem_sub:'검증된 셀러의 고품질 원단을 만나보세요',
+    prem_title:'재고원단 직거래 플랫폼',prem_sub:'검증된 셀러의 고품질 원단을 만나보세요',
     ai_title:'✨ AI 추천 원단',ai_more:'AI 분석하기 →',
     cat_hdr:'카테고리',sort_latest:'최신순',sort_price:'가격순',sort_popular:'인기순',
     chat_hdr:'채팅',chat_empty:'채팅 내역이 없어요',chat_empty_hint:'상품 상세에서 채팅하기를 눌러보세요',
@@ -11212,7 +11213,7 @@ function renderHomeBanners(){
   adminBanners=lsGet('adminBanners',[]);
   const active=adminBanners.filter(b=>b.active!==false);
   const adBanners=getActiveAds('배너 슬라이드');
-  const DEFAULT={title:'동대문 재고원단 프리미엄 거래',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
+  const DEFAULT={title:'재고원단 직거래 플랫폼',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
   const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,_adId:a.id,image:a.image||a.imageUrl,linkUrl:a.linkUrl}))];
   const renderSlide=(b,dots)=>{
     if(b._ad&&b.image){
@@ -11687,10 +11688,10 @@ function showAdminBanners(){
       <button onclick="adminAddBanner()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c8a84b,#e6c97b);color:#1a1400;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px">+ 배너 추가</button>
       <!-- 기본 배너 (삭제 불가) -->
       <div style="background:#f8f8fa;border:2px solid #e0e0ea;border-radius:14px;overflow:hidden;margin-bottom:12px">
-        ${previewCard('동대문 재고원단 프리미엄 거래','검증된 셀러의 고품질 원단을 만나보세요')}
+        ${previewCard('재고원단 직거래 플랫폼','검증된 셀러의 고품질 원단을 만나보세요')}
         <div style="padding:0 12px 12px;display:flex;align-items:center;gap:8px">
           <div style="flex:1">
-            <div style="font-size:13px;font-weight:700;color:#1a1a1a">동대문 재고원단 프리미엄 거래</div>
+            <div style="font-size:13px;font-weight:700;color:#1a1a1a">재고원단 직거래 플랫폼</div>
             <div style="font-size:11px;color:#888;margin-top:2px">기본 배너 · 항상 활성</div>
           </div>
           <span style="font-size:10px;background:#f0eeff;color:#6c63ff;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0">기본</span>
