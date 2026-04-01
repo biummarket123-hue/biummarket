@@ -987,7 +987,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <div style="display:flex;gap:10px">
       <button onclick="resetPriceFilter()" style="flex:1;padding:14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:600;color:#666677;cursor:pointer">초기화</button>
-      <button onclick="applyPriceFilter()" style="flex:2;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer">적용하기</button>
+      <button onclick="applySvPriceFilter()" style="flex:2;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b84ff);border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer">적용하기</button>
     </div>
   </div>
 </div>
@@ -5294,11 +5294,11 @@ function openFilterSheet(type){
     body.innerHTML=`
       <div style="padding:4px 20px 8px">
         <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:14px">가격 범위</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <input type="number" id="fs-price-min" placeholder="최소" value="${_fsPriceMin||''}" style="flex:1;padding:12px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center" inputmode="numeric"/>
-          <span style="color:#aaa;font-weight:700;font-size:16px">~</span>
-          <input type="number" id="fs-price-max" placeholder="최대" value="${_fsPriceMax||''}" style="flex:1;padding:12px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center" inputmode="numeric"/>
-          <span style="font-size:14px;color:#888">원</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <input type="number" id="fs-price-min" placeholder="최소" value="${_fsPriceMin||''}" style="flex:1;min-width:0;padding:12px 8px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center;box-sizing:border-box" inputmode="numeric"/>
+          <span style="color:#aaa;font-weight:700;font-size:16px;flex-shrink:0">~</span>
+          <input type="number" id="fs-price-max" placeholder="최대" value="${_fsPriceMax||''}" style="flex:1;min-width:0;padding:12px 8px;border:1.5px solid #e0e0ea;border-radius:10px;font-size:14px;text-align:center;box-sizing:border-box" inputmode="numeric"/>
+          <span style="font-size:14px;color:#888;flex-shrink:0">원</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
           ${[{l:'~1만',mn:0,mx:10000},{l:'1~3만',mn:10000,mx:30000},{l:'3~5만',mn:30000,mx:50000},{l:'5~10만',mn:50000,mx:100000},{l:'10만~',mn:100000,mx:0}].map(p=>`
@@ -8636,7 +8636,7 @@ function resetPriceFilter(){
   updatePriceFilterBtn();
   renderSearchView();
 }
-function applyPriceFilter(){
+function applySvPriceFilter(){
   svPriceMin=parseInt(document.getElementById('price-filter-min')?.value)||0;
   svPriceMax=parseInt(document.getElementById('price-filter-max')?.value)||0;
   const modal=document.getElementById('modal-price-filter');
