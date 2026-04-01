@@ -5431,11 +5431,13 @@ function getProductsByHomeCat(cat){
   return filterByCategory(products,cat);
 }
 
-const _catIconMap={'전체':{icon:'🏠',bg:'#f0f0f5'},'염색지':{icon:'🎨',bg:'#fff0e0'},'나염지':{icon:'🖨️',bg:'#e8f0ff'},'생지':{icon:'🪡',bg:'#e8f8e8'},'수입원단':{icon:'✈️',bg:'#fff0f5'},'홈/인테리어':{icon:'🏠',bg:'#f0f0ff'},'기타':{icon:'📦',bg:'#f5f5f5'}};
+const _catIconMap={'전체':{icon:'🏠',bg:'#f0f0f5'},'염색지':{icon:'🎨',bg:'#fff0e0'},'나염지':{icon:'🖨️',bg:'#e8f0ff'},'생지':{icon:'🪡',bg:'#e8f8e8'},'수입원단':{icon:'✈️',bg:'#fff0f5'},'홈/인테리어':{icon:'🏠',bg:'#f0f0ff'}};
 function renderHomeCats(){
   const el=document.getElementById('home-cats');
   if(!el)return;
-  el.innerHTML=HOME_CATS.map(c=>{
+  // 전체 + CATEGORY_DATA 카테고리 (기타 제외)
+  const cats=[{key:'전체',label:'전체'},...CATEGORY_DATA.map(c=>({key:c.id,label:c.id}))];
+  el.innerHTML=cats.map(c=>{
     const m=_catIconMap[c.key]||{icon:CATEGORY_DATA.find(x=>x.id===c.key)?.emoji||'🧵',bg:'#f5f5f5'};
     const isOn=homeCurCat===c.key;
     return `<button onclick="setHomeCat('${c.key}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:10px 8px;border-radius:14px;background:${m.bg};border:2px solid ${isOn?'#c8a84b':'transparent'};cursor:pointer;flex-shrink:0;transition:all .15s">
@@ -5446,14 +5448,15 @@ function renderHomeCats(){
 }
 
 function setHomeCat(key){
-  homeCurCat=key;
-  _sbCatFilter=key;
+  if(key!=='전체'){
+    // 카테고리 뷰로 이동
+    showView('category');
+    setTimeout(()=>catGoStep1(key),100);
+    return;
+  }
+  homeCurCat='전체';
+  _sbCatFilter='전체';
   renderHomeCats();
-  const bannerEl=document.getElementById('home-premium-banner');
-  if(bannerEl)bannerEl.style.display=key==='전체'?'':'none';
-  ['home-urgent-section','home-new-section','home-popular-section','home-infeed-ad'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display=key==='전체'?'':'none';
-  });
   renderList();
 }
 
