@@ -64,6 +64,7 @@ ul{list-style:none}
 @keyframes viewIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* SPLASH */
 #view-splash{background:#ffffff;align-items:center;justify-content:center;flex-direction:column;gap:12px}
@@ -1170,6 +1171,9 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 카테고리별 상품 섹션 -->
     <div id="home-category-sections"></div>
+    <!-- 무한스크롤 로딩/끝 표시 -->
+    <div id="sb-scroll-loading" style="display:none;text-align:center;padding:20px 0"><div style="display:inline-block;width:28px;height:28px;border:3px solid #e0e0ea;border-top-color:#6c63ff;border-radius:50%;animation:spin .6s linear infinite"></div><div style="font-size:12px;color:#888;margin-top:6px">상품 불러오는 중...</div></div>
+    <div id="sb-scroll-end" style="display:none;text-align:center;padding:20px 0;font-size:13px;color:#aaa">모든 상품을 불러왔어요</div>
     <!-- 레거시 호환용 숨김 요소 -->
     <ul class="plist" id="product-list" style="display:none"></ul>
     <div id="list-sentinel"></div>
@@ -2158,7 +2162,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 하단 액션 -->
     <div style="padding:16px">
-      <button onclick="deleteDummyProducts()" style="width:100%;padding:14px;background:#eeeeee;border:1px solid #d8d8e8;border-radius:14px;color:#888899;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🖊️ 더미 상품 삭제</button>
       <button class="my-logout-btn" onclick="doLogout()">🔴 로그아웃</button>
       <button onclick="resetAllData()" style="width:100%;padding:14px;background:rgba(255,101,132,.08);border:1px solid rgba(255,101,132,.2);border-radius:14px;color:#ff6584;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">🗑️ 데이터 초기화</button>
     </div>
@@ -2364,7 +2367,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <button onclick="doSvSearch()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
     </div>
   </div>
-  <div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+  <div id="sv-scroll-wrap" style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y">
   <!-- 필터 섹션 -->
   <div style="padding:12px 16px 4px">
     <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px">필터</div>
@@ -2403,6 +2406,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <div id="sv-result-hd" class="sv-result-hd" style="display:none"></div>
   <!-- 결과 목록 -->
   <ul class="plist" id="sv-list"></ul>
+  <div id="sv-scroll-loading" style="display:none;text-align:center;padding:20px 0"><div style="display:inline-block;width:28px;height:28px;border:3px solid #e0e0ea;border-top-color:#6c63ff;border-radius:50%;animation:spin .6s linear infinite"></div><div style="font-size:12px;color:#888;margin-top:6px">검색 결과 불러오는 중...</div></div>
+  <div id="sv-scroll-end" style="display:none;text-align:center;padding:20px 0;font-size:13px;color:#aaa">모든 검색 결과를 불러왔어요</div>
   <div class="empty" id="sv-empty" style="display:none">
     <div class="ei">🔍</div>
     <p id="sv-empty-msg">검색어를 입력하거나 카테고리를 선택하세요</p>
@@ -3636,51 +3641,14 @@ let curUser=lsGet('curUser',null);
 function findUser(email,pw){return users.find(u=>u.email===email&&u.pw===pw)}
 
 /* ==================== PRODUCTS ==================== */
-const SELLERS_SAMPLE=[
-  {id:'sample_s1',name:'광장섬유',temp:37.2,loc:'서울 중구 동대문'},
-  {id:'sample_s2',name:'에코텍스코리아',temp:36.8,loc:'서울 성동구 성수동'},
-  {id:'sample_s3',name:'명성모직',temp:38.0,loc:'서울 중구 동대문'},
-  {id:'sample_s4',name:'대한니트',temp:37.5,loc:'서울 중구 신당동'},
-  {id:'sample_s5',name:'JS스트레치',temp:36.5,loc:'서울 동대문구 답십리'},
-  {id:'sample_s6',name:'금성실크',temp:37.8,loc:'서울 중구 동대문'},
-  {id:'sample_s7',name:'청일직물',temp:37.1,loc:'서울 종로구 창신동'},
-  {id:'sample_s8',name:'한일섬유',temp:36.9,loc:'서울 중구 동대문'},
-  {id:'sample_s9',name:'고려모직',temp:37.6,loc:'서울 중구 을지로'},
-  {id:'sample_s10',name:'스포텍',temp:38.0,loc:'서울 성동구 성수동'},
-];
-const DEFAULT_PRODUCTS=[
-  {id:1,title:'코마 면 트윌 60수 오트밀',type:'면',color:'베이지',width:150,weight:185,qty:500,price:2800,loc:'서울 중구 동대문',cat:'천연섬유',description:'60수 코마 면 트윌 소재입니다. 세밀한 조직감과 부드러운 손감이 특징이며 여름 셔츠, 블라우스, 홈웨어에 적합합니다. 대량 구매 시 협의 가능합니다.',tags:['면트윌','60수','오트밀','코마면','대량가능'],seller:SELLERS_SAMPLE[0],imgs:2,likes:8,chats:3,time:'1시간 전',liked:false},
-  {id:2,title:'GOTS 오가닉 린넨 워싱 세이지그린',type:'린넨',color:'그린',width:140,weight:165,qty:300,price:9800,loc:'서울 성동구 성수동',cat:'천연섬유',description:'GOTS 국제 인증 오가닉 린넨 원단입니다. 워싱 가공으로 부드러운 손감과 자연스러운 빈티지 느낌이 특징이며 친환경 패션 브랜드에 최적입니다.',tags:['GOTS','오가닉린넨','세이지그린','친환경','워싱'],seller:SELLERS_SAMPLE[1],imgs:3,likes:15,chats:6,time:'2시간 전',liked:false},
-  {id:3,title:'이태리 까발리 울 서지 차콜 280g',type:'울',color:'차콜',width:150,weight:280,qty:200,price:12000,loc:'서울 중구 동대문',cat:'천연섬유',description:'이탈리아 까발리社 울 서지 원단입니다. 고급 정장·코트 제작에 적합하며 내구성과 드레이프성이 우수합니다.',tags:['울서지','이태리산','차콜','정장감','까발리'],seller:SELLERS_SAMPLE[2],imgs:4,likes:22,chats:9,time:'3시간 전',liked:false},
-  {id:4,title:'C/R 기모 스웨트 쉬링크 로즈핑크',type:'니트',color:'핑크',width:160,weight:320,qty:1000,price:1400,loc:'서울 중구 신당동',cat:'합성섬유',description:'면/레이온 혼방 기모 스웨트 원단입니다. 쉬링크 처리로 표면이 부드럽고 보온성이 뛰어납니다. 트레이닝복, 후드, 맨투맨에 적합합니다.',tags:['기모스웨트','C/R','로즈핑크','트레이닝','대량'],seller:SELLERS_SAMPLE[3],imgs:2,likes:11,chats:5,time:'4시간 전',liked:false},
-  {id:5,title:'4WAY 나일론 스판 저지 더스티모브',type:'기능성',color:'보라',width:160,weight:210,qty:500,price:3500,loc:'서울 동대문구 답십리',cat:'합성섬유',description:'4방향 신축성 나일론 스판덱스 저지 원단입니다. 애슬레저, 수영복, 요가복 등 활동적인 의류 제작에 최적의 소재입니다.',tags:['나일론스판','4WAY','더스티모브','애슬레저','요가복'],seller:SELLERS_SAMPLE[4],imgs:3,likes:18,chats:7,time:'5시간 전',liked:false},
-  {id:6,title:'하부타이 실크 새틴 16mm 샴페인골드',type:'실크',color:'골드',width:140,weight:95,qty:50,price:20000,loc:'서울 중구 동대문',cat:'천연섬유',description:'16mm 하부타이 실크 새틴 원단입니다. 은은한 광택과 뛰어난 드레이프성으로 웨딩드레스, 이브닝웨어, 스카프 제작에 적합합니다.',tags:['하부타이실크','새틴','샴페인골드','16mm','웨딩'],seller:SELLERS_SAMPLE[5],imgs:5,likes:31,chats:14,time:'어제',liked:false},
-  {id:7,title:'셀비지 데님 14oz 인디고 원워시',type:'데님',color:'인디고',width:150,weight:420,qty:100,price:7500,loc:'서울 종로구 창신동',cat:'천연섬유',description:'14온스 셀비지 데님 원단입니다. 인디고 원워시 처리로 깔끔한 빈티지 느낌이 나며 청바지, 재킷, 데님 가방 제작에 적합합니다.',tags:['셀비지데님','14oz','인디고','원워시','청바지감'],seller:SELLERS_SAMPLE[6],imgs:3,likes:26,chats:11,time:'1일 전',liked:false},
-  {id:8,title:'폴리 조젯 쉬폰 아이보리 75D',type:'폴리',color:'아이보리',width:150,weight:55,qty:800,price:1200,loc:'서울 중구 동대문',cat:'합성섬유',description:'75D 폴리 조젯 쉬폰 원단입니다. 가볍고 통기성이 좋아 여름 블라우스, 원피스, 스카프에 적합합니다. 대량 재고 보유 중입니다.',tags:['조젯쉬폰','폴리','아이보리','75D','대량재고'],seller:SELLERS_SAMPLE[7],imgs:2,likes:9,chats:4,time:'1일 전',liked:false},
-  {id:9,title:'울 캐시미어 혼방 헤링본 네이비',type:'울',color:'네이비',width:150,weight:310,qty:150,price:18000,loc:'서울 중구 을지로',cat:'천연섬유',description:'울 80% + 캐시미어 20% 혼방 헤링본 원단입니다. 클래식한 패턴과 부드러운 캐시미어 텍스처가 특징인 프리미엄 소재입니다.',tags:['울캐시미어','헤링본','네이비','프리미엄','혼방'],seller:SELLERS_SAMPLE[8],imgs:4,likes:35,chats:16,time:'2일 전',liked:false},
-  {id:10,title:'테크니컬 소프트쉘 올리브 방수',type:'기능성',color:'올리브',width:150,weight:285,qty:400,price:8500,loc:'서울 성동구 성수동',cat:'기능성',description:'방수·방풍 기능의 소프트쉘 원단입니다. 3레이어 구조로 내구성과 기능성을 모두 갖춘 아웃도어 의류 제작에 최적화된 소재입니다.',tags:['소프트쉘','방수','올리브','아웃도어','테크니컬'],seller:SELLERS_SAMPLE[9],imgs:3,likes:19,chats:8,time:'2일 전',liked:false},
-];
+const DEFAULT_PRODUCTS=[];
 let products=lsGet('products',DEFAULT_PRODUCTS);
 function saveProducts(){lsSet('products',products)}
-// 오염된 샘플 상품 seller 복구
-function repairSampleProducts(){
-  const firstP=products.find(p=>p.id===1);
-  if(firstP&&firstP.seller&&firstP.seller.name!=='광장섬유'){
-    const sampleIds=DEFAULT_PRODUCTS.map(p=>p.id);
-    const userProds=products.filter(p=>!sampleIds.includes(p.id));
-    products=[...DEFAULT_PRODUCTS,...userProds];
-    lsSet('products',products);
-    console.log('샘플 상품 데이터 복구 완료');
-  }
-}
-repairSampleProducts();
 function syncSellerInfoToProducts(){
   let changed=false;
   users.forEach(u=>{
     products.forEach(p=>{
       if(!p.seller||!p.seller.id)return;
-      // 샘플 데이터 ID는 건드리지 않음
-      if(String(p.seller.id).startsWith('sample_'))return;
       if(p.seller.id===u.id&&p.seller.name!==u.name){
         p.seller.name=u.name;
         p.seller.loc=u.loc||p.seller.loc;
@@ -3693,77 +3661,87 @@ function syncSellerInfoToProducts(){
   if(changed){lsSet('products',products);console.log('판매자 정보 자동 보정 완료');}
 }
 syncSellerInfoToProducts();
-async function loadProductsFromSupabase(){
-  if(!_sb)return;
-  const cached=lsGetTTL('products_sb');
-  if(cached&&cached.length){
-    // 캐시 먼저 보여주고
-    const cachedIds=new Set(cached.map(p=>String(p.id)));
-    const localOnly=products.filter(p=>!cachedIds.has(String(p.id))&&p.id>10);
-    products=[...cached,...localOnly];
-    renderList();
-    // 로그인 직후에는 캐시 무시하고 Supabase에서 최신 데이터 다시 로드
-    if(!curUser)return;
-    lsDelTTL('products_sb');
-  }
-  showListSkeleton();
-  try{
-    const{data,error}=await _sb.from('products').select('*').order('created_at',{ascending:false});
-    if(error){console.error('[loadProducts] 오류:',error);return;}
-    const likedMap=lsGet('likedMap',{});
-    if(!data||data.length<5){
-      // Supabase 상품이 5개 미만이면 샘플 데이터를 Supabase에 자동 insert
-      try{
-        const samplePayloads=DEFAULT_PRODUCTS.map(p=>({
-          title:p.title,type:p.type,color:p.color,width:p.width,weight:p.weight,
-          qty:p.qty,price:p.price,loc:p.loc,cat:p.cat,description:p.description,
-          tags:p.tags,seller:p.seller,imgs:p.imgs,likes:p.likes,chats:p.chats,time:p.time
-        }));
-        console.log('[loadProducts] 샘플 데이터 10개 Supabase insert 시작...');
-        const{data:inserted,error:insertErr}=await _sb.from('products').insert(samplePayloads).select();
-        const prevLocal=products.filter(p=>p.id>10);
-        if(insertErr){
-          console.error('[loadProducts] 샘플 insert 오류:',insertErr);
-          products=[...DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]})),...prevLocal];
-        }else{
-          console.log('[loadProducts] 샘플 insert 완료:', inserted?.length,'개');
-          const sbSamples=(inserted||[]).map(p=>({
-            ...p,
-            seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
-            tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
-            liked:false,time:p.time||'방금 전',likes:p.likes||0,chats:p.chats||0,imgs:p.imgs||1,
-          }));
-          products=[...sbSamples,...prevLocal];
-        }
-      }catch(insertEx){
-        console.error('[loadProducts] 샘플 insert 예외:',insertEx);
-        const prevLocal=products.filter(p=>p.id>10);
-        products=[...DEFAULT_PRODUCTS.map(p=>({...p,liked:!!likedMap[p.id]})),...prevLocal];
-      }
-      lsSet('products',products);lsSetTTL('products_sb',products.filter(p=>p.id<=10));
-      renderList();
-      return;
-    }
-    const sbProducts=data.map(p=>({
-      ...p,
-      seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
-      seller_id:p.seller_id||(p.seller&&p.seller.id)||'',
-      tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
-      liked:!!likedMap[p.id],
-      time:p.time||'방금 전',
-      likes:p.likes||0,
-      chats:p.chats||0,
-      imgs:p.imgs||1,
-    }));
-    // 로컬에만 있는 상품 보존 (Supabase에 없는 것)
-    const sbIds=new Set(sbProducts.map(p=>String(p.id)));
-    const localOnly=products.filter(p=>!sbIds.has(String(p.id))&&p.id>10);
-    products=[...sbProducts,...localOnly];
-    lsSet('products',products);lsSetTTL('products_sb',sbProducts);
-    console.log('products categories:',products.map(p=>p.type));
-    renderList();
-  }catch(e){console.error('[loadProducts] 예외:',e);}
+// 무한스크롤 상태 변수
+let _sbPage=0,_sbLoading=false,_sbHasMore=true;
+const _SB_PAGE_SIZE=20;
+
+function _mapSbProduct(p){
+  const likedMap=lsGet('likedMap',{});
+  return{
+    ...p,
+    seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
+    seller_id:p.seller_id||(p.seller&&p.seller.id)||'',
+    tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
+    liked:!!likedMap[p.id],
+    time:p.time||'방금 전',
+    likes:p.likes||0,
+    chats:p.chats||0,
+    imgs:p.imgs||1,
+  };
 }
+
+function _showScrollLoading(show){
+  const el=document.getElementById('sb-scroll-loading');
+  if(el)el.style.display=show?'block':'none';
+}
+function _showScrollEnd(show){
+  const el=document.getElementById('sb-scroll-end');
+  if(el)el.style.display=show?'block':'none';
+}
+
+async function loadProductsFromSupabase(reset){
+  if(!_sb)return;
+  if(reset){
+    _sbPage=0;_sbHasMore=true;products=[];
+    _showScrollEnd(false);
+  }
+  if(_sbLoading||!_sbHasMore)return;
+  _sbLoading=true;
+  const isFirst=_sbPage===0;
+  if(isFirst)showListSkeleton();
+  else _showScrollLoading(true);
+  try{
+    const from=_sbPage*_SB_PAGE_SIZE;
+    const to=from+_SB_PAGE_SIZE-1;
+    const{data,error}=await _sb.from('products').select('*').order('created_at',{ascending:false}).range(from,to);
+    if(error){console.error('[loadProducts] 오류:',error);_sbLoading=false;_showScrollLoading(false);return;}
+    if(!data||data.length<_SB_PAGE_SIZE){_sbHasMore=false;}
+    const sbProducts=(data||[]).map(p=>_mapSbProduct(p));
+    if(isFirst){
+      products=sbProducts;
+    }else{
+      const existIds=new Set(products.map(p=>String(p.id)));
+      sbProducts.forEach(p=>{if(!existIds.has(String(p.id)))products.push(p);});
+    }
+    lsSet('products',products);
+    _sbPage++;
+    renderList();
+    _showScrollLoading(false);
+    if(!_sbHasMore)_showScrollEnd(true);
+  }catch(e){console.error('[loadProducts] 예외:',e);_showScrollLoading(false);}
+  _sbLoading=false;
+}
+
+// 홈 스크롤 무한스크롤 감지
+(function(){
+  let _scrollBound=false;
+  const _bindScroll=()=>{
+    if(_scrollBound)return;
+    const scrollEl=document.querySelector('#view-list .home-scroll');
+    if(!scrollEl)return;
+    _scrollBound=true;
+    scrollEl.addEventListener('scroll',()=>{
+      if(_sbLoading||!_sbHasMore)return;
+      const{scrollTop,scrollHeight,clientHeight}=scrollEl;
+      if(scrollTop+clientHeight>=scrollHeight*0.9){
+        loadProductsFromSupabase(false);
+      }
+    });
+  };
+  // DOM 로드 후 바인딩
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_bindScroll);
+  else setTimeout(_bindScroll,100);
+})();
 
 async function loadAppSettings(){
   if(!_sb)return;
@@ -4559,7 +4537,7 @@ async function doLogin(isAuto){
       lsSet('lastUserId',newUserId);
       lsSet('interestCatsSet',false);
     }
-    showView('list');showListSkeleton();loadProductsFromSupabase();
+    showView('list');showListSkeleton();loadProductsFromSupabase(true);
     syncKeywordsFromSupabase();
     setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
   }catch(e){showToast('로그인 중 오류가 발생했어요');console.error(e);}
@@ -4721,7 +4699,7 @@ async function doSignup(){
       curUser=null; lsSet('curUser',null);
       showEmailVerifyScreen(email, wantsBusiness);
     } else {
-      showView('list');showListSkeleton();loadProductsFromSupabase();
+      showView('list');showListSkeleton();loadProductsFromSupabase(true);
       setTimeout(()=>openWelcomeModal(curUser.name||name),800);
       // 일반회원 이용가이드 알림 발송
       sendNotification(curUser.id||curUser.email,'guide_member','🎉 비움마켓 이용가이드','비움마켓 사용법을 확인해보세요!',{});
@@ -4794,7 +4772,7 @@ async function handleKakaoCode(code){
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
-        showView('list');showListSkeleton();loadProductsFromSupabase();
+        showView('list');showListSkeleton();loadProductsFromSupabase(true);
       }else{
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
@@ -4856,7 +4834,7 @@ async function handleNaverCode(code,state){
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
-        showView('list');showListSkeleton();loadProductsFromSupabase();
+        showView('list');showListSkeleton();loadProductsFromSupabase(true);
       }else{
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
@@ -8131,7 +8109,7 @@ async function submitForm(){
           });
         }
       }
-      lsDelTTL('products_sb');loadProductsFromSupabase().then(()=>showMySales());
+      lsDelTTL('products_sb');loadProductsFromSupabase(true).then(()=>showMySales());
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
       let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
@@ -8206,7 +8184,7 @@ async function submitForm(){
       }
       // 단골에게 새 상품 알림
       notifyDangolNewProduct(payload.title,inserted?.id||'',payload.is_urgent||false);
-      lsDelTTL('products_sb');await loadProductsFromSupabase();
+      lsDelTTL('products_sb');await loadProductsFromSupabase(true);
     }
   }catch(e){
     console.error('[submitForm] 예외:', e);
@@ -8221,13 +8199,16 @@ function doSvSearch(){
 document.getElementById('search-input').addEventListener('input',e=>{curSearch=e.target.value;renderList()});
 document.getElementById('sv-input').addEventListener('input',e=>{
   svSearch=e.target.value;
-  renderSearchView();
+  // 디바운스로 Supabase 검색 (300ms)
+  clearTimeout(_svSearchDebounce);
+  _svSearchDebounce=setTimeout(()=>renderSearchView(),300);
 });
 document.getElementById('sv-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     const q=svSearch.trim();
     if(q.length>=2){
       addRecentSearch(q);
+      clearTimeout(_svSearchDebounce);
       renderSearchView();
     }
     e.target.blur();
@@ -8248,7 +8229,78 @@ function renderPopularSearches(){
   chips.innerHTML=SV_POPULAR_KEYWORDS.map((kw,i)=>`<button class="sv-popular-pill" onclick="applySvSearch('${kw}')"><span class="sv-pop-num">${i+1}</span>${kw}</button>`).join('');
   section.style.display='block';
 }
-function renderSearchView(){
+// 검색 무한스크롤 상태
+let _svPage=0,_svLoading=false,_svHasMore=true;
+let _svResults=[];
+let _svSearchDebounce=null;
+
+function _renderSvCard(p){
+  const bg=getFColor(p.type,p.color);
+  const tex=getTexture(p.type);
+  const isSoldout=(p.qty||0)<=0;
+  const isStopped=p.status==='stopped';
+  if(isStopped)return '';
+  return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})">
+    <div class="pthumb" style="background:${bg};background-image:${tex}">
+      ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
+      ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
+      ${(()=>{
+        const stype=p.seller?.type||p.sellerType||'';
+        if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
+        return '';
+      })()}
+      <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
+    </div>
+    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
+    <div class="pinfo">
+      <div class="pname">${p.title}</div>
+      <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
+      <div class="pprice" style="color:#e53935">${fmtPrice(p.price)}<span class="pu" style="color:#666677">/m</span></div>
+      <div class="pfoot">
+        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
+        <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
+      </div>
+    </div>
+  </li>`;
+}
+
+async function _svSearchSupabase(reset){
+  if(!_sb)return;
+  const q=svSearch.trim();
+  if(!q){_svResults=[];return;}
+  if(reset){_svPage=0;_svHasMore=true;_svResults=[];}
+  if(_svLoading||!_svHasMore)return;
+  _svLoading=true;
+  const loadEl=document.getElementById('sv-scroll-loading');
+  const endEl=document.getElementById('sv-scroll-end');
+  if(loadEl)loadEl.style.display='block';
+  if(endEl)endEl.style.display='none';
+  try{
+    const from=_svPage*_SB_PAGE_SIZE;
+    const to=from+_SB_PAGE_SIZE-1;
+    const likeQ=`%${q}%`;
+    let query=_sb.from('products').select('*')
+      .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
+      .order('created_at',{ascending:false});
+    // 필터 적용
+    if(svFilter!=='전체')query=query.eq('type',svFilter);
+    if(svPriceMin)query=query.gte('price',svPriceMin);
+    if(svPriceMax)query=query.lte('price',svPriceMax);
+    const{data,error}=await query.range(from,to);
+    if(error){console.error('[svSearch] 오류:',error);_svLoading=false;if(loadEl)loadEl.style.display='none';return;}
+    if(!data||data.length<_SB_PAGE_SIZE)_svHasMore=false;
+    const mapped=(data||[]).map(p=>_mapSbProduct(p));
+    // 지역 필터 (클라이언트 측)
+    const filtered=svLocFilter?mapped.filter(p=>(p.loc||'').includes(svLocFilter)||(p.seller?.loc||'').includes(svLocFilter)):mapped;
+    _svResults=reset?filtered:[..._svResults,...filtered];
+    _svPage++;
+    if(loadEl)loadEl.style.display='none';
+    if(!_svHasMore&&endEl)endEl.style.display='block';
+  }catch(e){console.error('[svSearch] 예외:',e);}
+  _svLoading=false;
+}
+
+async function renderSearchView(){
   renderSvChips();
   renderRecentSearches();
   renderPopularSearches();
@@ -8256,59 +8308,65 @@ function renderSearchView(){
   const empty=document.getElementById('sv-empty');
   const resultHd=document.getElementById('sv-result-hd');
   const clearBtn=document.getElementById('sv-clear-btn');
-  const q=svSearch.trim().toLowerCase();
+  const endEl=document.getElementById('sv-scroll-end');
+  const q=svSearch.trim();
   if(clearBtn)clearBtn.style.display=q?'inline':'none';
-  const filtered=products.filter(p=>{
-    const mf=svFilter==='전체'||p.type===svFilter;
-    const ms=!q||p.title.toLowerCase().includes(q)||p.type.includes(q)||p.color.toLowerCase().includes(q)||(p.tags||[]).some(tg=>tg.toLowerCase().includes(q))||(p.seller&&p.seller.name.toLowerCase().includes(q));
-    const mp=(!svPriceMin&&!svPriceMax)||(svPriceMin&&svPriceMax?p.price>=svPriceMin&&p.price<=svPriceMax:svPriceMin?p.price>=svPriceMin:p.price<=svPriceMax);
-    const ml=!svLocFilter||(p.loc||'').includes(svLocFilter)||(p.seller?.loc||'').includes(svLocFilter);
-    return mf&&ms&&mp&&ml;
-  });
-  if(resultHd){
-    resultHd.style.display=q?'block':'none';
-    if(q)resultHd.textContent=`"${svSearch.trim()}" 검색 결과 ${filtered.length}건`;
-  }
   if(!q){
+    _svResults=[];_svPage=0;_svHasMore=true;
     list.innerHTML='';list.style.display='none';empty.style.display='none';
-  }else if(!filtered.length){
+    if(resultHd)resultHd.style.display='none';
+    if(endEl)endEl.style.display='none';
+    setTimeout(()=>document.getElementById('sv-input')?.focus(),120);
+    return;
+  }
+  // Supabase에서 검색
+  await _svSearchSupabase(true);
+  if(resultHd){
+    resultHd.style.display='block';
+    resultHd.textContent=`"${q}" 검색 결과 ${_svResults.length}건`;
+  }
+  if(!_svResults.length){
     list.innerHTML='';list.style.display='none';empty.style.display='flex';
-    document.getElementById('sv-empty-msg').textContent=t('empty_msg');
+    document.getElementById('sv-empty-msg').textContent='검색 결과가 없어요';
   }else{
     empty.style.display='none';list.style.display='grid';
-    list.innerHTML=filtered.map(p=>{
-        const bg=getFColor(p.type,p.color);
-        const tex=getTexture(p.type);
-        const isSoldout=(p.qty||0)<=0;
-        const isStopped=p.status==='stopped';
-        if(isStopped)return '';
-        const delay=0;
-        return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})" style="animation-delay:${delay}s">
-          <div class="pthumb" style="background:${bg};background-image:${tex}">
-            ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
-            ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
-            ${(()=>{
-              const stype=p.seller?.type||p.sellerType||'';
-              if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
-              return '';
-            })()}
-            <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
-          </div>
-          <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
-          <div class="pinfo">
-            <div class="pname">${p.title}</div>
-            <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-            <div class="pprice" style="color:#e53935">${fmtPrice(p.price)}<span class="pu" style="color:#666677">/m</span></div>
-            <div class="pfoot">
-              <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
-              <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
-            </div>
-          </div>
-        </li>`;
-      }).join('');
+    list.innerHTML=_svResults.map(p=>_renderSvCard(p)).join('');
   }
   setTimeout(()=>document.getElementById('sv-input')?.focus(),120);
 }
+
+// 검색 무한스크롤 - 추가 로드 후 목록에 append
+async function _svLoadMore(){
+  if(_svLoading||!_svHasMore||!svSearch.trim())return;
+  const prevLen=_svResults.length;
+  await _svSearchSupabase(false);
+  const list=document.getElementById('sv-list');
+  const resultHd=document.getElementById('sv-result-hd');
+  if(list&&_svResults.length>prevLen){
+    list.innerHTML+=_svResults.slice(prevLen).map(p=>_renderSvCard(p)).join('');
+  }
+  if(resultHd)resultHd.textContent=`"${svSearch.trim()}" 검색 결과 ${_svResults.length}건`;
+}
+
+// 검색 스크롤 이벤트 바인딩
+(function(){
+  let _svScrollBound=false;
+  const _bindSvScroll=()=>{
+    if(_svScrollBound)return;
+    const scrollEl=document.getElementById('sv-scroll-wrap');
+    if(!scrollEl)return;
+    _svScrollBound=true;
+    scrollEl.addEventListener('scroll',()=>{
+      if(_svLoading||!_svHasMore||!svSearch.trim())return;
+      const{scrollTop,scrollHeight,clientHeight}=scrollEl;
+      if(scrollTop+clientHeight>=scrollHeight*0.9){
+        _svLoadMore();
+      }
+    });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_bindSvScroll);
+  else setTimeout(_bindSvScroll,100);
+})();
 function renderSvChips(){
   const el=document.getElementById('sv-chips');if(!el)return;
   el.innerHTML=FILTERS.map(f=>`<button class="chip ${f===svFilter?'on':''}" onclick="setSvFilter('${f}')">${t('filter_'+f)||f}</button>`).join('');
@@ -9016,18 +9074,6 @@ function toggleTrade(key,val){
   tradeSettings[key]=val;
   lsSet('tradeSettings',tradeSettings);
   showToast(val?'설정이 켜졌어요 ✅':'설정이 꺼졌어요');
-}
-async function deleteDummyProducts(){
-  const dummyIds=DEFAULT_PRODUCTS.map(p=>p.id);
-  if(!confirm('샘플 더미 상품을 삭제할까요?'))return;
-  products=products.filter(p=>!dummyIds.includes(p.id));
-  lsSet('products',products);lsDelTTL('products_sb');
-  if(_sb){
-    try{await _sb.from('products').delete().in('id',dummyIds);}
-    catch(e){console.error('더미 삭제 오류:',e);}
-  }
-  showToast('더미 상품을 삭제했어요 🗑️');
-  renderList();
 }
 function resetAllData(){
   if(!confirm('모든 로컬 데이터를 초기화할까요?\n로그인 정보도 삭제됩니다.'))return;
@@ -9969,7 +10015,7 @@ function checkAdminAccess(){
       applyRoleVisibility();
       showView('list');
       showListSkeleton();
-      loadProductsFromSupabase();
+      loadProductsFromSupabase(true);
       showToast('관리자 모드로 접속했어요 🛡️');
     }
   } else {
@@ -13613,7 +13659,7 @@ async function renderBizStats(tab){
       if(nameEl&&_oauthPendingUser)nameEl.value=_oauthPendingUser.name||'';
     },100);
   }else if(curUser){
-    showView('list');showListSkeleton();loadProductsFromSupabase();
+    showView('list');showListSkeleton();loadProductsFromSupabase(true);
     syncKeywordsFromSupabase();
     loadAppSettings();
     loadFontSize();
