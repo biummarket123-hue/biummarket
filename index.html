@@ -5790,28 +5790,28 @@ function renderHomeSections(){
     const sigungu=locParts[1]||'';
     const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
     const locKey=isMetro?sido:sigungu;
-    const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).slice(0,5);
+    const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)&&!p.is_hidden&&(p.qty||0)>0).slice(0,10);
     if(nearbyProds.length){
-      html+=`<div class="cat-section" style="border:1.5px solid rgba(0,179,134,.2);border-radius:16px;padding:12px;background:rgba(0,179,134,.03);margin-bottom:8px">
-        <div class="cat-section-hd">
-          <span class="cat-section-title">📍 ${locKey} 근처 상품</span>
-          <span class="cat-section-more" onclick="openSettLocModal()">위치 변경 →</span>
+      html+=`<div style="background:#fff;padding:16px 0 12px;margin-bottom:8px;border:1.5px solid rgba(0,179,134,.15);border-radius:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
+          <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">📍 ${locKey} 근처 상품</div><div style="font-size:12px;color:#888;margin-top:2px">내 주변에서 거래 가능한 원단</div></div>
+          <span onclick="openSettLocModal()" style="font-size:12px;color:#6c63ff;font-weight:600;cursor:pointer">위치 변경 →</span>
         </div>
-        ${nearbyProds.map(p=>renderHomeProduct(p)).join('')}
+        <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${nearbyProds.map(p=>_renderHorizCard(p)).join('')}</div>
       </div>`;
     }
   }
 
   // 관심 카테고리 섹션
   if(interestCats.length){
-    const interestProds=interestCats.flatMap(cat=>getProductsByHomeCat(cat).slice(0,3));
+    const interestProds=interestCats.flatMap(cat=>getProductsByHomeCat(cat).slice(0,4)).filter(p=>!p.is_hidden&&(p.qty||0)>0).slice(0,10);
     if(interestProds.length){
-      html+=`<div class="cat-section" style="border:1.5px solid rgba(108,99,255,.2);border-radius:16px;padding:12px;background:rgba(108,99,255,.03);margin-bottom:8px">
-        <div class="cat-section-hd">
-          <span class="cat-section-title">⭐ 내 관심 원단</span>
-          <span class="cat-section-more" onclick="openInterestModal()">관심 수정 →</span>
+      html+=`<div style="background:#fff;padding:16px 0 12px;margin-bottom:8px;border:1.5px solid rgba(108,99,255,.15);border-radius:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
+          <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">⭐ 내 관심 원단</div><div style="font-size:12px;color:#888;margin-top:2px">관심 카테고리 맞춤 추천</div></div>
+          <span onclick="openInterestModal()" style="font-size:12px;color:#6c63ff;font-weight:600;cursor:pointer">관심 수정 →</span>
         </div>
-        ${interestProds.map(p=>renderHomeProduct(p)).join('')}
+        <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${interestProds.map(p=>_renderHorizCard(p)).join('')}</div>
       </div>`;
     }
   }
