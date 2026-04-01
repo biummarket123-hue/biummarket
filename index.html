@@ -3744,6 +3744,18 @@ let _sbSortKey='latest'; // latest, price, priceDesc
 let _sbUrgentOnly=false;  // 급처 필터
 let _sbFreeOnly=false;    // 무료나눔 필터
 
+function _productTimeAgo(createdAt){
+  if(!createdAt)return '';
+  const ms=Date.now()-new Date(createdAt).getTime();
+  if(ms<0)return '방금 전';
+  const s=Math.floor(ms/1000);
+  if(s<60)return '방금 전';
+  const m=Math.floor(s/60);if(m<60)return m+'분 전';
+  const h=Math.floor(m/60);if(h<24)return h+'시간 전';
+  const d=Math.floor(h/24);if(d<30)return d+'일 전';
+  const mo=Math.floor(d/30);if(mo<12)return mo+'개월 전';
+  return Math.floor(mo/12)+'년 전';
+}
 function _mapSbProduct(p){
   const likedMap=lsGet('likedMap',{});
   return{
@@ -3752,7 +3764,7 @@ function _mapSbProduct(p){
     seller_id:p.seller_id||(p.seller&&p.seller.id)||'',
     tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
     liked:!!likedMap[p.id],
-    time:p.time||'방금 전',
+    time:_productTimeAgo(p.created_at),
     likes:p.likes||0,
     chats:p.chats||0,
     imgs:p.imgs||1,
@@ -8282,7 +8294,7 @@ async function submitForm(){
     seller:sellerInfo,
     seller_id:curUser?.id||'',
     imgs:Math.max(1,uploadedImgs.length),
-    likes:0,chats:0,time:'방금 전'
+    likes:0,chats:0
   };
   if(image_url)payload.image_url=image_url;
   if(image_urls.length>0)payload.image_urls=image_urls;
