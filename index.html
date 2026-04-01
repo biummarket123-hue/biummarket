@@ -1567,7 +1567,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 
     <!-- 하단 고정 등록 버튼 -->
     <div class="form-submit-fixed">
-      <button class="form-submit-btn" onclick="submitForm()">📦 상품 등록하기</button>
+      <button class="form-submit-btn" id="form-submit-text" onclick="submitForm()">📦 상품 등록하기</button>
     </div>
 
   </div>
@@ -6291,6 +6291,8 @@ function editProduct(targetId){
   renderFormImgs();
   const ft=document.querySelector('#view-form .hdr-title');
   if(ft)ft.textContent='상품 수정';
+  const submitBtn=document.getElementById('form-submit-text');
+  if(submitBtn)submitBtn.textContent='✏️ 상품 수정하기';
 }
 async function deleteProduct(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
@@ -8214,6 +8216,8 @@ function initFormView(){
   setAiCardLoading(false);
   const formTitle=document.querySelector('#view-form .hdr-title');
   if(formTitle)formTitle.textContent='원단 판매 등록';
+  const submitBtn=document.getElementById('form-submit-text');
+  if(submitBtn)submitBtn.textContent='📦 상품 등록하기';
 }
 
 function calcTotal(){}
