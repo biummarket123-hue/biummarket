@@ -3817,25 +3817,29 @@ async function loadProductsFromSupabase(reset){
   try{
     const from=_sbPage*_SB_PAGE_SIZE;
     const to=from+_SB_PAGE_SIZE-1;
-    let query=_sb.from('products').select('*').is('deleted_at',null);
-    // 카테고리 필터
-    if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타'){
-      query=query.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
+    function _buildProductQuery(){
+      let q=_sb.from('products').select('*').is('deleted_at',null);
+      if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타')q=q.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
+      if(_sbCatFilter==='기타'){CATEGORY_DATA.map(c=>c.id).forEach(c=>{q=q.neq('cat',c);});}
+      if(_sbUrgentOnly)q=q.eq('is_urgent',true);
+      if(_sbFreeOnly)q=q.eq('is_free',true);
+      if(_sbSortKey==='price')q=q.order('price',{ascending:true});
+      else if(_sbSortKey==='priceDesc')q=q.order('price',{ascending:false});
+      else q=q.order('created_at',{ascending:false});
+      return q;
     }
-    // 기타: CATEGORY_DATA에 없는 cat/type만
-    if(_sbCatFilter==='기타'){
-      const allCats=CATEGORY_DATA.map(c=>c.id);
-      allCats.forEach(c=>{query=query.neq('cat',c);});
+    let{data,error}=await _buildProductQuery().range(from,to);
+    // deleted_at 컬럼 없으면 필터 없이 재시도
+    if(error&&error.message&&error.message.includes('deleted_at')){
+      console.warn('[loadProducts] deleted_at 컬럼 없음, 필터 없이 재시도');
+      let q=_sb.from('products').select('*');
+      if(_sbCatFilter&&_sbCatFilter!=='전체'&&_sbCatFilter!=='기타')q=q.or(`cat.eq.${_sbCatFilter},type.eq.${_sbCatFilter}`);
+      if(_sbCatFilter==='기타'){CATEGORY_DATA.map(c=>c.id).forEach(c=>{q=q.neq('cat',c);});}
+      if(_sbSortKey==='price')q=q.order('price',{ascending:true});
+      else if(_sbSortKey==='priceDesc')q=q.order('price',{ascending:false});
+      else q=q.order('created_at',{ascending:false});
+      ({data,error}=await q.range(from,to));
     }
-    // 급처 필터
-    if(_sbUrgentOnly)query=query.eq('is_urgent',true);
-    // 무료나눔 필터
-    if(_sbFreeOnly)query=query.eq('is_free',true);
-    // 정렬
-    if(_sbSortKey==='price')query=query.order('price',{ascending:true});
-    else if(_sbSortKey==='priceDesc')query=query.order('price',{ascending:false});
-    else query=query.order('created_at',{ascending:false});
-    const{data,error}=await query.range(from,to);
     if(error){console.error('[loadProducts] 오류:',error);_sbLoading=false;_showScrollLoading(false);return;}
     if(!data||data.length<_SB_PAGE_SIZE){_sbHasMore=false;}
     const sbProducts=(data||[]).map(p=>_mapSbProduct(p));
@@ -8649,12 +8653,21 @@ async function _svSearchSupabase(reset){
     let query=_sb.from('products').select('*').is('deleted_at',null)
       .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
       .order('created_at',{ascending:false});
-    // 필터 적용
     if(svFilter!=='전체')query=query.eq('type',svFilter);
     if(svPriceMin)query=query.gte('price',svPriceMin);
     if(svPriceMax)query=query.lte('price',svPriceMax);
     if(svFreeOnly)query=query.eq('is_free',true);
-    const{data,error}=await query.range(from,to);
+    let{data,error}=await query.range(from,to);
+    // deleted_at 컬럼 없으면 재시도
+    if(error&&error.message&&error.message.includes('deleted_at')){
+      let q2=_sb.from('products').select('*')
+        .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
+        .order('created_at',{ascending:false});
+      if(svFilter!=='전체')q2=q2.eq('type',svFilter);
+      if(svPriceMin)q2=q2.gte('price',svPriceMin);
+      if(svPriceMax)q2=q2.lte('price',svPriceMax);
+      ({data,error}=await q2.range(from,to));
+    }
     if(error){console.error('[svSearch] 오류:',error);_svLoading=false;if(loadEl)loadEl.style.display='none';return;}
     if(!data||data.length<_SB_PAGE_SIZE)_svHasMore=false;
     const mapped=(data||[]).map(p=>_mapSbProduct(p));
