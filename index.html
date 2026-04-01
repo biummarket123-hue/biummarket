@@ -12212,7 +12212,7 @@ function openHomeMoreView(title,subtitle,items){
 }
 function openPopularRankingView(){
   const items=[...products].filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0)
-    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,30);
+    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,50);
   const el=document.getElementById('cp-list');if(!el)return;
   curCatKey='';curViewMode='home-more';
   const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='🔥 인기 원단 랭킹';
