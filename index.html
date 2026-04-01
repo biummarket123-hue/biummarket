@@ -1068,7 +1068,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="fg"><label>비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
     <div class="fg"><label>비밀번호 확인 <span class="req">*</span></label><input type="password" class="fi" id="s-pw-confirm" placeholder="비밀번호 재입력"/></div>
     <div class="fg"><label>전화번호 <span class="req">*</span></label><input type="tel" class="fi" id="s-tel" placeholder="예) 010-1234-5678"/></div>
-    <div class="fg"><label>위치</label><div style="display:flex;gap:6px"><input type="text" class="fi" id="s-loc" placeholder="예) 서울 동대문구 신설동" style="flex:1"/><button type="button" onclick="openAddressSearch(function(short){document.getElementById('s-loc').value=short;})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
+    <div class="fg"><label>위치 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" class="fi" id="s-loc" placeholder="예) 서울 중구" style="flex:1" readonly/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('s-loc').value=short;document.getElementById('s-loc-detail').value=full.replace(short,'').trim();})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
+    <div class="fg"><label>상세주소 <span class="req">*</span></label><input type="text" class="fi" id="s-loc-detail" placeholder="예) 신설동 123 OO빌딩 2층"/></div>
     <!-- 개인 판매자 전용 필드 -->
     <div id="signup-seller-fields" style="display:none">
       <div style="font-size:12px;font-weight:700;color:#6c63ff;margin:12px 0 8px;padding:8px 12px;background:rgba(108,99,255,.08);border-radius:8px">👤 개인 판매 정보</div>
@@ -1085,7 +1086,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div class="fg"><label>회사명 <span class="req">*</span></label><input type="text" class="fi" id="s-bizname" placeholder="예) (주)비움텍스타일"/></div>
       <div class="fg"><label>대표자명 <span class="req">*</span></label><input type="text" class="fi" id="s-ceo" placeholder="대표자 이름"/></div>
       <div class="fg"><label>사업자등록번호 <span class="req">*</span></label><input type="text" class="fi" id="s-biznum" placeholder="예) 123-45-67890"/></div>
-      <div class="fg"><label>사업장 주소 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" class="fi" id="s-address" placeholder="예) 서울시 중구 을지로 1길 10" style="flex:1"/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('s-address').value=full;})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
+      <div class="fg"><label>사업장 주소 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" class="fi" id="s-address" placeholder="예) 서울 중구 을지로 1길 10" style="flex:1" readonly/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('s-address').value=full;document.getElementById('s-address-detail').value='';})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
+      <div class="fg"><label>사업장 상세주소 <span class="req">*</span></label><input type="text" class="fi" id="s-address-detail" placeholder="예) OO빌딩 3층 302호"/></div>
       <div class="fg"><label>설립년도</label><input type="text" class="fi" id="s-founded" placeholder="예) 2010"/></div>
       <div class="fg"><label>인사말</label><textarea class="fi" id="s-bizintro" placeholder="예) 20년 경력의 원단 도매 전문 업체입니다." style="min-height:70px"></textarea></div>
       <div class="fg"><label>사업자등록증 첨부 <span class="req">*</span></label>
@@ -4603,10 +4605,13 @@ async function doSignup(){
   const pw=isOAuth?'oauth':(document.getElementById('s-pw').value);
   const tel=document.getElementById('s-tel')?.value.trim()||'';
   const loc=document.getElementById('s-loc')?.value.trim()||'';
+  const locDetail=document.getElementById('s-loc-detail')?.value.trim()||'';
   if(!name){showToast('이름을 입력해주세요');return;}
   if(!isOAuth&&!email){showToast('이메일을 입력해주세요');return;}
   if(!isOAuth&&!pw){showToast('비밀번호를 입력해주세요');return;}
   if(!tel){showToast('전화번호를 입력해주세요');return;}
+  if(!loc){showToast('위치를 검색해주세요');return;}
+  if(!locDetail){showToast('상세주소를 입력해주세요');return;}
   // 개인 판매자 추가 정보
   const sellerExtra=selectedUserType==='seller'?{
     intro:document.getElementById('s-intro')?.value.trim()||'',
@@ -4622,6 +4627,7 @@ async function doSignup(){
     ceo:document.getElementById('s-ceo')?.value.trim()||'',
     biznum:document.getElementById('s-biznum')?.value.trim()||'',
     address:document.getElementById('s-address')?.value.trim()||'',
+    addressDetail:document.getElementById('s-address-detail')?.value.trim()||'',
     founded:document.getElementById('s-founded')?.value.trim()||'',
     intro:document.getElementById('s-bizintro')?.value.trim()||'',
   }:null;
@@ -4631,6 +4637,7 @@ async function doSignup(){
     if(!companyExtra.ceo){showToast('대표자명을 입력해주세요');return;}
     if(!companyExtra.biznum){showToast('사업자등록번호를 입력해주세요');return;}
     if(!companyExtra.address){showToast('사업장 주소를 입력해주세요');return;}
+    if(!companyExtra.addressDetail){showToast('사업장 상세주소를 입력해주세요');return;}
     if(!document.getElementById('s-bizfile')?.files[0]){showToast('사업자등록증을 첨부해주세요');return;}
   }
   if(!isOAuth){
@@ -4684,7 +4691,7 @@ async function doSignup(){
     }
     const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:userId,name,email,type:actualType,loc,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const newProfile={id:userId,name,email,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     let insErr=null;
     if(isOAuth){
       // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
@@ -4701,7 +4708,7 @@ async function doSignup(){
     }
     if(insErr){console.error('[회원가입] users insert 오류:',insErr.message);showToast('가입 저장 오류: '+insErr.message);return;}
     localStorage.setItem('bium_activeUserId', userId||email||'guest');
-    curUser={...newProfile,joinDate:newProfile.join_date,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra},provider:isOAuth?(_oauthPendingUser.provider||'social'):'email'};
+    curUser={...newProfile,joinDate:newProfile.join_date,locDetail,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra},provider:isOAuth?(_oauthPendingUser.provider||'social'):'email'};
     // users 로컬 배열에도 추가
     users.push({...curUser});
     lsSet('users',users);
@@ -5631,14 +5638,19 @@ function renderHomeSections(){
   let html='';
 
   // 내 근처 상품 (위치 설정 시)
+  // 서울/부산 등 광역시 → sido 기준, 경기/충남 등 도 → sigungu 기준
   const myLoc=curUser?.loc||'';
   if(myLoc){
-    const locKey=myLoc.split(' ').slice(0,2).join(' ');
+    const locParts=myLoc.split(' ');
+    const sido=locParts[0]||'';
+    const sigungu=locParts[1]||'';
+    const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
+    const locKey=isMetro?sido:sigungu;
     const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).slice(0,5);
     if(nearbyProds.length){
       html+=`<div class="cat-section" style="border:1.5px solid rgba(0,179,134,.2);border-radius:16px;padding:12px;background:rgba(0,179,134,.03);margin-bottom:8px">
         <div class="cat-section-hd">
-          <span class="cat-section-title">📍 ${myLoc.split(' ').slice(-1)[0]} 근처 상품</span>
+          <span class="cat-section-title">📍 ${locKey} 근처 상품</span>
           <span class="cat-section-more" onclick="openSettLocModal()">위치 변경 →</span>
         </div>
         ${nearbyProds.map(p=>renderHomeProduct(p)).join('')}
@@ -7149,7 +7161,9 @@ async function switchSellerTab(tab,el){
     const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'재고원단 전문 업체입니다.');
     const insta=isMySelf?(curUser.profile?.insta||''):(seller.profile?.insta||userInfo.profile?.insta||extra.insta||'');
     const blog=isMySelf?(curUser.profile?.blog||''):(seller.profile?.blog||userInfo.profile?.blog||extra.blog||'');
-    const address=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
+    const _baseLoc=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
+    const _detailLoc=isMySelf?(curUser.locDetail||''):(seller.locDetail||userInfo.locDetail||extra.loc_detail||'');
+    const address=(_baseLoc+(_detailLoc?' '+_detailLoc:'')).trim();
 
     // 본인 여부 판별 (전화번호 노출 제어용)
     const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
@@ -9579,10 +9593,14 @@ function updateHomeLocBar(){
   if(!locText)return;
   const loc=curUser?.loc||'';
   if(loc){
-    const short=loc.split(' ').slice(-1)[0];
+    const locParts=loc.split(' ');
+    const sido=locParts[0]||'';
+    const sigungu=locParts[1]||'';
+    const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
+    const locKey=isMetro?sido:sigungu;
     locText.textContent=loc;
     if(nearby){
-      const cnt=products.filter(p=>(p.loc||'').includes(loc.split(' ')[0])).length;
+      const cnt=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).length;
       nearby.textContent=cnt?`근처 ${cnt}개 상품`:'';
     }
   }else{
