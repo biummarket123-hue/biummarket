@@ -5640,7 +5640,7 @@ function renderMyProductCard(p){
         </div>
         <div class="my-card-actions" onclick="event.stopPropagation()">
           <button class="my-card-edit-btn" onclick="editProductById(${p.id})">✏️ 수정</button>
-          <button onclick="openStockUpdate(${p.id})" style="flex:1;padding:7px;background:rgba(108,99,255,.1);border:1px solid #6c63ff;border-radius:8px;color:#6c63ff;font-size:12px;font-weight:600;cursor:pointer">📦 재고</button>
+          <button onclick="openStockUpdate(${p.id})" style="flex:1;padding:7px;background:rgba(108,99,255,.1);border:1px solid #6c63ff;border-radius:8px;color:#6c63ff;font-size:12px;font-weight:600;cursor:pointer">📦 재고수정</button>
           <button onclick="toggleProductStop(${p.id})" style="flex:1;padding:7px;background:${isHidden?'rgba(16,185,129,.1)':'rgba(0,0,0,.05)'};border:1px solid ${isHidden?'#10b981':'#ccc'};border-radius:8px;color:${isHidden?'#10b981':'#888'};font-size:12px;font-weight:600;cursor:pointer">${isHidden?'👁️ 노출':'🙈 숨김'}</button>
           <button class="my-card-del-btn" onclick="deleteProductById(${p.id})">🗑️</button>
         </div>
@@ -5697,14 +5697,16 @@ function confirmStockSoldout(){
   if(!confirm('품절 처리하시겠어요?'))return;
   _applyStockChange(0);
 }
-function toggleProductStop(productId){
+async function toggleProductStop(productId){
   const p=products.find(x=>x.id===productId);if(!p)return;
   const isStopped=p.status==='stopped';
-  p.status=isStopped?'active':'stopped';
-  lsSet('products',products);
+  const newStatus=isStopped?'active':'stopped';
   if(_sb){
-    _sb.from('products').update({status:p.status}).eq('id',p.id);
+    const{error}=await _sb.from('products').update({status:newStatus}).eq('id',p.id);
+    if(error){console.error('숨김 상태 업데이트 오류:',error);showToast('처리 실패: '+error.message);return;}
   }
+  p.status=newStatus;
+  lsSet('products',products);
   showToast(isStopped?'상품이 다시 노출돼요 👁️':'상품이 숨김 처리됐어요 🙈');
   showMySales();
 }
