@@ -12231,30 +12231,27 @@ function openPopularRankingView(){
     const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
     const priceStr=p.is_free?'무료나눔':p.bulk_price&&p.price&&p.bulk_price<p.price?(p.bulk_price).toLocaleString()+'~'+(p.price).toLocaleString()+'원/'+unit:(p.price||0).toLocaleString()+'원/'+unit;
     const isTop3=rank<=3;
-    // 1~3등: 1열 큰 카드 (가로 레이아웃)
-    if(isTop3) return `<div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:14px;background:#fff;border:1.5px solid ${medal}55;border-radius:16px;cursor:pointer;box-shadow:0 2px 12px ${medal}22">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
-        <div style="width:32px;height:32px;border-radius:50%;background:${medal};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 2px 6px ${medal}66">${rank}</div>
-        <div style="width:72px;height:72px;border-radius:12px;overflow:hidden;background:${bg}">
-          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        </div>
+    // 1~3등: 1열 큰 카드 (세로형, 큰 이미지)
+    if(isTop3) return `<div onclick="openDetail(${p.id})" style="border-radius:16px;overflow:hidden;background:#fff;border:1.5px solid ${medal}55;cursor:pointer;box-shadow:0 2px 12px ${medal}22">
+      <div style="width:100%;aspect-ratio:16/9;background:${bg};position:relative;overflow:hidden">
+        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
+        <div style="position:absolute;top:10px;left:10px;width:36px;height:36px;border-radius:50%;background:${medal};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;box-shadow:0 2px 8px ${medal}88">${rank}</div>
+        ${p.is_urgent?'<span style="position:absolute;top:10px;right:10px;background:#ff6b35;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">⚡ 급처</span>':''}
+        ${p.is_free?'<span style="position:absolute;top:10px;right:10px;background:#00b386;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">🎁 나눔</span>':''}
+        <span style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px">${p.type||p.cat||''}</span>
       </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
-          <span style="font-size:10px;padding:2px 6px;background:#f0f0f5;border-radius:4px;color:#555">${p.type||p.cat||''}</span>
-          ${p.is_urgent?'<span style="font-size:10px;padding:2px 6px;background:#fff0eb;border-radius:4px;color:#ff6b35;font-weight:600">⚡ 급처</span>':''}
-          ${p.is_free?'<span style="font-size:10px;padding:2px 6px;background:#e6f9f1;border-radius:4px;color:#00b386;font-weight:600">🎁 나눔</span>':''}
-        </div>
-        <div style="font-size:11px;color:#888;line-height:1.5;margin-bottom:4px">
+      <div style="padding:14px 16px">
+        <div style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:6px">${p.title}</div>
+        <div style="font-size:12px;color:#888;line-height:1.5;margin-bottom:6px">
           ${seller.name?'🏪 '+seller.name+' · ':''}${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]+' · ':''}${_productTimeAgo(p.created_at)?'🕐 '+_productTimeAgo(p.created_at):''}
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-bottom:4px">
-          <span style="font-size:16px;font-weight:900;color:${p.is_free?'#00b386':'#e53935'}">${priceStr}</span>
-          ${discPct?`<span style="font-size:11px;font-weight:700;color:#fff;background:#e53935;padding:1px 6px;border-radius:4px">-${discPct}%</span>`:''}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-bottom:6px">
+          <span style="font-size:18px;font-weight:900;color:${p.is_free?'#00b386':'#e53935'}">${priceStr}</span>
+          ${discPct?`<span style="font-size:11px;font-weight:700;color:#fff;background:#e53935;padding:2px 8px;border-radius:4px">-${discPct}%</span>`:''}
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;color:#888">
-          ${p.weight?'⚖️ '+p.weight+'g · ':''}${p.moq?'📦 MOQ '+p.moq+unit+' · ':''}🤍 ${p.likes||0} · 💬 ${p.chats||0}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#888">
+          ${p.weight?'⚖️ '+p.weight+'g':''}${p.moq?' · 📦 MOQ '+p.moq+unit:''}
+          <span style="margin-left:auto">🤍 ${p.likes||0} · 💬 ${p.chats||0}</span>
         </div>
       </div>
     </div>`;
