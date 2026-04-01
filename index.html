@@ -1159,6 +1159,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div id="home-sort-bar" style="display:flex;align-items:center;gap:8px;padding:8px 14px 4px;background:#fff">
       <button id="home-sort-btn" onclick="openHomeSortSheet()" style="padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer">최신순 ▾</button>
       <button id="home-urgent-btn" onclick="toggleHomeUrgent()" style="padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer">⚡ 급처</button>
+      <button id="home-free-btn" onclick="toggleHomeFree()" style="padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;background:#f0f0f5;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer">🎁 무료나눔</button>
     </div>
     <!-- 프리미엄 배너 -->
     <div id="home-premium-banner" class="premium-banner">
@@ -1522,6 +1523,22 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <span id="urgentThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
         </label>
       </div>
+    </div>
+
+    <!-- 무료나눔 -->
+    <div style="background:#f0faf6;border:1px solid #00b386;border-radius:12px;padding:16px;margin-top:10px;margin-bottom:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="color:#00b386;font-weight:700;font-size:15px;">🎁 무료나눔</div>
+          <div style="color:#888;font-size:12px;margin-top:4px;">활성화 시 가격 0원으로 자동 설정</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:52px;height:28px;">
+          <input type="checkbox" id="freeToggle" style="opacity:0;width:0;height:0;" onchange="toggleFreeGiveaway(this.checked)">
+          <span id="freeSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
+          <span id="freeThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
+        </label>
+      </div>
+      <div id="free-hint" style="display:none;margin-top:10px;padding:10px 12px;background:#e6f9f1;border-radius:8px;font-size:12px;color:#00875a;font-weight:600">💬 나눔 조건은 채팅으로 협의해주세요</div>
     </div>
 
     <!-- 하단 고정 등록 버튼 -->
@@ -2414,6 +2431,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <button class="sv-filter-btn" id="svf-혼방" onclick="setSvFilter('혼방');updateSvFilterBtns('혼방')">혼방</button>
     <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
     <button class="sv-filter-btn" id="svf-지역" onclick="openLocFilter()">지역 ▾</button>
+    <button class="sv-filter-btn" id="svf-free" onclick="toggleSvFree()">🎁 나눔</button>
   </div>
   <!-- 최근 검색어 -->
   <div id="sv-recent-section" style="display:none">
@@ -3700,6 +3718,7 @@ const _SB_PAGE_SIZE=20;
 let _sbCatFilter='전체'; // 카테고리 필터
 let _sbSortKey='latest'; // latest, price, priceDesc
 let _sbUrgentOnly=false;  // 급처 필터
+let _sbFreeOnly=false;    // 무료나눔 필터
 
 function _mapSbProduct(p){
   const likedMap=lsGet('likedMap',{});
@@ -3751,6 +3770,8 @@ async function loadProductsFromSupabase(reset){
     }
     // 급처 필터
     if(_sbUrgentOnly)query=query.eq('is_urgent',true);
+    // 무료나눔 필터
+    if(_sbFreeOnly)query=query.eq('is_free',true);
     // 정렬
     if(_sbSortKey==='price')query=query.order('price',{ascending:true});
     else if(_sbSortKey==='priceDesc')query=query.order('price',{ascending:false});
@@ -5418,12 +5439,29 @@ function setHomeSort(key){
 }
 function toggleHomeUrgent(){
   _sbUrgentOnly=!_sbUrgentOnly;
+  if(_sbUrgentOnly)_sbFreeOnly=false;
   const btn=document.getElementById('home-urgent-btn');
+  const freeBtn=document.getElementById('home-free-btn');
   if(btn){
     btn.style.background=_sbUrgentOnly?'rgba(255,107,53,.15)':'#f0f0f5';
     btn.style.color=_sbUrgentOnly?'#ff6b35':'#666677';
     btn.style.borderColor=_sbUrgentOnly?'#ff6b35':'#e0e0ea';
   }
+  if(freeBtn){freeBtn.style.background='#f0f0f5';freeBtn.style.color='#666677';freeBtn.style.borderColor='#e0e0ea';}
+  showListSkeleton();
+  loadProductsFromSupabase(true);
+}
+function toggleHomeFree(){
+  _sbFreeOnly=!_sbFreeOnly;
+  if(_sbFreeOnly)_sbUrgentOnly=false;
+  const btn=document.getElementById('home-free-btn');
+  const urgBtn=document.getElementById('home-urgent-btn');
+  if(btn){
+    btn.style.background=_sbFreeOnly?'rgba(0,179,134,.15)':'#f0f0f5';
+    btn.style.color=_sbFreeOnly?'#00b386':'#666677';
+    btn.style.borderColor=_sbFreeOnly?'#00b386':'#e0e0ea';
+  }
+  if(urgBtn){urgBtn.style.background='#f0f0f5';urgBtn.style.color='#666677';urgBtn.style.borderColor='#e0e0ea';}
   showListSkeleton();
   loadProductsFromSupabase(true);
 }
@@ -5504,7 +5542,7 @@ function renderHomeProduct(p){
   return `<div class="h-product-card" onclick="openDetail(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:'' }
-      ${urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
+      ${p.is_free?'<span style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;z-index:2">🎁 무료나눔</span>':urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
@@ -5513,7 +5551,7 @@ function renderHomeProduct(p){
         <span class="h-fabric-badge">${p.type}</span>
         ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
       </div>
-      <div class="h-price">${priceHtml}</div>
+      <div class="h-price">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':priceHtml}</div>
       <div class="h-bottom">
         <div style="display:flex;gap:4px;align-items:center;flex:1;flex-wrap:wrap">
           ${p.moq?`<span class="h-moq-tag">MOQ ${p.moq}${unit}</span>`:''}
@@ -5651,7 +5689,7 @@ function renderHomeSections(){
   if(!el)return;
 
   // 카테고리/정렬/급처 필터가 적용된 경우 → 전체 상품을 플랫 리스트로 표시
-  if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly){
+  if(homeCurCat!=='전체'||_sbSortKey!=='latest'||_sbUrgentOnly||_sbFreeOnly){
     const items=products.filter(p=>p.status!=='stopped'&&!p.deleted_at);
     el.innerHTML=items.length?items.map(p=>renderHomeProduct(p)).join('')
       :`<div style="padding:40px 14px;text-align:center;color:#666677;font-size:13px">해당 조건의 상품이 없어요</div>`;
@@ -5830,7 +5868,7 @@ function renderCard(p, idx){
     ${isNew?'<div class="badge-new">NEW</div>':''}
     <div class="pthumb" style="background:${bg};background-image:${tex}">
       ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:'' }
-      ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
+      ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_free?'<div style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;z-index:2">🎁 무료나눔</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
       ${(()=>{
         const stype=p.seller?.type||p.sellerType||'';
         if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
@@ -5842,7 +5880,7 @@ function renderCard(p, idx){
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-      <div class="pprice">${(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price?_f(p.bulk_price)+'-'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
+      <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price?_f(p.bulk_price)+'-'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
       <div class="pfoot">
         <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
         <span class="pcnt"><span>🤍${p.likes}</span><span>💬${p.chats}</span></span>
@@ -5972,6 +6010,9 @@ async function openDetail(id){
   // 5. 가격 카드
   const priceCard=document.getElementById('pd-price-card');
   if(priceCard){
+    if(p.is_free){
+      priceCard.innerHTML=`<div style="text-align:center;padding:8px 0"><div style="font-size:28px;font-weight:900;color:#00b386;margin-bottom:6px">🎁 무료나눔</div><div style="font-size:13px;color:#666;margin-bottom:10px">나눔 조건은 판매자와 채팅으로 협의해주세요</div><button onclick="openChatModal()" style="padding:10px 24px;background:#00b386;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">💬 채팅으로 문의하기</button></div>`;
+    }else{
     const discRate=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
     const saving=p.list_price&&p.list_price>p.price?p.list_price-p.price:0;
     priceCard.innerHTML=
@@ -5979,6 +6020,7 @@ async function openDetail(id){
       '<div class="pd-price-hero">'+fmtPrice(p.price)+'<span class="pd-price-unit">/'+unit+'</span></div>'+
       (saving?'<div class="pd-saving-badge">🎉 '+unit+'당 '+fmtPrice(saving)+' 절약</div>':'')+
       (p.bulk_price&&(p.bulk_moq||p.moq)?`<div style="margin-top:12px;background:#fffbeb;border:1px solid #f5c518;border-radius:12px;padding:14px 16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:#1a1a1a;font-weight:600">📦 ${p.bulk_moq||p.moq}${unit}+ 대량가</span>${p.price&&p.bulk_price<p.price?`<span style="background:#e53935;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">-${Math.round((1-p.bulk_price/p.price)*100)}%</span>`:''}</div><div style="font-size:22px;font-weight:800;color:#c8962a">${fmtPrice(p.bulk_price)}<span style="font-size:13px;font-weight:400;color:#888">/${unit}</span></div></div>`:'')
+    }
   }
 
   // 5-1. 단골 할인 배너 (비동기)
@@ -8127,6 +8169,26 @@ function initFormView(){
 
 function calcTotal(){}
 function updateCat2(){}
+function toggleFreeGiveaway(on){
+  const priceEl=document.getElementById('f-price');
+  const listPriceEl=document.getElementById('f-list-price');
+  const bulkPriceEl=document.getElementById('f-bulk-price');
+  const hint=document.getElementById('free-hint');
+  const slider=document.getElementById('freeSlider');
+  const thumb=document.getElementById('freeThumb');
+  if(slider)slider.style.background=on?'#00b386':'#ccc';
+  if(thumb)thumb.style.transform=on?'translateX(24px)':'translateX(0)';
+  if(hint)hint.style.display=on?'block':'none';
+  if(on){
+    if(priceEl){priceEl.value='0';priceEl.disabled=true;priceEl.style.background='#f0f0f5';}
+    if(listPriceEl){listPriceEl.value='';listPriceEl.disabled=true;listPriceEl.style.background='#f0f0f5';}
+    if(bulkPriceEl){bulkPriceEl.value='';bulkPriceEl.disabled=true;bulkPriceEl.style.background='#f0f0f5';}
+  }else{
+    if(priceEl){priceEl.value='';priceEl.disabled=false;priceEl.style.background='';}
+    if(listPriceEl){listPriceEl.disabled=false;listPriceEl.style.background='';}
+    if(bulkPriceEl){bulkPriceEl.disabled=false;bulkPriceEl.style.background='';}
+  }
+}
 
 async function submitForm(){
   if(!confirm('상품을 등록하시겠습니까?'))return;
@@ -8137,8 +8199,9 @@ async function submitForm(){
   if(!title){showToast('상품명을 입력해주세요');return;}
   if(!formCat1){showToast('대분류를 선택해주세요');return;}
   if(!material){showToast('소재를 입력해주세요');return;}
+  const isFree=document.getElementById('freeToggle')?.checked??false;
   if(!qty||qty<=0){showToast('재고수량을 입력해주세요');return;}
-  if(!price||price<=0){showToast('판매가를 입력해주세요');return;}
+  if(!isFree&&(!price||price<=0)){showToast('판매가를 입력해주세요');return;}
   const weight=document.getElementById('f-weight').value.trim();
   const description=document.getElementById('f-desc').value.trim()||'상품 설명이 없습니다.';
   const unit=document.getElementById('f-unit').value;
@@ -8161,7 +8224,7 @@ async function submitForm(){
     bulk_price:parseInt(document.getElementById('f-bulk-price').value)||null,
     moq:parseInt(document.getElementById('f-moq').value)||null,
     bulk_moq:parseInt(document.getElementById('f-bulk-moq').value)||null,
-    sample:formSample,is_urgent:urgent,
+    sample:formSample,is_urgent:urgent,is_free:isFree,
     description,
     seller:sellerInfo,
     seller_id:curUser?.id||'',
@@ -8359,7 +8422,7 @@ function _renderSvCard(p){
   return `<li class="pcard${isSoldout?' soldout':''}" onclick="openDetail(${p.id})">
     <div class="pthumb" style="background:${bg};background-image:${tex}">
       ${p.image_url?`<img src="${p.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>`:''}
-      ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
+      ${isSoldout?'<div class="badge-soldout">재고소진</div>':p.is_free?'<div style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;z-index:2">🎁 무료나눔</div>':p.is_urgent?'<div class="badge-urgent">⚡ 급처</div>':''}
       ${(()=>{
         const stype=p.seller?.type||p.sellerType||'';
         if(stype==='business'||stype==='both'||stype==='seller')return '<div class="badge-cert company">🏢 인증업체</div>';
@@ -8371,7 +8434,7 @@ function _renderSvCard(p){
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-      <div class="pprice" style="color:#e53935">${fmtPrice(p.price)}<span class="pu" style="color:#666677">/m</span></div>
+      <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':`<span style="color:#e53935">${fmtPrice(p.price)}</span><span class="pu" style="color:#666677">/m</span>`}</div>
       <div class="pfoot">
         <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
         <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
@@ -8402,6 +8465,7 @@ async function _svSearchSupabase(reset){
     if(svFilter!=='전체')query=query.eq('type',svFilter);
     if(svPriceMin)query=query.gte('price',svPriceMin);
     if(svPriceMax)query=query.lte('price',svPriceMax);
+    if(svFreeOnly)query=query.eq('is_free',true);
     const{data,error}=await query.range(from,to);
     if(error){console.error('[svSearch] 오류:',error);_svLoading=false;if(loadEl)loadEl.style.display='none';return;}
     if(!data||data.length<_SB_PAGE_SIZE)_svHasMore=false;
@@ -8488,6 +8552,7 @@ function renderSvChips(){
   el.innerHTML=FILTERS.map(f=>`<button class="chip ${f===svFilter?'on':''}" onclick="setSvFilter('${f}')">${t('filter_'+f)||f}</button>`).join('');
 }
 let svPriceMin=0;
+let svFreeOnly=false;
 let svPriceMax=0;
 function openPriceFilter(){
   const modal=document.getElementById('modal-price-filter');
@@ -8579,6 +8644,18 @@ function openLocFilter(){
     renderSearchView();
     showToast('📍 '+short+' 지역으로 필터링');
   });
+}
+
+function toggleSvFree(){
+  svFreeOnly=!svFreeOnly;
+  const btn=document.getElementById('svf-free');
+  if(btn){
+    btn.className='sv-filter-btn'+(svFreeOnly?' on':'');
+    btn.style.background=svFreeOnly?'rgba(0,179,134,.15)':'';
+    btn.style.color=svFreeOnly?'#00b386':'';
+    btn.style.borderColor=svFreeOnly?'#00b386':'';
+  }
+  renderSearchView();
 }
 
 /* ==================== RECENT SEARCHES ==================== */
