@@ -12212,53 +12212,56 @@ function openHomeMoreView(title,subtitle,items){
 }
 function openPopularRankingView(){
   const items=[...products].filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0)
-    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,30);
+    .sort((a,b)=>((b.likes||0)+(b.chats||0))-((a.likes||0)+(a.chats||0))).slice(0,10);
   const el=document.getElementById('cp-list');if(!el)return;
   curCatKey='';curViewMode='home-more';
-  const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='🔥 인기 원단 랭킹';
+  const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='🔥 인기 원단 랭킹 TOP 10';
   const sortBar=document.querySelector('.cp-sort-bar');if(sortBar)sortBar.style.display='none';
   const subChips=document.getElementById('cp-sub-chips');if(subChips)subChips.innerHTML='';
   const itemChips=document.getElementById('cp-item-chips');if(itemChips){itemChips.style.display='none';itemChips.innerHTML='';}
   const filterBar=document.getElementById('cp-filter-bar');if(filterBar)filterBar.style.display='none';
   const activeFilters=document.getElementById('cp-active-filters');if(activeFilters)activeFilters.style.display='none';
 
-  function _rankCard(p,rank,size){
+  const medalColors={1:'#FFD700',2:'#C0C0C0',3:'#CD7F32'};
+  el.innerHTML='<div style="padding:10px 14px 20px;display:flex;flex-direction:column;gap:12px">'+items.map((p,i)=>{
+    const rank=i+1;
     const bg=getFColor(p.type,p.color);
     const unit=p.unit||'m';
-    const medalColors={1:'#FFD700',2:'#C0C0C0',3:'#CD7F32'};
-    const medalColor=medalColors[rank]||'#c8a84b';
-    const isLarge=size==='lg';
-    const isMed=size==='md';
-    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid ${rank<=3?medalColor+'44':'#f0f0f5'};cursor:pointer;position:relative">
-      <div style="width:100%;aspect-ratio:${isLarge?'4/3':'1'};background:${bg};position:relative;overflow:hidden">
-        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <div style="position:absolute;top:8px;left:8px;width:${isLarge?'32px':isMed?'28px':'24px'};height:${isLarge?'32px':isMed?'28px':'24px'};border-radius:50%;background:${medalColor};display:flex;align-items:center;justify-content:center;font-size:${isLarge?'16px':isMed?'14px':'12px'};font-weight:900;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${rank}</div>
-        ${p.is_urgent?'<span style="position:absolute;top:8px;right:8px;background:#ff6b35;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</span>':''}
-        <span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">${p.type}</span>
+    const medal=medalColors[rank]||'#c8a84b';
+    const seller=p.seller||{};
+    const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+    return `<div onclick="openDetail(${p.id})" style="display:flex;gap:12px;padding:14px;background:#fff;border:1.5px solid ${rank<=3?medal+'55':'#f0f0f5'};border-radius:16px;cursor:pointer;${rank<=3?'box-shadow:0 2px 12px '+medal+'22':''}">
+      <!-- 순위 -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+        <div style="width:32px;height:32px;border-radius:50%;background:${medal};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 2px 6px ${medal}66">${rank}</div>
+        <div style="width:64px;height:64px;border-radius:12px;overflow:hidden;background:${bg}">
+          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
+        </div>
       </div>
-      <div style="padding:${isLarge?'12px':'10px'}">
-        <div style="font-size:${isLarge?'15px':'13px'};font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:${isLarge?'16px':'14px'};font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${p.is_free?'무료나눔':(p.price||0).toLocaleString()+'원/'+unit}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          ${p.loc?`<span style="font-size:10px;color:#888">📍${p.loc.split(' ').slice(-1)[0]}</span>`:'<span></span>'}
-          <span style="font-size:10px;color:#aaa">🤍${p.likes||0} 💬${p.chats||0}</span>
+      <!-- 상품 정보 -->
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+          <span style="font-size:10px;padding:2px 6px;background:#f0f0f5;border-radius:4px;color:#555">${p.type||p.cat||''}</span>
+          ${p.is_urgent?'<span style="font-size:10px;padding:2px 6px;background:#fff0eb;border-radius:4px;color:#ff6b35;font-weight:600">⚡ 급처</span>':''}
+          ${p.is_free?'<span style="font-size:10px;padding:2px 6px;background:#e6f9f1;border-radius:4px;color:#00b386;font-weight:600">🎁 나눔</span>':''}
+        </div>
+        <div style="font-size:11px;color:#888;line-height:1.6;margin-bottom:6px">
+          ${seller.name?'<span>🏪 '+seller.name+'</span> · ':''}${p.loc?'<span>📍'+p.loc.split(' ').slice(-1)[0]+'</span> · ':''}${_productTimeAgo(p.created_at)?'<span>🕐 '+_productTimeAgo(p.created_at)+'</span>':''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:16px;font-weight:900;color:${p.is_free?'#00b386':'#e53935'}">${p.is_free?'무료나눔':p.bulk_price&&p.price&&p.bulk_price<p.price?(p.bulk_price).toLocaleString()+'~'+(p.price).toLocaleString()+'원/'+unit:(p.price||0).toLocaleString()+'원/'+unit}</span>
+          ${discPct?`<span style="font-size:11px;font-weight:700;color:#fff;background:#e53935;padding:1px 6px;border-radius:4px">-${discPct}%</span>`:''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;color:#888">
+          ${p.weight?'<span>⚖️ '+p.weight+'g</span>':''}
+          ${p.moq?'<span>📦 MOQ '+p.moq+unit+'</span>':''}
+          <span>🤍 ${p.likes||0}</span>
+          <span>💬 ${p.chats||0}</span>
         </div>
       </div>
     </div>`;
-  }
-
-  let html='<div style="padding:12px 14px 6px;font-size:12px;color:#888">찜·채팅이 많은 인기 상품 · '+items.length+'개</div>';
-  // 1~3등: 1열 (큰 카드)
-  const top3=items.slice(0,3);
-  if(top3.length)html+=`<div style="display:grid;grid-template-columns:1fr;gap:10px;padding:0 14px 10px">${top3.map((p,i)=>_rankCard(p,i+1,'lg')).join('')}</div>`;
-  // 4~10등: 2열
-  const mid=items.slice(3,10);
-  if(mid.length)html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 10px">${mid.map((p,i)=>_rankCard(p,i+4,'md')).join('')}</div>`;
-  // 11등~: 3열
-  const rest=items.slice(10);
-  if(rest.length)html+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 20px">${rest.map((p,i)=>_rankCard(p,i+11,'sm')).join('')}</div>`;
-
-  el.innerHTML=html;
+  }).join('')+'</div>';
   viewHistory=['list'];
   showView('cat-products',false);
 }
