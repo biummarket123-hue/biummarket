@@ -13069,6 +13069,7 @@ function showAdminAdForm(editIdx){
       <div><div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">위치 *</div>
         <select id="ad-position" onchange="var w=document.getElementById('ad-category-wrap');if(w)w.style.display=this.value==='카테고리 상단'?'block':'none';var s=document.getElementById('ad-category');if(s&&this.value==='카테고리 상단'){s.innerHTML='<option value=전체>전체 카테고리</option>'+(CATEGORY_DATA||[]).map(function(c){return '<option value=&quot;'+c.name+'&quot;>'+( c.emoji||'')+' '+c.name+'</option>'}).join('')}" style="width:100%;padding:12px 14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;color:#1a1a1a">
           <option value="배너 슬라이드" ${ad.position==='배너 슬라이드'?'selected':''}>배너 슬라이드</option>
+          <option value="인피드" ${ad.position==='인피드'?'selected':''}>인피드</option>
           <option value="카테고리 상단" ${ad.position==='카테고리 상단'?'selected':''}>카테고리 상단</option>
         </select></div>
       <div id="ad-category-wrap" style="display:${ad.position==='카테고리 상단'?'block':'none'}">
