@@ -5797,7 +5797,7 @@ function renderHomeSections(){
           <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">📍 ${locKey} 근처 상품</div><div style="font-size:12px;color:#888;margin-top:2px">내 주변에서 거래 가능한 원단</div></div>
           <span onclick="openSettLocModal()" style="font-size:12px;color:#6c63ff;font-weight:600;cursor:pointer">위치 변경 →</span>
         </div>
-        <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${nearbyProds.map(p=>_renderHorizCard(p)).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;flex-direction:column;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-height:410px;align-content:flex-start">${nearbyProds.map(p=>_renderHorizCard(p)).join('')}</div>
       </div>`;
     }
   }
@@ -5811,7 +5811,7 @@ function renderHomeSections(){
           <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">⭐ 내 관심 원단</div><div style="font-size:12px;color:#888;margin-top:2px">관심 카테고리 맞춤 추천</div></div>
           <span onclick="openInterestModal()" style="font-size:12px;color:#6c63ff;font-weight:600;cursor:pointer">관심 수정 →</span>
         </div>
-        <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${interestProds.map(p=>_renderHorizCard(p)).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;flex-direction:column;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-height:410px;align-content:flex-start">${interestProds.map(p=>_renderHorizCard(p)).join('')}</div>
       </div>`;
     }
   }
