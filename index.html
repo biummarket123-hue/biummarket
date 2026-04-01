@@ -6224,6 +6224,11 @@ function editProduct(targetId){
   if(ut)ut.checked=urgent;
   if(us)us.style.background=urgent?'#ff6b35':'#333';
   if(uth)uth.style.transform=urgent?'translateX(24px)':'translateX(0)';
+  // 무료나눔 토글 복원
+  const isFreeEdit=p.is_free===true;
+  const ftEl=document.getElementById('freeToggle');
+  if(ftEl)ftEl.checked=isFreeEdit;
+  toggleFreeGiveaway(isFreeEdit);
   if(p.cat||p.type)selectCat1(p.cat||p.type);
   if(p.cat2){
     const catData=CATEGORY_DATA.find(c=>c.id===(p.cat||p.type));
@@ -8161,6 +8166,10 @@ function initFormView(){
   if(us)us.style.background='#333';
   const uth=document.getElementById('urgentThumb');
   if(uth)uth.style.transform='translateX(0)';
+  // 무료나눔 토글 초기화
+  const ft=document.getElementById('freeToggle');
+  if(ft)ft.checked=false;
+  toggleFreeGiveaway(false);
   setSample(true);
   setAiCardLoading(false);
   const ft=document.querySelector('#view-form .hdr-title');
