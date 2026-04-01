@@ -1212,7 +1212,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 7. 인기 원단 랭킹 -->
     <div id="home-popular-section" style="display:none;background:#fff;padding:16px 0 12px;margin-top:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
-        <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">🔥 인기 원단 랭킹</div><div style="font-size:12px;color:#888;margin-top:2px">찜·채팅이 많은 인기 상품 TOP 10</div></div>
+        <div><div style="font-size:16px;font-weight:800;color:#1a1a1a">🔥 인기 원단 랭킹</div><div style="font-size:12px;color:#888;margin-top:2px">찜·채팅이 많은 인기 상품 TOP 5</div></div>
         <span onclick="openPopularRankingView()" style="font-size:12px;color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
       </div>
       <div id="home-popular-list" style="padding:0 16px"></div>
@@ -5885,15 +5885,12 @@ function renderHomePopularSection(){
   if(!sec||!list)return;
   const ranked=products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0)
     .map(p=>({...p,_score:(p.likes||0)+(p.chats||0)}))
-    .sort((a,b)=>b._score-a._score).slice(0,10);
+    .sort((a,b)=>b._score-a._score).slice(0,5);
   if(!ranked.length){sec.style.display='none';return;}
   sec.style.display='block';
-  const medalColors={0:'#FFD700',1:'#C0C0C0',2:'#CD7F32'};
-  list.innerHTML=ranked.map((p,i)=>{
-    const medal=medalColors[i];
-    return `<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:10px 0;${i<ranked.length-1?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
-    <span style="font-size:${medal?'20px':'16px'};font-weight:900;color:${medal||'#c8a84b'};width:28px;text-align:center;flex-shrink:0">${i+1}</span>
-    <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)};border:${medal?'2px solid '+medal:'none'}">
+  list.innerHTML=ranked.map((p,i)=>`<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:10px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
+    <span style="font-size:18px;font-weight:900;color:#c8a84b;width:24px;text-align:center;flex-shrink:0">${i+1}</span>
+    <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
     </div>
     <div style="flex:1;min-width:0">
@@ -5903,7 +5900,7 @@ function renderHomePopularSection(){
     <div style="text-align:right;flex-shrink:0">
       <span style="font-size:11px;color:#888">🤍${p.likes||0} 💬${p.chats||0}</span>
     </div>
-  </div>`;}).join('');
+  </div>`).join('');
 }
 
 // ── 홈 인피드 광고 ──
