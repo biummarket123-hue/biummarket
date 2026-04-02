@@ -354,7 +354,9 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 /* MODAL */
 .mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-end;justify-content:center}
 .mover.open{display:flex}
-.msheet{width:100%;max-width:430px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:20px 20px 0 0;padding:20px 18px 36px}
+.msheet{width:100%;max-width:430px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:20px 20px 0 0;padding:20px 18px 36px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.msheet-close{position:sticky;top:0;display:flex;justify-content:flex-end;margin:-8px -4px 8px 0;z-index:1}
+.msheet-close button{width:32px;height:32px;border-radius:50%;background:#eeeeee;border:none;font-size:18px;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mhandle{width:34px;height:4px;border-radius:2px;background:#d8d8e8;margin:0 auto 16px}
 .mtitle{font-size:17px;font-weight:700;margin-bottom:8px;text-align:center;color:#1a1a1a}
 .mdesc{font-size:13px;color:#666677;line-height:1.6;text-align:center}
@@ -700,7 +702,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .pd-sim-thumb img{width:100%;height:100%;object-fit:cover}
 .pd-sim-title{font-size:12px;font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;margin-bottom:3px;line-height:1.4}
 .pd-sim-price{font-size:11px;color:#666677}
-.pd-suggest-btn{flex:1;padding:12px 4px;background:#f5f0e8;border:1.5px solid rgba(200,168,75,.5);color:#c8a84b;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer}
+.pd-suggest-btn{flex:1;padding:14px 8px;background:#f5f0e8;border:1.5px solid rgba(200,168,75,.5);color:#c8a84b;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer}
 
 /* CHAT LIST v2 */
 #view-chat{background:#ffffff}
@@ -2873,8 +2875,9 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 
 <!-- MODAL: PRICE SUGGEST -->
 <div class="mover" id="modal-suggest" onclick="closeModal('modal-suggest',event)">
-  <div class="msheet">
+  <div class="msheet" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
+    <div class="msheet-close"><button onclick="closeModal('modal-suggest')">✕</button></div>
     <div class="mtitle">💰 가격 제안</div>
     <div class="suggest-form">
       <!-- 대량가/판매가 선택 -->
@@ -2975,8 +2978,9 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 
 <!-- MODAL: RESERVATION -->
 <div class="mover" id="modal-res" onclick="closeModal('modal-res',event)">
-  <div class="msheet">
+  <div class="msheet" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
+    <div class="msheet-close"><button onclick="closeModal('modal-res')">✕</button></div>
     <div class="mtitle">📅 예약 신청</div>
     <div class="suggest-form">
       <div class="res-date-grid">
