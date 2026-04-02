@@ -1090,7 +1090,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <!-- 공통 필드 -->
     <div class="fg"><label>이름 <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명"/></div>
-    <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="s-email" placeholder="example@bium.market"/></div>
     <div class="fg"><label>비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상"/></div>
     <div class="fg"><label>비밀번호 확인 <span class="req">*</span></label><input type="password" class="fi" id="s-pw-confirm" placeholder="비밀번호 재입력"/></div>
     <div class="fg"><label>전화번호 <span class="req">*</span></label>
@@ -4759,13 +4758,13 @@ async function doSignup(){
   if(!_agreeState.privacy){showToast('개인정보 수집·이용에 동의해주세요');return;}
   const isOAuth=!!_oauthPendingUser;
   const name=document.getElementById('s-name').value.trim();
-  const email=isOAuth?_oauthPendingUser.email:(document.getElementById('s-email').value.trim());
   const pw=isOAuth?'oauth':(document.getElementById('s-pw').value);
   const tel=document.getElementById('s-tel')?.value.trim()||'';
+  // 이메일: 소셜 로그인은 기존 값, 일반 가입은 전화번호 기반 자동 생성
+  const email=isOAuth?_oauthPendingUser.email:(tel.replace(/[^0-9]/g,'')+'@bium.market');
   const loc=document.getElementById('s-loc')?.value.trim()||'';
   const locDetail=document.getElementById('s-loc-detail')?.value.trim()||'';
   if(!name){showToast('이름을 입력해주세요');return;}
-  if(!isOAuth&&!email){showToast('이메일을 입력해주세요');return;}
   if(!isOAuth&&!pw){showToast('비밀번호를 입력해주세요');return;}
   if(!tel){showToast('전화번호를 입력해주세요');return;}
   if(!isOAuth&&!_smsVerified){showToast('전화번호 인증을 완료해주세요 📱');return;}
