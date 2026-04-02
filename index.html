@@ -5439,9 +5439,9 @@ function renderMyProductsSorted(){
   const u=curUser;if(!u)return;
   const el=document.getElementById('cp-list');if(!el)return;
   let items=products.filter(p=>isMyProduct(p,u));
-  // 가격 필터 적용
-  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin);
-  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax);
+  // 가격 필터 적용 (판매가 또는 대량가 중 하나라도 범위에 들어오면 표시)
+  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin||(p.bulk_price||0)>=_fsPriceMin);
+  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax||(p.bulk_price&&p.bulk_price<=_fsPriceMax));
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
   else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else items=[...items].sort((a,b)=>b.id-a.id);
@@ -5465,9 +5465,9 @@ function renderCatProducts(){
     const itemKey=_fsItem||curCatItemKey;
     items=items.filter(p=>p.cat3===itemKey||(p.tags||[]).some(t=>t===itemKey));
   }
-  // 가격 필터
-  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin);
-  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax);
+  // 가격 필터 (판매가 또는 대량가 중 하나라도 범위에 들어오면 표시)
+  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin||(p.bulk_price||0)>=_fsPriceMin);
+  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax||(p.bulk_price&&p.bulk_price<=_fsPriceMax));
   // 정렬
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
   else if(curCatSort==='priceDesc')items=[...items].sort((a,b)=>b.price-a.price);
@@ -8712,8 +8712,9 @@ async function _svSearchSupabase(reset){
       .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
       .order('created_at',{ascending:false});
     if(svFilter!=='전체')query=query.eq('type',svFilter);
-    if(svPriceMin)query=query.gte('price',svPriceMin);
-    if(svPriceMax)query=query.lte('price',svPriceMax);
+    if(svPriceMin&&svPriceMax)query=query.or(`and(price.gte.${svPriceMin},price.lte.${svPriceMax}),and(bulk_price.gte.${svPriceMin},bulk_price.lte.${svPriceMax})`);
+    else if(svPriceMin)query=query.or(`price.gte.${svPriceMin},bulk_price.gte.${svPriceMin}`);
+    else if(svPriceMax)query=query.or(`price.lte.${svPriceMax},bulk_price.lte.${svPriceMax}`);
     if(svFreeOnly)query=query.eq('is_free',true);
     let{data,error}=await query.range(from,to);
     // deleted_at 컬럼 없으면 재시도
@@ -8722,8 +8723,9 @@ async function _svSearchSupabase(reset){
         .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
         .order('created_at',{ascending:false});
       if(svFilter!=='전체')q2=q2.eq('type',svFilter);
-      if(svPriceMin)q2=q2.gte('price',svPriceMin);
-      if(svPriceMax)q2=q2.lte('price',svPriceMax);
+      if(svPriceMin&&svPriceMax)q2=q2.or(`and(price.gte.${svPriceMin},price.lte.${svPriceMax}),and(bulk_price.gte.${svPriceMin},bulk_price.lte.${svPriceMax})`);
+      else if(svPriceMin)q2=q2.or(`price.gte.${svPriceMin},bulk_price.gte.${svPriceMin}`);
+      else if(svPriceMax)q2=q2.or(`price.lte.${svPriceMax},bulk_price.lte.${svPriceMax}`);
       ({data,error}=await q2.range(from,to));
     }
     if(error){console.error('[svSearch] 오류:',error);_svLoading=false;if(loadEl)loadEl.style.display='none';return;}
