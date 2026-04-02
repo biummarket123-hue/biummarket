@@ -5913,8 +5913,7 @@ function _renderHorizCard(p){
     </div>
     <div style="padding:10px">
       <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-      <div style="font-size:var(--fs-base);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${p.is_free?'무료나눔':_fp(p.price)+'원/'+unit}</div>
-      ${hasBulk?`<div style="font-size:var(--fs-xs);color:#1976d2;font-weight:600;margin-top:2px">대량가 ${_fp(p.bulk_price)}원/${unit}</div>`:''}
+      <div style="font-size:var(--fs-base);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${p.is_free?'무료나눔':hasBulk?_fp(p.bulk_price)+'-'+_fp(p.price)+'원/'+unit:_fp(p.price)+'원/'+unit}</div>
       ${p.loc?`<div style="font-size:var(--fs-xs);color:#888;margin-top:3px">📍${p.loc.split(' ').slice(-1)[0]}</div>`:''}
     </div>
   </div>`;
@@ -5966,8 +5965,7 @@ function renderHomePopularSection(){
     </div>
     <div style="flex:1;min-width:0">
       <div style="font-size:var(--fs-base);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-      <div style="font-size:var(--fs-md);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:2px">${p.is_free?'무료나눔':(p.price||0).toLocaleString()+'원/'+(p.unit||'m')}</div>
-      ${p.bulk_price&&p.bulk_price!==p.price?`<div style="font-size:var(--fs-xs);color:#1976d2;font-weight:600;margin-top:1px">대량가 ${(p.bulk_price||0).toLocaleString()}원/${p.unit||'m'}</div>`:''}
+      <div style="font-size:var(--fs-md);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:2px">${p.is_free?'무료나눔':p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString()+'원/'+(p.unit||'m'):(p.price||0).toLocaleString()+'원/'+(p.unit||'m')}</div>
     </div>
     <div style="text-align:right;flex-shrink:0">
       <span style="font-size:var(--fs-xs);color:#888">🤍${p.likes||0} 💬${p.chats||0}</span>
