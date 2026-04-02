@@ -980,12 +980,13 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <input type="number" id="price-filter-max" placeholder="예) 10000" class="fi" style="color:#1a1a1a"/>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
-      <button onclick="setPriceRange(0,3000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">~3,000원</button>
-      <button onclick="setPriceRange(3000,6000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">3,000~6,000</button>
-      <button onclick="setPriceRange(6000,10000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">6,000~10,000</button>
-      <button onclick="setPriceRange(10000,20000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">10,000~20,000</button>
-      <button onclick="setPriceRange(20000,50000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">20,000~50,000</button>
-      <button onclick="setPriceRange(50000,0)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">50,000원~</button>
+      <button onclick="setPriceRange(0,500)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">~500원</button>
+      <button onclick="setPriceRange(500,1000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">500~1,000</button>
+      <button onclick="setPriceRange(1000,3000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">1,000~3,000</button>
+      <button onclick="setPriceRange(3000,5000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">3,000~5,000</button>
+      <button onclick="setPriceRange(5000,10000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">5,000~10,000</button>
+      <button onclick="setPriceRange(10000,30000)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">10,000~30,000</button>
+      <button onclick="setPriceRange(30000,0)" style="padding:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:10px;font-size:12px;font-weight:600;color:#1a1a1a;cursor:pointer">30,000원~</button>
     </div>
     <div style="display:flex;gap:10px">
       <button onclick="resetPriceFilter()" style="flex:1;padding:14px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;font-size:14px;font-weight:600;color:#666677;cursor:pointer">초기화</button>
@@ -5381,7 +5382,7 @@ function openFilterSheet(type){
           <span style="font-size:14px;color:#888;flex-shrink:0">원</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          ${[{l:'~1만',mn:0,mx:10000},{l:'1~3만',mn:10000,mx:30000},{l:'3~5만',mn:30000,mx:50000},{l:'5~10만',mn:50000,mx:100000},{l:'10만~',mn:100000,mx:0}].map(p=>`
+          ${[{l:'~500',mn:0,mx:500},{l:'500~1천',mn:500,mx:1000},{l:'1~3천',mn:1000,mx:3000},{l:'3~5천',mn:3000,mx:5000},{l:'5천~1만',mn:5000,mx:10000},{l:'1~3만',mn:10000,mx:30000},{l:'3만~',mn:30000,mx:0}].map(p=>`
             <div class="fs-chip lg" onclick="document.getElementById('fs-price-min').value='${p.mn}';document.getElementById('fs-price-max').value='${p.mx||''}'">${p.l}</div>`).join('')}
         </div>
       </div>
