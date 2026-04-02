@@ -2360,7 +2360,23 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div class="fg"><label id="pe-name-label">이름 <span class="req">*</span></label>
         <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'이름'" style="color:#1a1a1a"/>
       </div>
-      <div class="fg"><label>전화번호</label><input type="text" class="fi" id="pe-tel" placeholder="예) 010-1234-5678"/></div>
+      <div class="fg"><label>전화번호</label>
+        <div style="display:flex;gap:8px">
+          <input type="tel" class="fi" id="pe-tel" placeholder="예) 010-1234-5678" style="flex:1"/>
+          <button type="button" id="pe-sms-btn" onclick="sendPeTelCode()" style="padding:10px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">인증번호 받기</button>
+        </div>
+      </div>
+      <div id="pe-sms-area" style="display:none">
+        <div class="fg">
+          <label>인증번호</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" class="fi" id="pe-sms-code" placeholder="6자리 인증번호" maxlength="6" style="flex:1"/>
+            <span id="pe-sms-timer" style="font-size:13px;font-weight:700;color:#e53935;min-width:42px;text-align:center"></span>
+            <button type="button" onclick="verifyPeTelCode()" style="padding:10px 12px;background:#2ed573;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">확인</button>
+          </div>
+          <div id="pe-sms-msg" style="font-size:12px;margin-top:4px"></div>
+        </div>
+      </div>
       <div class="fg"><label>위치 (지역)</label><div style="display:flex;gap:6px"><input type="text" class="fi" id="pe-loc" placeholder="예) 서울 중구 동대문" style="flex:1"/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('pe-loc').value=short;document.getElementById('pe-loc-detail').value=full.replace(short,'').trim();})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
       <div class="fg"><label>상세 주소</label><input type="text" class="fi" id="pe-loc-detail" placeholder="예) 옥정동 123 OO빌딩 2층"/></div>
       <!-- 업체 판매자 전용 -->
@@ -9749,6 +9765,7 @@ function renderProfileEdit(){
   if(previewEl)previewEl.textContent=u.name||'회사명';
   const telEl=document.getElementById('pe-tel');
   if(telEl)telEl.value=u.tel||extra.tel||profile.tel||'';
+  initPeTelVerify();
   const locEl=document.getElementById('pe-loc');
   if(locEl)locEl.value=u.loc||extra.address||'';
   const locDetailEl=document.getElementById('pe-loc-detail');
@@ -9838,14 +9855,78 @@ function removeCompanyPhoto(idx){
   lsSet('companyPhotos',photos);
   renderCompanyPhotos();
 }
+// 프로필 전화번호 SMS 인증
+let _peSmsCode='';
+let _peSmsVerified=false;
+let _peSmsTimerId=null;
+let _peOriginalTel='';
+function initPeTelVerify(){
+  _peSmsCode='';_peSmsVerified=false;_peOriginalTel=curUser?.tel||'';
+  if(_peSmsTimerId){clearInterval(_peSmsTimerId);_peSmsTimerId=null;}
+  const area=document.getElementById('pe-sms-area');if(area)area.style.display='none';
+  const msg=document.getElementById('pe-sms-msg');if(msg)msg.textContent='';
+  const btn=document.getElementById('pe-sms-btn');if(btn){btn.disabled=false;btn.textContent='인증번호 받기';}
+  const codeInput=document.getElementById('pe-sms-code');if(codeInput){codeInput.disabled=false;codeInput.value='';}
+}
+async function sendPeTelCode(){
+  const tel=document.getElementById('pe-tel')?.value.trim();
+  if(!tel){showToast('전화번호를 입력해주세요');return;}
+  if(!/^01[0-9]-?\d{3,4}-?\d{4}$/.test(tel.replace(/\s/g,''))){showToast('올바른 전화번호를 입력해주세요');return;}
+  if(tel===_peOriginalTel){showToast('현재 전화번호와 동일해요');return;}
+  const btn=document.getElementById('pe-sms-btn');
+  btn.disabled=true;btn.textContent='발송 중...';
+  try{
+    const res=await fetch('/api/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel})});
+    const data=await res.json();
+    if(!res.ok||!data.success){showToast(data.error||'SMS 발송 실패');btn.disabled=false;btn.textContent='인증번호 받기';return;}
+    _peSmsCode=data.code;_peSmsVerified=false;
+    document.getElementById('pe-sms-area').style.display='block';
+    document.getElementById('pe-sms-code').value='';
+    document.getElementById('pe-sms-msg').textContent='';
+    showToast('인증번호를 발송했어요 📩');
+    let sec=180;
+    const timerEl=document.getElementById('pe-sms-timer');
+    const _fmt=s=>Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;
+    timerEl.textContent=_fmt(sec);
+    if(_peSmsTimerId)clearInterval(_peSmsTimerId);
+    _peSmsTimerId=setInterval(()=>{
+      sec--;timerEl.textContent=_fmt(sec);
+      if(sec<=0){clearInterval(_peSmsTimerId);_peSmsTimerId=null;_peSmsCode='';timerEl.textContent='만료';
+        document.getElementById('pe-sms-msg').innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';
+        btn.disabled=false;btn.textContent='재발송';
+      }
+    },1000);
+    btn.textContent='재발송';
+    setTimeout(()=>{btn.disabled=false;},5000);
+  }catch(e){showToast('SMS 발송 중 오류 발생');btn.disabled=false;btn.textContent='인증번호 받기';}
+}
+function verifyPeTelCode(){
+  const input=document.getElementById('pe-sms-code')?.value.trim();
+  const msgEl=document.getElementById('pe-sms-msg');
+  if(!input){showToast('인증번호를 입력해주세요');return;}
+  if(!_peSmsCode){msgEl.innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';return;}
+  if(input===_peSmsCode){
+    _peSmsVerified=true;
+    if(_peSmsTimerId){clearInterval(_peSmsTimerId);_peSmsTimerId=null;}
+    msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
+    document.getElementById('pe-sms-code').disabled=true;
+    document.getElementById('pe-tel').disabled=true;
+    document.getElementById('pe-sms-btn').disabled=true;
+    showToast('전화번호 인증 완료 ✅');
+  }else{
+    msgEl.innerHTML='<span style="color:#e53935">인증번호가 일치하지 않아요</span>';
+  }
+}
 async function saveProfile(){
   const name=document.getElementById('pe-name').value.trim();
   if(!name){showToast('회사명을 입력해주세요');return;}
+  const newTel=document.getElementById('pe-tel').value.trim();
+  if(newTel&&newTel!==_peOriginalTel&&!_peSmsVerified){showToast('전화번호 변경 시 인증이 필요해요 📱');return;}
   const profileData={
     ceo:document.getElementById('pe-ceo').value.trim(),
     founded:document.getElementById('pe-founded').value.trim(),
     biznum:document.getElementById('pe-biznum').value.trim(),
-    tel:document.getElementById('pe-tel').value.trim(),
+    tel:newTel,
     hours:document.getElementById('pe-hours').value.trim(),
     moq:document.getElementById('pe-moq').value.trim(),
     ship:[...peShipSel],
