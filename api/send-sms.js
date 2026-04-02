@@ -16,19 +16,28 @@ export default async function handler(req, res) {
 
     console.log('[send-sms] 발송 시도:', receiver);
 
-    // 알리고 SMS API 호출 (application/x-www-form-urlencoded)
-    const params = new URLSearchParams();
-    params.append('key', 'ugaosl3ua62gt7v26mxauxnn8eke8cwf');
-    params.append('user_id', 'biummarket');
-    params.append('sender', '01045241138');
-    params.append('receiver', receiver);
-    params.append('msg', '[비움마켓] 인증번호는 [' + code + '] 입니다. 3분 이내에 입력해주세요.');
-    params.append('testmode_yn', 'N');
+    // 서버 외부 IP 확인 (디버깅용)
+    let serverIp = 'unknown';
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      serverIp = ipData.ip;
+      console.log('[send-sms] 서버 IP:', serverIp);
+    } catch (e) { console.log('[send-sms] IP 확인 실패'); }
+
+    // 알리고 SMS API 호출
+    const formData = new URLSearchParams();
+    formData.append('key', 'ugaosl3ua62gt7v26mxauxnn8eke8cwf');
+    formData.append('user_id', 'biummarket');
+    formData.append('sender', '01045241138');
+    formData.append('receiver', receiver);
+    formData.append('msg', '[비움마켓] 인증번호는 [' + code + '] 입니다. 3분 이내에 입력해주세요.');
+    formData.append('testmode_yn', 'N');
 
     const apiRes = await fetch('https://apis.aligo.in/send/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-      body: params.toString()
+      body: formData.toString()
     });
 
     const rawText = await apiRes.text();
@@ -38,6 +47,17 @@ export default async function handler(req, res) {
     try { apiData = JSON.parse(rawText); } catch (e) {
       console.error('[send-sms] JSON 파싱 실패:', rawText);
       res.status(500).json({ error: 'SMS API 응답 파싱 실패', raw: rawText });
+      return;
+    }
+
+    // IP 인증 오류 시 서버 IP 안내
+    if (Number(apiData.result_code) === -101) {
+      console.error('[send-sms] IP 인증 오류. 서버 IP:', serverIp);
+      res.status(500).json({
+        error: '알리고 IP 인증 오류. 알리고 관리자 페이지에서 IP를 허용해주세요.',
+        server_ip: serverIp,
+        result_code: apiData.result_code
+      });
       return;
     }
 
