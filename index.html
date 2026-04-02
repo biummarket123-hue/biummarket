@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"/>
 <link rel="apple-touch-icon" href="/favicon-192.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<meta name="description" content="재고원단 B2B 거래 플랫폼. 염색지·나염지·생지·수입원단을 판매자와 직거래. 가격제안·채팅·AI 원단 감별 서비스 제공."/>
+<meta name="description" content="재고원단 B2B 거래 플랫폼. 염색지·나염지·생지·수입원단을 판매자와 직거래. 가격제안·채팅·예약 서비스 제공."/>
 <meta name="keywords" content="재고원단,원단거래,B2B원단,동대문원단,원단도매,염색지,나염지,생지,수입원단"/>
 <title>재고원단 B2B 플랫폼 — 비움마켓 BIUM MARKET</title>
 <meta property="og:type" content="website"/>
@@ -1168,7 +1168,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <header class="home-hdr">
     <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;gap:1px"><span style="font-size:16px;font-weight:900;letter-spacing:-0.3px"><span style="color:#1a1a1a">비움</span><span style="color:#fbbf24">마켓</span></span><span style="font-size:8px;font-weight:600;color:#aaaaaa;letter-spacing:0.8px">BIUM MARKET</span></div>
     <div class="home-search-bar" onclick="openSearchOverlay()">
-      <button onclick="event.stopPropagation();openImgSearchView()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;color:#666677;flex-shrink:0" title="이미지로 상품 검색">📷</button>
+      <!-- AI 이미지 검색 (추후 재오픈) -->
       <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0"></span>
       <span style="flex:1;font-size:13px;color:#888899" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
       <button onclick="event.stopPropagation();openSearchOverlay()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
@@ -1432,14 +1432,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <div class="form-img-guide">첫 사진이 대표 이미지 · 터치하면 삭제</div>
 
-    <!-- AI 자동입력 버튼 -->
-    <div class="ai-auto-card" id="ai-auto-card" onclick="document.getElementById('ai-auto-input').click()">
-      <span class="ai-auto-icon" id="ai-auto-icon">🤖</span>
-      <div>
-        <div class="ai-auto-text" id="ai-auto-text">AI 자동 입력 — 사진으로 30초 등록</div>
-        <div class="ai-auto-sub" id="ai-auto-sub">갤러리 사진 선택 → 소재·중량·설명 자동 완성</div>
-      </div>
-    </div>
+    <!-- AI 자동입력 (추후 재오픈) -->
 
     <!-- 상품명 -->
     <div class="fg"><label>상품명 <span class="req">*</span></label><input type="text" class="fi" id="f-title" placeholder="예: 코마 면 트윌 60수 오트밀"/></div>
@@ -1956,14 +1949,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('ai')">
-        <div class="my-icon-box ib-purple">🔬</div>
-        <div class="my-menu-info">
-          <div class="my-menu-title" data-i18n="mnu_ai_detect">원단 감별 AI</div>
-          <div class="my-menu-sub" data-i18n="mnu_ai_detect_sub">사진으로 소재 분석</div>
-        </div>
-        <span class="my-menu-arrow">›</span>
-      </div>
+      <!-- 원단 감별 AI (추후 재오픈) -->
       <div class="my-menu-item" onclick="showView('trend')">
         <div class="my-icon-box ib-pink">📊</div>
         <div class="my-menu-info">
