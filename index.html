@@ -5738,6 +5738,7 @@ function renderMyProductCard(p){
           <button class="my-card-edit-btn" onclick="editProductById(${p.id})">✏️ 수정</button>
           <button onclick="openStockUpdate(${p.id})" style="flex:1;padding:7px;background:rgba(108,99,255,.1);border:1px solid #6c63ff;border-radius:8px;color:#6c63ff;font-size:12px;font-weight:600;cursor:pointer">📦 재고수정</button>
           <button onclick="toggleProductStop(${p.id})" style="flex:1;padding:7px;background:${isHidden?'rgba(16,185,129,.1)':'rgba(0,0,0,.05)'};border:1px solid ${isHidden?'#10b981':'#ccc'};border-radius:8px;color:${isHidden?'#10b981':'#888'};font-size:12px;font-weight:600;cursor:pointer">${isHidden?'👁️ 노출':'🙈 숨김'}</button>
+          <button onclick="openHotDealApply(${p.id})" style="flex:1;padding:7px;background:rgba(255,111,0,.1);border:1px solid #ff6f00;border-radius:8px;color:#ff6f00;font-size:12px;font-weight:600;cursor:pointer">🔥 광고</button>
           <button class="my-card-del-btn" onclick="deleteProductById(${p.id})">🗑️</button>
         </div>
     </div>
@@ -6523,6 +6524,7 @@ async function openDetail(id){
 
   // 수정/삭제 버튼 (내 상품 관리에서 진입 시만 헤더에 표시)
   const ownerBar=document.getElementById('pd-owner-bar');
+  if(ownerBar)ownerBar.style.display='none';
   const hdEdit=document.getElementById('pd-hdr-edit');
   const hdDel=document.getElementById('pd-hdr-delete');
   const isOwner=isMyProduct(p,curUser);
@@ -6530,9 +6532,6 @@ async function openDetail(id){
   if(hdEdit)hdEdit.style.display=showOwner?'':'none';
   if(hdDel)hdDel.style.display=showOwner?'':'none';
   fromMyProducts=false;
-  if(ownerBar)ownerBar.style.display=isOwner?'flex':'none';
-  const hotdealBtn=document.getElementById('btn-hotdeal-apply');
-  if(hotdealBtn)hotdealBtn.style.display=isOwner?'block':'none';
 
   // 스크롤 헤더 감지
   const scroll=document.getElementById('d-scroll');
@@ -13284,8 +13283,9 @@ async function removeHotDeal(id){
   renderHomeHotDealSection();
 }
 
-function openHotDealApply(){
-  const p=products.find(x=>x.id===curProductId);if(!p)return;
+function openHotDealApply(productId){
+  const pid=productId||curProductId;
+  const p=products.find(x=>x.id===pid);if(!p)return;
   const url='https://www.biummarket.com?product='+p.id;
   const PLANS=[{days:3,price:2900},{days:7,price:5900},{days:14,price:9900},{days:30,price:19900}];
   window._selectedHdPlan=PLANS[1];
