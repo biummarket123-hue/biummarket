@@ -4857,7 +4857,7 @@ async function doGoogleLogin(){
   }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  const REST_API_KEY='2a0cb674c93b653e5e51382a15763bf9';
+  const REST_API_KEY='27e1cc15dc74afe3bc3058cf623faf94';
   const REDIRECT_URI='https://www.biummarket.com';
   const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&prompt=login`;
   const popup=window.open(kakaoAuthUrl,'kakaoLogin','width=500,height=600,scrollbars=yes');
@@ -4878,7 +4878,7 @@ async function handleKakaoCode(code){
     const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'2a0cb674c93b653e5e51382a15763bf9',redirect_uri:'https://www.biummarket.com',code})
+      body:new URLSearchParams({grant_type:'authorization_code',client_id:'27e1cc15dc74afe3bc3058cf623faf94',client_secret:'8dvgpQa1VNIE8OluNBjMjkjG5dpxC0cW',redirect_uri:'https://www.biummarket.com',code})
     }).then(r=>r.json());
     if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
     const res=await fetch('https://kapi.kakao.com/v2/user/me',{
