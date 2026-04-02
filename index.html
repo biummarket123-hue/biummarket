@@ -1859,6 +1859,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <div id="admin-pending-summary" style="display:none"></div>
       <div class="my-menu-item" id="menu-admin-dashboard" onclick="showView('admin')">
         <div class="my-icon-box ib-purple">🛡️</div>
         <div class="my-menu-info">
@@ -10593,6 +10594,7 @@ function checkAdminAccess(){
       showListSkeleton();
       loadProductsFromSupabase(true);
       showToast('관리자 모드로 접속했어요 🛡️');
+      setTimeout(()=>checkAdminPendingAlert(),1000);
     }
   } else {
     if(err){err.style.display='block';}
@@ -10661,6 +10663,7 @@ function applyRoleVisibility(){
       // 관리자 대시보드 항상 표시
       const adminDash=document.getElementById('menu-admin-dashboard');
       if(adminDash)adminDash.style.display='flex';
+      renderAdminPendingSummary();
       const toggleWrap=document.getElementById('admin-view-toggle-wrap');
       if(toggleWrap)toggleWrap.style.display='block';
       const toggleBtn=document.getElementById('admin-view-toggle-btn');
@@ -13205,6 +13208,74 @@ function getAdCTR(adId){
   if(!stat||stat.impressions===0)return '0.0';
   return((stat.clicks/stat.impressions)*100).toFixed(1);
 }
+// ── 관리자 미처리 신청 알림 ──
+async function checkAdminPendingAlert(){
+  if(!isAdmin()||!_sb)return;
+  const now=new Date().toISOString();
+  const[{data:bizPending},{data:hotdealPending}]=await Promise.all([
+    _sb.from('users').select('id,name,email').eq('seller_status','pending'),
+    _sb.from('hot_deals').select('id,seller_name,days,price').eq('status','pending')
+  ]);
+  const bizCnt=(bizPending||[]).length;
+  const hotCnt=(hotdealPending||[]).length;
+  const total=bizCnt+hotCnt;
+  if(total===0)return;
+  let modal=document.getElementById('modal-admin-pending-alert');
+  if(!modal){modal=document.createElement('div');modal.id='modal-admin-pending-alert';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';document.body.appendChild(modal);}
+  modal.innerHTML=`<div style="background:#fff;border-radius:20px;width:100%;max-width:360px;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#6c63ff,#ff6584);padding:20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">🔔</div>
+      <div style="font-size:18px;font-weight:800;color:#fff">미처리 신청 ${total}건</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:4px">확인이 필요한 신청이 있어요</div>
+    </div>
+    <div style="padding:16px">
+      ${bizCnt?`<div onclick="modal.style.display='none';showAdminUsers();" style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:#f0f0ff;border-radius:12px;margin-bottom:8px;cursor:pointer">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#6c63ff">📋 사업자 승인 대기</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${bizCnt}건 처리 필요</div>
+        </div>
+        <span style="font-size:20px;color:#6c63ff;font-weight:700">›</span>
+      </div>`:''}
+      ${hotCnt?`<div onclick="modal.style.display='none';showAdminHotDeal();" style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:#fff8f0;border-radius:12px;margin-bottom:8px;cursor:pointer">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#ff6f00">🔥 HOT DEAL 승인 대기</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${hotCnt}건 처리 필요</div>
+        </div>
+        <span style="font-size:20px;color:#ff6f00;font-weight:700">›</span>
+      </div>`:''}
+      <button onclick="document.getElementById('modal-admin-pending-alert').style.display='none'" style="width:100%;padding:13px;background:#f5f5f5;border:none;border-radius:12px;font-size:14px;font-weight:700;color:#666;cursor:pointer;margin-top:4px">나중에 확인</button>
+    </div>
+  </div>`;
+  modal.style.display='flex';
+}
+
+async function renderAdminPendingSummary(){
+  if(!isAdmin()||!_sb)return;
+  const el=document.getElementById('admin-pending-summary');
+  if(!el)return;
+  const now=new Date().toISOString();
+  const[{data:bizPending},{data:hotdealPending}]=await Promise.all([
+    _sb.from('users').select('id').eq('seller_status','pending'),
+    _sb.from('hot_deals').select('id').eq('status','pending')
+  ]);
+  const bizCnt=(bizPending||[]).length;
+  const hotCnt=(hotdealPending||[]).length;
+  const total=bizCnt+hotCnt;
+  if(total===0){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="margin:0 0 12px;padding:14px 16px;background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(255,101,132,.08));border:1px solid rgba(108,99,255,.2);border-radius:14px">
+    <div style="font-size:13px;font-weight:700;color:#6c63ff;margin-bottom:10px">🔔 미처리 신청 ${total}건</div>
+    ${bizCnt?`<div onclick="showAdminUsers()" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:10px;margin-bottom:6px;cursor:pointer">
+      <span style="font-size:13px;font-weight:600;color:#1a1a1a">📋 사업자 승인 대기</span>
+      <span style="background:#6c63ff;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">${bizCnt}건</span>
+    </div>`:''}
+    ${hotCnt?`<div onclick="showAdminHotDeal()" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:10px;cursor:pointer">
+      <span style="font-size:13px;font-weight:600;color:#1a1a1a">🔥 HOT DEAL 승인 대기</span>
+      <span style="background:#ff6f00;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">${hotCnt}건</span>
+    </div>`:''}
+  </div>`;
+}
+
 // ── HOT DEAL 관리 함수들 ──
 async function showAdminHotDeal(){
   if(!_sb)return;
