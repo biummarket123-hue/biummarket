@@ -5903,16 +5903,19 @@ function renderHomeSections(){
 function _renderHorizCard(p){
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
-  return `<div onclick="openDetail(${p.id})" style="min-width:140px;max-width:140px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #f0f0f5;cursor:pointer;flex-shrink:0">
-    <div style="width:140px;height:120px;background:${bg};position:relative;overflow:hidden">
+  const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
+  const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
+  return `<div onclick="openDetail(${p.id})" style="min-width:160px;max-width:160px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #f0f0f5;cursor:pointer;flex-shrink:0">
+    <div style="width:160px;height:120px;background:${bg};position:relative;overflow:hidden">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
       ${p.is_urgent?'<span style="position:absolute;top:6px;left:6px;background:#ff6b35;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</span>':''}
       ${p.is_free?'<span style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">🎁 나눔</span>':''}
     </div>
-    <div style="padding:8px 10px">
+    <div style="padding:10px">
       <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-      <div style="font-size:var(--fs-base);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${p.is_free?'무료나눔':(p.price||0).toLocaleString()+'원/'+unit}</div>
-      ${p.loc?`<div style="font-size:var(--fs-xs);color:#888;margin-top:2px">📍${p.loc.split(' ').slice(-1)[0]}</div>`:''}
+      <div style="font-size:var(--fs-base);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${p.is_free?'무료나눔':_fp(p.price)+'원/'+unit}</div>
+      ${hasBulk?`<div style="font-size:var(--fs-xs);color:#1976d2;font-weight:600;margin-top:2px">대량가 ${_fp(p.bulk_price)}원/${unit}</div>`:''}
+      ${p.loc?`<div style="font-size:var(--fs-xs);color:#888;margin-top:3px">📍${p.loc.split(' ').slice(-1)[0]}</div>`:''}
     </div>
   </div>`;
 }
@@ -5964,6 +5967,7 @@ function renderHomePopularSection(){
     <div style="flex:1;min-width:0">
       <div style="font-size:var(--fs-base);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
       <div style="font-size:var(--fs-md);font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:2px">${p.is_free?'무료나눔':(p.price||0).toLocaleString()+'원/'+(p.unit||'m')}</div>
+      ${p.bulk_price&&p.bulk_price!==p.price?`<div style="font-size:var(--fs-xs);color:#1976d2;font-weight:600;margin-top:1px">대량가 ${(p.bulk_price||0).toLocaleString()}원/${p.unit||'m'}</div>`:''}
     </div>
     <div style="text-align:right;flex-shrink:0">
       <span style="font-size:var(--fs-xs);color:#888">🤍${p.likes||0} 💬${p.chats||0}</span>
