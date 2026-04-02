@@ -13286,53 +13286,67 @@ async function removeHotDeal(id){
 function openHotDealApply(productId){
   const pid=productId||curProductId;
   const p=products.find(x=>x.id===pid);if(!p)return;
-  const url='https://www.biummarket.com?product='+p.id;
-  const PLANS=[{days:3,price:2900},{days:7,price:5900},{days:14,price:9900},{days:30,price:19900}];
-  window._selectedHdPlan=PLANS[1];
+  window._hdApplyProductId=p.id;
+  window._hdApplyPlans=[{days:3,price:2900},{days:7,price:5900},{days:14,price:9900},{days:30,price:19900}];
+  window._selectedHdPlan=window._hdApplyPlans[1];
   let modal=document.getElementById('modal-hotdeal-apply');
-  if(!modal){modal=document.createElement('div');modal.id='modal-hotdeal-apply';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end';document.body.appendChild(modal);}
-  const render=()=>{
-    modal.innerHTML=`<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;padding:24px;max-height:80vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <span style="font-size:18px;font-weight:800">🔥 HOT DEAL 광고 신청</span>
-        <button onclick="this.closest('#modal-hotdeal-apply').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer">×</button>
+  if(!modal){modal=document.createElement('div');modal.id='modal-hotdeal-apply';modal.className='mover';document.body.appendChild(modal);modal.onclick=(e)=>{if(e.target===modal)modal.classList.remove('open');};}
+  modal.innerHTML=`<div class="msheet" style="max-width:430px" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="msheet-close"><button onclick="document.getElementById('modal-hotdeal-apply').classList.remove('open')">✕</button></div>
+    <div class="mtitle">🔥 HOT DEAL 광고</div>
+    <div style="padding:0 4px">
+      <div style="display:flex;align-items:center;gap:10px;background:#f8f8fa;border:1px solid #e0e0ea;border-radius:12px;padding:10px 12px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#eee">
+          ${p.image_url?'<img src="'+p.image_url+'" style="width:100%;height:100%;object-fit:cover">':''}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+          <div style="font-size:12px;color:#e53935;font-weight:600;margin-top:2px">${(p.price||0).toLocaleString()}원/${p.unit||'m'}</div>
+        </div>
       </div>
-      <div style="background:#fff8f0;border:1px solid #ffe0b2;border-radius:12px;padding:14px;margin-bottom:16px">
-        <div style="font-size:12px;color:#ff6f00;font-weight:700;margin-bottom:6px">📋 상품 링크 (클립보드에 복사됩니다)</div>
-        <div style="font-size:12px;color:#666;word-break:break-all">${url}</div>
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">광고 기간 선택</div>
+      <div id="hd-plan-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        ${window._hdApplyPlans.map((plan,i)=>'<div class="hd-plan" data-idx="'+i+'" onclick="selectHdPlan('+i+')" style="padding:12px;border:2px solid '+(i===1?'#ff6f00':'#e0e0ea')+';border-radius:12px;cursor:pointer;text-align:center;background:'+(i===1?'rgba(255,111,0,.05)':'#fff')+'"><div style="font-size:15px;font-weight:800;color:#1a1a1a">'+plan.days+'일</div><div style="font-size:14px;font-weight:700;color:#ff6f00;margin-top:2px">'+plan.price.toLocaleString()+'원</div></div>').join('')}
       </div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:10px">광고 기간 선택</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-        ${PLANS.map(plan=>`
-          <div onclick="window._selectedHdPlan=${JSON.stringify(plan)};document.querySelectorAll('.hd-plan').forEach(el=>el.style.borderColor='#eee');this.style.borderColor='#ff6f00'" class="hd-plan" style="padding:14px;border:2px solid ${window._selectedHdPlan&&window._selectedHdPlan.days===plan.days?'#ff6f00':'#eee'};border-radius:12px;cursor:pointer;text-align:center">
-            <div style="font-size:16px;font-weight:800;color:#1a1a1a">${plan.days}일</div>
-            <div style="font-size:15px;font-weight:700;color:#ff6f00">${plan.price.toLocaleString()}원</div>
-          </div>`).join('')}
+      <div style="background:#fff8f0;border:1px solid #ffe0b2;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#666;line-height:1.6">
+        <div style="font-weight:700;color:#ff6f00;margin-bottom:4px">광고 안내</div>
+        · 홈화면 HOT DEAL 섹션에 노출됩니다<br>
+        · 관리자 승인 후 광고가 시작됩니다<br>
+        · 최대 10개 상품까지 동시 진행 가능
       </div>
-      <button onclick="submitHotDealApply(${p.id},'${p.title.replace(/'/g,"\\'")}','${url}')" style="width:100%;padding:15px;background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer">신청하기</button>
-    </div>`;
-    modal.style.display='flex';
-  };
-  render();
-  navigator.clipboard.writeText(url).catch(()=>{});
+      <button onclick="submitHotDealApply(window._hdApplyProductId)" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">신청하기</button>
+    </div>
+  </div>`;
+  modal.classList.add('open');
+}
+function selectHdPlan(idx){
+  window._selectedHdPlan=window._hdApplyPlans[idx];
+  document.querySelectorAll('#hd-plan-grid .hd-plan').forEach((el,i)=>{
+    el.style.borderColor=i===idx?'#ff6f00':'#e0e0ea';
+    el.style.background=i===idx?'rgba(255,111,0,.05)':'#fff';
+  });
 }
 
-async function submitHotDealApply(productId,productTitle,productUrl){
+async function submitHotDealApply(productId){
   if(!curUser){showToast('로그인이 필요해요');return;}
   if(!_sb)return;
+  const p=products.find(x=>x.id===productId);
   const plan=window._selectedHdPlan||{days:7,price:5900};
+  const url='https://www.biummarket.com?product='+productId;
   const{error}=await _sb.from('hot_deals').insert({
     product_id:productId,
     seller_id:curUser.id||curUser.email,
     seller_name:curUser.name||curUser.email,
-    product_url:productUrl,
+    product_url:url,
     days:plan.days,
     price:plan.price,
     status:'pending'
   });
   if(error){showToast('신청 실패: '+error.message);return;}
-  await addAppNotification('admin','hotdeal_request',`🔥 ${curUser.name||'판매자'}님이 HOT DEAL 광고를 신청했어요`,{productId,productTitle,days:plan.days,price:plan.price});
-  document.getElementById('modal-hotdeal-apply').style.display='none';
+  await addAppNotification('admin','hotdeal_request',`🔥 ${curUser.name||'판매자'}님이 HOT DEAL 광고를 신청했어요`,{productId,productTitle:p?.title||'',days:plan.days,price:plan.price});
+  const modal=document.getElementById('modal-hotdeal-apply');
+  if(modal)modal.classList.remove('open');
   showToast('광고 신청 완료! 관리자 승인 후 홈화면에 노출됩니다 🔥');
 }
 
