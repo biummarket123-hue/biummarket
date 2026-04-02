@@ -5954,7 +5954,7 @@ async function renderHomeHotDealSection(){
       </div>
       <div style="padding:8px">
         <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:var(--fs-sm);font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
+        <div style="font-size:var(--fs-sm);font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
       </div>
     </div>`;
   };
@@ -6005,7 +6005,7 @@ function goHotDealSlide(i){
       </div>
       <div style="padding:8px">
         <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:var(--fs-sm);font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
+        <div style="font-size:var(--fs-sm);font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
       </div>
     </div>`;
   };
@@ -6027,7 +6027,7 @@ function openHotDealAll(){
       </div>
       <div style="padding:10px">
         <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:4px">${p.title}</div>
-        <div style="font-size:13px;font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:10px;color:#888">/${unit}</span></div>
+        <div style="font-size:13px;font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:10px;color:#888">/${unit}</span></div>
       </div>
     </div>`;
   };
