@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const { code, state } = req.query;
 
   try {
-    const tokenRes = await fetch(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=nvcabgkBSUsoLBcwLvKt&client_secret=b3DwMmChOg&code=${code}&state=${state}`);
+    const tokenRes = await fetch(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=dYw4QkVqHsSd4DjthmE5&client_secret=iyQZH_fudf&code=${code}&state=${state}`);
     const tokenData = await tokenRes.json();
 
     if(!tokenData.access_token) {
