@@ -12096,7 +12096,11 @@ function _mergeAdminUsers(sbList){
     return localUser?{...sbUser,...localUser,sellerStatus,requestedRole}:{...sbUser,role:sbUser.type||'buyer',sellerStatus,requestedRole};
   });
   const sbIds=new Set((sbList||[]).map(u=>u.id||u.email));
-  const localOnly=users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email));
+  const localOnly=users.filter(u=>!sbIds.has(u.id)&&!sbIds.has(u.email)).map(u=>({
+    ...u,
+    sellerStatus:u.sellerStatus||u.seller_status||u.bizStatus||'none',
+    requestedRole:u.requestedRole||u.requested_role||u.role||''
+  }));
   return [...result,...localOnly];
 }
 const _roleLabel=(t)=>({admin:'관리자',business:'사업자',both:'사업자',seller:'사업자','seller+buyer':'사업자',buyer:'일반',member:'일반',guest:'일반'})[t]||'일반';
@@ -12967,9 +12971,11 @@ async function adminApproveSeller(idx){
     users[li].role = requestedRole;
     users[li].type = requestedRole;
     users[li].sellerStatus = 'approved';
+    users[li].bizStatus = 'approved';
+    users[li].seller_status = 'approved';
     lsSet('users', users);
   } else {
-    const newUser = {...u, role: requestedRole, type: requestedRole, sellerStatus: 'approved'};
+    const newUser = {...u, role: requestedRole, type: requestedRole, sellerStatus: 'approved', bizStatus: 'approved', seller_status: 'approved'};
     users.push(newUser);
     lsSet('users', users);
   }
@@ -13018,6 +13024,8 @@ async function adminRejectSeller(idx){
 
   if(li !== -1){
     users[li].sellerStatus = 'rejected';
+    users[li].bizStatus = 'rejected';
+    users[li].seller_status = 'rejected';
     users[li].rejectReason = reason.trim();
     lsSet('users', users);
   }
