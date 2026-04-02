@@ -6523,7 +6523,6 @@ async function openDetail(id){
 
   // 수정/삭제 버튼 (내 상품 관리에서 진입 시만 헤더에 표시)
   const ownerBar=document.getElementById('pd-owner-bar');
-  if(ownerBar)ownerBar.style.display='none';
   const hdEdit=document.getElementById('pd-hdr-edit');
   const hdDel=document.getElementById('pd-hdr-delete');
   const isOwner=isMyProduct(p,curUser);
@@ -6531,8 +6530,9 @@ async function openDetail(id){
   if(hdEdit)hdEdit.style.display=showOwner?'':'none';
   if(hdDel)hdDel.style.display=showOwner?'':'none';
   fromMyProducts=false;
+  if(ownerBar)ownerBar.style.display=isOwner?'flex':'none';
   const hotdealBtn=document.getElementById('btn-hotdeal-apply');
-  if(hotdealBtn)hotdealBtn.style.display=(isOwner&&isSeller())?'block':'none';
+  if(hotdealBtn)hotdealBtn.style.display=isOwner?'block':'none';
 
   // 스크롤 헤더 감지
   const scroll=document.getElementById('d-scroll');
