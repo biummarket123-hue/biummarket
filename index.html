@@ -6314,20 +6314,7 @@ async function openDetail(id){
   }
   // 판매자 가격제안 허용 설정 확인
   if(suggestBtn&&!isSoldout){
-    const sellerId=p.seller_id||p.seller?.id;
-    if(sellerId&&_sb){
-      _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle().then(({data:su})=>{
-        try{
-          const sellerExtra=JSON.parse(su?.extra_info||'{}');
-          const sellerTrade=sellerExtra.tradeSettings||{};
-          if(sellerTrade.priceOffer===false){
-            suggestBtn.style.display='none';
-          }else{
-            suggestBtn.style.display='';
-          }
-        }catch(e){}
-      });
-    }
+    suggestBtn.style.display=(p.allow_offer===false)?'none':'';
   }
 
   const unit=p.unit||'m';
@@ -9672,18 +9659,21 @@ function initSoundSettingsUI(){
   const dnd=document.getElementById('snd-dnd');
   if(dnd)dnd.checked=soundSettings.dnd||false;
 }
-function toggleTrade(key,val){
+async function toggleTrade(key,val){
   tradeSettings[key]=val;
   lsSet('tradeSettings',tradeSettings);
-  // Supabase에도 저장 (다른 사용자가 참조 가능하도록)
-  if(_sb&&curUser&&curUser.id&&curUser.id!=='admin'){
-    try{
-      const extra=JSON.parse(curUser.extra_info||'{}');
-      extra.tradeSettings=tradeSettings;
-      curUser.extra_info=JSON.stringify(extra);
-      lsSet('curUser',curUser);
-      _sb.from('users').update({extra_info:curUser.extra_info}).eq('id',curUser.id);
-    }catch(e){}
+  // 가격제안 허용 변경 시 내 모든 상품에 반영
+  if(key==='priceOffer'&&curUser){
+    const uid=curUser.id||curUser.email;
+    products.forEach(p=>{
+      if(p.seller_id===uid||(p.seller&&(p.seller.id===uid||p.seller.name===curUser.name))){
+        p.allow_offer=val;
+      }
+    });
+    lsSet('products',products);
+    if(_sb&&uid&&uid!=='admin'){
+      try{await _sb.from('products').update({allow_offer:val}).eq('seller_id',uid);}catch(e){console.error('가격제안 설정 동기화 오류:',e);}
+    }
   }
   showToast(val?'설정이 켜졌어요 ✅':'설정이 꺼졌어요');
 }
