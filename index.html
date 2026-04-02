@@ -6531,6 +6531,8 @@ async function openDetail(id){
   if(hdEdit)hdEdit.style.display=showOwner?'':'none';
   if(hdDel)hdDel.style.display=showOwner?'':'none';
   fromMyProducts=false;
+  const hotdealBtn=document.getElementById('btn-hotdeal-apply');
+  if(hotdealBtn)hotdealBtn.style.display=(isOwner&&isSeller())?'block':'none';
 
   // 스크롤 헤더 감지
   const scroll=document.getElementById('d-scroll');
