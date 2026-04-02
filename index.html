@@ -5933,6 +5933,35 @@ function renderHomeUrgentSection(){
   scroll.innerHTML=urgent.map(p=>_renderHorizCard(p)).join('');
 }
 
+// ── HOT DEAL 카드 공통 렌더러 ──
+function _renderHotDealCard(p,isModal){
+  const bg=getFColor(p.type,p.color);
+  const unit=p.unit||'m';
+  const seller=p.seller||{};
+  const sellerName=seller.name||'';
+  const sellerLoc=p.loc||seller.loc||'';
+  const locShort=sellerLoc?sellerLoc.split(' ').slice(-1)[0]:'';
+  const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
+  const priceStr=p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString();
+  const closeModal=isModal?"document.getElementById('modal-hotdeal-all').classList.remove('open');":'';
+  return `<div onclick="${closeModal}openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
+    <div style="height:110px;background:${bg};position:relative;overflow:hidden">
+      ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
+      <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
+    </div>
+    <div style="padding:8px 10px">
+      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+      <div style="font-size:var(--fs-xs);color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}${locShort?' · <span style="color:#6c63ff">📍'+locShort+'</span>':''}</div>
+      <div style="font-size:var(--fs-sm);font-weight:800;margin-top:4px"><span style="color:#ff6f00">${priceStr}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;align-items:center">
+        ${p.moq?`<span style="background:#fff3cd;color:#856404;border-radius:4px;padding:1px 5px;font-size:var(--fs-xs);font-weight:500">MOQ ${p.moq}${unit}</span>`:''}
+        ${discPct?`<span style="background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:var(--fs-xs);padding:1px 5px;border-radius:4px">-${discPct}%</span>`:''}
+        <span style="font-size:var(--fs-xs);color:#888;margin-left:auto">💬${p.chats||0} 🤍${p.likes||0}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
 // ── 홈 HOT DEAL 섹션 ──
 async function renderHomeHotDealSection(){
   const sec=document.getElementById('home-hotdeal-section');
@@ -5945,19 +5974,7 @@ async function renderHomeHotDealSection(){
   for(const d of deals){const p=products.find(x=>x.id===d.product_id);if(p)prods.push({...p,_hotdeal:d});}
   if(!prods.length){sec.style.display='none';return;}
   sec.style.display='block';
-  const makeCard=(p)=>{
-    const bg=getFColor(p.type,p.color);const unit=p.unit||'m';
-    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
-      <div style="height:110px;background:${bg};position:relative;overflow:hidden">
-        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
-      </div>
-      <div style="padding:8px">
-        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:var(--fs-sm);font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
-      </div>
-    </div>`;
-  };
+  const makeCard=(p)=>_renderHotDealCard(p);
   const perPage=4;
   const totalPages=Math.ceil(prods.length/perPage);
   const renderPage=(idx)=>{
@@ -5996,19 +6013,7 @@ function goHotDealSlide(i){
   window._hdIdx=i;
   const prods=window._hdProds||[];
   const perPage=window._hdPerPage||4;
-  const makeCard=(p)=>{
-    const bg=getFColor(p.type,p.color);const unit=p.unit||'m';
-    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
-      <div style="height:110px;background:${bg};position:relative;overflow:hidden">
-        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
-      </div>
-      <div style="padding:8px">
-        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:var(--fs-sm);font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
-      </div>
-    </div>`;
-  };
+  const makeCard=(p)=>_renderHotDealCard(p);
   const ps=prods.slice(i*perPage,i*perPage+perPage);
   const wrap=document.getElementById('hd-page-wrap');
   if(wrap)wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
@@ -6018,19 +6023,7 @@ function goHotDealSlide(i){
 function openHotDealAll(){
   const prods=window._hdProds||[];
   if(!prods.length)return;
-  const makeCard=(p)=>{
-    const bg=getFColor(p.type,p.color);const unit=p.unit||'m';
-    return `<div onclick="document.getElementById('modal-hotdeal-all').classList.remove('open');openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer">
-      <div style="height:120px;background:${bg};position:relative;overflow:hidden">
-        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
-      </div>
-      <div style="padding:10px">
-        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:var(--fs-base);font-weight:800"><span style="color:#ff6f00">${p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString()}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
-      </div>
-    </div>`;
-  };
+  const makeCard=(p)=>_renderHotDealCard(p,true);
   let modal=document.getElementById('modal-hotdeal-all');
   if(!modal){modal=document.createElement('div');modal.id='modal-hotdeal-all';modal.className='mover';modal.onclick=(e)=>{if(e.target===modal)modal.classList.remove('open');};document.body.appendChild(modal);}
   modal.innerHTML=`<div class="msheet" onclick="event.stopPropagation()">
