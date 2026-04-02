@@ -5439,10 +5439,13 @@ function renderMyProductsSorted(){
   const u=curUser;if(!u)return;
   const el=document.getElementById('cp-list');if(!el)return;
   let items=products.filter(p=>isMyProduct(p,u));
+  // 가격 필터 적용
+  if(_fsPriceMin)items=items.filter(p=>(p.price||0)>=_fsPriceMin);
+  if(_fsPriceMax)items=items.filter(p=>(p.price||0)<=_fsPriceMax);
   if(curCatSort==='price')items=[...items].sort((a,b)=>a.price-b.price);
   else if(curCatSort==='popular')items=[...items].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else items=[...items].sort((a,b)=>b.id-a.id);
-  if(!items.length){el.innerHTML='<div class="cp-empty">📭<br>등록한 상품이 없어요</div>';return;}
+  if(!items.length){el.innerHTML='<div class="cp-empty">📭<br>조건에 맞는 상품이 없어요</div>';return;}
   el.innerHTML=items.map(p=>renderMyProductCard(p)).join('');
   const hdr=document.getElementById('cp-hdr-title');if(hdr)hdr.textContent='내 상품 ('+items.length+'개)';
 }
