@@ -2823,7 +2823,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="hdr-title" id="bd-hdr-cat">게시글</div>
     <div style="width:38px"></div>
   </header>
-  <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="bd-content-wrap"></div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:80px">
+    <div id="bd-content-wrap"></div>
+    <div id="bd-comments-wrap" style="padding:0 16px 20px"></div>
+  </div>
+  <div id="bd-comment-bar" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #e0e0ea;padding:10px 14px;display:flex;gap:8px;align-items:center;z-index:100;box-sizing:border-box">
+    <input type="text" id="bd-comment-input" placeholder="댓글을 입력하세요" style="flex:1;padding:10px 14px;border:1.5px solid #e0e0ea;border-radius:20px;font-size:13px;background:#f8f8fa;outline:none;box-sizing:border-box" onkeydown="if(event.key==='Enter')submitBoardComment()"/>
+    <button onclick="submitBoardComment()" style="padding:10px 16px;background:#6c63ff;color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">등록</button>
+  </div>
 </div>
 
 <!-- ========== KEYWORD ALERT ========== -->
@@ -11055,7 +11062,96 @@ function openBoardDetail(idx){
       <hr style="border:none;border-top:1px solid #f0f0f0;margin-bottom:20px"/>
       <div style="font-size:15px;color:#333;line-height:1.8;white-space:pre-wrap">${p.content||'(내용 없음)'}</div>
     </div>`;
+  window._bdCurrentPostId=p.id;
+  window._bdCurrentPostIdx=idx;
+  window._bdCurrentPostSb=!!p._sb;
+  renderBoardComments(p.id,p._sb);
   showView('board-detail');
+}
+
+async function renderBoardComments(postId,isSb){
+  const wrap=document.getElementById('bd-comments-wrap');if(!wrap)return;
+  let comments=[];
+  if(isSb&&_sb){
+    try{
+      const{data}=await _sb.from('board_comments').select('*').eq('post_id',postId).order('created_at',{ascending:true});
+      if(data)comments=data;
+    }catch(e){console.warn('[댓글 조회 오류]',e);}
+  }
+  if(!comments.length){comments=lsGet('boardComments_'+postId,[]);}
+  const uid=curUser?.id||curUser?.email||'';
+  wrap.innerHTML=`
+    <div style="border-top:8px solid #f5f5f5;padding-top:16px">
+      <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px">💬 댓글 ${comments.length}개</div>
+      ${comments.length?comments.map(c=>`
+        <div style="padding:12px 0;border-bottom:1px solid #f0f0f5">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${(c.author_name||'?')[0]}</div>
+              <span style="font-size:13px;font-weight:600;color:#1a1a1a">${c.author_name||'익명'}</span>
+              <span style="font-size:11px;color:#bbb">${_fmtCommentTime(c.created_at)}</span>
+            </div>
+            ${(c.author_id===uid||isAdmin())?`<button onclick="deleteBoardComment('${c.id}','${postId}',${isSb})" style="background:none;border:none;font-size:11px;color:#bbb;cursor:pointer">삭제</button>`:''}
+          </div>
+          <div style="font-size:13px;color:#444;line-height:1.6;padding-left:36px">${_escHtml(c.content)}</div>
+        </div>`).join('')
+      :'<div style="text-align:center;padding:24px;color:#bbb;font-size:13px">첫 댓글을 남겨보세요</div>'}
+    </div>`;
+}
+
+function _fmtCommentTime(dt){
+  if(!dt)return '';
+  const d=new Date(dt);const now=Date.now();const diff=now-d.getTime();
+  if(diff<60000)return '방금';
+  if(diff<3600000)return Math.floor(diff/60000)+'분 전';
+  if(diff<86400000)return Math.floor(diff/3600000)+'시간 전';
+  return d.toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+}
+function _escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+async function submitBoardComment(){
+  if(!curUser){showToast('로그인 후 댓글을 작성할 수 있어요');return;}
+  const input=document.getElementById('bd-comment-input');
+  const content=(input?.value||'').trim();
+  if(!content){showToast('댓글을 입력해주세요');return;}
+  const postId=window._bdCurrentPostId;
+  const isSb=window._bdCurrentPostSb;
+  const comment={
+    id:crypto.randomUUID(),
+    post_id:postId,
+    content,
+    author_name:curUser.name||curUser.email||'익명',
+    author_id:curUser.id||curUser.email,
+    created_at:new Date().toISOString()
+  };
+  if(isSb&&_sb){
+    try{
+      const{error}=await _sb.from('board_comments').insert(comment);
+      if(error){console.error('[댓글 등록 오류]',error);showToast('댓글 등록 실패: '+error.message);return;}
+    }catch(e){showToast('댓글 등록 중 오류');return;}
+  }else{
+    const key='boardComments_'+postId;
+    const list=lsGet(key,[]);
+    list.push(comment);
+    lsSet(key,list);
+  }
+  input.value='';
+  showToast('댓글이 등록됐어요 💬');
+  renderBoardComments(postId,isSb);
+}
+
+async function deleteBoardComment(commentId,postId,isSb){
+  if(!confirm('댓글을 삭제할까요?'))return;
+  if(isSb&&_sb){
+    try{await _sb.from('board_comments').delete().eq('id',commentId);}catch(e){showToast('삭제 실패');return;}
+  }else{
+    const key='boardComments_'+postId;
+    let list=lsGet(key,[]);
+    list=list.filter(c=>c.id!==commentId);
+    lsSet(key,list);
+  }
+  showToast('댓글이 삭제됐어요');
+  renderBoardComments(postId,isSb);
 }
 function openTrendReport(){showView('trend');}
 function renderTrendReport(){
