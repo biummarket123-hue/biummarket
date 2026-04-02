@@ -35,7 +35,21 @@
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1764..1770\\)\")",
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1927..1937\\)\")",
       "Bash(powershell -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content 'C:\\\\Users\\\\A\\\\biummarket\\\\index.html' -Encoding UTF8 | Select-Object -Index \\(1486..1522\\)\")",
-      "Read(//c/Users/박상민/biummarket/public/**)"
+      "Read(//c/Users/박상민/biummarket/public/**)",
+      "Bash(npm:*)",
+      "Bash(java:*)",
+      "Bash(adb:*)",
+      "Bash(npx cap:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Read(//c/Users/A/biummarket/$LOCALAPPDATA/Programs/Android Studio/bin/**)",
+      "Bash(where studio64:*)",
+      "Bash(npx capacitor-assets:*)",
+      "Bash(./gradlew assembleDebug)",
+      "Read(//c/Users/A/biummarket/$LOCALAPPDATA/Programs/**)",
+      "Bash(reg query:*)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Android/jbr\" ./gradlew assembleDebug)",
+      "Bash(identify og-image.png)"
     ]
   }
 }
