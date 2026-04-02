@@ -9,9 +9,9 @@ export default async function handler(req, res) {
     const { phone } = req.body || {};
     if (!phone) { res.status(400).json({ error: '전화번호가 필요합니다' }); return; }
 
-    const API_KEY = process.env.SOLAPI_API_KEY;
-    const API_SECRET = process.env.SOLAPI_API_SECRET;
-    const SENDER = process.env.SOLAPI_SENDER;
+    const API_KEY = (process.env.SOLAPI_API_KEY || '').trim();
+    const API_SECRET = (process.env.SOLAPI_API_SECRET || '').trim();
+    const SENDER = (process.env.SOLAPI_SENDER || '').trim();
 
     if (!API_KEY || !API_SECRET || !SENDER) {
       res.status(500).json({ error: '솔라피 환경변수 미설정', key: !!API_KEY, secret: !!API_SECRET, sender: !!SENDER });
