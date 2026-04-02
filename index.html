@@ -4717,13 +4717,14 @@ async function sendSmsCode(){
     document.getElementById('s-sms-code').value='';
     document.getElementById('sms-verify-msg').textContent='';
     showToast('인증번호를 발송했어요 📩');
-    // 60초 타이머
-    let sec=60;
+    // 3분 타이머
+    let sec=180;
     const timerEl=document.getElementById('sms-timer');
-    timerEl.textContent=sec+'초';
+    const _fmtTimer=s=>Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;
+    timerEl.textContent=_fmtTimer(sec);
     if(_smsTimerId)clearInterval(_smsTimerId);
     _smsTimerId=setInterval(()=>{
-      sec--;timerEl.textContent=sec+'초';
+      sec--;timerEl.textContent=_fmtTimer(sec);
       if(sec<=0){clearInterval(_smsTimerId);_smsTimerId=null;_smsCode='';timerEl.textContent='만료';
         document.getElementById('sms-verify-msg').innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';
         btn.disabled=false;btn.textContent='재발송';
