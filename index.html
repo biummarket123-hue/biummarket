@@ -5947,69 +5947,71 @@ async function renderHomeHotDealSection(){
   sec.style.display='block';
   const makeCard=(p)=>{
     const bg=getFColor(p.type,p.color);const unit=p.unit||'m';
-    return `<div onclick="openDetail(${p.id})" style="flex:1;min-width:0;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
+    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
       <div style="height:110px;background:${bg};position:relative;overflow:hidden">
         ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
+        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
       </div>
       <div style="padding:8px">
-        <div style="font-size:11px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:12px;font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:10px;color:#888">/${unit}</span></div>
+        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+        <div style="font-size:var(--fs-sm);font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
       </div>
     </div>`;
   };
-  const totalPages=Math.ceil(prods.length/2);
+  const perPage=4;
+  const totalPages=Math.ceil(prods.length/perPage);
   const renderPage=(idx)=>{
-    const ps=prods.slice(idx*2,idx*2+2);
-    const row1=ps[0]?makeCard(ps[0]):'';
-    const row2=ps[1]?makeCard(ps[1]):'';
-    return `<div style="display:flex;gap:8px">${row1}${row2}</div>`;
+    const ps=prods.slice(idx*perPage,idx*perPage+perPage);
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
   };
   sec.innerHTML=`
     <div style="background:#fff;padding:16px 0 12px;margin-top:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px;font-weight:800;color:#1a1a1a">🔥 HOT DEAL</span>
-          <span style="background:#ff6f00;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">AD</span>
+          <span style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🔥 HOT DEAL</span>
+          <span style="background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:20px">AD</span>
         </div>
-        <button onclick="openHotDealAll()" style="font-size:13px;color:#ff6f00;font-weight:700;background:none;border:none;cursor:pointer">더보기 ›</button>
+        <button onclick="openHotDealAll()" style="font-size:var(--fs-sm);color:#ff6f00;font-weight:700;background:none;border:none;cursor:pointer">더보기 ›</button>
       </div>
       <div style="padding:0 16px">
         <div id="hd-page-wrap">${renderPage(0)}</div>
-        <div style="display:flex;justify-content:center;gap:6px;margin-top:10px">
+        ${totalPages>1?`<div style="display:flex;justify-content:center;gap:6px;margin-top:10px">
           ${Array.from({length:totalPages},(_,i)=>`<div class="hd-dot" onclick="goHotDealSlide(${i})" style="width:6px;height:6px;border-radius:50%;background:${i===0?'#ff6f00':'#ddd'};cursor:pointer;transition:background .3s"></div>`).join('')}
-        </div>
+        </div>`:''}
       </div>
     </div>`;
   window._hdProds=prods;
+  window._hdPerPage=perPage;
   window._hdIdx=0;
   if(window._hdTimer)clearInterval(window._hdTimer);
-  window._hdTimer=setInterval(()=>{
-    window._hdIdx=(window._hdIdx+1)%totalPages;
-    goHotDealSlide(window._hdIdx);
-  },3000);
+  if(totalPages>1){
+    window._hdTimer=setInterval(()=>{
+      window._hdIdx=(window._hdIdx+1)%totalPages;
+      goHotDealSlide(window._hdIdx);
+    },4000);
+  }
 }
 
 function goHotDealSlide(i){
   window._hdIdx=i;
   const prods=window._hdProds||[];
-  const totalPages=Math.ceil(prods.length/2);
+  const perPage=window._hdPerPage||4;
   const makeCard=(p)=>{
     const bg=getFColor(p.type,p.color);const unit=p.unit||'m';
-    return `<div onclick="openDetail(${p.id})" style="flex:1;min-width:0;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
+    return `<div onclick="openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
       <div style="height:110px;background:${bg};position:relative;overflow:hidden">
         ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
+        <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
       </div>
       <div style="padding:8px">
-        <div style="font-size:11px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-        <div style="font-size:12px;font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:10px;color:#888">/${unit}</span></div>
+        <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+        <div style="font-size:var(--fs-sm);font-weight:800;color:#ff6f00">${(p.price||0).toLocaleString()}원<span style="font-size:var(--fs-xs);color:#888">/${unit}</span></div>
       </div>
     </div>`;
   };
-  const ps=prods.slice(i*2,i*2+2);
+  const ps=prods.slice(i*perPage,i*perPage+perPage);
   const wrap=document.getElementById('hd-page-wrap');
-  if(wrap)wrap.innerHTML=`<div style="display:flex;gap:8px">${ps.map(makeCard).join('')}</div>`;
+  if(wrap)wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
   document.querySelectorAll('.hd-dot').forEach((d,idx)=>{d.style.background=idx===i?'#ff6f00':'#ddd';});
 }
 
