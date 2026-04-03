@@ -1825,6 +1825,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         </div>
         <span class="my-menu-arrow">›</span>
       </div>
+      <div class="my-menu-item" id="menu-my-profile" onclick="openSellerById(curUser?.id||curUser?.email)">
+        <div class="my-icon-box" style="background:rgba(108,99,255,.15)">👤</div>
+        <div class="my-menu-info">
+          <div class="my-menu-title">내 프로필 보기</div>
+          <div class="my-menu-sub">내 등급 · 받은 후기 확인</div>
+        </div>
+        <span class="my-menu-arrow">›</span>
+      </div>
     </div>
     <!-- 서비스 섹션 -->
     <div class="my-section-wrap" id="section-service">
@@ -10047,7 +10055,10 @@ function renderSellerPage(seller){
   const reviewEl=document.getElementById('sh-review-cnt');
   if(reviewEl)reviewEl.textContent=`후기 ${reviewCount}`;
   const followerEl=document.getElementById('sh-follower-cnt');
-  if(followerEl)followerEl.textContent=`단골 ${followers}`;
+  if(followerEl){
+    if(isBiz)followerEl.textContent=`단골 ${followers}`;
+    else followerEl.style.display='none';
+  }
   // Supabase에서 후기 카운트/평점 비동기 로드
   if(_sb){
     const _sid=seller.id||seller.name;
@@ -10113,13 +10124,15 @@ function renderSellerPage(seller){
         <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
         <div class="seller-tab" onclick="switchSellerTab('buyer-review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-buyer-review">받은후기</div>
       `;
-      // 단골맺기 버튼 색상 변경 (보라색)
-      if(followBtn&&!isFollowing){followBtn.style.background='#6c63ff';}
-      // 하단 버튼 - 채팅만
+      // 일반 회원은 단골맺기 버튼 숨김 (구매자는 단골 받을 필요 없음)
+      if(followBtn)followBtn.style.display='none';
+      // 하단 버튼 - 타인이면 채팅, 본인이면 숨김
       const bottomBtns=document.querySelector('#view-seller > div:last-child');
-      if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
-      `;
+      if(bottomBtns){
+        const _isMySelf=curUser&&(curUser.id===seller.id||curUser.email===seller.email);
+        if(_isMySelf){bottomBtns.style.display='none';}
+        else{bottomBtns.innerHTML=`<button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>`;}
+      }
       // 사진 없으면 갤러리 숨김
       const galleryEl=document.getElementById('sh-photos-gallery');
       if(galleryEl&&!galleryEl.innerHTML.trim())galleryEl.style.display='none';
