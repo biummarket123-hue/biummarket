@@ -9243,7 +9243,7 @@ async function renderMyReservations(){
             ${totalPrice?`<div style="font-size:12px;color:#888">${r.qty}${unit} × ${unitPrice.toLocaleString()}원/${unit} = <b style="color:#6c63ff">${totalPrice.toLocaleString()}원</b></div>`:''}
           </div>
         </div>
-        <div style="font-size:13px;color:#666;margin-bottom:4px">👤 ${isSeller?'구매자':'판매자'}: <b>${isSeller?r.buyerName:r.sellerName}</b></div>
+        <div style="font-size:13px;color:#666;margin-bottom:4px">👤 ${isSeller?'구매자':'판매자'}: <b style="color:#6c63ff;cursor:pointer" onclick="openSellerById('${isSeller?r.buyerId:r.sellerId}')">${isSeller?r.buyerName:r.sellerName}</b></div>
         ${isSeller&&r.buyerAddr?`<div style="font-size:12px;color:#888;margin-bottom:4px">📍 ${r.buyerAddr}</div>`:''}
         ${r.date?`<div style="font-size:13px;color:#666;margin-bottom:4px">📅 ${r.date} ${r.time||''}</div>`:''}
         ${r.message?`<div style="font-size:13px;color:#888;margin-bottom:6px;padding:8px 10px;background:#f8f8fa;border-radius:8px">"${r.message}"</div>`:''}
@@ -10009,9 +10009,9 @@ async function switchSellerTab(tab,el){
           <div style="padding:16px">${bRevs.length?bRevs.map(r=>`
             <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-sm);font-weight:700">${(r.buyer_name||'?')[0]}</div>
+                <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-sm);font-weight:700">${(r.seller_name||r.buyer_name||'?')[0]}</div>
                 <div>
-                  <div style="font-size:var(--fs-base);font-weight:700">${r.buyer_name||'판매자'}</div>
+                  <div style="font-size:var(--fs-base);font-weight:700">${r.seller_name||r.buyer_name||'판매자'}</div>
                   <div style="font-size:var(--fs-sm);color:#aaa">${new Date(r.created_at).toLocaleDateString()}</div>
                 </div>
                 <div style="margin-left:auto;color:#f5c518;font-size:var(--fs-base)">${'★'.repeat(Math.round(r.rating)||0)}${'☆'.repeat(5-(Math.round(r.rating)||0))}</div>
@@ -10618,6 +10618,7 @@ async function submitSellerReview(sellerId,reservationId,productId){
       seller_id:sellerId,
       buyer_id:curUser.id||curUser.email,
       buyer_name:curUser.name||'익명',
+      review_type:'buyer_to_seller',
       quality,manner,delivery,
       rating:avgRating,
       content:text,
@@ -10710,6 +10711,7 @@ async function submitBuyerReview(buyerId,reservationId){
       seller_id:curUser.id||curUser.email,
       buyer_id:buyerId,
       buyer_name:curUser.name||'판매자',
+      seller_name:curUser.name||'판매자',
       review_type:'seller_to_buyer',
       communication,payment,promise,
       quality:communication,manner:payment,delivery:promise,
