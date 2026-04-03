@@ -9672,75 +9672,59 @@ async function switchSellerTab(tab,el){
     const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
 
     if(tab==='home'&&!isBiz){
-      // 일반 회원 홈탭 - 후기는 비동기 로드
-      let reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
-      let avgRating=reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1):0;
-      const myProdsCount=myProds.length;
-      const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
+      // 일반 회원 홈탭
       const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'');
       const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
+      const g=getGradeSync(seller.id);
+      const wishCnt=lsGet('wishlist',[]).length;
+      const followCnt=lsGet('myFollows',[]).length;
       content.innerHTML=`
-        <!-- 등급 + 통계 -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:8px solid #f5f5f5;padding:16px 0">
+        <!-- 등급 카드 -->
+        <div style="padding:20px 16px;border-bottom:8px solid #f5f5f5;text-align:center">
+          <div style="font-size:48px;${isMySelf?'cursor:pointer':''}" ${isMySelf?`onclick="openGradeModal('${seller.id}')"`:''}>${g.icon}</div>
+          <div style="font-size:18px;font-weight:800;color:${g.color};margin-top:6px">${g.label}</div>
+          <div style="font-size:12px;color:#888;margin-top:4px">구매완료 <span id="sh-m-deals">-</span>건 · 받은후기 <span id="sh-m-revs">-</span>개</div>
+          ${isMySelf?'<div style="font-size:11px;color:#aaa;margin-top:6px">탭하여 등급 상세 보기</div>':''}
+        </div>
+        <!-- 활동 요약 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:8px solid #f5f5f5;padding:16px 0">
           <div style="text-align:center;border-right:1px solid #f0f0f5">
-            <div style="font-size:var(--fs-3xl);margin-bottom:4px">${grade.icon}</div>
-            <div style="font-size:var(--fs-base);font-weight:700;color:#6c63ff">${grade.label}</div>
-            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">등급</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a" id="sh-m-deals2">-</div>
+            <div style="font-size:var(--fs-xs);color:#888;margin-top:2px">구매완료</div>
           </div>
           <div style="text-align:center;border-right:1px solid #f0f0f5">
-            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${myProdsCount}</div>
-            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">등록 상품</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${wishCnt}</div>
+            <div style="font-size:var(--fs-xs);color:#888;margin-top:2px">관심목록</div>
+          </div>
+          <div style="text-align:center;border-right:1px solid #f0f0f5">
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${followCnt}</div>
+            <div style="font-size:var(--fs-xs);color:#888;margin-top:2px">단골업체</div>
           </div>
           <div style="text-align:center">
-            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a" id="sh-member-review-cnt">${reviews.length}</div>
-            <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">받은 후기</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a" id="sh-m-revs2">-</div>
+            <div style="font-size:var(--fs-xs);color:#888;margin-top:2px">받은후기</div>
           </div>
         </div>
-        ${isMine?`
-        <!-- 빠른 메뉴 -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:16px 0;border-bottom:8px solid #f5f5f5">
-          <div onclick="showView('form')" style="text-align:center;cursor:pointer">
-            <div style="font-size:28px;margin-bottom:4px">➕</div>
-            <div style="font-size:var(--fs-sm);color:#666">상품 등록</div>
-          </div>
-          <div onclick="showView('my-offers');renderMyOffers()" style="text-align:center;cursor:pointer">
-            <div style="font-size:28px;margin-bottom:4px">💰</div>
-            <div style="font-size:var(--fs-sm);color:#666">가격제안</div>
-          </div>
-          <div onclick="showView('my-reservations');renderMyReservations()" style="text-align:center;cursor:pointer">
-            <div style="font-size:28px;margin-bottom:4px">📅</div>
-            <div style="font-size:var(--fs-sm);color:#666">예약내역</div>
-          </div>
-        </div>`:''}
         ${intro?`
         <!-- 소개 -->
         <div style="padding:16px;border-bottom:8px solid #f5f5f5">
           <div style="font-size:var(--fs-lg);font-weight:700;margin-bottom:8px">소개</div>
           <div style="font-size:var(--fs-md);color:#444;line-height:1.7">${intro}</div>
           ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
-          ${getFabricScoreHtml(seller.id||seller.name,'detail')}
-        </div>`:`
-        <div style="padding:16px;border-bottom:8px solid #f5f5f5">
-          ${getFabricScoreHtml(seller.id||seller.name,'detail')}
-        </div>`}
-        <!-- 등록 상품 (2열 그리드) -->
-        <div style="padding:16px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-size:var(--fs-lg);font-weight:700">등록 상품 <span style="color:#6c63ff">${myProdsCount}</span></div>
-            ${myProdsCount>4?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#6c63ff;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${myProds.slice(0,4).map(p=>gridCardHtml(p)).join('')}
-          </div>
-          ${!myProdsCount?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
-        </div>
+        </div>`:''}
       `;
-      // Supabase에서 후기 수 비동기 갱신
+      // Supabase에서 비동기로 등급 + 활동 데이터 로드
       if(_sb){
-        const _mSid=seller.id||seller.name;
-        _sb.from('reviews').select('id').eq('seller_id',_mSid).eq('is_hidden',false).neq('review_type','seller_to_buyer').then(({data:_mRevs})=>{
-          const _mEl=document.getElementById('sh-member-review-cnt');
-          if(_mEl&&_mRevs)_mEl.textContent=_mRevs.length;
+        calcMemberGrade(seller.id).then(gr=>{
+          const d1=document.getElementById('sh-m-deals');if(d1)d1.textContent=gr.deals;
+          const d2=document.getElementById('sh-m-deals2');if(d2)d2.textContent=gr.deals;
+          const rv1=document.getElementById('sh-m-revs');if(rv1)rv1.textContent=gr.reviewCnt;
+          const rv2=document.getElementById('sh-m-revs2');if(rv2)rv2.textContent=gr.reviewCnt;
+          // 등급 아이콘/라벨 갱신
+          const gradeIcon=content.querySelector('div[style*="font-size:48px"]');
+          if(gradeIcon)gradeIcon.textContent=gr.icon;
+          const gradeLabel=content.querySelector('div[style*="font-size:18px"]');
+          if(gradeLabel){gradeLabel.textContent=gr.label;gradeLabel.style.color=gr.color;}
         });
       }
       return;
@@ -10123,12 +10107,10 @@ function renderSellerPage(seller){
     if(!isBiz){
       // 일반 회원 프로필 - 심플하게
       if(hdrTitle)hdrTitle.textContent=seller.name||'회원 프로필';
-      // 탭 구성 변경 (홈/상품/후기/받은후기)
+      // 탭 구성 변경 (홈/받은후기)
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
         <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
         <div class="seller-tab" onclick="switchSellerTab('buyer-review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-buyer-review">받은후기</div>
       `;
       // 단골맺기 버튼 색상 변경 (보라색)
@@ -10141,12 +10123,15 @@ function renderSellerPage(seller){
       // 사진 없으면 갤러리 숨김
       const galleryEl=document.getElementById('sh-photos-gallery');
       if(galleryEl&&!galleryEl.innerHTML.trim())galleryEl.style.display='none';
-      // 등급 표시
-      const myProdsCount=myProds.length;
-      const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
-      const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
+      // 등급 표시 (Supabase 비동기)
       const certBadgeEl=document.getElementById('sh-cert-badge');
-      if(certBadgeEl)certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:20px">${grade.icon} ${grade.label} 회원</span>`;
+      if(certBadgeEl){
+        const _gSync=getGradeSync(seller.id);
+        certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:${_gSync.color};font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:20px">${_gSync.icon} ${_gSync.label} 회원</span>`;
+        if(_sb)calcMemberGrade(seller.id).then(_gA=>{
+          certBadgeEl.innerHTML=`<span style="background:rgba(108,99,255,.1);color:${_gA.color};font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:20px">${_gA.icon} ${_gA.label} 회원</span>`;
+        });
+      }
     } else {
       // 사업자 회원 - 기존 탭 유지
       const tabsEl=document.getElementById('sh-tabs');
@@ -10517,6 +10502,103 @@ function setReviewStarItem(type,val){
     s.style.color=parseInt(s.dataset.star)<=val?'#f5c518':'#ddd';
   });
 }
+// ===== 회원 등급 시스템 (루키~다이아) =====
+const GRADE_TABLE=[
+  {key:'diamond',icon:'💎',label:'다이아',color:'#00bcd4',deals:80,reviews:35,rating:4.5},
+  {key:'gold',icon:'🥇',label:'골드',color:'#ffc107',deals:40,reviews:20,rating:4.3},
+  {key:'silver',icon:'🥈',label:'실버',color:'#90a4ae',deals:15,reviews:7,rating:4.0},
+  {key:'bronze',icon:'🥉',label:'브론즈',color:'#cd7f32',deals:5,reviews:2,rating:0},
+  {key:'rookie',icon:'🌱',label:'루키',color:'#66bb6a',deals:0,reviews:0,rating:0},
+];
+let _gradeCache={};
+async function calcMemberGrade(buyerId){
+  if(_gradeCache[buyerId])return _gradeCache[buyerId];
+  let deals=0,reviewCnt=0,avgRating=0;
+  if(_sb){
+    const[r1,r2]=await Promise.all([
+      _sb.from('reservations').select('id',{count:'exact',head:true}).eq('buyer_id',buyerId).eq('status','confirmed'),
+      _sb.from('reviews').select('rating').eq('buyer_id',buyerId).eq('review_type','seller_to_buyer').eq('is_hidden',false)
+    ]);
+    deals=r1.count||0;
+    const revs=r2.data||[];
+    reviewCnt=revs.length;
+    avgRating=reviewCnt?Math.round(revs.reduce((a,r)=>a+(r.rating||0),0)/reviewCnt*10)/10:0;
+  }
+  let grade=GRADE_TABLE[4]; // 루키
+  for(const g of GRADE_TABLE){
+    if(deals>=g.deals&&reviewCnt>=g.reviews&&avgRating>=g.rating){grade=g;break;}
+  }
+  const result={...grade,deals,reviewCnt,avgRating};
+  _gradeCache[buyerId]=result;
+  return result;
+}
+function getGradeSync(buyerId){return _gradeCache[buyerId]||{icon:'🌱',label:'루키',color:'#66bb6a',deals:0,reviewCnt:0,avgRating:0};}
+
+// 등급 안내 모달
+async function openGradeModal(buyerId){
+  const g=await calcMemberGrade(buyerId);
+  // 다음 등급 찾기
+  const curIdx=GRADE_TABLE.findIndex(x=>x.key===g.key);
+  const next=curIdx>0?GRADE_TABLE[curIdx-1]:null;
+  const bar=(val,max,clr)=>{const pct=max?Math.min(val/max*100,100):100;return `<div style="flex:1;height:6px;background:#e0e0ea;border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${clr};border-radius:3px"></div></div>`;};
+
+  let nextHtml='';
+  if(next){
+    const needDeals=Math.max(0,next.deals-g.deals);
+    const needRevs=Math.max(0,next.reviews-g.reviewCnt);
+    nextHtml=`<div style="background:#fffbeb;border:1.5px solid #ffe082;border-radius:12px;padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:13px;color:#c8962a;font-weight:700">${next.icon} ${next.label} 등급까지</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">${needDeals>0?needDeals+'건 더 구매':'구매 달성 ✅'}${needRevs>0?' · 후기 '+needRevs+'개 더 필요':''}${next.rating>0&&g.avgRating<next.rating?' · 평점 '+next.rating+'+ 필요':''}</div>
+    </div>`;
+  }else{
+    nextHtml='<div style="text-align:center;padding:12px;color:#00bcd4;font-weight:700;font-size:13px">🎉 최고 등급을 달성했어요!</div>';
+  }
+
+  const condRow=(label,val,max,clr)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:12px;color:#555;min-width:70px">${label}</span>
+    ${bar(val,max,clr)}
+    <span style="font-size:12px;font-weight:700;color:${val>=max?'#2e7d32':'#1a1a1a'};min-width:55px;text-align:right">${val}/${max}</span>
+  </div>`;
+
+  const html=`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:56px">${g.icon}</div>
+      <div style="font-size:22px;font-weight:800;color:${g.color};margin-top:8px">${g.label}</div>
+      <div style="font-size:13px;color:#888;margin-top:4px">구매완료 ${g.deals}건 · 받은후기 ${g.reviewCnt}개 · 평점 ${g.avgRating||'-'}</div>
+    </div>
+    ${nextHtml}
+    <div style="background:#f8f8fa;border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:12px">현재 달성 현황</div>
+      ${condRow('구매완료',g.deals,next?next.deals:g.deals,g.color)}
+      ${condRow('받은후기',g.reviewCnt,next?next.reviews:g.reviewCnt,g.color)}
+      ${next&&next.rating?condRow('평균별점',g.avgRating,next.rating,g.color):''}
+    </div>
+    <div style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;padding:14px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:10px">등급 기준표</div>
+      ${GRADE_TABLE.slice().reverse().map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;${t.key===g.key?'background:#f0edff;margin:0 -8px;padding:8px;border-radius:8px':''}">
+        <span style="font-size:20px;width:28px;text-align:center">${t.icon}</span>
+        <span style="font-size:13px;font-weight:700;color:${t.color};min-width:50px">${t.label}</span>
+        <span style="font-size:11px;color:#888;flex:1">${t.deals?'구매 '+t.deals+'건+':'시작'} ${t.reviews?'· 후기 '+t.reviews+'개+':''} ${t.rating?'· 별점 '+t.rating+'+':''}</span>
+      </div>`).join('')}
+    </div>`;
+
+  // 기존 모달 재사용
+  const existing=document.getElementById('grade-modal-overlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='grade-modal-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  overlay.innerHTML=`<div style="background:#fff;border-radius:20px;padding:24px 20px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:17px;font-weight:800">📊 회원 등급</span>
+      <button onclick="this.closest('#grade-modal-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+    ${html}
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
 // 패브릭 스코어 캐시 (Supabase 조회 최소화)
 let _fabricScoreCache={};
 function calcFabricScore(sellerId){
@@ -16532,7 +16614,8 @@ function openGuideModal(type){
 • 프로필에 지역을 등록하면 근처 판매자 상품을 먼저 볼 수 있어요.<br>
 • 단골 판매자를 등록하면 신상품 알림을 받을 수 있어요.<br>
 • 거래가 쌓일수록 등급이 올라가요.<br>
-&nbsp;&nbsp;🌱루키 → 🥉브론즈 → 🥈실버 → 🥇골드 → 💎다이아</div>
+&nbsp;&nbsp;🌱루키 → 🥉브론즈(구매5건+) → 🥈실버(15건+·후기7·별점4.0) → 🥇골드(40건+·후기20·별점4.3) → 💎다이아(80건+·후기35·별점4.5)<br>
+• MY 프로필에서 등급을 탭하면 상세 달성 현황을 확인할 수 있어요.</div>
 
 <div style="text-align:center;padding:16px;background:#f8f8fa;border-radius:12px;margin-top:8px">
 <div style="font-size:13px;color:#888;margin-bottom:4px">궁금한 점은 고객센터로 문의해주세요.</div>
@@ -16586,9 +16669,9 @@ function openGuideModal(type){
 <div style="font-size:13px;color:#333;line-height:1.7;margin-bottom:16px;padding-left:4px">
 • 상품 사진은 밝고 선명하게 찍을수록 클릭률이 높아요.<br>
 • 상품 설명에 소재, 중량, 폭, 색상을 정확히 기재해주세요.<br>
-• 거래가 쌓일수록 판매자 등급이 올라가요.<br>
-&nbsp;&nbsp;🌱루키 → 🥉브론즈 → 🥈실버 → 🥇골드 → 💎다이아<br>
-• 다이아 등급이 되면 홈 화면 상단에 우선 노출돼요. (예정)</div>
+• 거래가 쌓일수록 구매자 등급이 올라가요.<br>
+&nbsp;&nbsp;🌱루키 → 🥉브론즈(5건+) → 🥈실버(15건+) → 🥇골드(40건+) → 💎다이아(80건+)<br>
+• 다이아 등급 구매자에게는 홈 화면 상단 우선 노출이 적용돼요. (예정)</div>
 
 <div style="text-align:center;padding:16px;background:#f8f8fa;border-radius:12px;margin-top:8px">
 <div style="font-size:13px;color:#888;margin-bottom:4px">궁금한 점은 고객센터로 문의해주세요.</div>
