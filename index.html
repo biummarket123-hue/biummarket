@@ -1348,7 +1348,6 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="flex:1"></div>
     <button id="pd-hdr-edit" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#C9A84C;" onclick="editProduct()">✏️</button>
     <button id="pd-hdr-delete" style="display:none;background:none;border:none;font-size:20px;padding:6px 8px;cursor:pointer;color:#ff5050;" onclick="deleteProduct()">🗑️</button>
-    <button class="hdr-btn" onclick="shareProduct()" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
   </header>
   <div class="pd-scroll" id="d-scroll">
     <!-- 1. 이미지 슬라이더 -->
@@ -1357,7 +1356,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div class="s-dots" id="s-dots"></div>
       <button class="s-nav s-prev" id="s-prev" onclick="slideMove(-1)">‹</button>
       <button class="s-nav s-next" id="s-next" onclick="slideMove(1)">›</button>
-      <div class="d-slider-badge-row" id="d-slider-badges"></div>
+    </div>
+    <!-- 이미지 하단 정보바 (조회/찜 + 공유) -->
+    <div id="pd-img-info-bar" style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#f8f8fa;border-bottom:1px solid #e0e0ea">
+      <div id="d-slider-badges" style="display:flex;gap:8px;font-size:12px;color:#888"></div>
+      <button onclick="shareProduct()" style="display:flex;align-items:center;gap:4px;background:none;border:1px solid #d8d8e8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:#666;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#666" stroke-width="2" stroke-linecap="round"/></svg> 공유</button>
     </div>
     <!-- 메인 정보 -->
     <div class="pd-info">
@@ -8408,7 +8411,8 @@ async function openDetail(id){
       +(showImg?'':(vs[i]||'')+';')+'flex-shrink:0;width:'+(100/sliderTotal)+'%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column">'
       +imgTag
       +'<div style="position:relative;z-index:1;font-size:36px">'+(showImg?'':' 🧵')+'</div>'
-      +'<div style="position:relative;z-index:1;font-size:13px;font-weight:600;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;color:#fff">'+(p.color||'')+' '+p.type+'</div>'
+      +(showImg?'':'<div style="position:relative;z-index:1;font-size:13px;font-weight:600;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;color:#fff">'+(p.color||'')+' '+p.type+'</div>')
+      +'<div style="position:absolute;bottom:10px;left:10px;z-index:2;font-size:11px;font-weight:700;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);padding:4px 10px;border-radius:8px;color:#fff">'+(p.cat||p.type||'')+'</div>'
       +'</div>';
   }).join('');
   track.style.width=(sliderTotal*100)+'%';
@@ -8419,7 +8423,7 @@ async function openDetail(id){
 
   // 슬라이더 뱃지
   const slBadges=document.getElementById('d-slider-badges');
-  if(slBadges)slBadges.innerHTML=(p.views?'<span class="d-slider-badge">👁 '+p.views+'</span>':'')+'<span class="d-slider-badge">🤍 '+(p.likes||0)+'</span>';
+  if(slBadges)slBadges.innerHTML=(p.views?'<span style="display:flex;align-items:center;gap:3px">👁 '+p.views+'</span>':'')+'<span style="display:flex;align-items:center;gap:3px">🤍 '+(p.likes||0)+'</span>';
 
   // 2. Breadcrumb
   const bcEl=document.getElementById('pd-breadcrumb');
