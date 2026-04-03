@@ -6445,7 +6445,7 @@ function showView(name,push=true){
   const target=document.getElementById('view-'+name);
   if(target){target.classList.add('active');window.scrollTo(0,0)}
   updateNotifDot();
-  if(name==='list')renderList();
+  if(name==='list'&&products.length)renderList();
   if(name==='mypage'){syncUserProfile();renderMypage();checkReservationReminders();}
   if(name==='settings'){syncUserProfile();}
   if(name==='admin')renderAdmin();
