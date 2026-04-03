@@ -7934,7 +7934,7 @@ function renderHomeSections(){
           <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">📍 ${locKey} 근처 상품</div><div style="font-size:var(--fs-sm);color:#888;margin-top:2px">내 주변에서 거래 가능한 원단</div></div>
           <span onclick="goSearchCat('전체')" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 ›</span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px">${nearbyProds.slice(0,4).map(p=>gridCardHtml(p)).join('')}</div>
+        <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${nearbyProds.map(p=>`<div style="min-width:160px;max-width:160px;flex-shrink:0">${gridCardHtml(p)}</div>`).join('')}</div>
       </div>`;
     }
   }
