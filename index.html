@@ -7927,7 +7927,7 @@ function renderHomeSections(){
     const sigungu=locParts[1]||'';
     const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
     const locKey=isMetro?sido:sigungu;
-    const nearbyProds=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)&&!p.is_hidden&&(p.qty||0)>0).slice(0,10);
+    const nearbyProds=products.filter(p=>((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))&&!p.is_hidden&&(p.qty||0)>0).slice(0,10);
     if(nearbyProds.length){
       html+=`<div style="background:#fff;padding:16px 0 12px;margin-bottom:8px;border:1.5px solid rgba(0,179,134,.15);border-radius:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
