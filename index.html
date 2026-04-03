@@ -1634,8 +1634,10 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 업체명 + 기본 정보 -->
     <div style="padding:16px 16px 0">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-        <div>
-          <div style="font-size:var(--fs-3xl);font-weight:800;color:#1a1a1a" id="sh-name"></div>
+        <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0">
+          <div id="sh-profile-avatar" class="my-av" style="width:60px;height:60px;font-size:24px;flex-shrink:0">?</div>
+          <div style="flex:1;min-width:0">
+          <div style="font-size:var(--fs-3xl);font-weight:800;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sh-name"></div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
             <span style="font-size:var(--fs-md);color:#f5c518;font-weight:700" id="sh-rating">⭐ 0.0</span>
             <span style="font-size:var(--fs-base);color:#666" id="sh-review-cnt">후기 0</span>
@@ -1644,6 +1646,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           </div>
           <div style="font-size:var(--fs-base);color:#888;margin-top:4px" id="sh-loc"></div>
           <div id="sh-cert-badge" style="margin-top:6px"></div>
+        </div>
         </div>
         <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:8px 16px;background:#ff6f00;color:#fff;border:none;border-radius:20px;font-size:var(--fs-md);font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
       </div>
@@ -10050,6 +10053,16 @@ function renderSellerPage(seller){
   if(hdrTitle)hdrTitle.textContent=seller.name||'업체 정보';
   const nameEl=document.getElementById('sh-name');
   if(nameEl)nameEl.textContent=seller.name||'';
+  // 프로필 아바타 (프로필 사진 있으면 이미지, 없으면 이니셜)
+  const _profAvEl=document.getElementById('sh-profile-avatar');
+  if(_profAvEl){
+    const _profPhotos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
+    if(_profPhotos.length){
+      _profAvEl.innerHTML=`<img src="${_profPhotos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+    } else {
+      _profAvEl.textContent=(seller.name||'?')[0].toUpperCase();
+    }
+  }
   const ratingEl=document.getElementById('sh-rating');
   if(ratingEl)ratingEl.textContent=rating>0?`⭐ ${rating.toFixed(1)}`:'⭐ -';
   const reviewEl=document.getElementById('sh-review-cnt');
