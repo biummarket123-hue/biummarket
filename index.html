@@ -9626,9 +9626,9 @@ async function switchSellerTab(tab,el){
     const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
 
     if(tab==='home'&&!isBiz){
-      // 일반 회원 홈탭
-      const reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
-      const avgRating=reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1):0;
+      // 일반 회원 홈탭 - 후기는 비동기 로드
+      let reviews=lsGet('sellerReviews',{})[seller.id||seller.name]||[];
+      let avgRating=reviews.length?(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1):0;
       const myProdsCount=myProds.length;
       const grade=myProdsCount>=30?{icon:'🏆',label:'마스터'}:myProdsCount>=10?{icon:'🧵',label:'원단'}:myProdsCount>=3?{icon:'🪡',label:'실'}:{icon:'🌱',label:'새싹'};
       const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'');
@@ -9646,7 +9646,7 @@ async function switchSellerTab(tab,el){
             <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">등록 상품</div>
           </div>
           <div style="text-align:center">
-            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a">${reviews.length}</div>
+            <div style="font-size:var(--fs-2xl);font-weight:800;color:#1a1a1a" id="sh-member-review-cnt">${reviews.length}</div>
             <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">받은 후기</div>
           </div>
         </div>
@@ -9689,6 +9689,14 @@ async function switchSellerTab(tab,el){
           ${!myProdsCount?'<div style="text-align:center;padding:20px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>':''}
         </div>
       `;
+      // Supabase에서 후기 수 비동기 갱신
+      if(_sb){
+        const _mSid=seller.id||seller.name;
+        _sb.from('reviews').select('id').eq('seller_id',_mSid).eq('is_hidden',false).then(({data:_mRevs})=>{
+          const _mEl=document.getElementById('sh-member-review-cnt');
+          if(_mEl&&_mRevs)_mEl.textContent=_mRevs.length;
+        });
+      }
       return;
     }
 
@@ -9953,8 +9961,13 @@ function renderSellerPage(seller){
   let extra={};
   try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
   const myProds=products.filter(p=>isMyProduct(p,seller));
-  const reviewCount=userInfo.reviewCount||0;
-  const rating=userInfo.rating||0;
+  // 후기 수/평점은 비동기로 Supabase에서 로드 (초기값 0, 로드 후 갱신)
+  let reviewCount=0;
+  let rating=0;
+  // 로컬 fallback
+  const localRevs=(lsGet('sellerReviews',{})[seller.id||seller.name]||[]);
+  reviewCount=localRevs.length;
+  rating=reviewCount?(localRevs.reduce((a,r)=>a+(r.rating||0),0)/reviewCount):0;
   const followers=lsGet('sellerFollowers',{})[seller.id||seller.name]||0;
   const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
   const hdrTitle=document.getElementById('sh-hdr-title');
@@ -9967,6 +9980,21 @@ function renderSellerPage(seller){
   if(reviewEl)reviewEl.textContent=`후기 ${reviewCount}`;
   const followerEl=document.getElementById('sh-follower-cnt');
   if(followerEl)followerEl.textContent=`단골 ${followers}`;
+  // Supabase에서 후기 카운트/평점 비동기 로드
+  if(_sb){
+    const _sid=seller.id||seller.name;
+    _sb.from('reviews').select('rating').eq('seller_id',_sid).eq('is_hidden',false).then(({data:revs})=>{
+      if(!revs)return;
+      const cnt=revs.length;
+      const avg=cnt?(revs.reduce((a,r)=>a+(r.rating||0),0)/cnt):0;
+      const _re=document.getElementById('sh-review-cnt');
+      if(_re)_re.textContent=`후기 ${cnt}`;
+      const _ra=document.getElementById('sh-rating');
+      if(_ra)_ra.textContent=avg>0?`⭐ ${avg.toFixed(1)}`:'⭐ -';
+      const _tr=document.getElementById('sh-tab-review');
+      if(_tr)_tr.textContent=`후기 ${cnt}`;
+    });
+  }
   const locEl=document.getElementById('sh-loc');
   const sellerLocStr=isMySelf?(curUser.loc||''):(seller.loc||userInfo.loc||extra.address||'');
   if(locEl){
