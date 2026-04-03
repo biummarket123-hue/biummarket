@@ -8733,6 +8733,15 @@ function openSellerPage(){
   preloadAndRenderSeller(mergedSeller);
 }
 // ID로 판매자 프로필 열기 (알림 클릭 등)
+// 판매자 프로필 후기 탭으로 바로 이동
+function openSellerReviewTab(sellerId){
+  openSellerById(sellerId);
+  // 프로필 렌더링 완료 후 후기 탭 클릭
+  setTimeout(()=>{
+    const tabs=document.querySelectorAll('#sh-tabs .seller-tab');
+    tabs.forEach(t=>{if(t.textContent.includes('후기'))t.click();});
+  },800);
+}
 function openSellerById(sellerId){
   const userInfo=users.find(u=>u.id===sellerId||u.email===sellerId)||{};
   // Supabase에서 조회 시도
@@ -9193,7 +9202,11 @@ async function renderMyReservations(){
     return;
   }
 
+  // 후기 상태 비동기 체크용 예약 ID 수집
+  const confirmedBuyerResvIds=[];
   container.innerHTML=filteredList.map(r=>{
+    const isBuyer=r.buyerId===(curUser?.id||curUser?.email||'');
+    if(isBuyer&&r.status==='confirmed')confirmedBuyerResvIds.push(r.id);
     const isSeller=r.sellerId===myId;
     const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정됨',rejected:'❌ 거절됨',cancelled:'🚫 취소됨'}[r.status]||r.status;
     const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444',cancelled:'#888'}[r.status]||'#888';
@@ -9227,9 +9240,53 @@ async function renderMyReservations(){
           ${isSeller&&r.status==='pending'?`
             <button onclick="acceptReservation('${r.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 확정</button>
             <button onclick="rejectReservation('${r.id}')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>`:''}
+          ${!isSeller&&r.status==='confirmed'?`<button id="resv-review-btn-${r.id}" onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`:''}
         </div>
+        ${!isSeller&&r.status==='confirmed'?`<div id="resv-review-status-${r.id}" style="font-size:12px;color:#888;margin-top:6px;text-align:center"></div>`:''}
       </div>`;
   }).join('');
+
+  // 후기 상태 비동기 체크 (이미 작성 / 7일 만료)
+  if(_sb&&confirmedBuyerResvIds.length){
+    (async()=>{
+      for(const resvId of confirmedBuyerResvIds){
+        const btn=document.getElementById('resv-review-btn-'+resvId);
+        const status=document.getElementById('resv-review-status-'+resvId);
+        if(!btn||!status)continue;
+        // 이미 후기 작성했는지 체크
+        const{data:rev}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).maybeSingle();
+        if(rev){
+          btn.textContent='✅ 후기 작성 완료';
+          btn.style.background='#e8f5e9';
+          btn.style.color='#2e7d32';
+          btn.style.border='1px solid #c8e6c9';
+          btn.disabled=true;
+          btn.onclick=null;
+          continue;
+        }
+        // 7일 만료 체크
+        const resv=filteredList.find(r=>r.id===resvId);
+        if(resv){
+          const completedAt=new Date(resv.completed_at||resv.updatedAt||resv.createdAt).getTime();
+          const daysPassed=(Date.now()-completedAt)/(1000*60*60*24);
+          if(daysPassed>7){
+            btn.textContent='⏰ 기간 만료';
+            btn.style.background='#f5f5f5';
+            btn.style.color='#999';
+            btn.style.border='1px solid #e0e0ea';
+            btn.disabled=true;
+            btn.onclick=null;
+            status.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';
+            status.style.color='#e53935';
+          }else{
+            const remain=Math.ceil(7-daysPassed);
+            status.textContent=`후기 작성 가능 (${remain}일 남음)`;
+            status.style.color='#ff6f00';
+          }
+        }
+      }
+    })();
+  }
 }
 
 function respondReservation(resvId,status){
@@ -11598,8 +11655,8 @@ async function renderChatRoom(roomId){
       if(_oaMatch&&!isMe){
         actionBtn=`<button onclick="openResFromOffer(${_oaMatch[1]},${_oaMatch[2]},'${_oaMatch[3]}')" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">📅 이 가격으로 예약하기 (${parseInt(_oaMatch[2]).toLocaleString()}원/${_oaMatch[3]})</button>`;
       } else if(_rvMatch&&!isMe){
-        // 구매자에게 후기 작성 버튼
-        actionBtn=`<button onclick="openSellerById('${_rvMatch[1]}');setTimeout(()=>{const t=document.querySelectorAll('#sh-tabs .seller-tab');t.forEach(x=>{if(x.textContent.includes('후기'))x.click();});},500)" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ ${_rvMatch[2]}님에게 후기 작성하기</button>`;
+        // 구매자에게 후기 작성 버튼 → 판매자 프로필의 후기 탭으로 직접 이동
+        actionBtn=`<button onclick="openSellerReviewTab('${_rvMatch[1]}')" style="margin-top:6px;width:100%;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ ${_rvMatch[2]}님에게 후기 작성하기</button>`;
       } else {
         actionBtn=`<button onclick="showView('my-reservations');renderMyReservations()" style="margin-top:6px;width:100%;padding:8px;background:rgba(16,185,129,.1);border:1px solid #10b981;border-radius:8px;color:#10b981;font-size:12px;font-weight:700;cursor:pointer">✅ 거래 내역 확인하기 →</button>`;
       }
@@ -16375,7 +16432,9 @@ function renderNotifView(){
       dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:'_openSellerById'},
       dangol_new:{icon:'🆕',bg:'rgba(108,99,255,.15)',title:'단골 신상품',action:''},
       dangol_urgent:{icon:'⚡',bg:'rgba(255,101,132,.15)',title:'단골 급처',action:''},
-      fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:''},
+      fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:"showView('mypage')"},
+      review_request:{icon:'✍️',bg:'rgba(255,111,0,.15)',title:'후기 작성 요청',action:'_openSellerReviewTab'},
+      review_reminder:{icon:'⏰',bg:'rgba(255,111,0,.15)',title:'후기 재알림',action:'_openSellerReviewTab'},
   };
   const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
@@ -16418,6 +16477,8 @@ function renderNotifView(){
       '예약 알림':{bg:'#e0f7fa',color:'#00838f'},
       '단골 소식':{bg:'#fff3e0',color:'#e65100'},
       '패브릭 스코어':{bg:'#fff9e6',color:'#f57f17'},
+      '후기 작성 요청':{bg:'#fff3e0',color:'#e65100'},
+      '후기 재알림':{bg:'#fff3e0',color:'#e65100'},
   };
   el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
@@ -16427,9 +16488,11 @@ function renderNotifView(){
     let navAction='';
     if((item._type==='chat_new'||item._type==='chat_msg')&&item._data&&item._data.roomId){
       navAction=`openChatRoomById('${item._data.roomId}')`;
+    }else if(item._action==='_openSellerReviewTab'&&item._data&&item._data.sellerId){
+      navAction=`openSellerReviewTab('${item._data.sellerId}')`;
     }else if(item._action==='_openSellerById'&&item._data&&item._data.senderId){
       navAction=`openSellerById('${item._data.senderId}')`;
-    }else if(item._action&&item._action!=='_openSellerById'){
+    }else if(item._action&&item._action!=='_openSellerById'&&item._action!=='_openSellerReviewTab'){
       navAction=item._action;
     }else if(item.productId){
       navAction=`openDetail(${item.productId})`;
