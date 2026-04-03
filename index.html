@@ -13144,9 +13144,21 @@ function renderMypage(){
   set('my-sub-wish',wishes+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
-  // Supabase 실시간 카운트 (연결 시)
+  // 사업자 회원이면 등록상품 표시, 일반회원이면 사업자 신청 버튼으로 교체
   const myProdCnt=products.filter(p=>isMyProduct(p,u)).length;
-  if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
+  const _statProdEl=document.getElementById('my-stat-products');
+  const _statProdLbl=_statProdEl?.parentElement;
+  if(_statProdLbl){
+    if(isBusiness()||isAdmin()){
+      if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
+      _statProdLbl.onclick=()=>showMySales();
+    }else{
+      // 일반회원: 사업자 신청 버튼으로 교체
+      _statProdLbl.innerHTML=`<div style="font-size:24px;margin-bottom:2px">🏢</div><div style="font-size:var(--fs-xs);color:#6c63ff;font-weight:700">사업자 신청</div>`;
+      _statProdLbl.onclick=()=>openBizUpgradeModal();
+      _statProdLbl.style.cursor='pointer';
+    }
+  }
 
   // 사업자 전환 신청/상태 섹션 렌더
   renderSellerApplySection();
