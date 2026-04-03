@@ -11240,7 +11240,8 @@ async function submitForm(){
           });
         }
       }
-      lsDelTTL('products_sb');loadProductsFromSupabase(true).then(()=>showMySales());
+      // 로컬 products는 이미 업데이트됨 — 전체 리로드 불필요, 캐시만 갱신
+      lsDelTTL('products_sb');saveProducts();
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
       let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
