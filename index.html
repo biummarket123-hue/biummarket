@@ -8531,6 +8531,7 @@ async function openDetail(id){
       p.material&&['🧵 소재',p.material],
       p.weight&&['⚖ 중량',p.weight+(p.weight_unit||'g/yd')],
       p.width&&['📏 폭',p.width+(p.width_unit||'cm')],
+      p.moq&&['📦 MOQ',p.moq+(p.unit||'yard')],
     ].filter(Boolean);
     specGrid.innerHTML=cells.map(kv=>'<div class="pd-spec-cell"><div class="pd-spec-cell-key">'+kv[0]+'</div><div class="pd-spec-cell-val">'+kv[1]+'</div></div>').join('');
   }
