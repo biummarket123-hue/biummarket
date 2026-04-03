@@ -5701,6 +5701,53 @@ let notices=lsGet('notices',DEFAULT_NOTICES);
 let curUser=lsGet('curUser',null);
 
 function findUser(email,pw){return users.find(u=>u.email===email&&u.pw===pw)}
+
+// 프로필 자동 동기화 (Supabase에서 최신 데이터 가져오기)
+let _lastProfileSync=0;
+async function syncUserProfile(force){
+  if(!_sb||!curUser||!curUser.id||curUser.id.length<5)return;
+  // 최소 30초 간격 (force면 무시)
+  const now=Date.now();
+  if(!force&&now-_lastProfileSync<30000)return;
+  _lastProfileSync=now;
+  try{
+    const{data:p}=await _sb.from('users').select('*').eq('id',curUser.id).maybeSingle();
+    if(!p)return;
+    // 승인/거절 상태 변경 감지
+    const oldStatus=curUser.sellerStatus||curUser.seller_status||'none';
+    const newStatus=p.seller_status||'none';
+    const statusChanged=oldStatus!==newStatus;
+    // 프로필 동기화
+    curUser.type=p.type||curUser.type;
+    curUser.name=p.name||curUser.name;
+    curUser.loc=p.loc||curUser.loc;
+    curUser.loc_detail=p.loc_detail||curUser.loc_detail;
+    curUser.tel=p.tel||curUser.tel;
+    curUser.sellerStatus=p.seller_status||'none';
+    curUser.seller_status=p.seller_status||'none';
+    curUser.bizStatus=p.seller_status||'none';
+    curUser.role=p.type||curUser.role;
+    curUser.extra_info=p.extra_info||curUser.extra_info;
+    curUser.requested_role=p.requested_role||curUser.requested_role;
+    lsSet('curUser',curUser);
+    // 로컬 users 배열도 동기화
+    const li=users.findIndex(x=>x.id===curUser.id);
+    if(li!==-1)Object.assign(users[li],curUser);
+    lsSet('users',users);
+    // 상태 변경 시 알림
+    if(statusChanged){
+      if(newStatus==='approved'){
+        showToast('✅ 사업자 승인이 완료됐어요! 🎉');
+        applyRoleVisibility();
+      }else if(newStatus==='rejected'){
+        showToast('❌ 사업자 전환 신청이 거절됐어요');
+      }
+      renderMypage();
+      renderSettings();
+    }
+  }catch(e){console.error('프로필 동기화 오류:',e);}
+}
+
 // 아이디로 사용자 찾기 (아이디 또는 이메일 매칭)
 function findUserByUserId(userId,pw){return users.find(u=>(u.userId===userId||u.email===userId)&&u.pw===pw)}
 // 아이디 → 이메일 변환 (Supabase auth용)
@@ -6378,7 +6425,8 @@ function showView(name,push=true){
   if(target){target.classList.add('active');window.scrollTo(0,0)}
   updateNotifDot();
   if(name==='list')renderList();
-  if(name==='mypage'){renderMypage();checkReservationReminders();}
+  if(name==='mypage'){syncUserProfile();renderMypage();checkReservationReminders();}
+  if(name==='settings'){syncUserProfile();}
   if(name==='admin')renderAdmin();
   if(name==='analytics')renderAnalytics();
   if(name==='biz-news')renderBizNewsList();
@@ -16943,6 +16991,10 @@ async function renderBizStats(tab){
   }
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
+  // 앱 포커스 복귀 시 프로필 자동 동기화 (승인/거절 실시간 반영)
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncUserProfile();});
+  // 앱 시작 시 프로필 동기화
+  setTimeout(()=>syncUserProfile(true),2000);
   renderChips();
   // 상품 등록 폼 원단종류 옵션 → CATEGORY_DATA에서 동적 생성
   (function populateTypeSelect(){
