@@ -1017,7 +1017,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="login-box">
       <div class="fg">
         <label data-i18n="login_id_label">아이디</label>
-        <input type="email" class="fi" id="l-email" placeholder="example@bium.market" />
+        <input type="text" class="fi" id="l-email" placeholder="아이디를 입력하세요" />
       </div>
       <div class="fg">
         <label data-i18n="login_pw_label">비밀번호</label>
@@ -1091,6 +1091,13 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       </div>
     </div>
     <!-- 공통 필드 -->
+    <div class="fg"><label>아이디 <span class="req">*</span></label>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="fi" id="s-userid" placeholder="영문/숫자 4~20자" style="flex:1" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'');_userIdChecked=false;document.getElementById('s-userid-status').textContent='';document.getElementById('s-userid-status').style.display='none'"/>
+        <button type="button" onclick="checkUserIdDup()" style="padding:8px 14px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">중복확인</button>
+      </div>
+      <div id="s-userid-status" style="font-size:12px;margin-top:4px;display:none"></div>
+    </div>
     <div class="fg"><label>이름 <span class="req">*</span></label><input type="text" class="fi" id="s-name" placeholder="이름 또는 업체명" data-i18n-ph="ph_name_or_biz"/></div>
     <div class="fg"><label>비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="s-pw" placeholder="6자 이상" data-i18n-ph="ph_pw_min6"/></div>
     <div class="fg"><label>비밀번호 확인 <span class="req">*</span></label><input type="password" class="fi" id="s-pw-confirm" placeholder="비밀번호 재입력" data-i18n-ph="ph_pw_confirm"/></div>
@@ -5693,6 +5700,29 @@ let notices=lsGet('notices',DEFAULT_NOTICES);
 let curUser=lsGet('curUser',null);
 
 function findUser(email,pw){return users.find(u=>u.email===email&&u.pw===pw)}
+// 아이디로 사용자 찾기 (아이디 또는 이메일 매칭)
+function findUserByUserId(userId,pw){return users.find(u=>(u.userId===userId||u.email===userId)&&u.pw===pw)}
+// 아이디 → 이메일 변환 (Supabase auth용)
+function userIdToEmail(userId){const u=users.find(x=>x.userId===userId);return u?u.email:(userId.includes('@')?userId:userId+'@bium.market');}
+
+// 아이디 중복확인
+let _userIdChecked=false;
+async function checkUserIdDup(){
+  const uid=document.getElementById('s-userid')?.value.trim();
+  const statusEl=document.getElementById('s-userid-status');
+  if(!uid||uid.length<4){statusEl.textContent='아이디는 4자 이상 입력해주세요';statusEl.style.color='#ef4444';statusEl.style.display='block';return;}
+  if(uid.length>20){statusEl.textContent='아이디는 20자 이하로 입력해주세요';statusEl.style.color='#ef4444';statusEl.style.display='block';return;}
+  // 로컬 중복 체크
+  const localDup=users.find(u=>u.userId===uid||u.email===uid+'@bium.market');
+  if(localDup){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
+  // Supabase 중복 체크
+  if(_sb){
+    const{data}=await _sb.from('users').select('id').or(`user_id.eq.${uid},email.eq.${uid}@bium.market`).maybeSingle();
+    if(data){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
+  }
+  statusEl.textContent='✅ 사용 가능한 아이디예요';statusEl.style.color='#16a34a';statusEl.style.display='block';
+  _userIdChecked=true;
+}
 
 /* ==================== PRODUCTS ==================== */
 const DEFAULT_PRODUCTS=[];
@@ -6557,21 +6587,23 @@ function _restoreLoginFields(){
 }
 
 async function doLogin(isAuto){
-  const email=document.getElementById('l-email').value.trim();
+  const inputId=document.getElementById('l-email').value.trim();
   const pw=document.getElementById('l-pw').value;
+  // 아이디 → 이메일 변환 (이미 이메일 형식이면 그대로, 아니면 @bium.market 붙임)
+  const email=inputId.includes('@')?inputId:userIdToEmail(inputId);
   // 관리자 계정 특별 처리 (로컬 검증)
-  if(email==='admin'){
+  if(inputId==='admin'){
     showToast(t('t_admin_separate_access'));
     return;
   }
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
-    const user=findUser(email,pw);
+    const user=findUserByUserId(inputId,pw)||findUser(email,pw);
     if(!user){showToast(t('t_wrong_email_pw'));return;}
     if(user.status==='suspended'){showToast(t('t_account_suspended'));return;}
     localStorage.setItem('bium_activeUserId', user.id||user.email||'guest');
     curUser=user;lsSet('curUser',curUser);updateNotifDot();
-    if(!isAuto)_handleLoginSave(email,pw);
+    if(!isAuto)_handleLoginSave(inputId,pw);
     const prevUId=lsGet('lastUserId','');
     const newUId=curUser.id||curUser.email||'';
     if(prevUId!==newUId){
@@ -6600,7 +6632,7 @@ async function doLogin(isAuto){
     // 활성 userId 설정 (계정별 데이터 분리용)
     localStorage.setItem('bium_activeUserId', curUser.id||curUser.email||'guest');
     lsSet('curUser',curUser);updateNotifDot();
-    if(!isAuto)_handleLoginSave(email,pw);
+    if(!isAuto)_handleLoginSave(inputId,pw);
     // 계정 전환 시 chatRooms 초기화 (다른 계정 데이터 격리)
     const prevUserId=lsGet('lastUserId','');
     const newUserId=curUser.id||curUser.email||'';
@@ -6701,11 +6733,17 @@ async function doSignup(){
   if(!_agreeState.terms){showToast(t('t_agree_terms'));return;}
   if(!_agreeState.privacy){showToast(t('t_agree_privacy'));return;}
   const isOAuth=!!_oauthPendingUser;
+  const userId=(document.getElementById('s-userid')?.value.trim()||'').toLowerCase();
+  // 아이디 검증 (소셜 로그인 제외)
+  if(!isOAuth){
+    if(!userId||userId.length<4){showToast('아이디를 4자 이상 입력해주세요');return;}
+    if(!_userIdChecked){showToast('아이디 중복확인을 해주세요');return;}
+  }
   const name=document.getElementById('s-name').value.trim();
   const pw=isOAuth?'oauth':(document.getElementById('s-pw').value);
   const tel=document.getElementById('s-tel')?.value.trim()||'';
-  // 이메일: 소셜 로그인은 기존 값, 일반 가입은 전화번호 기반 자동 생성
-  const email=isOAuth?_oauthPendingUser.email:(tel.replace(/[^0-9]/g,'')+'@bium.market');
+  // 이메일: 소셜 로그인은 기존 값, 일반 가입은 아이디 기반 자동 생성
+  const email=isOAuth?_oauthPendingUser.email:(userId+'@bium.market');
   const fullAddr=document.getElementById('s-address')?.value.trim()||'';
   const addrDetail=document.getElementById('s-address-detail')?.value.trim()||'';
   // 주소에서 시/구 자동 추출 (예: "서울특별시 중구 을지로" → "서울 중구")
@@ -6757,7 +6795,7 @@ async function doSignup(){
   // Supabase 미연결 시 로컬 fallback
   if(!_sb){
     if(users.find(u=>u.email===email)){showToast(t('t_email_in_use'));return;}
-    const newUser={id:'u'+Date.now(),name,email,pw,type:actualType,loc,temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus,requestedRole};
+    const newUser={id:'u'+Date.now(),name,email,pw,userId:userId||'',type:actualType,loc,temp:36.5,joinDate:new Date().toISOString().slice(0,10),sellerStatus,requestedRole};
     users.push(newUser);lsSet('users',users);
     localStorage.setItem('bium_activeUserId', newUser.id||email||'guest');
     curUser=newUser;lsSet('curUser',curUser);
@@ -6794,7 +6832,7 @@ async function doSignup(){
     }
     const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:userId,name,email,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const newProfile={id:userId,name,email,user_id:isOAuth?'':userId,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     let insErr=null;
     if(isOAuth){
       // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
