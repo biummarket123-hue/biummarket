@@ -9738,7 +9738,7 @@ async function switchSellerTab(tab,el){
       // Supabase에서 후기 수 비동기 갱신
       if(_sb){
         const _mSid=seller.id||seller.name;
-        _sb.from('reviews').select('id').eq('seller_id',_mSid).eq('is_hidden',false).then(({data:_mRevs})=>{
+        _sb.from('reviews').select('id').eq('seller_id',_mSid).eq('is_hidden',false).neq('review_type','seller_to_buyer').then(({data:_mRevs})=>{
           const _mEl=document.getElementById('sh-member-review-cnt');
           if(_mEl&&_mRevs)_mEl.textContent=_mRevs.length;
         });
@@ -9886,7 +9886,7 @@ async function switchSellerTab(tab,el){
       (async()=>{
         let reviews=[];
         if(_sb){
-          const{data}=await _sb.from('reviews').select('*').eq('seller_id',seller.id||seller.name).eq('is_hidden',false).order('created_at',{ascending:false});
+          const{data}=await _sb.from('reviews').select('*').eq('seller_id',seller.id||seller.name).eq('is_hidden',false).neq('review_type','seller_to_buyer').order('created_at',{ascending:false});
           reviews=data||[];
         }else{
           reviews=(lsGet('sellerReviews',{})[seller.id||seller.name]||[]).map(r=>({...r,buyer_name:r.author,content:r.text}));
@@ -10067,7 +10067,7 @@ function renderSellerPage(seller){
   // Supabase에서 후기 카운트/평점 비동기 로드
   if(_sb){
     const _sid=seller.id||seller.name;
-    _sb.from('reviews').select('rating').eq('seller_id',_sid).eq('is_hidden',false).then(({data:revs})=>{
+    _sb.from('reviews').select('rating').eq('seller_id',_sid).eq('is_hidden',false).neq('review_type','seller_to_buyer').then(({data:revs})=>{
       if(!revs)return;
       const cnt=revs.length;
       const avg=cnt?(revs.reduce((a,r)=>a+(r.rating||0),0)/cnt):0;
@@ -10538,7 +10538,7 @@ function calcFabricScore(sellerId){
 async function loadFabricScore(sellerId){
   if(!_sb)return calcFabricScore(sellerId);
   try{
-    const{data}=await _sb.from('reviews').select('quality,manner,delivery').eq('seller_id',sellerId).eq('is_hidden',false);
+    const{data}=await _sb.from('reviews').select('quality,manner,delivery').eq('seller_id',sellerId).eq('is_hidden',false).neq('review_type','seller_to_buyer');
     if(!data||!data.length){_fabricScoreCache[sellerId]=null;return null;}
     const avg=(key)=>data.reduce((a,r)=>a+(r[key]||0),0)/data.length;
     const score={
