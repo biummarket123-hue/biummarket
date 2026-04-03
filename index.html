@@ -11685,8 +11685,10 @@ async function sendNotification(targetId,type,title,message,data={}){
   });
 }
 // 예약 D-1 알림 체크 (앱 진입 시 호출)
+let _resvReminderDone=false;
 async function checkReservationReminders(){
-  if(!curUser||!_sb)return;
+  if(_resvReminderDone||!curUser||!_sb)return;
+  _resvReminderDone=true;
   const myId=curUser.id||curUser.email||'';
   const tomorrow=new Date();
   tomorrow.setDate(tomorrow.getDate()+1);
@@ -11698,12 +11700,18 @@ async function checkReservationReminders(){
     .eq('status','confirmed')
     .or(`date.eq.${tomorrowStr},date.eq.${today}`);
   if(!resvs||!resvs.length)return;
-  resvs.forEach(r=>{
+  // 이미 알림 보낸 예약은 제외
+  const notifiedKey='bium_resv_reminded_'+today;
+  const alreadyNotified=JSON.parse(localStorage.getItem(notifiedKey)||'[]');
+  const newResvs=resvs.filter(r=>!alreadyNotified.includes(r.id));
+  if(!newResvs.length)return;
+  newResvs.forEach(r=>{
     const isToday=r.date===today;
     const msg=isToday?`오늘 ${r.time||''} "${r.product_title}" 예약 거래가 있어요!`:`내일 ${r.time||''} "${r.product_title}" 예약 거래가 있어요!`;
     addNotif('📅','rgba(0,150,200,.15)',isToday?'오늘 예약':'내일 예약',msg);
-    sendNotification(myId,'reservation_remind',isToday?'📅 오늘 예약이 있어요':'📅 내일 예약이 있어요',msg,{resvId:r.id});
+    alreadyNotified.push(r.id);
   });
+  localStorage.setItem(notifiedKey,JSON.stringify(alreadyNotified));
 }
 async function sendChatMsg(){
   const input=document.getElementById('cr-input');
