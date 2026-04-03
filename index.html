@@ -6471,7 +6471,12 @@ function showView(name,push=true){
   if(name==='chat'&&_sb&&curUser){
     loadChatRoomsFromSB().then(()=>renderChatList());
   }
-  if(name==='chat')renderChatList();
+  if(name==='chat'){
+    renderChatList();
+    // 일반회원은 판매 탭 숨김
+    const _sellTab=document.getElementById('chat-tab-sell');
+    if(_sellTab)_sellTab.style.display=isBusiness()||isAdmin()?'':'none';
+  }
   if(name==='my-reservations'){
     // 일반회원: 구매 탭 고정, 탭 바 숨김
     const resvTabs=document.querySelector('#view-my-reservations > div:nth-child(2)');
