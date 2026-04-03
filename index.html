@@ -3078,6 +3078,16 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   </div>
 </div>
 
+<!-- MODAL: BUYER REVIEW -->
+<div class="mover" id="modal-buyer-review" onclick="closeModal('modal-buyer-review',event)">
+  <div class="msheet" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="msheet-close"><button onclick="closeModal('modal-buyer-review')">✕</button></div>
+    <div class="mtitle">⭐ 구매자 후기 작성</div>
+    <div id="buyer-review-body" style="padding:0 16px 24px"></div>
+  </div>
+</div>
+
 <!-- MODAL: BOARD -->
 <div class="mover" id="modal-board" onclick="closeModal('modal-board',event)">
   <div class="msheet" style="max-height:85vh">
@@ -9204,9 +9214,12 @@ async function renderMyReservations(){
 
   // 후기 상태 비동기 체크용 예약 ID 수집
   const confirmedBuyerResvIds=[];
+  const confirmedSellerResvIds=[];
   container.innerHTML=filteredList.map(r=>{
     const isBuyer=r.buyerId===(curUser?.id||curUser?.email||'');
+    const isSell=r.sellerId===(curUser?.id||curUser?.email||'');
     if(isBuyer&&r.status==='confirmed')confirmedBuyerResvIds.push(r.id);
+    if(isSell&&r.status==='confirmed')confirmedSellerResvIds.push({id:r.id,completedAt:r.completed_at||r.createdAt});
     const isSeller=r.sellerId===myId;
     const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정됨',rejected:'❌ 거절됨',cancelled:'🚫 취소됨'}[r.status]||r.status;
     const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444',cancelled:'#888'}[r.status]||'#888';
@@ -9241,8 +9254,10 @@ async function renderMyReservations(){
             <button onclick="acceptReservation('${r.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 확정</button>
             <button onclick="rejectReservation('${r.id}')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>`:''}
           ${!isSeller&&r.status==='confirmed'?`<button id="resv-review-btn-${r.id}" onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`:''}
+          ${isSeller&&r.status==='confirmed'?`<button id="resv-breview-btn-${r.id}" onclick="openBuyerReviewModal('${r.buyerId}','${(r.buyerName||'').replace(/'/g,"\\'")}','${r.id}','${r.completed_at||r.createdAt}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 구매자 후기 쓰기</button>`:''}
         </div>
         ${!isSeller&&r.status==='confirmed'?`<div id="resv-review-status-${r.id}" style="font-size:12px;color:#888;margin-top:6px;text-align:center"></div>`:''}
+        ${isSeller&&r.status==='confirmed'?`<div id="resv-breview-status-${r.id}" style="font-size:12px;color:#888;margin-top:6px;text-align:center"></div>`:''}
       </div>`;
   }).join('');
 
@@ -9283,6 +9298,35 @@ async function renderMyReservations(){
             status.textContent=`후기 작성 가능 (${remain}일 남음)`;
             status.style.color='#ff6f00';
           }
+        }
+      }
+    })();
+  }
+  // 판매자 → 구매자 후기 상태 비동기 체크
+  if(_sb&&confirmedSellerResvIds.length){
+    (async()=>{
+      for(const item of confirmedSellerResvIds){
+        const btn=document.getElementById('resv-breview-btn-'+item.id);
+        const statusEl=document.getElementById('resv-breview-status-'+item.id);
+        if(!btn||!statusEl)continue;
+        const{data:rev}=await _sb.from('reviews').select('id').eq('reservation_id',item.id).eq('review_type','seller_to_buyer').maybeSingle();
+        if(rev){
+          btn.textContent='✅ 후기 작성 완료';
+          btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';
+          btn.disabled=true;btn.onclick=null;
+          continue;
+        }
+        const daysPassed=(Date.now()-new Date(item.completedAt).getTime())/(1000*60*60*24);
+        if(daysPassed>7){
+          btn.textContent='⏰ 기간 만료';
+          btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';
+          btn.disabled=true;btn.onclick=null;
+          statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';
+          statusEl.style.color='#e53935';
+        }else{
+          const remain=Math.ceil(7-daysPassed);
+          statusEl.textContent=`구매자 후기 작성 가능 (${remain}일 남음)`;
+          statusEl.style.color='#6c63ff';
         }
       }
     })();
@@ -9565,8 +9609,10 @@ async function acceptReservation(resvId){
     const completedNow=new Date().toISOString();
     await _sb.from('reservations').update({status:'confirmed',completed_at:completedNow,updated_at:completedNow}).eq('id',resvId);
     await sendNotification(resv.buyer_id,'reservation_confirmed','✅ 예약이 확정됐어요',`"${resv.product_title}" 상품 예약이 확정됐어요!`,{resvId,productId:resv.product_id});
-    // 후기 작성 요청 알림
+    // 구매자에게 판매자 후기 작성 요청 알림
     await sendNotification(resv.buyer_id,'review_request','✍️ 거래가 완료됐어요! 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. 7일 이내에 후기를 남겨주세요!`,{resvId,sellerId:curUser.id||curUser.email,sellerName:curUser.name||'판매자'});
+    // 판매자(자신)에게 구매자 후기 작성 요청 알림
+    await sendNotification(curUser.id||curUser.email,'buyer_review_request','✍️ 구매자 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. ${resv.buyer_name||'구매자'}님에 대한 후기를 7일 이내에 남겨주세요!`,{resvId,buyerId:resv.buyer_id,buyerName:resv.buyer_name||'구매자'});
     const roomId='chat_'+resv.product_id+'_'+resv.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
     await _sb.from('chat_messages').insert({
       room_id:roomId,
@@ -9940,6 +9986,44 @@ async function switchSellerTab(tab,el){
               <div style="font-size:var(--fs-md);color:#444;line-height:1.6">${r.content||r.text||''}</div>
             </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">아직 후기가 없어요</div>'}</div>`;
       })();
+    } else if(tab==='buyer-review'){
+      // 구매자가 받은 후기 (seller_to_buyer)
+      content.innerHTML='<div style="text-align:center;padding:40px;color:#888">후기 불러오는 중...</div>';
+      (async()=>{
+        let bRevs=[];
+        if(_sb){
+          const{data}=await _sb.from('reviews').select('*').eq('buyer_id',seller.id||seller.name).eq('review_type','seller_to_buyer').eq('is_hidden',false).order('created_at',{ascending:false});
+          bRevs=data||[];
+        }
+        const avgR=bRevs.length?(bRevs.reduce((a,r)=>a+(r.rating||0),0)/bRevs.length).toFixed(1):0;
+        // 탭 카운트 갱신
+        const brTab=document.getElementById('sh-tab-buyer-review');
+        if(brTab)brTab.textContent=`받은후기 ${bRevs.length}`;
+
+        content.innerHTML=`
+          <div style="padding:24px 16px;text-align:center;border-bottom:1px solid #f0f0f5">
+            <div style="font-size:40px;font-weight:800;color:#1a1a1a">${avgR||'0.0'}</div>
+            <div style="font-size:var(--fs-icon);color:#f5c518;margin:6px 0">${'★'.repeat(Math.round(avgR))}${'☆'.repeat(5-Math.round(avgR))}</div>
+            <div style="font-size:var(--fs-base);color:#888">받은 후기 ${bRevs.length}개</div>
+          </div>
+          <div style="padding:16px">${bRevs.length?bRevs.map(r=>`
+            <div style="padding:16px 0;border-bottom:1px solid #f0f0f5">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-sm);font-weight:700">${(r.buyer_name||'?')[0]}</div>
+                <div>
+                  <div style="font-size:var(--fs-base);font-weight:700">${r.buyer_name||'판매자'}</div>
+                  <div style="font-size:var(--fs-sm);color:#aaa">${new Date(r.created_at).toLocaleDateString()}</div>
+                </div>
+                <div style="margin-left:auto;color:#f5c518;font-size:var(--fs-base)">${'★'.repeat(Math.round(r.rating)||0)}${'☆'.repeat(5-(Math.round(r.rating)||0))}</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                ${r.communication?`<span style="background:#ede9fe;color:#6c63ff;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">소통 ${'★'.repeat(r.communication)}</span>`:''}
+                ${r.payment?`<span style="background:#e0f7fa;color:#00838f;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">결제 ${'★'.repeat(r.payment)}</span>`:''}
+                ${r.promise?`<span style="background:#fce4ec;color:#c62828;font-size:var(--fs-sm);padding:3px 8px;border-radius:10px">약속 ${'★'.repeat(r.promise)}</span>`:''}
+              </div>
+              <div style="font-size:var(--fs-md);color:#444;line-height:1.6">${r.content||''}</div>
+            </div>`).join(''):'<div style="text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">아직 받은 후기가 없어요</div>'}</div>`;
+      })();
     } else if(tab==='products'){
     content.innerHTML=`<div style="padding:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${myProds.length?myProds.map(p=>gridCardHtml(p)).join(''):'<div style="grid-column:span 2;text-align:center;padding:40px;color:#888;font-size:var(--fs-md)">등록된 상품이 없어요</div>'}</div></div>`;
   } else if(tab==='photos'){
@@ -10039,12 +10123,13 @@ function renderSellerPage(seller){
     if(!isBiz){
       // 일반 회원 프로필 - 심플하게
       if(hdrTitle)hdrTitle.textContent=seller.name||'회원 프로필';
-      // 탭 구성 변경 (홈/상품/후기만)
+      // 탭 구성 변경 (홈/상품/후기/받은후기)
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
         <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
         <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
         <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+        <div class="seller-tab" onclick="switchSellerTab('buyer-review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-buyer-review">받은후기</div>
       `;
       // 단골맺기 버튼 색상 변경 (보라색)
       if(followBtn&&!isFollowing){followBtn.style.background='#6c63ff';}
@@ -10557,6 +10642,93 @@ async function submitSellerReview(sellerId,reservationId,productId){
   switchSellerTab('review',document.querySelectorAll('#sh-tabs .seller-tab')[2]);
 }
 
+// ===== 구매자 후기 시스템 (판매자 → 구매자) =====
+let buyerReviewStarItems={communication:0,payment:0,promise:0};
+function setBuyerReviewStar(type,val){
+  buyerReviewStarItems[type]=val;
+  document.querySelectorAll(`#br-star-${type} span`).forEach(s=>{
+    s.style.color=parseInt(s.dataset.star)<=val?'#f5c518':'#ddd';
+  });
+}
+
+function openBuyerReviewModal(buyerId,buyerName,reservationId,completedAt){
+  buyerReviewStarItems={communication:0,payment:0,promise:0};
+  const body=document.getElementById('buyer-review-body');
+  if(!body)return;
+  // 7일 만료 체크
+  const daysPassed=(Date.now()-new Date(completedAt).getTime())/(1000*60*60*24);
+  if(daysPassed>7){
+    body.innerHTML=`
+      <div style="text-align:center;padding:40px 0">
+        <div style="font-size:48px;margin-bottom:12px">⏰</div>
+        <div style="font-size:16px;font-weight:700;color:#e53935;margin-bottom:8px">후기 작성 기간이 만료됐어요</div>
+        <div style="font-size:13px;color:#888">거래 완료 후 7일 이내에만 작성 가능해요</div>
+      </div>`;
+    openModal('modal-buyer-review');
+    return;
+  }
+  const remain=Math.ceil(7-daysPassed);
+  body.innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:4px"><b>${buyerName||'구매자'}</b>님과의 거래는 어떠셨나요?</div>
+      <div style="font-size:12px;color:#888">거래 완료 후 7일 이내 작성 가능 (${remain}일 남음)</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;color:#555;font-weight:600">💬 소통 태도</span>
+        <div style="display:flex;gap:2px" id="br-star-communication">${[1,2,3,4,5].map(i=>`<span onclick="setBuyerReviewStar('communication',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;color:#555;font-weight:600">💳 결제 속도</span>
+        <div style="display:flex;gap:2px" id="br-star-payment">${[1,2,3,4,5].map(i=>`<span onclick="setBuyerReviewStar('payment',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;color:#555;font-weight:600">🤝 약속 이행</span>
+        <div style="display:flex;gap:2px" id="br-star-promise">${[1,2,3,4,5].map(i=>`<span onclick="setBuyerReviewStar('promise',${i})" style="font-size:24px;cursor:pointer;color:#ddd" data-star="${i}">★</span>`).join('')}</div>
+      </div>
+    </div>
+    <textarea id="br-review-text" class="fi" placeholder="후기를 남겨주세요 (선택)" style="min-height:80px;margin-bottom:12px"></textarea>
+    <button onclick="submitBuyerReview('${buyerId}','${reservationId}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">후기 작성하기</button>`;
+  openModal('modal-buyer-review');
+}
+
+async function submitBuyerReview(buyerId,reservationId){
+  const{communication,payment,promise}=buyerReviewStarItems;
+  if(!communication||!payment||!promise){showToast(t('t_select_all_ratings'));return;}
+  if(!curUser){showToast(t('t_login_required'));return;}
+  const text=document.getElementById('br-review-text')?.value.trim()||'';
+  const avgRating=Math.round((communication+payment+promise)/3*10)/10;
+
+  if(_sb){
+    // 중복 체크
+    if(reservationId){
+      const{data:dup}=await _sb.from('reviews').select('id').eq('reservation_id',reservationId).eq('review_type','seller_to_buyer').maybeSingle();
+      if(dup){showToast('이미 후기를 작성하셨어요');closeModal('modal-buyer-review');return;}
+    }
+    const review={
+      reservation_id:reservationId||null,
+      seller_id:curUser.id||curUser.email,
+      buyer_id:buyerId,
+      buyer_name:curUser.name||'판매자',
+      review_type:'seller_to_buyer',
+      communication,payment,promise,
+      quality:communication,manner:payment,delivery:promise,
+      rating:avgRating,
+      content:text,
+      is_hidden:false,
+      created_at:new Date().toISOString()
+    };
+    const{error}=await _sb.from('reviews').insert(review);
+    if(error){console.error('구매자 후기 저장 오류:',error);showToast('후기 저장에 실패했어요');return;}
+    // 구매자에게 알림
+    await sendNotification(buyerId,'buyer_review','⭐ 판매자가 후기를 남겼어요',`${curUser.name||'판매자'}님이 거래 후기 ${avgRating}점을 남겼어요`,{reviewerId:curUser.id||''});
+  }
+  buyerReviewStarItems={communication:0,payment:0,promise:0};
+  closeModal('modal-buyer-review');
+  showToast(t('t_review_submitted'));
+  renderMyReservations&&renderMyReservations();
+}
+
 // localStorage 후기 → Supabase 마이그레이션
 async function migrateLocalReviews(){
   if(!_sb||lsGet('reviewsMigrated',false))return;
@@ -10607,8 +10779,16 @@ async function checkReviewReminders(){
         await _sb.from('reservations').update({notified_review:true}).eq('id',r.id);
         continue;
       }
-      // 재알림 발송
-      await sendNotification(r.buyer_id,'review_reminder','⏰ 아직 후기를 작성하지 않으셨어요',`"${r.product_title}" 후기 작성 기간이 곧 만료됩니다! 7일 이내에 작성해주세요.`,{resvId:r.id,sellerId:r.seller_id});
+      // 구매자 재알림 (판매자 후기 미작성)
+      const{data:buyerRev}=await _sb.from('reviews').select('id').eq('reservation_id',r.id).eq('review_type','buyer_to_seller').maybeSingle();
+      if(!buyerRev){
+        await sendNotification(r.buyer_id,'review_reminder','⏰ 아직 후기를 작성하지 않으셨어요',`"${r.product_title}" 후기 작성 기간이 곧 만료됩니다! 7일 이내에 작성해주세요.`,{resvId:r.id,sellerId:r.seller_id});
+      }
+      // 판매자 재알림 (구매자 후기 미작성)
+      const{data:sellerRev}=await _sb.from('reviews').select('id').eq('reservation_id',r.id).eq('review_type','seller_to_buyer').maybeSingle();
+      if(!sellerRev){
+        await sendNotification(r.seller_id,'buyer_review_reminder','⏰ 아직 구매자 후기를 작성하지 않으셨어요',`"${r.product_title}" 구매자 후기 작성 기간이 곧 만료됩니다!`,{resvId:r.id,buyerId:r.buyer_id});
+      }
       await _sb.from('reservations').update({notified_review:true}).eq('id',r.id);
     }
   }catch(e){console.error('후기 재알림 체크 오류:',e);}
@@ -16471,6 +16651,9 @@ function renderNotifView(){
       fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:"showView('mypage')"},
       review_request:{icon:'✍️',bg:'rgba(255,111,0,.15)',title:'후기 작성 요청',action:'_openSellerReviewTab'},
       review_reminder:{icon:'⏰',bg:'rgba(255,111,0,.15)',title:'후기 재알림',action:'_openSellerReviewTab'},
+      buyer_review:{icon:'⭐',bg:'rgba(108,99,255,.15)',title:'구매자 후기',action:"showView('mypage')"},
+      buyer_review_request:{icon:'✍️',bg:'rgba(108,99,255,.15)',title:'구매자 후기 요청',action:"showView('my-reservations');renderMyReservations()"},
+      buyer_review_reminder:{icon:'⏰',bg:'rgba(108,99,255,.15)',title:'구매자 후기 재알림',action:"showView('my-reservations');renderMyReservations()"},
   };
   const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
@@ -16515,6 +16698,9 @@ function renderNotifView(){
       '패브릭 스코어':{bg:'#fff9e6',color:'#f57f17'},
       '후기 작성 요청':{bg:'#fff3e0',color:'#e65100'},
       '후기 재알림':{bg:'#fff3e0',color:'#e65100'},
+      '구매자 후기':{bg:'#ede9fe',color:'#6c63ff'},
+      '구매자 후기 요청':{bg:'#ede9fe',color:'#6c63ff'},
+      '구매자 후기 재알림':{bg:'#ede9fe',color:'#6c63ff'},
   };
   el.innerHTML=allItems.map(item=>{
     const badge=NOTIF_BADGE[item.title]||{bg:'#f0f0f8',color:'#555566'};
