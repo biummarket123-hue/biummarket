@@ -9687,7 +9687,7 @@ async function switchSellerTab(tab,el){
       const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'');
       const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
       const g=getGradeSync(seller.id);
-      const wishCnt=lsGet('wishlist',[]).length;
+      const wishCnt=Object.values(lsGet('likedMap',{})).filter(Boolean).length;
       const followCnt=lsGet('myFollows',[]).length;
       content.innerHTML=`
         <!-- 등급 카드 -->
@@ -13112,7 +13112,7 @@ function renderMypage(){
 
   // 통계 계산
   const myProducts=products.filter(p=>isMyProduct(p,u));
-  const wishes=lsGet('wishlist',[]).length||Object.values(lsGet('likedMap',{})).filter(Boolean).length;
+  const wishes=Object.values(lsGet('likedMap',{})).filter(Boolean).length;
   const localResvs=lsGet('reservationList',[]);
   let done=localResvs.filter(r=>r.status==='confirmed'||r.status==='done').length;
   const cartCnt=lsGet('cart',[]).length;
