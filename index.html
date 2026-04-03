@@ -14436,15 +14436,17 @@ function showAdminUserDetail(idx){
         ${infoRow('ID',u.id)}
       </div>
       <!-- 사업자 정보 -->
-      ${(extra.bizName||extra.ceo||extra.biznum||extra.bizType||extra.category)?`
+      ${(extra.bizName||extra.ceo||extra.biznum||extra.bizNum||extra.bizType||extra.category)?`
       <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
         <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px">🏢 사업자 정보</div>
         ${infoRow('회사명',extra.bizName||extra.companyName)}
         ${infoRow('대표자',extra.ceo||extra.representative)}
-        ${infoRow('사업자번호',extra.biznum||extra.bizNumber)}
+        ${infoRow('사업자번호',extra.biznum||extra.bizNum||extra.bizNumber)}
         ${infoRow('업종',extra.bizType||extra.category)}
         ${infoRow('설립년도',extra.founded)}
         ${infoRow('사업장 주소',extra.address||extra.bizAddress)}
+        ${infoRow('상세주소',extra.addressDetail)}
+        ${infoRow('지역',extra.addressLoc)}
         ${infoRow('영업시간',extra.hours)}
         ${infoRow('주거래 소재',extra.mainMaterial||extra.speciality)}
         ${infoRow('최소주문량',extra.moq)}
@@ -14460,7 +14462,7 @@ function showAdminUserDetail(idx){
       </div>`:''}
       <!-- 추가 정보 (나머지) -->
       ${(()=>{
-        const shown=['bizName','companyName','ceo','representative','biznum','bizNumber','bizType','category','founded','address','bizAddress','hours','mainMaterial','speciality','moq','ship','pay','intro','tags','bizfile','tel'];
+        const shown=['bizName','companyName','ceo','representative','biznum','bizNum','bizNumber','bizType','category','founded','address','bizAddress','addressDetail','addressLoc','hours','mainMaterial','speciality','moq','ship','pay','intro','tags','bizfile','tel','dangolDiscount','dangolBenefitMsg'];
         const remaining=Object.entries(extra).filter(([k,v])=>v&&!shown.includes(k)&&k!=='profileImage'&&k!=='avatar');
         if(!remaining.length)return '';
         return `<div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px 16px">
