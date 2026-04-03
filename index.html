@@ -14237,9 +14237,9 @@ async function updateBannerStats(){
   </div>`;
   // 재고 단위별 카드
   const stockCards=[];
-  if(qtyYard)stockCards.push({label:'yard',value:qtyYard.toLocaleString()+'yd',icon:'📦'});
-  if(qtyMeter)stockCards.push({label:'meter',value:qtyMeter.toLocaleString()+'m',icon:'📐'});
-  if(qtyKg)stockCards.push({label:'kg',value:qtyKg.toLocaleString()+'kg',icon:'⚖️'});
+  if(qtyYard)stockCards.push({label:'yard(마)',value:qtyYard.toLocaleString()+'마',icon:'📦'});
+  if(qtyMeter)stockCards.push({label:'meter(m)',value:qtyMeter.toLocaleString()+'m',icon:'📐'});
+  if(qtyKg)stockCards.push({label:'킬로(kg)',value:qtyKg.toLocaleString()+'kg',icon:'⚖️'});
   if(!stockCards.length)stockCards.push({label:'총 재고',value:'0',icon:'📦'});
   const topRow=[{label:'총 상품',value:totalProducts+'개',icon:'🧵'},...stockCards];
   el.innerHTML=`
