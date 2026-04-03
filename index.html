@@ -883,7 +883,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="fg"><label>회사명 <span class="req">*</span></label><input type="text" class="fi" id="biz-name" placeholder="예) (주)비움텍스타일" data-i18n-ph="ph_biz_name_ex"/></div>
     <div class="fg"><label>대표자명 <span class="req">*</span></label><input type="text" class="fi" id="biz-ceo" placeholder="대표자 이름" data-i18n-ph="ph_ceo_name"/></div>
     <div class="fg"><label>사업자등록번호 <span class="req">*</span></label><input type="text" class="fi" id="biz-num" placeholder="예) 123-45-67890" data-i18n-ph="ph_biz_num_ex"/></div>
-    <div class="fg"><label>사업장 주소 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" class="fi" id="biz-address" placeholder="예) 서울시 중구 을지로 1길 10" data-i18n-ph="ph_contact_addr_ex" style="flex:1"/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('biz-address').value=full;})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div></div>
+    <div class="fg"><label>사업장 주소 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" class="fi" id="biz-address" placeholder="예) 서울시 중구 을지로 1길 10" data-i18n-ph="ph_contact_addr_ex" style="flex:1" readonly/><button type="button" onclick="openAddressSearch(function(short,full){document.getElementById('biz-address').value=full;document.getElementById('biz-address-loc').value=short;})" style="padding:8px 12px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔍 검색</button></div><input type="hidden" id="biz-address-loc"/></div>
+    <div class="fg"><label>상세주소 <span class="req">*</span></label><input type="text" class="fi" id="biz-address-detail" placeholder="예) OO빌딩 2층 201호" data-i18n-ph="ph_addr_detail_ex"/></div>
     <div class="fg"><label>업종/취급 원단</label><input type="text" class="fi" id="biz-category" placeholder="예) 면, 린넨, 데님 등 원단 도매" data-i18n-ph="ph_biz_category"/></div>
     <div class="fg"><label>설립년도</label><input type="text" class="fi" id="biz-founded" placeholder="예) 2010" data-i18n-ph="ph_founded_ex"/></div>
     <div class="fg"><label>인사말</label><textarea class="fi" id="biz-intro" placeholder="예) 20년 경력의 원단 도매 전문 업체입니다." data-i18n-ph="ph_biz_intro_ex" style="min-height:70px"></textarea></div>
@@ -12269,8 +12270,11 @@ async function submitBizUpgrade(){
   const ceo=document.getElementById('biz-ceo')?.value.trim();
   const num=document.getElementById('biz-num')?.value.trim();
   const address=document.getElementById('biz-address')?.value.trim();
+  const addressDetail=document.getElementById('biz-address-detail')?.value.trim();
+  const addressLoc=document.getElementById('biz-address-loc')?.value.trim()||'';
   const file=document.getElementById('biz-file')?.files[0];
   if(!name||!ceo||!num||!address){showToast(t('t_fill_required'));return;}
+  if(!addressDetail){showToast(t('t_enter_address_detail'));return;}
   if(!file){showToast(t('t_attach_biz_license'));return;}
   const category=document.getElementById('biz-category')?.value.trim();
   const founded=document.getElementById('biz-founded')?.value.trim();
@@ -12287,7 +12291,7 @@ async function submitBizUpgrade(){
   // 상태 업데이트
   curUser.bizStatus='pending';
   curUser.requestedRole='business';
-  const extraInfo=JSON.stringify({bizName:name,ceo,bizNum:num,address,category,founded,intro,bizfile:bizfileBase64});
+  const extraInfo=JSON.stringify({bizName:name,ceo,bizNum:num,address,addressDetail,addressLoc,category,founded,intro,bizfile:bizfileBase64});
   curUser.extra_info=extraInfo;
   lsSet('curUser',curUser);
   if(_sb&&curUser.id){
@@ -15181,26 +15185,46 @@ async function adminApproveSeller(idx){
     (u.email && x.email === u.email)
   );
 
+  // 사업자 승인 시 extra_info에서 회사명/주소 추출하여 프로필에 반영
+  let extraParsed={};
+  try{extraParsed=JSON.parse(u.extra_info||'{}');}catch(e){}
+  const bizName=extraParsed.bizName||'';
+  const bizAddr=extraParsed.address||'';
+  const bizAddrDetail=extraParsed.addressDetail||'';
+  const bizAddrLoc=extraParsed.addressLoc||'';
+
   if(li !== -1){
     users[li].role = requestedRole;
     users[li].type = requestedRole;
     users[li].sellerStatus = 'approved';
     users[li].bizStatus = 'approved';
     users[li].seller_status = 'approved';
+    // 회사명→이름, 사업장주소→주소 반영
+    if(bizName) users[li].name = bizName;
+    if(bizAddrLoc) users[li].loc = bizAddrLoc;
+    if(bizAddrDetail) users[li].loc_detail = bizAddr + ' ' + bizAddrDetail;
     lsSet('users', users);
   } else {
     const newUser = {...u, role: requestedRole, type: requestedRole, sellerStatus: 'approved', bizStatus: 'approved', seller_status: 'approved'};
+    if(bizName) newUser.name = bizName;
+    if(bizAddrLoc) newUser.loc = bizAddrLoc;
+    if(bizAddrDetail) newUser.loc_detail = bizAddr + ' ' + bizAddrDetail;
     users.push(newUser);
     lsSet('users', users);
   }
 
-  // 3. Supabase 업데이트
+  // 3. Supabase 업데이트 (회사명/주소 포함)
+  const supaUpdate = {
+    type: requestedRole,
+    seller_status: 'approved',
+    requested_role: requestedRole
+  };
+  if(bizName) supaUpdate.name = bizName;
+  if(bizAddrLoc) supaUpdate.loc = bizAddrLoc;
+  if(bizAddrDetail) supaUpdate.loc_detail = bizAddr + ' ' + bizAddrDetail;
+
   if(_sb && u.id && u.id.length > 5){
-    const {error} = await _sb.from('users').update({
-      type: requestedRole,
-      seller_status: 'approved',
-      requested_role: requestedRole
-    }).eq('id', u.id);
+    const {error} = await _sb.from('users').update(supaUpdate).eq('id', u.id);
     if(error) console.error('Supabase 승인 오류:', error);
   }
 
@@ -15209,6 +15233,9 @@ async function adminApproveSeller(idx){
     curUser.role = requestedRole;
     curUser.type = requestedRole;
     curUser.sellerStatus = 'approved';
+    if(bizName) curUser.name = bizName;
+    if(bizAddrLoc) curUser.loc = bizAddrLoc;
+    if(bizAddrDetail) curUser.loc_detail = bizAddr + ' ' + bizAddrDetail;
     lsSet('curUser', curUser);
     applyRoleVisibility();
   }
