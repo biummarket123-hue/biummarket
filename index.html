@@ -8032,10 +8032,19 @@ async function renderHomeHotDealSection(){
   if(!sec)return;
   if(!_sb){sec.style.display='none';return;}
   const now=new Date().toISOString();
-  const{data:deals}=await _sb.from('hot_deals').select('*').eq('status','approved').gt('expires_at',now).order('order_num').limit(10);
+  const{data:deals,error:hdErr}=await _sb.from('hot_deals').select('*').eq('status','approved').gt('expires_at',now).order('order_num').limit(10);
+  console.log('[HOT DEAL]',deals?.length||0,'건 조회',hdErr?'오류:'+hdErr.message:'',deals?.map(d=>({id:d.id,product_id:d.product_id,expires:d.expires_at,days:d.days})));
   if(!deals||!deals.length){sec.style.display='none';return;}
   const prods=[];
-  for(const d of deals){const p=products.find(x=>x.id===d.product_id);if(p)prods.push({...p,_hotdeal:d});}
+  for(const d of deals){
+    let p=products.find(x=>String(x.id)===String(d.product_id));
+    // products 배열에 없으면 Supabase에서 직접 조회
+    if(!p&&_sb){
+      const{data:sp}=await _sb.from('products').select('*').eq('id',d.product_id).maybeSingle();
+      if(sp){p=sp;products.push(sp);}
+    }
+    if(p)prods.push({...p,_hotdeal:d});
+  }
   if(!prods.length){sec.style.display='none';return;}
   sec.style.display='block';
   const makeCard=(p)=>_renderHotDealCard(p);
