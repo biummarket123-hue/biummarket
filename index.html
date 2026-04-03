@@ -8406,7 +8406,7 @@ async function openDetail(id){
   track.innerHTML=Array.from({length:sliderTotal},(_,i)=>{
     const imgUrl=imgUrls[i]||null;
     const showImg=!!imgUrl;
-    const imgTag=showImg?'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>':'';
+    const imgTag=showImg?'<img src="'+imgUrl+'" onclick="openImageViewer('+JSON.stringify(imgUrls).replace(/"/g,'&quot;')+','+i+')" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer"/>':'';
     return '<div class="s-slide" style="background:'+bg+';background-image:'+(showImg?'none':tex)+';'
       +(showImg?'':(vs[i]||'')+';')+'flex-shrink:0;width:'+(100/sliderTotal)+'%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column">'
       +imgTag
@@ -15667,6 +15667,38 @@ function applyAiResultToForm(){
     showToast(t('t_ai_result_applied'));
   },300);
 }
+// 상품 이미지 전체화면 뷰어 (좌우 스와이프)
+function openImageViewer(imgUrls,startIdx){
+  if(!imgUrls||!imgUrls.length)return;
+  const existing=document.getElementById('img-viewer-overlay');
+  if(existing)existing.remove();
+  let curIdx=startIdx||0;
+  const overlay=document.createElement('div');
+  overlay.id='img-viewer-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  function render(){
+    overlay.innerHTML=`
+      <button onclick="document.getElementById('img-viewer-overlay').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:2">×</button>
+      <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:13px;font-weight:600">${curIdx+1} / ${imgUrls.length}</div>
+      <img src="${imgUrls[curIdx]}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:4px;user-select:none" onclick="event.stopPropagation()"/>
+      ${imgUrls.length>1?`
+        <div style="display:flex;gap:16px;margin-top:20px">
+          <button onclick="event.stopPropagation();_ivPrev()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;cursor:pointer${curIdx===0?';opacity:.3':''}">‹</button>
+          <button onclick="event.stopPropagation();_ivNext()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;cursor:pointer${curIdx===imgUrls.length-1?';opacity:.3':''}">›</button>
+        </div>`:''}
+      <div style="display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding:0 20px;max-width:90vw">${imgUrls.map((u,i)=>`<img src="${u}" onclick="event.stopPropagation();_ivGo(${i})" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid ${i===curIdx?'#fff':'transparent'};opacity:${i===curIdx?'1':'.5'};flex-shrink:0"/>`).join('')}</div>`;
+  }
+  window._ivPrev=()=>{if(curIdx>0){curIdx--;render();}};
+  window._ivNext=()=>{if(curIdx<imgUrls.length-1){curIdx++;render();}};
+  window._ivGo=(i)=>{curIdx=i;render();};
+  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  render();
+  document.body.appendChild(overlay);
+  // 키보드 좌우
+  const _ivKey=(e)=>{if(!document.getElementById('img-viewer-overlay')){document.removeEventListener('keydown',_ivKey);return;}if(e.key==='ArrowLeft')_ivPrev();else if(e.key==='ArrowRight')_ivNext();else if(e.key==='Escape')overlay.remove();};
+  document.addEventListener('keydown',_ivKey);
+}
+
 function openBizfileViewer(src){
   const existing=document.getElementById('bizfile-viewer');
   if(existing)existing.remove();
