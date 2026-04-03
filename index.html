@@ -9723,6 +9723,18 @@ async function switchSellerTab(tab,el){
           <div style="font-size:var(--fs-md);color:#444;line-height:1.7">${intro}</div>
           ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
         </div>`:''}
+        ${isMySelf?(()=>{
+          const likedIds=Object.keys(lsGet('likedMap',{})).filter(k=>lsGet('likedMap',{})[k]);
+          const wishProds=likedIds.map(id=>products.find(p=>String(p.id)===String(id))).filter(Boolean);
+          const cnt=wishProds.length;
+          return `<div style="padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:var(--fs-lg);font-weight:700">❤️ 관심 목록 <span style="color:#6c63ff">${cnt}개</span></div>
+              ${cnt>4?`<div onclick="showView('wishlist')" style="font-size:var(--fs-base);color:#6c63ff;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
+            </div>
+            ${cnt?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+wishProds.slice(0,4).map(p=>gridCardHtml(p)).join('')+'</div>':'<div style="text-align:center;padding:30px;color:#888;font-size:var(--fs-md)">아직 관심 상품이 없어요 ❤️</div>'}
+          </div>`;
+        })():''}
       `;
       // Supabase에서 비동기로 등급 + 활동 데이터 로드
       if(_sb){
