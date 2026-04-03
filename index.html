@@ -2357,7 +2357,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div style="padding:16px 16px 8px;margin-top:14px;border-bottom:1px solid #e0e0ea">
       <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px;margin-bottom:12px">기본 정보</div>
       <div class="fg"><label id="pe-name-label">이름 <span class="req">*</span></label>
-        <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" data-i18n-ph="ph_name_or_biz" oninput="document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'이름'" style="color:#1a1a1a"/>
+        <input type="text" class="fi" id="pe-name" placeholder="이름 또는 업체명" data-i18n-ph="ph_name_or_biz" oninput="const _p=lsGet('companyPhotos',[]);if(!_p.length)document.getElementById('pe-av').textContent=this.value[0]||'?';document.getElementById('pe-bizname-preview').textContent=this.value||'이름'" style="color:#1a1a1a"/>
       </div>
       <div class="fg"><label>전화번호</label>
         <div style="display:flex;gap:8px">
@@ -10053,16 +10053,9 @@ function renderSellerPage(seller){
   if(hdrTitle)hdrTitle.textContent=seller.name||'업체 정보';
   const nameEl=document.getElementById('sh-name');
   if(nameEl)nameEl.textContent=seller.name||'';
-  // 프로필 아바타 (프로필 사진 있으면 이미지, 없으면 이니셜)
+  // 프로필 아바타
   const _profAvEl=document.getElementById('sh-profile-avatar');
-  if(_profAvEl){
-    const _profPhotos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
-    if(_profPhotos.length){
-      _profAvEl.innerHTML=`<img src="${_profPhotos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-    } else {
-      _profAvEl.textContent=(seller.name||'?')[0].toUpperCase();
-    }
-  }
+  updateAvatar(_profAvEl,seller.name,isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]));
   const ratingEl=document.getElementById('sh-rating');
   if(ratingEl)ratingEl.textContent=rating>0?`⭐ ${rating.toFixed(1)}`:'⭐ -';
   const reviewEl=document.getElementById('sh-review-cnt');
@@ -10528,6 +10521,17 @@ function setReviewStarItem(type,val){
     s.style.color=parseInt(s.dataset.star)<=val?'#f5c518':'#ddd';
   });
 }
+// 아바타 업데이트 (프로필 사진 있으면 이미지, 없으면 이니셜)
+function updateAvatar(el,name,photos){
+  if(!el)return;
+  if(photos&&photos.length){
+    el.innerHTML=`<img src="${photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  }else{
+    el.innerHTML='';
+    el.textContent=(name||'?')[0].toUpperCase();
+  }
+}
+
 // ===== 회원 등급 시스템 (루키~다이아) =====
 const GRADE_TABLE=[
   {key:'diamond',icon:'💎',label:'다이아',color:'#00bcd4',deals:80,reviews:35,rating:4.5},
@@ -12323,7 +12327,7 @@ function renderProfileEdit(){
   const nameEl=document.getElementById('pe-name');
   if(nameEl){nameEl.value=u.name||'';}
   const avEl=document.getElementById('pe-av');
-  if(avEl)avEl.textContent=(u.name||'?')[0];
+  updateAvatar(avEl,u.name,lsGet('companyPhotos',[]));
   const previewEl=document.getElementById('pe-bizname-preview');
   if(previewEl)previewEl.textContent=u.name||'회사명';
   const telEl=document.getElementById('pe-tel');
@@ -12549,9 +12553,9 @@ function renderSettings(){
   const lang=LANGS[curLang]||LANGS.ko;
   const typeMap={seller:'사업자 회원',buyer:'일반 회원',both:'사업자 회원',member:'일반 회원',business:'사업자 회원',admin:'관리자',guest:'일반 회원'};
 
-  // 프로필
+  // 프로필 (사진 있으면 이미지)
   const avEl=document.getElementById('sett-av');
-  if(avEl)avEl.textContent=u.name?u.name[0].toUpperCase():'?';
+  updateAvatar(avEl,u.name,lsGet('companyPhotos',[]));
   const nameEl=document.getElementById('sett-uname');
   if(nameEl)nameEl.textContent=u.name||'로그인이 필요해요';
   const infoEl=document.getElementById('sett-uinfo');
@@ -13069,9 +13073,9 @@ function renderMypage(){
   const u=curUser||{name:t('my_guest'),type:'guest',loc:''};
   const types={business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원',member:'일반 회원',buyer:'일반 회원',admin:'관리자',guest:'일반 회원'};
 
-  // 아바타
+  // 아바타 (프로필 사진 있으면 이미지)
   const avEl=document.getElementById('my-av');
-  if(avEl)avEl.textContent=u.name?u.name[0].toUpperCase():'?';
+  updateAvatar(avEl,u.name,lsGet('companyPhotos',[]));
 
   // 이름
   const nameEl=document.getElementById('my-name');
