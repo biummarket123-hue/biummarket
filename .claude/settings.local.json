@@ -49,7 +49,9 @@
       "Read(//c/Users/A/biummarket/$LOCALAPPDATA/Programs/**)",
       "Bash(reg query:*)",
       "Bash(JAVA_HOME=\"C:/Program Files/Android/jbr\" ./gradlew assembleDebug)",
-      "Bash(identify og-image.png)"
+      "Bash(identify og-image.png)",
+      "Bash(bash /tmp/count_langs.sh)",
+      "WebFetch(domain:www.biummarket.com)"
     ]
   }
 }

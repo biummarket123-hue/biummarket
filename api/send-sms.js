@@ -21,6 +21,32 @@ export default async function handler(req, res) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const receiver = phone.replace(/[^0-9]/g, '');
 
+    // Supabase에 인증코드 저장 (서버에서만 검증)
+    const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
+    const SUPABASE_SERVICE_KEY = (process.env.SUPABASE_SERVICE_KEY || '').trim();
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+      // 기존 미인증 코드 삭제
+      await fetch(`${SUPABASE_URL}/rest/v1/sms_codes?phone=eq.${receiver}&verified=eq.false`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+          'Prefer': 'return=minimal'
+        }
+      });
+      // 새 코드 저장
+      await fetch(`${SUPABASE_URL}/rest/v1/sms_codes`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ phone: receiver, code, verified: false })
+      });
+    }
+
     // 솔라피 HMAC 인증
     const date = new Date().toISOString();
     const salt = Math.random().toString(36).substring(2);
@@ -55,7 +81,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    res.status(200).json({ success: true, code });
+    res.status(200).json({ success: true });
   } catch (e) {
     console.error('[send-sms] 예외:', e);
     res.status(500).json({ error: e.message });

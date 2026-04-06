@@ -4720,15 +4720,9 @@ function doKakaoLogin(){
 }
 async function handleKakaoCode(code){
   try{
-    const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'2a0cb674c93b653e5e51382a15763bf9',redirect_uri:'https://www.biummarket.com',code})
-    }).then(r=>r.json());
-    if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
-    const res=await fetch('https://kapi.kakao.com/v2/user/me',{
-      headers:{Authorization:'Bearer '+tokenData.access_token}
-    }).then(r=>r.json());
+    // 서버에서 카카오 토큰 교환 (client_secret 보호)
+    const res=await fetch('/api/kakao-token?code='+encodeURIComponent(code)).then(r=>r.json());
+    if(res.error)throw new Error(res.error);
     const kakaoId=res.id;
     const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');

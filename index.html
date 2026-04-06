@@ -6759,7 +6759,6 @@ function toggleAgreeAll(){
   if(allBox){allBox.style.background=newVal?'#6c63ff':'#fff';allBox.style.borderColor=newVal?'#6c63ff':'#d0d0d8';allBox.innerHTML=newVal?'✓':'';}
 }
 // SMS 인증 상태
-let _smsCode='';
 let _smsVerified=false;
 let _smsTimerId=null;
 async function sendSmsCode(){
@@ -6772,7 +6771,6 @@ async function sendSmsCode(){
     const res=await fetch('/api/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel})});
     const data=await res.json();
     if(!res.ok||!data.success){showToast(data.error||'SMS 발송에 실패했어요');btn.disabled=false;btn.textContent='인증번호 받기';return;}
-    _smsCode=data.code;
     _smsVerified=false;
     document.getElementById('sms-verify-area').style.display='block';
     document.getElementById('s-sms-code').value='';
@@ -6786,7 +6784,7 @@ async function sendSmsCode(){
     if(_smsTimerId)clearInterval(_smsTimerId);
     _smsTimerId=setInterval(()=>{
       sec--;timerEl.textContent=_fmtTimer(sec);
-      if(sec<=0){clearInterval(_smsTimerId);_smsTimerId=null;_smsCode='';timerEl.textContent='만료';
+      if(sec<=0){clearInterval(_smsTimerId);_smsTimerId=null;timerEl.textContent='만료';
         document.getElementById('sms-verify-msg').innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';
         btn.disabled=false;btn.textContent='재발송';
       }
@@ -6796,22 +6794,26 @@ async function sendSmsCode(){
     setTimeout(()=>{btn.disabled=false;},5000);
   }catch(e){showToast('SMS 발송 중 오류가 발생했어요');btn.disabled=false;btn.textContent='인증번호 받기';}
 }
-function verifySmsCode(){
+async function verifySmsCode(){
   const input=document.getElementById('s-sms-code')?.value.trim();
+  const tel=document.getElementById('s-tel')?.value.trim();
   const msgEl=document.getElementById('sms-verify-msg');
   if(!input){showToast(t('t_enter_code'));return;}
-  if(!_smsCode){msgEl.innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';return;}
-  if(input===_smsCode){
-    _smsVerified=true;
-    if(_smsTimerId){clearInterval(_smsTimerId);_smsTimerId=null;}
-    msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
-    document.getElementById('s-sms-code').disabled=true;
-    document.getElementById('s-tel').disabled=true;
-    document.getElementById('sms-send-btn').disabled=true;
-    showToast(t('t_phone_verified'));
-  }else{
-    msgEl.innerHTML='<span style="color:#e53935">인증번호가 일치하지 않아요</span>';
-  }
+  try{
+    const res=await fetch('/api/verify-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,code:input})});
+    const data=await res.json();
+    if(res.ok&&data.success){
+      _smsVerified=true;
+      if(_smsTimerId){clearInterval(_smsTimerId);_smsTimerId=null;}
+      msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
+      document.getElementById('s-sms-code').disabled=true;
+      document.getElementById('s-tel').disabled=true;
+      document.getElementById('sms-send-btn').disabled=true;
+      showToast(t('t_phone_verified'));
+    }else{
+      msgEl.innerHTML='<span style="color:#e53935">'+(data.error||'인증번호가 일치하지 않아요')+'</span>';
+    }
+  }catch(e){msgEl.innerHTML='<span style="color:#e53935">인증 확인 중 오류가 발생했어요</span>';}
 }
 async function doSignup(){
   // 필수 약관 동의 확인
@@ -7002,15 +7004,9 @@ function doKakaoLogin(){
 }
 async function handleKakaoCode(code){
   try{
-    const tokenData=await fetch('https://kauth.kakao.com/oauth/token',{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',client_id:'27e1cc15dc74afe3bc3058cf623faf94',client_secret:'8dvgpQa1VNIE8OluNBjMjkjG5dpxC0cW',redirect_uri:'https://www.biummarket.com',code})
-    }).then(r=>r.json());
-    if(!tokenData.access_token)throw new Error(tokenData.error_description||'토큰 발급 실패');
-    const res=await fetch('https://kapi.kakao.com/v2/user/me',{
-      headers:{Authorization:'Bearer '+tokenData.access_token}
-    }).then(r=>r.json());
+    // 서버에서 카카오 토큰 교환 (client_secret 보호)
+    const res=await fetch('/api/kakao-token?code='+encodeURIComponent(code)).then(r=>r.json());
+    if(res.error)throw new Error(res.error);
     const kakaoId=res.id;
     const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
     const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
@@ -12466,12 +12462,11 @@ function removeCompanyPhoto(idx){
   renderCompanyPhotos();
 }
 // 프로필 전화번호 SMS 인증
-let _peSmsCode='';
 let _peSmsVerified=false;
 let _peSmsTimerId=null;
 let _peOriginalTel='';
 function initPeTelVerify(){
-  _peSmsCode='';_peSmsVerified=false;_peOriginalTel=curUser?.tel||'';
+  _peSmsVerified=false;_peOriginalTel=curUser?.tel||'';
   if(_peSmsTimerId){clearInterval(_peSmsTimerId);_peSmsTimerId=null;}
   const area=document.getElementById('pe-sms-area');if(area)area.style.display='none';
   const msg=document.getElementById('pe-sms-msg');if(msg)msg.textContent='';
@@ -12489,7 +12484,7 @@ async function sendPeTelCode(){
     const res=await fetch('/api/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel})});
     const data=await res.json();
     if(!res.ok||!data.success){showToast(data.error||'SMS 발송 실패');btn.disabled=false;btn.textContent='인증번호 받기';return;}
-    _peSmsCode=data.code;_peSmsVerified=false;
+    _peSmsVerified=false;
     document.getElementById('pe-sms-area').style.display='block';
     document.getElementById('pe-sms-code').value='';
     document.getElementById('pe-sms-msg').textContent='';
@@ -12501,7 +12496,7 @@ async function sendPeTelCode(){
     if(_peSmsTimerId)clearInterval(_peSmsTimerId);
     _peSmsTimerId=setInterval(()=>{
       sec--;timerEl.textContent=_fmt(sec);
-      if(sec<=0){clearInterval(_peSmsTimerId);_peSmsTimerId=null;_peSmsCode='';timerEl.textContent='만료';
+      if(sec<=0){clearInterval(_peSmsTimerId);_peSmsTimerId=null;timerEl.textContent='만료';
         document.getElementById('pe-sms-msg').innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';
         btn.disabled=false;btn.textContent='재발송';
       }
@@ -12510,22 +12505,26 @@ async function sendPeTelCode(){
     setTimeout(()=>{btn.disabled=false;},5000);
   }catch(e){showToast('SMS 발송 중 오류 발생');btn.disabled=false;btn.textContent='인증번호 받기';}
 }
-function verifyPeTelCode(){
+async function verifyPeTelCode(){
   const input=document.getElementById('pe-sms-code')?.value.trim();
+  const tel=document.getElementById('pe-tel')?.value.trim();
   const msgEl=document.getElementById('pe-sms-msg');
   if(!input){showToast(t('t_enter_code'));return;}
-  if(!_peSmsCode){msgEl.innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';return;}
-  if(input===_peSmsCode){
-    _peSmsVerified=true;
-    if(_peSmsTimerId){clearInterval(_peSmsTimerId);_peSmsTimerId=null;}
-    msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
-    document.getElementById('pe-sms-code').disabled=true;
-    document.getElementById('pe-tel').disabled=true;
-    document.getElementById('pe-sms-btn').disabled=true;
-    showToast(t('t_phone_verified2'));
-  }else{
-    msgEl.innerHTML='<span style="color:#e53935">인증번호가 일치하지 않아요</span>';
-  }
+  try{
+    const res=await fetch('/api/verify-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,code:input})});
+    const data=await res.json();
+    if(res.ok&&data.success){
+      _peSmsVerified=true;
+      if(_peSmsTimerId){clearInterval(_peSmsTimerId);_peSmsTimerId=null;}
+      msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
+      document.getElementById('pe-sms-code').disabled=true;
+      document.getElementById('pe-tel').disabled=true;
+      document.getElementById('pe-sms-btn').disabled=true;
+      showToast(t('t_phone_verified2'));
+    }else{
+      msgEl.innerHTML='<span style="color:#e53935">'+(data.error||'인증번호가 일치하지 않아요')+'</span>';
+    }
+  }catch(e){msgEl.innerHTML='<span style="color:#e53935">인증 확인 중 오류가 발생했어요</span>';}
 }
 async function saveProfile(){
   const name=document.getElementById('pe-name').value.trim();
