@@ -1227,8 +1227,8 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <!-- 5. 신규 입고 원단 -->
     <div id="home-new-section" style="display:none;background:#fff;padding:16px 0 12px;margin-top:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
-        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🆕 신규 입고 원단</div><div style="font-size:var(--fs-sm);color:#888;margin-top:2px">48시간 이내 새로 등록된 상품</div></div>
-        <span onclick="openHomeMoreView('🆕 신규 입고 원단','48시간 이내 새로 등록된 상품',products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0&&p.created_at&&(Date.now()-new Date(p.created_at).getTime())<48*60*60*1000))" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
+        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🆕 신규 입고 원단</div></div>
+        <span onclick="openHomeMoreView('🆕 신규 입고 원단','',products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0&&p.created_at&&(Date.now()-new Date(p.created_at).getTime())<240*60*60*1000))" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
       </div>
       <div id="home-new-scroll" style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     </div>
@@ -8127,7 +8127,7 @@ function renderHomeNewSection(){
   const recent=products.filter(p=>{
     if(p.is_hidden||p.deleted_at||(p.qty||0)<=0)return false;
     if(!p.created_at)return false;
-    return(now-new Date(p.created_at).getTime())<48*60*60*1000;
+    return(now-new Date(p.created_at).getTime())<240*60*60*1000;
   }).slice(0,10);
   if(!recent.length){sec.style.display='none';return;}
   sec.style.display='block';
