@@ -17790,7 +17790,8 @@ async function renderBizStats(tab){
         if(!_isNotifEnabled(n.type))return;
         const soundMap={price_offer:'offer',offer_accepted:'offer',offer_rejected:'offer',reservation_new:'reservation',reservation_confirmed:'reservation',dangol_msg:'general',dangol_new:'general',dangol_urgent:'general',follow_news:'general',guide_member:'general',guide_seller:'general'};
         playNotifSound(soundMap[n.type]||'general');
-        updateNotifDot();
+        // 앱 알림 실시간 갱신
+        loadNotifications().then(()=>updateNotifDot());
         showToast(n.title||'새 알림이 도착했어요');
       }).subscribe();
     // 채팅 메시지 리얼타임 구독
@@ -17827,12 +17828,18 @@ async function renderBizStats(tab){
           }
         } else {
           // 열려있지 않은 채팅방이면 unread 증가
-          const room=chatRooms[msg.room_id];
+          let room=chatRooms[msg.room_id];
           if(room){
             room.unread=(room.unread||0)+1;
             room.lastMsg=msg.text;
             room.lastTime=formatChatTime(new Date(msg.created_at));
             lsSet('chatRooms',chatRooms);
+          }else{
+            // 로컬에 없는 새 채팅방 → Supabase에서 로드 후 뱃지 갱신
+            loadChatRoomsFromSB().then(()=>{
+              const chatListView=document.getElementById('view-chat');
+              if(chatListView&&chatListView.classList.contains('active'))renderChatList();
+            });
           }
           // 채팅 목록이 보이고 있으면 다시 렌더링
           const chatListView=document.getElementById('view-chat');
@@ -17842,8 +17849,27 @@ async function renderBizStats(tab){
         if(_isNotifEnabled('chat_msg'))playNotifSound('chat');
         updateChatBadge();
       }).subscribe();
-    // 채팅방 unread 변경 리얼타임 구독
+    // 채팅방 생성/변경 리얼타임 구독
     _sb.channel('chat-room-rt')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_rooms'},payload=>{
+        const r=payload.new;
+        if(!r)return;
+        const isSeller=r.seller_id===myId;
+        const isBuyer=r.buyer_id===myId;
+        if(!isSeller&&!isBuyer)return;
+        // 새 채팅방 로컬에 추가
+        chatRooms[r.id]={
+          id:r.id,productId:r.product_id,productTitle:r.product_title,productImg:r.product_img||'',
+          sellerName:isSeller?r.buyer_name:r.seller_name,sellerId:r.seller_id,buyerId:r.buyer_id,buyerName:r.buyer_name,
+          bgColor:'#6c63ff',lastMsg:r.last_msg||'',lastTimeRaw:r.last_time||'',
+          lastTime:r.last_time?formatChatTime(new Date(r.last_time)):'',
+          unread:isSeller?(r.unread_seller||0):(r.unread_buyer||0)
+        };
+        lsSet('chatRooms',chatRooms);
+        updateChatBadge();
+        const chatListView=document.getElementById('view-chat');
+        if(chatListView&&chatListView.classList.contains('active'))renderChatList();
+      })
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'chat_rooms'},payload=>{
         const r=payload.new;
         if(!r)return;
@@ -17857,9 +17883,11 @@ async function renderBizStats(tab){
           room.lastTime=r.last_time?formatChatTime(new Date(r.last_time)):room.lastTime;
           lsSet('chatRooms',chatRooms);
           updateChatBadge();
-          // 채팅 목록 화면이면 바로 갱신
           const chatListView=document.getElementById('view-chat');
           if(chatListView&&chatListView.classList.contains('active'))renderChatList();
+        }else{
+          // 로컬에 없는 방 → 전체 로드
+          loadChatRoomsFromSB();
         }
       }).subscribe();
   }
