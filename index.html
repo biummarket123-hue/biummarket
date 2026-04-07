@@ -13358,7 +13358,9 @@ async function _updateMyMenuBadges(){
     // buyer_id 또는 seller_id가 나인 confirmed 예약 전체 조회
     const{data:confirmed,error:e1}=await _sb.from('reservations').select('id,buyer_id,seller_id').or(`buyer_id.eq.${myId},seller_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail+',seller_id.eq.'+myEmail:''}`).eq('status','confirmed');
     console.log('[badge] confirmed 예약:',confirmed?.length,'건, 오류:',e1?.message||'없음');
+    console.log('[badge] myId:',myId,'myEmail:',myEmail);
     if(confirmed&&confirmed.length){
+      console.log('[badge] 예약 buyer_ids:',confirmed.map(r=>r.buyer_id),'seller_ids:',confirmed.map(r=>r.seller_id));
       // 내가 구매자인 예약만 필터
       const myBuyerResvs=confirmed.filter(r=>r.buyer_id===myId||r.buyer_id===myEmail);
       const resvIds=myBuyerResvs.map(r=>r.id);
