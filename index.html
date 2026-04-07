@@ -15672,25 +15672,86 @@ function openImageViewer(imgUrls,startIdx){
   const existing=document.getElementById('img-viewer-overlay');
   if(existing)existing.remove();
   let curIdx=startIdx||0;
+  // 핀치 줌 상태
+  let scale=1,posX=0,posY=0,startDist=0,startScale=1,startX=0,startY=0,startPosX=0,startPosY=0,isPinching=false,isPanning=false,lastTap=0;
   const overlay=document.createElement('div');
   overlay.id='img-viewer-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none';
+  // 줌 초기화
+  function resetZoom(){scale=1;posX=0;posY=0;applyTransform();}
+  function applyTransform(){
+    const img=document.getElementById('iv-main-img');
+    if(img)img.style.transform='translate('+posX+'px,'+posY+'px) scale('+scale+')';
+  }
+  // 두 손가락 사이 거리
+  function getDist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+  function getMid(t){return{x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2};}
   function render(){
+    scale=1;posX=0;posY=0;
     overlay.innerHTML=`
       <button onclick="document.getElementById('img-viewer-overlay').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:2">×</button>
       <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:13px;font-weight:600">${curIdx+1} / ${imgUrls.length}</div>
-      <img src="${imgUrls[curIdx]}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:4px;user-select:none" onclick="event.stopPropagation()"/>
+      <div id="iv-img-wrap" style="overflow:hidden;display:flex;align-items:center;justify-content:center;max-width:95vw;max-height:80vh;touch-action:none">
+        <img id="iv-main-img" src="${imgUrls[curIdx]}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:4px;user-select:none;transform-origin:center center;will-change:transform" onclick="event.stopPropagation()"/>
+      </div>
       ${imgUrls.length>1?`
         <div style="display:flex;gap:16px;margin-top:20px">
           <button onclick="event.stopPropagation();_ivPrev()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;cursor:pointer${curIdx===0?';opacity:.3':''}">‹</button>
           <button onclick="event.stopPropagation();_ivNext()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;cursor:pointer${curIdx===imgUrls.length-1?';opacity:.3':''}">›</button>
         </div>`:''}
       <div style="display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding:0 20px;max-width:90vw">${imgUrls.map((u,i)=>`<img src="${u}" onclick="event.stopPropagation();_ivGo(${i})" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid ${i===curIdx?'#fff':'transparent'};opacity:${i===curIdx?'1':'.5'};flex-shrink:0"/>`).join('')}</div>`;
+    // 터치 이벤트 바인딩
+    const wrap=document.getElementById('iv-img-wrap');
+    if(!wrap)return;
+    wrap.addEventListener('touchstart',function(e){
+      if(e.touches.length===2){
+        // 핀치 시작
+        isPinching=true;isPanning=false;
+        startDist=getDist(e.touches);startScale=scale;
+        const mid=getMid(e.touches);startX=mid.x;startY=mid.y;startPosX=posX;startPosY=posY;
+        e.preventDefault();
+      }else if(e.touches.length===1&&scale>1){
+        // 확대 상태에서 한 손가락 드래그(패닝)
+        isPanning=true;isPinching=false;
+        startX=e.touches[0].clientX;startY=e.touches[0].clientY;startPosX=posX;startPosY=posY;
+        e.preventDefault();
+      }
+    },{passive:false});
+    wrap.addEventListener('touchmove',function(e){
+      if(isPinching&&e.touches.length===2){
+        const dist=getDist(e.touches);
+        scale=Math.min(5,Math.max(1,startScale*(dist/startDist)));
+        const mid=getMid(e.touches);
+        posX=startPosX+(mid.x-startX);posY=startPosY+(mid.y-startY);
+        applyTransform();e.preventDefault();
+      }else if(isPanning&&e.touches.length===1&&scale>1){
+        posX=startPosX+(e.touches[0].clientX-startX);
+        posY=startPosY+(e.touches[0].clientY-startY);
+        applyTransform();e.preventDefault();
+      }
+    },{passive:false});
+    wrap.addEventListener('touchend',function(e){
+      if(e.touches.length<2)isPinching=false;
+      if(e.touches.length===0){
+        isPanning=false;
+        // 스케일 1 이하면 초기화
+        if(scale<=1)resetZoom();
+      }
+      // 더블탭 줌
+      if(e.touches.length===0&&!isPinching){
+        const now=Date.now();
+        if(now-lastTap<300){
+          if(scale>1){resetZoom();}
+          else{scale=2.5;applyTransform();}
+          lastTap=0;
+        }else{lastTap=now;}
+      }
+    },{passive:true});
   }
   window._ivPrev=()=>{if(curIdx>0){curIdx--;render();}};
   window._ivNext=()=>{if(curIdx<imgUrls.length-1){curIdx++;render();}};
   window._ivGo=(i)=>{curIdx=i;render();};
-  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  overlay.onclick=(e)=>{if(e.target===overlay&&scale<=1)overlay.remove();};
   render();
   document.body.appendChild(overlay);
   // 키보드 좌우
