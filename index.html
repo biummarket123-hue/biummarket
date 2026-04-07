@@ -13373,17 +13373,16 @@ async function _updateMyMenuBadges(){
       // 내가 판매자: seller_to_buyer 미작성
       const mySellerResvs=allConfirmed.filter(r=>r.seller_id===myId||r.seller_id===myEmail);
       const sellerUnreviewed=mySellerResvs.filter(r=>!s2bSet.has(r.id)).length;
-      const totalUnreviewed=buyerUnreviewed+sellerUnreviewed;
-      // 구매활동 섹션 뱃지
+      // 구매활동 섹션 뱃지 (내가 구매자일 때 미작성 후기)
       const el1=document.getElementById('badge-buyer-resvs');
       if(el1){
-        if(totalUnreviewed>0){el1.style.display='inline';el1.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el1.textContent='미작성 후기 '+totalUnreviewed+'개';}
+        if(buyerUnreviewed>0){el1.style.display='inline';el1.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el1.textContent='미작성 후기 '+buyerUnreviewed+'개';}
         else el1.style.display='none';
       }
-      // 판매관리 섹션 뱃지
+      // 판매관리 섹션 뱃지 (내가 판매자일 때 미작성 후기)
       const el2=document.getElementById('badge-seller-unreview');
       if(el2){
-        if(totalUnreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+totalUnreviewed+'개';}
+        if(sellerUnreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+sellerUnreviewed+'개';}
         else el2.style.display='none';
       }
     }
