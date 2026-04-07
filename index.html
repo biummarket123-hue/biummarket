@@ -16437,7 +16437,7 @@ async function approveHotDeal(id){
   const{data:approved}=await _sb.from('hot_deals').select('id').eq('status','approved');
   if((approved||[]).length>=10){showToast(t('t_hotdeal_max10'));return;}
   await _sb.from('hot_deals').update({status:'approved',approved_at:new Date().toISOString(),expires_at:expires.toISOString(),order_num:(approved||[]).length}).eq('id',id);
-  await sendNotification(d.seller_id,'hotdeal_approved','🔥 HOT DEAL 승인','광고 신청이 승인됐어요! 홈화면에 노출됩니다.',{});
+  await sendNotification(d.seller_id,'hotdeal_approved','🔥 HOT DEAL 승인','광고 신청이 승인됐어요! 홈화면에 노출됩니다.',{productId:String(d.product_id||d.productId||'')});
   showToast(t('t_hotdeal_approved'));
   showAdminHotDeal();
   renderHomeHotDealSection();
@@ -17072,7 +17072,8 @@ function renderNotifView(){
     reservation_rejected:{icon:'❌',bg:'rgba(229,57,53,.15)',title:'예약 거절',action:"showView('my-reservations');renderMyReservations()"},
     chat_new:{icon:'💬',bg:'rgba(108,99,255,.15)',title:'새 채팅',action:''},
     chat_msg:{icon:'💬',bg:'rgba(108,99,255,.15)',title:'새 메시지',action:''},
-      keyword_alert:{icon:'🔔',bg:'rgba(245,197,24,.15)',title:'키워드 알림',action:"openSearchOverlay()"},
+      keyword_alert:{icon:'🔔',bg:'rgba(245,197,24,.15)',title:'키워드 알림',action:''},
+      hotdeal_approved:{icon:'🔥',bg:'rgba(255,111,0,.15)',title:'광고 승인',action:''},
       price_drop:{icon:'💸',bg:'rgba(0,200,100,.15)',title:'가격 인하',action:''},
       restock:{icon:'📦',bg:'rgba(108,99,255,.15)',title:'재입고 알림',action:''},
       reservation_remind:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 알림',action:"showView('my-reservations');renderMyReservations()"},
