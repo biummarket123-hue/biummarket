@@ -13213,6 +13213,7 @@ async function doChangeType(newType){
 
 /* ==================== MYPAGE ==================== */
 function renderMypage(){
+  console.log('[badge] renderMypage 시작, curUser.type:',curUser?.type);
   const u=curUser||{name:t('my_guest'),type:'guest',loc:''};
   const types={business:'사업자 회원',both:'사업자 회원',seller:'사업자 회원',member:'일반 회원',buyer:'일반 회원',admin:'관리자',guest:'일반 회원'};
 
@@ -13330,6 +13331,7 @@ function renderMypage(){
     if(bizApplySection){bizApplySection.style.display='none';bizApplySection.innerHTML='';}
   }
   // 가격제안/예약 내역 뱃지 비동기 업데이트
+  console.log('[badge] renderMypage 끝 → _updateMyMenuBadges 호출');
   _updateMyMenuBadges();
 }
 async function _updateMyMenuBadges(){
