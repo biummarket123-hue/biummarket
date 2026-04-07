@@ -6772,6 +6772,7 @@ async function doLogin(isAuto){
       if(_pp2){sessionStorage.removeItem('bium_pending_product');setTimeout(()=>openDetail(_pp2),300);}
     });
     syncKeywordsFromSupabase();
+    loadChatRoomsFromSB();_startChatPoll();
     // 사업자 첫 로그인 시 가이드 팝업
     if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
       lsSet('bium_seller_guide_shown_'+curUser.id,true);
@@ -16874,11 +16875,20 @@ function updateChatBadge(){
   document.querySelectorAll('.chat-unread-badge').forEach(badge=>{
     if(total>0){
       badge.textContent=total>99?'99+':total;
-      badge.style.display='';
+      badge.style.display='inline';
     }else{
       badge.style.display='none';
     }
   });
+}
+// 채팅 뱃지 폴링 (리얼타임 백업 - 30초마다)
+let _chatPollTimer=null;
+function _startChatPoll(){
+  if(_chatPollTimer)return;
+  _chatPollTimer=setInterval(()=>{
+    if(!_sb||!curUser)return;
+    loadChatRoomsFromSB();
+  },30000);
 }
 function addAppNotification(targetUserId,type,message,data){
   const notif={id:Date.now(),targetUserId,type,message,data:data||{},read:false,createdAt:new Date().toISOString()};
@@ -17775,9 +17785,10 @@ async function renderBizStats(tab){
     // 아이디 저장/자동 로그인 복원
     setTimeout(()=>_restoreLoginFields(),50);
   }
-  // 앱 시작 시 채팅 unread 즉시 로드
+  // 앱 시작 시 채팅 unread 즉시 로드 + 폴링 시작
   if(_sb&&curUser){
     loadChatRoomsFromSB();
+    _startChatPoll();
   }
   // Supabase 리얼타임 구독
   if(_sb&&curUser){
