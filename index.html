@@ -13353,84 +13353,38 @@ async function _updateMyMenuBadges(){
       else el.style.display='none';
     }
   });
-  // 3. 미작성 후기 (내가 구매자인 confirmed 예약 중 후기 미작성)
+  // 3. 미작성 후기 (내가 관련된 confirmed 예약 한 번에 조회)
   try{
-    // buyer_id로 직접 조회 (id와 email 둘 다)
-    let buyerResvs=[];
-    const{data:d1}=await _sb.from('reservations').select('id').eq('buyer_id',myId).eq('status','confirmed');
-    if(d1)buyerResvs=[...d1];
-    if(myEmail&&myEmail!==myId){
-      const{data:d2}=await _sb.from('reservations').select('id').eq('buyer_id',myEmail).eq('status','confirmed');
-      if(d2)d2.forEach(r=>{if(!buyerResvs.find(x=>x.id===r.id))buyerResvs.push(r);});
-    }
-    // user_id로도 조회 (일부 예약이 user_id로 저장된 경우)
-    const{data:d3}=await _sb.from('reservations').select('id').eq('user_id',myId).eq('status','confirmed');
-    if(d3)d3.forEach(r=>{if(!buyerResvs.find(x=>x.id===r.id))buyerResvs.push(r);});
-    // buyer_name으로도 조회 (이름으로 저장된 경우)
-    if(curUser.name){
-      const{data:d4}=await _sb.from('reservations').select('id').eq('buyer_name',curUser.name).eq('status','confirmed');
-      if(d4)d4.forEach(r=>{if(!buyerResvs.find(x=>x.id===r.id))buyerResvs.push(r);});
-    }
-    if(buyerResvs.length){
-      const resvIds=buyerResvs.map(r=>r.id);
-      let reviews=[];
-      const{data:r1,error:e2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','buyer_to_seller');
-      if(!e2&&r1)reviews=r1;
-      else{
-        const{data:r2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds);
-        if(r2)reviews=r2;
-      }
-      const reviewedIds=new Set(reviews.map(r=>r.reservation_id));
-      const unreviewed=resvIds.filter(id=>!reviewedIds.has(id)).length;
+    const orFilter=myEmail&&myEmail!==myId
+      ?`buyer_id.eq.${myId},seller_id.eq.${myId},buyer_id.eq.${myEmail},seller_id.eq.${myEmail}`
+      :`buyer_id.eq.${myId},seller_id.eq.${myId}`;
+    const{data:allConfirmed}=await _sb.from('reservations').select('id,buyer_id,seller_id').or(orFilter).eq('status','confirmed');
+    if(allConfirmed&&allConfirmed.length){
+      const allIds=allConfirmed.map(r=>r.id);
+      // 모든 리뷰를 한 번에 조회
+      let allRevs=[];
+      const{data:rv,error:rvErr}=await _sb.from('reviews').select('reservation_id,review_type').in('reservation_id',allIds);
+      if(!rvErr&&rv)allRevs=rv;
+      const b2sSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller').map(r=>r.reservation_id));
+      const s2bSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
+      // 내가 구매자: buyer_to_seller 미작성
+      const myBuyerResvs=allConfirmed.filter(r=>r.buyer_id===myId||r.buyer_id===myEmail);
+      const buyerUnreviewed=myBuyerResvs.filter(r=>!b2sSet.has(r.id)).length;
+      // 내가 판매자: seller_to_buyer 미작성
+      const mySellerResvs=allConfirmed.filter(r=>r.seller_id===myId||r.seller_id===myEmail);
+      const sellerUnreviewed=mySellerResvs.filter(r=>!s2bSet.has(r.id)).length;
+      const totalUnreviewed=buyerUnreviewed+sellerUnreviewed;
       // 구매활동 섹션 뱃지
       const el1=document.getElementById('badge-buyer-resvs');
       if(el1){
-        if(unreviewed>0){el1.style.display='inline';el1.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el1.textContent='미작성 후기 '+unreviewed+'개';}
+        if(totalUnreviewed>0){el1.style.display='inline';el1.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el1.textContent='미작성 후기 '+totalUnreviewed+'개';}
         else el1.style.display='none';
       }
       // 판매관리 섹션 뱃지
       const el2=document.getElementById('badge-seller-unreview');
       if(el2){
-        if(unreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+unreviewed+'개';}
+        if(totalUnreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+totalUnreviewed+'개';}
         else el2.style.display='none';
-      }
-    }
-  }catch(e){}
-  // 4. 판매자: 구매자에게 미작성 후기 (seller_to_buyer)
-  try{
-    let sellerResvs=[];
-    const{data:s1}=await _sb.from('reservations').select('id').eq('seller_id',myId).eq('status','confirmed');
-    if(s1)sellerResvs=[...s1];
-    if(myEmail&&myEmail!==myId){
-      const{data:s2}=await _sb.from('reservations').select('id').eq('seller_id',myEmail).eq('status','confirmed');
-      if(s2)s2.forEach(r=>{if(!sellerResvs.find(x=>x.id===r.id))sellerResvs.push(r);});
-    }
-    if(sellerResvs.length){
-      const resvIds=sellerResvs.map(r=>r.id);
-      let reviews=[];
-      const{data:r1,error:e2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','seller_to_buyer');
-      if(!e2&&r1)reviews=r1;
-      else{
-        const{data:r2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`);
-        if(r2)reviews=r2;
-      }
-      const reviewedIds=new Set(reviews.map(r=>r.reservation_id));
-      const unreviewed=resvIds.filter(id=>!reviewedIds.has(id)).length;
-      // 판매관리 섹션 예약 내역에 표시
-      const el=document.getElementById('badge-seller-unreview');
-      if(el){
-        // 기존 구매자 미작성 후기와 합산
-        const existing=parseInt(el.textContent?.match(/\d+/)?.[0]||'0');
-        const total=existing+unreviewed;
-        if(total>0){el.style.display='inline';el.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el.textContent='미작성 후기 '+total+'개';}
-        else el.style.display='none';
-      }
-      // 구매활동 섹션에도 판매자 미작성 후기 표시
-      const el2=document.getElementById('badge-buyer-resvs');
-      if(el2){
-        const existing=parseInt(el2.textContent?.match(/\d+/)?.[0]||'0');
-        const total=existing+unreviewed;
-        if(total>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+total+'개';}
       }
     }
   }catch(e){}
