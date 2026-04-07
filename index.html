@@ -11584,11 +11584,13 @@ function updatePriceFilterBtn(){
   if(!btn)return;
   if(svPriceMin||svPriceMax){
     const label=svPriceMax?`${(svPriceMin/1000).toFixed(0)}K~${(svPriceMax/1000).toFixed(0)}K`:`${(svPriceMin/1000).toFixed(0)}K~`;
-    btn.textContent='💰 '+label;
+    btn.textContent='💰 '+label+' ✕';
     btn.className='sv-filter-btn on';
+    btn.onclick=function(){resetPriceFilter();};
   }else{
     btn.textContent='가격 ▾';
     btn.className='sv-filter-btn';
+    btn.onclick=function(){openPriceFilter();};
   }
 }
 function setSvFilter(f){
