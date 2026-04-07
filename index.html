@@ -1390,6 +1390,11 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <div class="pd-section-title">상품 설명</div>
       <div class="pd-desc" id="pd-desc"></div>
     </div>
+    <!-- 10. 원단 사진 갤러리 -->
+    <div class="pd-section" id="pd-gallery-section" style="display:none">
+      <div class="pd-section-title">원단 사진</div>
+      <div id="pd-gallery" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
     <!-- 11. 비슷한 원단 -->
     <div class="pd-section" id="pd-similar-section">
       <div class="pd-section-title" style="font-size:var(--fs-lg);font-weight:700">비슷한 원단</div>
@@ -8544,6 +8549,15 @@ async function openDetail(id){
   set('pd-desc',p.description||'');
   if(descSection)descSection.style.display=p.description?'':' none';
 
+
+  // 10. 원단 사진 갤러리 (상세 설명 아래 1열 진열)
+  const gallerySection=document.getElementById('pd-gallery-section');
+  const galleryEl=document.getElementById('pd-gallery');
+  const galleryImgs=p.image_urls&&p.image_urls.length?p.image_urls:(p.image_url?[p.image_url]:[]);
+  if(gallerySection&&galleryEl&&galleryImgs.length){
+    galleryEl.innerHTML=galleryImgs.map((url,i)=>`<img src="${url}" onclick="openImageViewer(${JSON.stringify(galleryImgs).replace(/"/g,'&quot;')},${i})" style="width:100%;border-radius:10px;cursor:pointer;display:block" />`).join('');
+    gallerySection.style.display='';
+  }else if(gallerySection){gallerySection.style.display='none';}
 
   // 11. 비슷한 원단 (2열 그리드, 최대 20개)
   const simSection=document.getElementById('pd-similar-section');
