@@ -2333,7 +2333,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
 <!-- ========== NOTIF LIST ========== -->
 <div id="view-notif" class="view">
   <header class="hdr">
-    <button class="hdr-back" onclick="goBack()">←</button>
+    <button class="hdr-back" onclick="closeNotifView()">←</button>
     <div class="hdr-title">알림</div>
     <button class="hdr-btn" onclick="showView('notif-settings')" title="알림 설정">⚙️</button>
   </header>
@@ -16819,6 +16819,22 @@ function timeAgo(ts){
   const h=Math.floor(m/60);if(h<24)return h+'시간 전';
   return Math.floor(h/24)+'일 전';
 }
+// 알림창 나갈 때 읽음 처리
+let _notifOpenedTs=0;
+function closeNotifView(){
+  if(_notifOpenedTs){
+    const items=lsGet('notifHistory',[]);
+    items.forEach(it=>it.read=true);
+    lsSet('notifHistory',items);
+    try{localStorage.removeItem('bium_notif_clicked');localStorage.setItem('bium_lastNotifOpen',String(Date.now()));}catch(e){}
+    const userId=curUser?.id||curUser?.email||'';
+    if(userId)markAllAppNotificationsRead(userId);
+    const dot=document.getElementById('notif-dot');
+    if(dot)dot.style.display='none';
+    _notifOpenedTs=0;
+  }
+  goBack();
+}
 function addNotif(icon,bg,title,desc,productId){
   if(!notifSettings.push)return;
   const items=lsGet('notifHistory',[]);
@@ -17071,14 +17087,8 @@ function renderNotifView(){
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
     return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data,id:n.id};
   }):[];
-  // 알림창 진입 시: 빨간점 끄기 + 전체 읽음 처리
-  const dot=document.getElementById('notif-dot');
-  if(dot)dot.style.display='none';
-  items.forEach(it=>it.read=true);
-  lsSet('notifHistory',items);
-  // 알림창 오픈 시점 기록 + 기존 용량 큰 데이터 정리
-  try{localStorage.removeItem('bium_notif_clicked');localStorage.setItem('bium_lastNotifOpen',String(Date.now()));}catch(e){}
-  if(userId)markAllAppNotificationsRead(userId);
+  // 알림창 진입 시: 오픈 시점 기록 (읽음 처리는 나갈 때)
+  _notifOpenedTs=Date.now();
   const allItems=[...items,...myAppNotifs].sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!allItems.length){
     el.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">🔔</div><div style="color:#666677;font-size:14px">새로운 알림이 없어요</div><div style="color:#6666aa;font-size:12px;margin-top:6px">새 상품 등록 · 가격 변동 · 거래 알림이 여기 표시돼요</div></div>';
