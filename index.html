@@ -6768,7 +6768,13 @@ async function doLogin(isAuto){
       if(_pp2){sessionStorage.removeItem('bium_pending_product');setTimeout(()=>openDetail(_pp2),300);}
     });
     syncKeywordsFromSupabase();
-    if(!sessionStorage.getItem('bium_pending_product'))setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
+    // 사업자 첫 로그인 시 가이드 팝업
+    if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
+      lsSet('bium_seller_guide_shown_'+curUser.id,true);
+      setTimeout(()=>openGuideModal('seller'),1000);
+    }else if(!sessionStorage.getItem('bium_pending_product')){
+      setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
+    }
   }catch(e){_showLoginLoading(false);showToast(t('t_login_error'));console.error(e);}
 }
 // 약관 동의 상태
@@ -6995,8 +7001,7 @@ async function doSignup(){
     // SMS 인증 완료 → 바로 로그인 처리
     showView('list');showListSkeleton();loadProductsFromSupabase(true);
     setTimeout(()=>openWelcomeModal(curUser.name||name),800);
-    sendNotification(curUser.id||curUser.email,'guide_member','🎉 비움마켓 이용가이드','비움마켓 사용법을 확인해보세요!',{});
-    addAppNotification(curUser.id||curUser.email,'guide_member','비움마켓 사용법을 확인해보세요!',{});
+    // 이용가이드는 팝업(openWelcomeModal)으로만 표시, 알림 제거됨
   }catch(e){showToast(t('t_signup_error'));console.error(e);}
 }
 async function doLogout(){
@@ -7062,6 +7067,9 @@ async function handleKakaoCode(code){
         _showLoginLoading(false);
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
+        if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
+          lsSet('bium_seller_guide_shown_'+curUser.id,true);setTimeout(()=>openGuideModal('seller'),1000);
+        }
       }else{
         _showLoginLoading(false);
         // 신규 또는 가입 미완료 → 회원가입 폼으로
@@ -7128,6 +7136,9 @@ async function handleNaverCode(code,state){
         _showLoginLoading(false);
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
+        if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
+          lsSet('bium_seller_guide_shown_'+curUser.id,true);setTimeout(()=>openGuideModal('seller'),1000);
+        }
       }else{
         _showLoginLoading(false);
         // 신규 또는 가입 미완료 → 회원가입 폼으로
@@ -8378,7 +8389,7 @@ function toggleLike(id){
   if(_sb)_sb.from('products').update({likes:p.likes}).eq('id',id).then();
   renderList();
   showToast(nowLiked?t('like_add'):t('like_remove'));
-  if(nowLiked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',id);
+  // 관심 등록 알림 제거됨
 }
 
 /* ==================== DETAIL ==================== */
@@ -8692,7 +8703,7 @@ function toggleDetailLike(){
   _sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
   updateDetailHeart(p);
   showToast(p.liked?t('like_add'):t('like_remove'));
-  if(p.liked)addNotif('❤️','rgba(255,100,100,.15)','관심 등록',p.title+'에 관심이 등록됐습니다',p.id);
+  // 관심 등록 알림 제거됨
 }
 function editProduct(targetId){
   if(targetId!==undefined)curProductId=targetId;
@@ -11292,7 +11303,7 @@ async function submitForm(){
       newP._localOnly=true;
       products.unshift(newP);saveProducts();
       resetForm();showView('list');showToast(t('registered'));
-      {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
+      // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
     }
     _unlockSubmit();return;
@@ -11376,7 +11387,7 @@ async function submitForm(){
         }).then(()=>{}).catch(e=>console.warn('fabric_specs 저장 오류:',e));
       }
       resetForm();showView('list');showToast(t('registered'));
-      {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
+      // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       // 키워드 알림 - Supabase에서 매칭되는 키워드 조회 후 알림 발송
       if(_sb){
         try{
@@ -16100,9 +16111,7 @@ async function adminApproveSeller(idx){
   }
 
   addAppNotification(u.id||u.email,'seller_approved','✅ 사업자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
-  // 사업자 이용가이드 알림 발송
-  sendNotification(u.id||u.email,'guide_seller','✅ 사업자 이용가이드','이제 상품을 등록하고 판매를 시작해보세요!',{});
-  addAppNotification(u.id||u.email,'guide_seller','이제 상품을 등록하고 판매를 시작해보세요!',{});
+  // 사업자 이용가이드는 첫 로그인 시 팝업으로만 표시, 알림 제거됨
   showToast(t('t_seller_approved'));
   showAdminUsers && showAdminUsers();
 }
