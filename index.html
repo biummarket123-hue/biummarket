@@ -9378,7 +9378,11 @@ async function renderMyReservations(){
         const status=document.getElementById('resv-review-status-'+resvId);
         if(!btn||!status)continue;
         // 이미 후기 작성했는지 체크
-        const{data:rev}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).maybeSingle();
+        // buyer_to_seller 후기만 체크 (seller_to_buyer와 혼동 방지)
+        let rev=null;
+        const{data:r1,error:e1}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).eq('review_type','buyer_to_seller').maybeSingle();
+        if(!e1)rev=r1;
+        else{const{data:r2}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).eq('buyer_id',curUser.id||curUser.email||'').maybeSingle();rev=r2;}
         if(rev){
           btn.textContent='✅ 후기 작성 완료';
           btn.style.background='#e8f5e9';
@@ -13394,15 +13398,14 @@ async function _updateMyMenuBadges(){
   });
   // 3. 구매자: 미작성 후기 (confirmed 예약 중 후기 미작성)
   try{
-    const{data:confirmed,error:e1}=await _sb.from('reservations').select('id,status,buyer_id').or(`buyer_id.eq.${myId}${curUser.email?',buyer_id.eq.'+curUser.email:''}`).eq('status','confirmed');
+    const{data:confirmed,error:e1}=await _sb.from('reservations').select('id').or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`).eq('status','confirmed');
     if(e1)console.warn('[badge] reservations 조회 오류:',e1.message);
     if(confirmed&&confirmed.length){
       const resvIds=confirmed.map(r=>r.id);
-      // review_type 컬럼 유무 대응
+      // buyer_to_seller 후기만 체크, review_type 없으면 buyer_id로 폴백
       let{data:reviews,error:e2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','buyer_to_seller');
       if(e2){
-        // review_type 컬럼 없으면 전체 조회
-        const res2=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds);
+        const res2=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`);
         reviews=res2.data;
       }
       const reviewedIds=new Set((reviews||[]).map(r=>r.reservation_id));
