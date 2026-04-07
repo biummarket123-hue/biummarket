@@ -970,9 +970,12 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
   </div>
 </div>
-<div id="modal-price-filter" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+<div id="modal-price-filter" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px">
-    <div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a;margin-bottom:20px" data-i18n="m_price_filter">💰 가격 필터</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a" data-i18n="m_price_filter">💰 가격 필터</div>
+      <button onclick="document.getElementById('modal-price-filter').style.display='none'" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer;padding:4px">✕</button>
+    </div>
     <div style="margin-bottom:16px">
       <label style="font-size:13px;font-weight:600;color:#666677;display:block;margin-bottom:8px" data-i18n="m_min_price">최소 가격 (원/m)</label>
       <input type="number" id="price-filter-min" placeholder="예) 1000" data-i18n-ph="ph_price_min_ex" class="fi" style="color:#1a1a1a"/>
