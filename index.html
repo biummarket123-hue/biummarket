@@ -13358,9 +13358,20 @@ async function _updateMyMenuBadges(){
     const orFilter=myEmail&&myEmail!==myId
       ?`buyer_id.eq.${myId},seller_id.eq.${myId},buyer_id.eq.${myEmail},seller_id.eq.${myEmail}`
       :`buyer_id.eq.${myId},seller_id.eq.${myId}`;
-    const{data:allConfirmed}=await _sb.from('reservations').select('id,buyer_id,seller_id').or(orFilter).eq('status','confirmed');
+    const{data:allConfirmed}=await _sb.from('reservations').select('id,buyer_id,seller_id,created_at,updated_at').or(orFilter).eq('status','confirmed');
     if(allConfirmed&&allConfirmed.length){
-      const allIds=allConfirmed.map(r=>r.id);
+      // 7일 이내 예약만 (기간 만료 제외)
+      const now=Date.now();
+      const SEVEN_DAYS=7*24*60*60*1000;
+      const validResvs=allConfirmed.filter(r=>{
+        const confirmedAt=new Date(r.updated_at||r.created_at).getTime();
+        return(now-confirmedAt)<SEVEN_DAYS;
+      });
+      if(!validResvs.length){
+        const el1=document.getElementById('badge-buyer-resvs');if(el1)el1.style.display='none';
+        const el2=document.getElementById('badge-seller-unreview');if(el2)el2.style.display='none';
+      }else{
+      const allIds=validResvs.map(r=>r.id);
       // 모든 리뷰를 한 번에 조회
       let allRevs=[];
       const{data:rv,error:rvErr}=await _sb.from('reviews').select('reservation_id,review_type').in('reservation_id',allIds);
@@ -13368,10 +13379,10 @@ async function _updateMyMenuBadges(){
       const b2sSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller').map(r=>r.reservation_id));
       const s2bSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
       // 내가 구매자: buyer_to_seller 미작성
-      const myBuyerResvs=allConfirmed.filter(r=>r.buyer_id===myId||r.buyer_id===myEmail);
+      const myBuyerResvs=validResvs.filter(r=>r.buyer_id===myId||r.buyer_id===myEmail);
       const buyerUnreviewed=myBuyerResvs.filter(r=>!b2sSet.has(r.id)).length;
       // 내가 판매자: seller_to_buyer 미작성
-      const mySellerResvs=allConfirmed.filter(r=>r.seller_id===myId||r.seller_id===myEmail);
+      const mySellerResvs=validResvs.filter(r=>r.seller_id===myId||r.seller_id===myEmail);
       const sellerUnreviewed=mySellerResvs.filter(r=>!s2bSet.has(r.id)).length;
       // 구매활동 섹션 뱃지 (내가 구매자일 때 미작성 후기)
       const el1=document.getElementById('badge-buyer-resvs');
@@ -13384,6 +13395,7 @@ async function _updateMyMenuBadges(){
       if(el2){
         if(sellerUnreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+sellerUnreviewed+'개';}
         else el2.style.display='none';
+      }
       }
     }
   }catch(e){}
