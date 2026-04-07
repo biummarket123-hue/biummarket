@@ -17047,7 +17047,11 @@ function openGuideModal(type){
 }
 function renderNotifView(){
   const el=document.getElementById('notif-items-list');if(!el)return;
-  const items=lsGet('notifHistory',[]);
+  // 2주 지난 알림 자동 삭제
+  const TWO_WEEKS=14*24*60*60*1000;
+  const now=Date.now();
+  let items=lsGet('notifHistory',[]).filter(it=>now-(it.ts||0)<TWO_WEEKS);
+  lsSet('notifHistory',items);
   const userId=curUser?.id||curUser?.email;
   // 타입별 아이콘/색상/제목/클릭액션 매핑
   const TYPE_META={
@@ -17076,14 +17080,14 @@ function renderNotifView(){
       dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:'_openSellerById'},
       dangol_new:{icon:'🆕',bg:'rgba(108,99,255,.15)',title:'단골 신상품',action:''},
       dangol_urgent:{icon:'⚡',bg:'rgba(255,101,132,.15)',title:'단골 급처',action:''},
-      fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:"showView('mypage')"},
+      fabric_review:{icon:'⭐',bg:'rgba(245,197,24,.15)',title:'패브릭 스코어',action:"_openMyProfileReview"},
       review_request:{icon:'✍️',bg:'rgba(255,111,0,.15)',title:'후기 작성 요청',action:'_openSellerReviewTab'},
       review_reminder:{icon:'⏰',bg:'rgba(255,111,0,.15)',title:'후기 재알림',action:'_openSellerReviewTab'},
       buyer_review:{icon:'⭐',bg:'rgba(108,99,255,.15)',title:'구매자 후기',action:"showView('mypage')"},
       buyer_review_request:{icon:'✍️',bg:'rgba(108,99,255,.15)',title:'구매자 후기 요청',action:"showView('my-reservations');renderMyReservations()"},
       buyer_review_reminder:{icon:'⏰',bg:'rgba(108,99,255,.15)',title:'구매자 후기 재알림',action:"showView('my-reservations');renderMyReservations()"},
   };
-  const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId).map(n=>{
+  const myAppNotifs=userId?appNotifications.filter(n=>n.targetUserId===userId&&now-new Date(n.createdAt).getTime()<TWO_WEEKS).map(n=>{
     const meta=TYPE_META[n.type]||{icon:'📣',bg:'rgba(108,99,255,.15)',title:n.type};
     return {icon:meta.icon,bg:meta.bg,title:meta.title,desc:n.message,ts:new Date(n.createdAt).getTime(),_type:n.type,_action:meta.action,_data:n.data,id:n.id};
   }):[];
@@ -17136,7 +17140,9 @@ function renderNotifView(){
       navAction=`openSellerReviewTab('${item._data.sellerId}')`;
     }else if(item._action==='_openSellerById'&&item._data&&item._data.senderId){
       navAction=`openSellerById('${item._data.senderId}')`;
-    }else if(item._action&&item._action!=='_openSellerById'&&item._action!=='_openSellerReviewTab'){
+    }else if(item._action==='_openMyProfileReview'){
+      navAction=`openSellerReviewTab('${curUser?.id||curUser?.email||''}')`;
+    }else if(item._action&&item._action!=='_openSellerById'&&item._action!=='_openSellerReviewTab'&&item._action!=='_openMyProfileReview'){
       navAction=item._action;
     }else if(item.productId){
       navAction=`openDetail(${item.productId})`;
@@ -17147,7 +17153,7 @@ function renderNotifView(){
     if(!navAction){
       if(item._type==='dangol_new'||item._type==='dangol_urgent'||item._type==='follow_news')navAction=`showView('list')`;
       else if(item._type==='price_drop'||item._type==='restock')navAction=item._data?.productId?`openDetail(${item._data.productId})`:`showView('list')`;
-      else if(item._type==='fabric_review')navAction=`showView('mypage')`;
+      else if(item._type==='fabric_review')navAction=`openSellerReviewTab('${curUser?.id||curUser?.email||''}')`;
     }
     const clickAction=navAction?markAction+navAction:markAction+`renderNotifView();`;
     const bgColor=isClicked?'#fff':'#f0edff';
