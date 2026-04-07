@@ -7019,10 +7019,11 @@ async function doLogout(){
 }
 async function doGoogleLogin(){
   if(!_sb){showToast(t('t_social_online_only'));return;}
+  _showLoginLoading(true,'구글 로그인 중...');
   try{
     const{error}=await _sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://www.biummarket.com'}});
-    if(error)throw error;
-  }catch(e){showToast('구글 로그인 실패: '+e.message);console.error(e);}
+    if(error){_showLoginLoading(false);throw error;}
+  }catch(e){_showLoginLoading(false);showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
   const REST_API_KEY='27e1cc15dc74afe3bc3058cf623faf94';
