@@ -11621,7 +11621,8 @@ function openAddressSearch(callback){
   }).open();
 }
 // 검색 지역 필터 - 상품에 등록된 지역 목록에서 선택
-function openLocFilter(){
+let _locListCache=null;
+async function openLocFilter(){
   if(svLocFilter){
     svLocFilter='';
     updateSvFilterBtns(svFilter);
@@ -11629,8 +11630,17 @@ function openLocFilter(){
     showToast(t('t_loc_filter_cleared'));
     return;
   }
-  // 전체 상품에서 지역 추출 (가나다순 정렬)
-  const allProds=_bannerStatsAll||products;
+  // Supabase에서 전체 상품 지역 조회 (캐시)
+  if(!_locListCache&&_sb){
+    try{
+      let{data,error}=await _sb.from('products').select('loc').is('deleted_at',null);
+      if(error&&error.message&&error.message.includes('deleted_at')){
+        ({data,error}=await _sb.from('products').select('loc'));
+      }
+      if(data)_locListCache=data;
+    }catch(e){}
+  }
+  const allProds=_locListCache||products;
   const locSet=new Set();
   allProds.forEach(p=>{
     const loc=p.loc||p.seller?.loc||'';
