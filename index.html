@@ -1786,6 +1786,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
             <div class="my-menu-sub">예약 신청 · 확정/거절 관리</div>
           </div>
           <span id="badge-seller-resvs" style="display:none"></span>
+          <span id="badge-seller-unreview" style="display:none"></span>
           <span class="my-menu-arrow">›</span>
         </div>
         <div class="my-menu-item" onclick="openMySellerProfile()">
@@ -13352,24 +13353,43 @@ async function _updateMyMenuBadges(){
       else el.style.display='none';
     }
   });
-  // 3. 구매자: 미작성 후기 (confirmed 예약 중 후기 미작성)
+  // 3. 미작성 후기 (confirmed 예약 중 구매자가 후기 미작성)
   try{
-    const{data:confirmed,error:e1}=await _sb.from('reservations').select('id').or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`).eq('status','confirmed');
-    if(e1)console.warn('[badge] reservations 조회 오류:',e1.message);
+    // buyer_id 또는 seller_id가 나인 confirmed 예약 전체 조회
+    const{data:confirmed,error:e1}=await _sb.from('reservations').select('id,buyer_id,seller_id').or(`buyer_id.eq.${myId},seller_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail+',seller_id.eq.'+myEmail:''}`).eq('status','confirmed');
+    console.log('[badge] confirmed 예약:',confirmed?.length,'건, 오류:',e1?.message||'없음');
     if(confirmed&&confirmed.length){
-      const resvIds=confirmed.map(r=>r.id);
-      // buyer_to_seller 후기만 체크, review_type 없으면 buyer_id로 폴백
-      let{data:reviews,error:e2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','buyer_to_seller');
-      if(e2){
-        const res2=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`);
-        reviews=res2.data;
-      }
-      const reviewedIds=new Set((reviews||[]).map(r=>r.reservation_id));
-      const unreviewed=resvIds.filter(id=>!reviewedIds.has(id)).length;
-      const el=document.getElementById('badge-buyer-resvs');
-      if(el){
-        if(unreviewed>0){el.style.display='inline';el.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el.textContent='미작성 후기 '+unreviewed+'개';}
-        else el.style.display='none';
+      // 내가 구매자인 예약만 필터
+      const myBuyerResvs=confirmed.filter(r=>r.buyer_id===myId||r.buyer_id===myEmail);
+      const resvIds=myBuyerResvs.map(r=>r.id);
+      console.log('[badge] 내가 구매자인 confirmed 예약:',resvIds.length,'건');
+      if(resvIds.length){
+        // buyer_to_seller 후기 체크
+        let reviews=[];
+        const{data:r1,error:e2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','buyer_to_seller');
+        console.log('[badge] buyer_to_seller 후기 조회:',r1?.length,'건, 오류:',e2?.message||'없음');
+        if(!e2&&r1)reviews=r1;
+        else{
+          // review_type 없으면 buyer_id로 폴백
+          const{data:r2}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).or(`buyer_id.eq.${myId}${myEmail&&myEmail!==myId?',buyer_id.eq.'+myEmail:''}`);
+          if(r2)reviews=r2;
+          console.log('[badge] 폴백 후기 조회:',r2?.length,'건');
+        }
+        const reviewedIds=new Set(reviews.map(r=>r.reservation_id));
+        const unreviewed=resvIds.filter(id=>!reviewedIds.has(id)).length;
+        console.log('[badge] 미작성 후기:',unreviewed,'건');
+        // 구매활동 섹션 뱃지
+        const el1=document.getElementById('badge-buyer-resvs');
+        if(el1){
+          if(unreviewed>0){el1.style.display='inline';el1.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el1.textContent='미작성 후기 '+unreviewed+'개';}
+          else el1.style.display='none';
+        }
+        // 판매관리 섹션 예약 내역 뱃지 (사업자도 구매자일 수 있으므로)
+        const el2=document.getElementById('badge-seller-unreview');
+        if(el2){
+          if(unreviewed>0){el2.style.display='inline';el2.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el2.textContent='미작성 후기 '+unreviewed+'개';}
+          else el2.style.display='none';
+        }
       }
     }
   }catch(e){console.warn('[badge] 미작성 후기 조회 예외:',e);}
