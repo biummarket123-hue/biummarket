@@ -1776,6 +1776,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
             <div class="my-menu-title">가격제안 내역</div>
             <div class="my-menu-sub">받은 제안 · 수락/거절 관리</div>
           </div>
+          <span id="badge-seller-offers" style="display:none"></span>
           <span class="my-menu-arrow">›</span>
         </div>
         <div class="my-menu-item" onclick="showView('my-reservations');renderMyReservations()">
@@ -1784,6 +1785,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
             <div class="my-menu-title">예약 내역</div>
             <div class="my-menu-sub">예약 신청 · 확정/거절 관리</div>
           </div>
+          <span id="badge-seller-resvs" style="display:none"></span>
           <span class="my-menu-arrow">›</span>
         </div>
         <div class="my-menu-item" onclick="openMySellerProfile()">
@@ -1816,6 +1818,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <div class="my-menu-title">가격제안 내역</div>
           <div class="my-menu-sub">내가 보낸 가격제안 현황</div>
         </div>
+        <span id="badge-buyer-offers" style="display:none"></span>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showView('my-reservations');renderMyReservations()">
@@ -1824,6 +1827,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <div class="my-menu-title">예약 내역</div>
           <div class="my-menu-sub">내가 신청한 예약 현황</div>
         </div>
+        <span id="badge-buyer-resvs" style="display:none"></span>
         <span class="my-menu-arrow">›</span>
       </div>
       <div class="my-menu-item" onclick="showView('wishlist')">
@@ -13364,6 +13368,44 @@ function renderMypage(){
     if(upgradeBiz)upgradeBiz.style.display='block';
     if(bizApplySection){bizApplySection.style.display='none';bizApplySection.innerHTML='';}
   }
+  // 가격제안/예약 내역 뱃지 비동기 업데이트
+  _updateMyMenuBadges();
+}
+async function _updateMyMenuBadges(){
+  if(!_sb||!curUser)return;
+  const myId=curUser.id||curUser.email||'';
+  const badgeStyle='font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap';
+  // 1. 판매자: 대기 중 가격제안
+  _sb.from('price_offers').select('id',{count:'exact',head:true}).eq('seller_id',myId).eq('status','pending').then(({count})=>{
+    const el=document.getElementById('badge-seller-offers');
+    if(el){
+      if(count&&count>0){el.style.display='inline';el.style.cssText=badgeStyle+';background:#fff3e0;color:#ff6f00';el.textContent='새로운 제안 '+count+'개';}
+      else el.style.display='none';
+    }
+  });
+  // 2. 판매자: 대기 중 예약
+  _sb.from('reservations').select('id',{count:'exact',head:true}).eq('seller_id',myId).eq('status','pending').then(({count})=>{
+    const el=document.getElementById('badge-seller-resvs');
+    if(el){
+      if(count&&count>0){el.style.display='inline';el.style.cssText=badgeStyle+';background:#e3f2fd;color:#1565c0';el.textContent='새로운 예약 '+count+'개';}
+      else el.style.display='none';
+    }
+  });
+  // 3. 구매자: 미작성 후기 (confirmed 예약 중 후기 미작성)
+  try{
+    const{data:confirmed}=await _sb.from('reservations').select('id').eq('buyer_id',myId).eq('status','confirmed');
+    if(confirmed&&confirmed.length){
+      const resvIds=confirmed.map(r=>r.id);
+      const{data:reviews}=await _sb.from('reviews').select('reservation_id').in('reservation_id',resvIds).eq('review_type','buyer_to_seller');
+      const reviewedIds=new Set((reviews||[]).map(r=>r.reservation_id));
+      const unreviewed=resvIds.filter(id=>!reviewedIds.has(id)).length;
+      const el=document.getElementById('badge-buyer-resvs');
+      if(el){
+        if(unreviewed>0){el.style.display='inline';el.style.cssText=badgeStyle+';background:#e8f5e9;color:#2e7d32';el.textContent='미작성 후기 '+unreviewed+'개';}
+        else el.style.display='none';
+      }
+    }
+  }catch(e){}
 }
 
 /* ===== 상품 소유자 확인 헬퍼 ===== */
