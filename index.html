@@ -6681,6 +6681,27 @@ function _restoreLoginFields(){
   }
 }
 
+// 로그인 로딩 오버레이
+function _showLoginLoading(show,msg){
+  let el=document.getElementById('login-loading-overlay');
+  if(show){
+    if(el)return;
+    el=document.createElement('div');
+    el.id='login-loading-overlay';
+    el.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px';
+    el.innerHTML=`
+      <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#8b84ff);display:flex;align-items:center;justify-content:center;animation:spin 1.2s linear infinite;box-shadow:0 4px 20px rgba(108,99,255,.3)">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center">
+          <div style="font-size:24px;font-weight:900;color:#6c63ff;font-family:sans-serif">B</div>
+        </div>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#1a1a1a">${msg||'로그인 중...'}</div>
+      <div style="font-size:13px;color:#888">잠시만 기다려주세요</div>`;
+    document.body.appendChild(el);
+  }else{
+    if(el)el.remove();
+  }
+}
 async function doLogin(isAuto){
   const inputId=document.getElementById('l-email').value.trim();
   const pw=document.getElementById('l-pw').value;
@@ -6713,9 +6734,11 @@ async function doLogin(isAuto){
     else setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
     return;
   }
+  _showLoginLoading(true,'로그인 중...');
   try{
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pw});
     if(error){
+      _showLoginLoading(false);
       showToast(t('t_wrong_email_pw'));
       return;
     }
@@ -6725,7 +6748,7 @@ async function doLogin(isAuto){
     curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
     // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
     if(prevUser&&(prevUser.id===curUser.id||prevUser.email===email))_preserveLocalFields(curUser,prevUser);
-    if(curUser.status==='suspended'){curUser=null;showToast(t('t_account_suspended'));return;}
+    if(curUser.status==='suspended'){curUser=null;_showLoginLoading(false);showToast(t('t_account_suspended'));return;}
     // 활성 userId 설정 (계정별 데이터 분리용)
     localStorage.setItem('bium_activeUserId', curUser.id||curUser.email||'guest');
     lsSet('curUser',curUser);updateNotifDot();
@@ -6739,13 +6762,14 @@ async function doLogin(isAuto){
       lsSet('lastUserId',newUserId);
       lsSet('interestCatsSet',false);
     }
+    _showLoginLoading(false);
     showView('list');showListSkeleton();loadProductsFromSupabase(true).then(()=>{
       const _pp2=sessionStorage.getItem('bium_pending_product');
       if(_pp2){sessionStorage.removeItem('bium_pending_product');setTimeout(()=>openDetail(_pp2),300);}
     });
     syncKeywordsFromSupabase();
     if(!sessionStorage.getItem('bium_pending_product'))setTimeout(()=>{if(!lsGet('interestCatsSet',false))openInterestModal();},800);
-  }catch(e){showToast(t('t_login_error'));console.error(e);}
+  }catch(e){_showLoginLoading(false);showToast(t('t_login_error'));console.error(e);}
 }
 // 약관 동의 상태
 let _agreeState={terms:false,privacy:false,marketing:false};
@@ -7018,6 +7042,7 @@ function doKakaoLogin(){
   }
 }
 async function handleKakaoCode(code){
+  _showLoginLoading(true,'카카오 로그인 중...');
   try{
     // 서버에서 카카오 토큰 교환 (client_secret 보호)
     const res=await fetch('/api/kakao-token?code='+encodeURIComponent(code)).then(r=>r.json());
@@ -7033,9 +7058,11 @@ async function handleKakaoCode(code){
         curUser.provider='kakao';
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
+        _showLoginLoading(false);
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
       }else{
+        _showLoginLoading(false);
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
         _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
@@ -7052,10 +7079,11 @@ async function handleKakaoCode(code){
         },100);
       }
     }else{
+      _showLoginLoading(false);
       _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
       showView('signup');
     }
-  }catch(e){showToast('카카오 로그인 오류: '+e.message);console.error(e);}
+  }catch(e){_showLoginLoading(false);showToast('카카오 로그인 오류: '+e.message);console.error(e);}
 }
 function doNaverLogin(){
   const CLIENT_ID='dYw4QkVqHsSd4DjthmE5';
@@ -7079,6 +7107,7 @@ function doNaverLogin(){
 async function handleNaverCode(code,state){
   const savedState=sessionStorage.getItem('naver_state');
   if(state!==savedState){showToast(t('t_security_error'));return;}
+  _showLoginLoading(true,'네이버 로그인 중...');
   try{
     const res=await fetch(`/api/naver-token?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
     const userData=await res.json();
@@ -7095,9 +7124,11 @@ async function handleNaverCode(code,state){
         curUser.provider='naver';
         lsSet('curUser',curUser);
         localStorage.setItem('bium_activeUserId',curUser.id||email);
+        _showLoginLoading(false);
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
       }else{
+        _showLoginLoading(false);
         // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
         _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
@@ -7114,10 +7145,11 @@ async function handleNaverCode(code,state){
         },100);
       }
     }else{
+      _showLoginLoading(false);
       _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
       showView('signup');
     }
-  }catch(e){showToast('네이버 로그인 오류: '+e.message);console.error(e);}
+  }catch(e){_showLoginLoading(false);showToast('네이버 로그인 오류: '+e.message);console.error(e);}
 }
 function selectType(type,el){
   selectedUserType=type;
