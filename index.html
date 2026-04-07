@@ -9324,14 +9324,19 @@ async function renderMyReservations(){
     _resvRenderLock=false;return;
   }
 
-  // 후기 상태 비동기 체크용 예약 ID 수집
-  const confirmedBuyerResvIds=[];
-  const confirmedSellerResvIds=[];
+  // 리뷰 상태를 먼저 조회한 후 HTML 렌더링 (깜빡거림 완전 방지)
+  const confirmedIds=filteredList.filter(r=>r.status==='confirmed').map(r=>r.id);
+  let buyerRevSet=new Set(),sellerRevSet=new Set();
+  if(_sb&&confirmedIds.length){
+    let allRevs=[];
+    const{data:revData,error:revErr}=await _sb.from('reviews').select('reservation_id,review_type,buyer_id').in('reservation_id',confirmedIds);
+    if(!revErr&&revData)allRevs=revData;
+    else{const{data:r2}=await _sb.from('reviews').select('reservation_id,buyer_id').in('reservation_id',confirmedIds);if(r2)allRevs=r2;}
+    buyerRevSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller'||(!r.review_type&&r.buyer_id===(curUser.id||curUser.email||''))).map(r=>r.reservation_id));
+    sellerRevSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
+  }
+
   container.innerHTML=filteredList.map(r=>{
-    const isBuyer=r.buyerId===(curUser?.id||curUser?.email||'');
-    const isSell=r.sellerId===(curUser?.id||curUser?.email||'');
-    if(isBuyer&&r.status==='confirmed')confirmedBuyerResvIds.push(r.id);
-    if(isSell&&r.status==='confirmed')confirmedSellerResvIds.push({id:r.id,completedAt:r.completed_at||r.createdAt});
     const isSeller=r.sellerId===myId;
     const statusLabel={pending:'⏳ 대기중',confirmed:'✅ 확정됨',rejected:'❌ 거절됨',cancelled:'🚫 취소됨'}[r.status]||r.status;
     const statusColor={pending:'#f59e0b',confirmed:'#10b981',rejected:'#ef4444',cancelled:'#888'}[r.status]||'#888';
@@ -9340,6 +9345,26 @@ async function renderMyReservations(){
     const unit=r.unit||'m';
     const unitPrice=prod?.price||0;
     const totalPrice=unitPrice&&r.qty?Math.round(unitPrice*r.qty):0;
+    // 후기 상태 미리 계산
+    let buyerReviewHtml='',sellerReviewHtml='',buyerStatusHtml='',sellerStatusHtml='';
+    if(!isSeller&&r.status==='confirmed'){
+      if(buyerRevSet.has(r.id)){
+        buyerReviewHtml=`<button style="flex:1;padding:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:10px;font-size:13px;font-weight:700" disabled>✅ 후기 작성 완료</button>`;
+      }else{
+        const daysP=(Date.now()-new Date(r.completed_at||r.updatedAt||r.createdAt).getTime())/(1000*60*60*24);
+        if(daysP>7){buyerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 7일이 지나 후기를 작성할 수 없어요</div>`;}
+        else{buyerReviewHtml=`<button onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#ff6f00;margin-top:6px;text-align:center">후기 작성 가능 (${Math.ceil(7-daysP)}일 남음)</div>`;}
+      }
+    }
+    if(isSeller&&r.status==='confirmed'){
+      if(sellerRevSet.has(r.id)){
+        sellerReviewHtml=`<button style="flex:1;padding:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:10px;font-size:13px;font-weight:700" disabled>✅ 후기 작성 완료</button>`;
+      }else{
+        const daysP=(Date.now()-new Date(r.completed_at||r.createdAt).getTime())/(1000*60*60*24);
+        if(daysP>7){sellerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 7일이 지나 후기를 작성할 수 없어요</div>`;}
+        else{sellerReviewHtml=`<button onclick="openBuyerReviewModal('${r.buyerId}','${(r.buyerName||'').replace(/'/g,"\\'")}','${r.id}','${r.completed_at||r.createdAt}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 구매자 후기 쓰기</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#6c63ff;margin-top:6px;text-align:center">구매자 후기 작성 가능 (${Math.ceil(7-daysP)}일 남음)</div>`;}
+      }
+    }
     return `
       <div style="background:#fff;border:1px solid #e0e0ea;border-radius:14px;padding:14px;margin-bottom:10px">
         <div style="display:flex;gap:12px;margin-bottom:10px">
@@ -9365,60 +9390,12 @@ async function renderMyReservations(){
           ${isSeller&&r.status==='pending'?`
             <button onclick="acceptReservation('${r.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 확정</button>
             <button onclick="rejectReservation('${r.id}')" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">❌ 거절</button>`:''}
-          ${!isSeller&&r.status==='confirmed'?`<button id="resv-review-btn-${r.id}" onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`:''}
-          ${isSeller&&r.status==='confirmed'?`<button id="resv-breview-btn-${r.id}" onclick="openBuyerReviewModal('${r.buyerId}','${(r.buyerName||'').replace(/'/g,"\\'")}','${r.id}','${r.completed_at||r.createdAt}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 구매자 후기 쓰기</button>`:''}
+          ${buyerReviewHtml}${sellerReviewHtml}
         </div>
-        ${!isSeller&&r.status==='confirmed'?`<div id="resv-review-status-${r.id}" style="font-size:12px;color:#888;margin-top:6px;text-align:center"></div>`:''}
-        ${isSeller&&r.status==='confirmed'?`<div id="resv-breview-status-${r.id}" style="font-size:12px;color:#888;margin-top:6px;text-align:center"></div>`:''}
+        ${buyerStatusHtml}${sellerStatusHtml}
       </div>`;
   }).join('');
 
-  // 후기 상태를 한 번에 조회하여 업데이트 (깜빡거림 방지)
-  if(_sb){
-    const allResvIds=[...confirmedBuyerResvIds,...confirmedSellerResvIds.map(x=>x.id)];
-    if(allResvIds.length){
-      // 전체 리뷰를 한 번에 조회
-      let allRevs=[];
-      const{data:revData,error:revErr}=await _sb.from('reviews').select('reservation_id,review_type,buyer_id').in('reservation_id',allResvIds);
-      if(!revErr&&revData)allRevs=revData;
-      // review_type 컬럼 없으면 전체 조회
-      else{const{data:r2}=await _sb.from('reviews').select('reservation_id,buyer_id').in('reservation_id',allResvIds);if(r2)allRevs=r2;}
-
-      const buyerRevSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller'||(!r.review_type&&r.buyer_id===(curUser.id||curUser.email||''))).map(r=>r.reservation_id));
-      const sellerRevSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
-
-      // 구매자 후기 버튼 업데이트
-      for(const resvId of confirmedBuyerResvIds){
-        const btn=document.getElementById('resv-review-btn-'+resvId);
-        const statusEl=document.getElementById('resv-review-status-'+resvId);
-        if(!btn||!statusEl)continue;
-        if(buyerRevSet.has(resvId)){
-          btn.textContent='✅ 후기 작성 완료';btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';btn.disabled=true;btn.onclick=null;
-          continue;
-        }
-        const resv=filteredList.find(r=>r.id===resvId);
-        if(resv){
-          const completedAt=new Date(resv.completed_at||resv.updatedAt||resv.createdAt).getTime();
-          const daysPassed=(Date.now()-completedAt)/(1000*60*60*24);
-          if(daysPassed>7){btn.textContent='⏰ 기간 만료';btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';btn.disabled=true;btn.onclick=null;statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';statusEl.style.color='#e53935';}
-          else{statusEl.textContent=`후기 작성 가능 (${Math.ceil(7-daysPassed)}일 남음)`;statusEl.style.color='#ff6f00';}
-        }
-      }
-      // 판매자 구매자후기 버튼 업데이트
-      for(const item of confirmedSellerResvIds){
-        const btn=document.getElementById('resv-breview-btn-'+item.id);
-        const statusEl=document.getElementById('resv-breview-status-'+item.id);
-        if(!btn||!statusEl)continue;
-        if(sellerRevSet.has(item.id)){
-          btn.textContent='✅ 후기 작성 완료';btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';btn.disabled=true;btn.onclick=null;
-          continue;
-        }
-        const daysPassed=(Date.now()-new Date(item.completedAt).getTime())/(1000*60*60*24);
-        if(daysPassed>7){btn.textContent='⏰ 기간 만료';btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';btn.disabled=true;btn.onclick=null;statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';statusEl.style.color='#e53935';}
-        else{statusEl.textContent=`구매자 후기 작성 가능 (${Math.ceil(7-daysPassed)}일 남음)`;statusEl.style.color='#6c63ff';}
-      }
-    }
-  }
   _resvRenderLock=false;
 }
 
