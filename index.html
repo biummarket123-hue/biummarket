@@ -12016,10 +12016,12 @@ function renderChatList(){
   empty.style.display='none';
   wrap.style.display='block';
 
-  // 안읽음 뱃지 업데이트
-  const totalUnread=Object.values(chatRooms).filter(r=>r.unread&&r.unread>0).length;
+  // 안읽음 합산 (각 채팅방 unread 메시지 수 합계)
+  const totalUnread=Object.values(chatRooms).reduce((a,r)=>a+(r.unread||0),0);
   const unreadTab=document.getElementById('chat-tab-unread');
   if(unreadTab)unreadTab.textContent=totalUnread>0?`안읽음 ${totalUnread}`:'안읽음';
+  // 하단 채팅 뱃지도 동일 값으로 갱신
+  updateChatBadge();
 
   // 최신순 정렬 (lastTimeRaw 기준)
   rooms.sort((a,b)=>{
@@ -16870,7 +16872,8 @@ function updateNotifDot(){
   updateChatBadge();
 }
 function updateChatBadge(){
-  const rooms=lsGet('chatRooms',{});
+  // 메모리 chatRooms 직접 참조 (localStorage 타이밍 이슈 방지)
+  const rooms=typeof chatRooms!=='undefined'&&chatRooms?chatRooms:lsGet('chatRooms',{});
   const total=Object.values(rooms).reduce((a,r)=>a+(r.unread||0),0);
   document.querySelectorAll('.chat-unread-badge').forEach(badge=>{
     if(total>0){
