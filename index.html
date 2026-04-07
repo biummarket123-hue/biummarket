@@ -452,7 +452,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .sv-bar input::placeholder{color:#666677}
 .sv-bar button{flex-shrink:0}
 .sv-clear{font-size:13px;color:#666677;padding:2px 6px;border-radius:6px}
-.sv-filter-row{display:flex;gap:8px;padding:10px 14px;background:#ffffff;border-bottom:1px solid #e0e0ea;overflow-x:auto;scrollbar-width:none}
+.sv-filter-row{display:flex;gap:8px;padding:10px 14px;background:#ffffff;overflow-x:auto;scrollbar-width:none}
 .sv-filter-row::-webkit-scrollbar{display:none}
 .sv-filter-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid #d8d8e8;color:#666677;background:#f8f8fa;transition:all .15s}
 .sv-filter-btn.on{border-color:#6c63ff;color:#6c63ff;background:rgba(108,99,255,.1)}
@@ -2502,7 +2502,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <button class="sv-filter-btn" id="svf-실크" onclick="setSvFilter('실크');updateSvFilterBtns('실크')">실크</button>
     <button class="sv-filter-btn" id="svf-혼방" onclick="setSvFilter('혼방');updateSvFilterBtns('혼방')">혼방</button>
   </div>
-  <div class="sv-filter-row" style="border-bottom:1px solid #e0e0ea;padding-top:0">
+  <div class="sv-filter-row" style="padding-top:0">
     <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
     <button class="sv-filter-btn" id="svf-지역" onclick="openLocFilter()">지역 ▾</button>
     <button class="sv-filter-btn" id="svf-free" onclick="toggleSvFree()">🎁 나눔</button>
