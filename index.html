@@ -11169,18 +11169,44 @@ function toggleFreeGiveaway(on){
   }
 }
 
+// 상품 등록/수정 로딩 오버레이
+let _submitLock=false;
+function _showSubmitLoading(show){
+  let el=document.getElementById('submit-loading-overlay');
+  if(show){
+    if(el)return;
+    el=document.createElement('div');
+    el.id='submit-loading-overlay';
+    el.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px';
+    el.innerHTML=`
+      <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#8b84ff);display:flex;align-items:center;justify-content:center;animation:spin 1.2s linear infinite;box-shadow:0 4px 20px rgba(108,99,255,.3)">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center">
+          <div style="font-size:24px;font-weight:900;color:#6c63ff;font-family:sans-serif">B</div>
+        </div>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#1a1a1a">상품 ${formEditId?'수정':'등록'} 중...</div>
+      <div style="font-size:13px;color:#888">잠시만 기다려주세요</div>`;
+    document.body.appendChild(el);
+  }else{
+    if(el)el.remove();
+  }
+}
 async function submitForm(){
+  if(_submitLock)return;
   if(!confirm('상품을 등록하시겠습니까?'))return;
+  _submitLock=true;
+  _showSubmitLoading(true);
   const title=document.getElementById('f-title').value.trim();
   const material=document.getElementById('f-material').value.trim();
   const qty=parseFloat(document.getElementById('f-qty').value);
   const price=parseFloat(document.getElementById('f-price').value);
-  if(!title){showToast(t('t_enter_product_name'));return;}
-  if(!formCat1){showToast(t('t_select_category'));return;}
-  if(!material){showToast(t('t_enter_material'));return;}
+  function _unlockSubmit(){_submitLock=false;_showSubmitLoading(false);}
+  if(!title){showToast(t('t_enter_product_name'));_unlockSubmit();return;}
+  if(!formCat1){showToast(t('t_select_category'));_unlockSubmit();return;}
+  if(!material){showToast(t('t_enter_material'));_unlockSubmit();return;}
   const isFree=document.getElementById('freeToggle')?.checked??false;
-  if(!qty||qty<=0){showToast(t('t_enter_stock_qty'));return;}
-  if(!isFree&&(!price||price<=0)){showToast(t('t_enter_sale_price'));return;}
+  if(!qty||qty<=0){showToast(t('t_enter_stock_qty'));_unlockSubmit();return;}
+  if(!isFree&&(!price||price<=0)){showToast(t('t_enter_sale_price'));_unlockSubmit();return;}
   const weight=document.getElementById('f-weight').value.trim();
   const description=document.getElementById('f-desc').value.trim()||'상품 설명이 없습니다.';
   const unit=document.getElementById('f-unit').value;
@@ -11236,7 +11262,7 @@ async function submitForm(){
       {const _ns=lsGet('notifSettings',{});if(_ns.newProd!==false)addNotif('🆕','rgba(100,200,255,.15)','신규 상품 등록',(curUser?.name||'나')+' - '+title);}
       {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
     }
-    return;
+    _unlockSubmit();return;
   }
   try{
     if(formEditId){
@@ -11252,7 +11278,7 @@ async function submitForm(){
       const{data:updated,error}=await _sb.from('products').update(upd).eq('id',formEditId).select().single();
       console.log('[DEBUG] update error:',error);
       console.log('[DEBUG] update result cat2:',updated?.cat2,'cat3:',updated?.cat3);
-      if(error){showToast('수정 실패: '+error.message);return;}
+      if(error){showToast('수정 실패: '+error.message);_unlockSubmit();return;}
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...upd};
       const productId=formEditId;
@@ -11269,6 +11295,7 @@ async function submitForm(){
       }
       // 로컬 products는 이미 업데이트됨 — 전체 리로드 불필요, 캐시만 갱신
       lsDelTTL('products_sb');saveProducts();
+      _unlockSubmit();
     }else{
       console.log('[submitForm] insert 시도 payload:', JSON.stringify(payload));
       let{data:inserted,error}=await _sb.from('products').insert(payload).select().single();
@@ -11294,7 +11321,7 @@ async function submitForm(){
       }
       if(error){
         console.error('[submitForm] insert 오류 — code:',error.code,'message:',error.message,'details:',error.details,'hint:',error.hint);
-        showToast('저장 실패: '+error.message);return;
+        showToast('저장 실패: '+error.message);_unlockSubmit();return;
       }
       console.log('[submitForm] insert 성공 — id:',inserted.id);
       // fabric_specs에 자동 저장 (RAG 데이터 축적)
@@ -11344,11 +11371,13 @@ async function submitForm(){
       // 단골에게 새 상품 알림
       notifyDangolNewProduct(payload.title,inserted?.id||'',payload.is_urgent||false);
       lsDelTTL('products_sb');await loadProductsFromSupabase(true);
+      _unlockSubmit();
     }
   }catch(e){
     console.error('[submitForm] 예외:', e);
     showToast(t('t_product_save_error'));
   }
+  _unlockSubmit();
 }
 function doSvSearch(){
   const q=svSearch.trim();
