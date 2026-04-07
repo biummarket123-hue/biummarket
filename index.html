@@ -9267,8 +9267,11 @@ function setResvFilter(filter){
   });
   renderMyReservations();
 }
+let _resvRenderLock=false;
 async function renderMyReservations(){
-  const container=document.getElementById('my-reservations-list');if(!container)return;
+  if(_resvRenderLock)return;
+  _resvRenderLock=true;
+  const container=document.getElementById('my-reservations-list');if(!container){_resvRenderLock=false;return;}
   let resvList=[];
 
   if(_sb&&curUser){
@@ -9318,7 +9321,7 @@ async function renderMyReservations(){
   if(!filteredList.length){
     const labels={all:'예약 내역이 없어요',sell:'판매 예약 내역이 없어요',buy:'구매 예약 내역이 없어요'};
     container.innerHTML=`<div style="text-align:center;padding:40px;color:#888">${labels[curResvFilter]||'예약 내역이 없어요'}</div>`;
-    return;
+    _resvRenderLock=false;return;
   }
 
   // 후기 상태 비동기 체크용 예약 ID 수집
@@ -9370,80 +9373,53 @@ async function renderMyReservations(){
       </div>`;
   }).join('');
 
-  // 후기 상태 비동기 체크 (이미 작성 / 7일 만료)
-  if(_sb&&confirmedBuyerResvIds.length){
-    (async()=>{
+  // 후기 상태를 한 번에 조회하여 업데이트 (깜빡거림 방지)
+  if(_sb){
+    const allResvIds=[...confirmedBuyerResvIds,...confirmedSellerResvIds.map(x=>x.id)];
+    if(allResvIds.length){
+      // 전체 리뷰를 한 번에 조회
+      let allRevs=[];
+      const{data:revData,error:revErr}=await _sb.from('reviews').select('reservation_id,review_type,buyer_id').in('reservation_id',allResvIds);
+      if(!revErr&&revData)allRevs=revData;
+      // review_type 컬럼 없으면 전체 조회
+      else{const{data:r2}=await _sb.from('reviews').select('reservation_id,buyer_id').in('reservation_id',allResvIds);if(r2)allRevs=r2;}
+
+      const buyerRevSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller'||(!r.review_type&&r.buyer_id===(curUser.id||curUser.email||''))).map(r=>r.reservation_id));
+      const sellerRevSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
+
+      // 구매자 후기 버튼 업데이트
       for(const resvId of confirmedBuyerResvIds){
         const btn=document.getElementById('resv-review-btn-'+resvId);
-        const status=document.getElementById('resv-review-status-'+resvId);
-        if(!btn||!status)continue;
-        // 이미 후기 작성했는지 체크
-        // buyer_to_seller 후기만 체크 (seller_to_buyer와 혼동 방지)
-        let rev=null;
-        const{data:r1,error:e1}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).eq('review_type','buyer_to_seller').maybeSingle();
-        if(!e1)rev=r1;
-        else{const{data:r2}=await _sb.from('reviews').select('id').eq('reservation_id',resvId).eq('buyer_id',curUser.id||curUser.email||'').maybeSingle();rev=r2;}
-        if(rev){
-          btn.textContent='✅ 후기 작성 완료';
-          btn.style.background='#e8f5e9';
-          btn.style.color='#2e7d32';
-          btn.style.border='1px solid #c8e6c9';
-          btn.disabled=true;
-          btn.onclick=null;
+        const statusEl=document.getElementById('resv-review-status-'+resvId);
+        if(!btn||!statusEl)continue;
+        if(buyerRevSet.has(resvId)){
+          btn.textContent='✅ 후기 작성 완료';btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';btn.disabled=true;btn.onclick=null;
           continue;
         }
-        // 7일 만료 체크
         const resv=filteredList.find(r=>r.id===resvId);
         if(resv){
           const completedAt=new Date(resv.completed_at||resv.updatedAt||resv.createdAt).getTime();
           const daysPassed=(Date.now()-completedAt)/(1000*60*60*24);
-          if(daysPassed>7){
-            btn.textContent='⏰ 기간 만료';
-            btn.style.background='#f5f5f5';
-            btn.style.color='#999';
-            btn.style.border='1px solid #e0e0ea';
-            btn.disabled=true;
-            btn.onclick=null;
-            status.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';
-            status.style.color='#e53935';
-          }else{
-            const remain=Math.ceil(7-daysPassed);
-            status.textContent=`후기 작성 가능 (${remain}일 남음)`;
-            status.style.color='#ff6f00';
-          }
+          if(daysPassed>7){btn.textContent='⏰ 기간 만료';btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';btn.disabled=true;btn.onclick=null;statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';statusEl.style.color='#e53935';}
+          else{statusEl.textContent=`후기 작성 가능 (${Math.ceil(7-daysPassed)}일 남음)`;statusEl.style.color='#ff6f00';}
         }
       }
-    })();
-  }
-  // 판매자 → 구매자 후기 상태 비동기 체크
-  if(_sb&&confirmedSellerResvIds.length){
-    (async()=>{
+      // 판매자 구매자후기 버튼 업데이트
       for(const item of confirmedSellerResvIds){
         const btn=document.getElementById('resv-breview-btn-'+item.id);
         const statusEl=document.getElementById('resv-breview-status-'+item.id);
         if(!btn||!statusEl)continue;
-        const{data:rev}=await _sb.from('reviews').select('id').eq('reservation_id',item.id).eq('review_type','seller_to_buyer').maybeSingle();
-        if(rev){
-          btn.textContent='✅ 후기 작성 완료';
-          btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';
-          btn.disabled=true;btn.onclick=null;
+        if(sellerRevSet.has(item.id)){
+          btn.textContent='✅ 후기 작성 완료';btn.style.background='#e8f5e9';btn.style.color='#2e7d32';btn.style.border='1px solid #c8e6c9';btn.disabled=true;btn.onclick=null;
           continue;
         }
         const daysPassed=(Date.now()-new Date(item.completedAt).getTime())/(1000*60*60*24);
-        if(daysPassed>7){
-          btn.textContent='⏰ 기간 만료';
-          btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';
-          btn.disabled=true;btn.onclick=null;
-          statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';
-          statusEl.style.color='#e53935';
-        }else{
-          const remain=Math.ceil(7-daysPassed);
-          statusEl.textContent=`구매자 후기 작성 가능 (${remain}일 남음)`;
-          statusEl.style.color='#6c63ff';
-        }
+        if(daysPassed>7){btn.textContent='⏰ 기간 만료';btn.style.background='#f5f5f5';btn.style.color='#999';btn.style.border='1px solid #e0e0ea';btn.disabled=true;btn.onclick=null;statusEl.textContent='거래 완료 후 7일이 지나 후기를 작성할 수 없어요';statusEl.style.color='#e53935';}
+        else{statusEl.textContent=`구매자 후기 작성 가능 (${Math.ceil(7-daysPassed)}일 남음)`;statusEl.style.color='#6c63ff';}
       }
-    })();
+    }
   }
+  _resvRenderLock=false;
 }
 
 function respondReservation(resvId,status){
