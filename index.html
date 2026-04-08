@@ -13299,8 +13299,14 @@ function renderMypage(){
     _sb.from('wishes').select('id',{count:'exact',head:true}).eq('user_id',myId).then(({count})=>{
       if(count!=null){set('my-stat-wish',count);set('my-sub-wish',count+t('cnt_saved'));}
     });
-    // 거래완료: reservations 테이블에서 confirmed만 조회
-    _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
+    // 거래완료: 사업자=판매기준(seller_id), 일반회원=구매기준(buyer_id)
+    const doneQuery=_sb.from('reservations').select('id',{count:'exact',head:true}).eq('status','confirmed');
+    if(isBusiness()||isAdmin()){
+      doneQuery.eq('seller_id',myId);
+    }else{
+      doneQuery.eq('buyer_id',myId);
+    }
+    doneQuery.then(({count})=>{
       if(count!=null){set('my-stat-done',count);}
     });
   }
