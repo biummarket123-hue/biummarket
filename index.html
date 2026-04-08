@@ -13241,23 +13241,36 @@ function renderMypage(){
     scoreEl.innerHTML=scoreHtml||'';
   }
 
-  // 통계 계산
-  const wishes=Object.values(lsGet('likedMap',{})).filter(Boolean).length;
+  // 통계 계산 - 관심목록은 likedMap에서 실제 존재하는 상품만 카운트
+  const likedMap=lsGet('likedMap',{});
+  const likedIds=Object.keys(likedMap).filter(k=>likedMap[k]);
   const cartCnt=lsGet('cart',[]).length;
 
   // 통계 렌더 (초기값 표시 후 Supabase 조회로 갱신)
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('my-stat-products',0);
-  set('my-stat-wish',wishes);
+  set('my-stat-wish',0);
   set('my-stat-done',0);
 
-  // Supabase에서 등록상품/거래완료 직접 조회
+  // Supabase에서 등록상품/관심목록/거래완료 직접 조회
   if(_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
     // 등록상품: products 테이블에서 seller_id = 내 id, deleted_at IS NULL
     _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',myId).is('deleted_at',null).then(({count})=>{
       if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}
     });
+    // 관심목록: likedMap의 id들이 실제 존재하는지 Supabase에서 확인
+    if(likedIds.length){
+      _sb.from('products').select('id').in('id',likedIds.map(Number)).is('deleted_at',null).then(({data})=>{
+        const validIds=data?data.map(r=>String(r.id)):[];
+        // 존재하지 않는 상품은 likedMap에서 정리
+        let cleaned=false;
+        likedIds.forEach(id=>{if(!validIds.includes(String(id))){delete likedMap[id];cleaned=true;}});
+        if(cleaned)lsSet('likedMap',likedMap);
+        set('my-stat-wish',validIds.length);
+        set('my-sub-wish',validIds.length+t('cnt_saved'));
+      });
+    }
     // 거래완료: reservations 테이블에서 confirmed만 조회
     _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
       if(count!=null){set('my-stat-done',count);}
@@ -13266,7 +13279,7 @@ function renderMypage(){
 
   // 메뉴 부제 업데이트
   set('my-sub-products','0'+t('cnt_reg'));
-  set('my-sub-wish',wishes+t('cnt_saved'));
+  set('my-sub-wish','0'+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
   // 사업자 회원이면 등록상품 표시, 일반회원이면 사업자 신청 버튼으로 교체
