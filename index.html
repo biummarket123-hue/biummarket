@@ -1770,7 +1770,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           </div>
           <span class="my-menu-arrow">›</span>
         </div>
-        <div class="my-menu-item" onclick="showView('my-offers');renderMyOffers()">
+        <div class="my-menu-item" onclick="setOfferFilter('sell');showView('my-offers');renderMyOffers()">
           <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
           <div class="my-menu-info">
             <div class="my-menu-title">가격제안 내역</div>
@@ -1779,7 +1779,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
           <span id="badge-seller-offers" style="display:none"></span>
           <span class="my-menu-arrow">›</span>
         </div>
-        <div class="my-menu-item" onclick="showView('my-reservations');renderMyReservations()">
+        <div class="my-menu-item" onclick="setResvFilter('sell');showView('my-reservations');renderMyReservations()">
           <div class="my-icon-box" style="background:rgba(0,150,200,.15)">📅</div>
           <div class="my-menu-info">
             <div class="my-menu-title">예약 내역</div>
@@ -1813,7 +1813,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
       <!-- ===== 구매 활동 ===== -->
       <div class="my-section-wrap" id="section-buy-activity">
         <div class="my-section-title">🛒 구매 활동</div>
-      <div class="my-menu-item" onclick="showView('my-offers');renderMyOffers()">
+      <div class="my-menu-item" onclick="setOfferFilter('buy');showView('my-offers');renderMyOffers()">
         <div class="my-icon-box" style="background:rgba(201,168,76,.15)">💰</div>
         <div class="my-menu-info">
           <div class="my-menu-title">가격제안 내역</div>
@@ -1822,7 +1822,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <span id="badge-buyer-offers" style="display:none"></span>
         <span class="my-menu-arrow">›</span>
       </div>
-      <div class="my-menu-item" onclick="showView('my-reservations');renderMyReservations()">
+      <div class="my-menu-item" onclick="setResvFilter('buy');showView('my-reservations');renderMyReservations()">
         <div class="my-icon-box" style="background:rgba(100,200,150,.15)">📅</div>
         <div class="my-menu-info">
           <div class="my-menu-title">예약 내역</div>
@@ -2625,8 +2625,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">📅 예약 내역</div>
   </div>
   <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff">
-    <button onclick="setResvFilter('all')" id="resv-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
-    <button onclick="setResvFilter('sell')" id="resv-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setResvFilter('sell')" id="resv-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">판매</button>
     <button onclick="setResvFilter('buy')" id="resv-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px" id="my-reservations-list"></div>
@@ -2639,8 +2638,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800">💰 가격제안 내역</div>
   </div>
   <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff">
-    <button onclick="setOfferFilter('all')" id="offer-tab-all" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">전체</button>
-    <button onclick="setOfferFilter('sell')" id="offer-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">판매</button>
+    <button onclick="setOfferFilter('sell')" id="offer-tab-sell" style="flex:1;padding:12px 4px;font-size:13px;font-weight:700;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">판매</button>
     <button onclick="setOfferFilter('buy')" id="offer-tab-buy" style="flex:1;padding:12px 4px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2px solid transparent;color:#666677;cursor:pointer">구매</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px" id="my-offers-list"></div>
@@ -9040,10 +9038,10 @@ function fillOfferContactManual(){
   if(manBtn){manBtn.style.background='#6c63ff';manBtn.style.color='#fff';}
 }
 
-let curOfferFilter='all';
+let curOfferFilter='sell';
 function setOfferFilter(filter){
   curOfferFilter=filter;
-  ['all','sell','buy'].forEach(f=>{
+  ['sell','buy'].forEach(f=>{
     const btn=document.getElementById(`offer-tab-${f}`);
     if(btn){
       btn.style.borderBottomColor=f===filter?'#6c63ff':'transparent';
@@ -9104,7 +9102,7 @@ async function renderMyOffers(){
   }
 
   if(!filteredOffers.length){
-    const labels={all:'가격제안 내역이 없어요',sell:'판매 가격제안 내역이 없어요',buy:'구매 가격제안 내역이 없어요'};
+    const labels={sell:'판매 가격제안 내역이 없어요',buy:'구매 가격제안 내역이 없어요'};
     container.innerHTML=`<div style="text-align:center;padding:40px;color:#888">${labels[curOfferFilter]||'가격제안 내역이 없어요'}</div>`;
     return;
   }
@@ -9277,10 +9275,10 @@ function calcResPrice(){
   if(totalEl)totalEl.textContent=`총 ${total.toLocaleString()}원`;
 }
 
-let curResvFilter='all';
+let curResvFilter='sell';
 function setResvFilter(filter){
   curResvFilter=filter;
-  ['all','sell','buy'].forEach(f=>{
+  ['sell','buy'].forEach(f=>{
     const btn=document.getElementById(`resv-tab-${f}`);
     if(btn){
       btn.style.borderBottomColor=f===filter?'#6c63ff':'transparent';
@@ -9342,7 +9340,7 @@ async function renderMyReservations(){
   }
 
   if(!filteredList.length){
-    const labels={all:'예약 내역이 없어요',sell:'판매 예약 내역이 없어요',buy:'구매 예약 내역이 없어요'};
+    const labels={sell:'판매 예약 내역이 없어요',buy:'구매 예약 내역이 없어요'};
     container.innerHTML=`<div style="text-align:center;padding:40px;color:#888">${labels[curResvFilter]||'예약 내역이 없어요'}</div>`;
     _resvRenderLock=false;return;
   }
@@ -13628,6 +13626,7 @@ function applyRoleVisibility(){
 }
 function goToDoneReservations(){
   if(!curUser){showToast(t('t_login_required'));return;}
+  setResvFilter(isBusiness()||isAdmin()?'sell':'buy');
   showView('my-reservations');renderMyReservations();
 }
 function showMySales(){
