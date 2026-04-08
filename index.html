@@ -9186,10 +9186,10 @@ function respondOffer(offerId,status){
   lsSet('priceOffers',offers);
   const o=offers[idx];
   if(status==='accepted'){
-    addAppNotification(o.buyerId,'offer_accepted',`✅ 가격제안이 수락됐어요!`,{offerId,productTitle:o.productTitle,offerPrice:o.counterPrice||o.offerPrice});
+    sendNotification(o.buyerId,'offer_accepted','가격제안 수락',`✅ 가격제안이 수락됐어요!`,{offerId,productTitle:o.productTitle,offerPrice:o.counterPrice||o.offerPrice});
     showToast(t('t_offer_accepted'));
   }else if(status==='rejected'){
-    addAppNotification(o.buyerId,'offer_rejected',`❌ 가격제안이 거절됐어요`,{offerId,productTitle:o.productTitle});
+    sendNotification(o.buyerId,'offer_rejected','가격제안 거절',`❌ 가격제안이 거절됐어요`,{offerId,productTitle:o.productTitle});
     showToast(t('t_offer_rejected'));
   }
   renderMyOffers();
@@ -9205,7 +9205,7 @@ function showCounterOffer(offerId){
   offers[idx].counterPrice=parseInt(price);
   lsSet('priceOffers',offers);
   const o=offers[idx];
-  addAppNotification(o.buyerId,'offer_counter',`🔄 상대방이 역제안했어요: ${parseInt(price).toLocaleString()}원/m`,{offerId,productTitle:o.productTitle,counterPrice:parseInt(price)});
+  sendNotification(o.buyerId,'offer_counter','역제안 도착',`🔄 상대방이 역제안했어요: ${parseInt(price).toLocaleString()}원/m`,{offerId,productTitle:o.productTitle,counterPrice:parseInt(price)});
   showToast(t('t_counter_sent'));
   renderMyOffers();
 }
@@ -9220,7 +9220,7 @@ function reOffer(offerId){
   offers[idx].offerPrice=parseInt(newPrice);
   lsSet('priceOffers',offers);
   const o=offers[idx];
-  addAppNotification(o.sellerId,'price_offer',`💰 ${o.buyerName}님이 재제안했어요`,{offerId,productTitle:o.productTitle,offerPrice:parseInt(newPrice)});
+  sendNotification(o.sellerId,'price_offer','가격제안 도착',`💰 ${o.buyerName}님이 재제안했어요`,{offerId,productTitle:o.productTitle,offerPrice:parseInt(newPrice)});
   showToast(t('t_reoffer_sent'));
   renderMyOffers();
 }
@@ -9459,10 +9459,10 @@ function respondReservation(resvId,status){
   lsSet('reservationList',resvList);
   const r=resvList[idx];
   if(status==='confirmed'){
-    addAppNotification(r.buyerId,'resv_confirmed',`✅ 예약이 확정됐어요! ${r.date} ${r.time}`,{resvId,productTitle:r.productTitle,date:r.date,time:r.time});
+    sendNotification(r.buyerId,'resv_confirmed','예약 확정',`✅ 예약이 확정됐어요! ${r.date} ${r.time}`,{resvId,productTitle:r.productTitle,date:r.date,time:r.time});
     showToast(t('t_resv_accepted'));
   }else{
-    addAppNotification(r.buyerId,'resv_rejected',`❌ 예약이 거절됐어요`,{resvId,productTitle:r.productTitle});
+    sendNotification(r.buyerId,'resv_rejected','예약 거절',`❌ 예약이 거절됐어요`,{resvId,productTitle:r.productTitle});
     showToast(t('t_resv_rejected'));
   }
   renderMyReservations();
@@ -16217,7 +16217,7 @@ async function adminApproveSeller(idx){
     applyRoleVisibility();
   }
 
-  addAppNotification(u.id||u.email,'seller_approved','✅ 사업자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
+  sendNotification(u.id||u.email,'seller_approved','사업자 승인','✅ 사업자 승인이 완료됐어요! 이제 상품을 등록할 수 있어요 🎉',{role:requestedRole});
   // 사업자 이용가이드는 첫 로그인 시 팝업으로만 표시, 알림 제거됨
   showToast(t('t_seller_approved'));
   showAdminUsers && showAdminUsers();
@@ -16264,7 +16264,7 @@ async function adminRejectSeller(idx){
     applyRoleVisibility();
   }
 
-  addAppNotification(u.id||u.email,'seller_rejected',`❌ 사업자 전환 신청이 거절됐어요. 사유: ${reason.trim()}`,{rejectReason:reason.trim()});
+  sendNotification(u.id||u.email,'seller_rejected','사업자 거절',`❌ 사업자 전환 신청이 거절됐어요. 사유: ${reason.trim()}`,{rejectReason:reason.trim()});
   showToast(t('t_seller_rejected'));
   showAdminUsers && showAdminUsers();
 }
