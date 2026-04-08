@@ -9297,10 +9297,14 @@ async function renderMyReservations(){
 
   if(_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
-    const{data}=await _sb.from('reservations')
-      .select('*')
-      .or(`buyer_id.eq.${myId},seller_id.eq.${myId},user_id.eq.${myId}`)
+    // 필터에 맞는 데이터만 서버에서 가져오기
+    let query=_sb.from('reservations')
+      .select('id,product_id,product_title,product_img,buyer_id,buyer_name,buyer_tel,buyer_addr,seller_id,seller_name,qty,unit,message,note,status,created_at,date,time,user_id')
       .order('created_at',{ascending:false});
+    if(curResvFilter==='sell') query=query.eq('seller_id',myId);
+    else if(curResvFilter==='buy') query=query.or(`buyer_id.eq.${myId},user_id.eq.${myId}`);
+    else query=query.or(`buyer_id.eq.${myId},seller_id.eq.${myId},user_id.eq.${myId}`);
+    const{data}=await query;
     if(data)resvList=data.map(r=>{
       const rawMsg=r.message||r.note||'';
       const addrMatch=rawMsg.match(/\[addr:([^\]]*)\]/);
@@ -9330,14 +9334,7 @@ async function renderMyReservations(){
   }
 
   const myId=curUser?.id||curUser?.email||'';
-
-  // 필터 적용
-  let filteredList=resvList;
-  if(curResvFilter==='sell'){
-    filteredList=resvList.filter(r=>r.sellerId===myId);
-  } else if(curResvFilter==='buy'){
-    filteredList=resvList.filter(r=>r.buyerId===myId);
-  }
+  const filteredList=resvList;
 
   if(!filteredList.length){
     const labels={sell:'판매 예약 내역이 없어요',buy:'구매 예약 내역이 없어요'};
@@ -9350,9 +9347,8 @@ async function renderMyReservations(){
   let buyerRevSet=new Set(),sellerRevSet=new Set();
   if(_sb&&confirmedIds.length){
     let allRevs=[];
-    const{data:revData,error:revErr}=await _sb.from('reviews').select('reservation_id,review_type,buyer_id').in('reservation_id',confirmedIds);
-    if(!revErr&&revData)allRevs=revData;
-    else{const{data:r2}=await _sb.from('reviews').select('reservation_id,buyer_id').in('reservation_id',confirmedIds);if(r2)allRevs=r2;}
+    const{data:revData}=await _sb.from('reviews').select('reservation_id,review_type,buyer_id').in('reservation_id',confirmedIds);
+    if(revData)allRevs=revData;
     buyerRevSet=new Set(allRevs.filter(r=>r.review_type==='buyer_to_seller'||(!r.review_type&&r.buyer_id===(curUser.id||curUser.email||''))).map(r=>r.reservation_id));
     sellerRevSet=new Set(allRevs.filter(r=>r.review_type==='seller_to_buyer').map(r=>r.reservation_id));
   }
