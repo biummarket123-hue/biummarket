@@ -14423,22 +14423,22 @@ async function updateBannerStats(){
     return(Date.now()-d.getTime())<86400000;
   }).length;
   const stockParts=[
-    qtyYard?qtyYard.toLocaleString()+'마':null,
-    qtyMeter?qtyMeter.toLocaleString()+'M':null,
-    qtyKg?qtyKg.toLocaleString()+'kg':null
+    qtyYard?qtyYard.toLocaleString():null,
+    qtyMeter?qtyMeter.toLocaleString():null,
+    qtyKg?qtyKg.toLocaleString():null
   ].filter(Boolean);
   const stats=[
-    {label:'총 상품',value:totalProducts+'개',icon:'🧵'},
+    {label:'총 상품',value:totalProducts.toLocaleString(),icon:'🧵'},
   ];
   // 재고를 단위별로 각각 표시
   if(stockParts.length<=1){
-    stats.push({label:'총 재고',value:stockParts[0]||'0마',icon:'📦'});
+    stats.push({label:'총 재고',value:stockParts[0]||'0',icon:'📦'});
   }
   const row1=stats.slice(0,2);
   const extraStats=[
-    {label:'사업자',value:totalSellers+'명',icon:'🏪'},
-    {label:'급처',value:urgentCount+'개',icon:'⚡'},
-    {label:'오늘 신규',value:todayCount+'개',icon:'🆕'},
+    {label:'사업자',value:totalSellers.toLocaleString(),icon:'🏪'},
+    {label:'급처',value:urgentCount.toLocaleString(),icon:'⚡'},
+    {label:'오늘 신규',value:todayCount.toLocaleString(),icon:'🆕'},
   ];
   const row2=extraStats;
   el.style.cssText='margin-top:10px;display:flex;flex-direction:column;gap:6px';
@@ -14449,11 +14449,11 @@ async function updateBannerStats(){
   </div>`;
   // 재고 단위별 카드
   const stockCards=[];
-  if(qtyYard)stockCards.push({label:'yard(마)',value:qtyYard.toLocaleString()+'마',icon:'📦'});
-  if(qtyMeter)stockCards.push({label:'meter(m)',value:qtyMeter.toLocaleString()+'m',icon:'📐'});
-  if(qtyKg)stockCards.push({label:'킬로(kg)',value:qtyKg.toLocaleString()+'kg',icon:'⚖️'});
+  if(qtyYard)stockCards.push({label:'yard(마)',value:qtyYard.toLocaleString(),icon:'📦'});
+  if(qtyMeter)stockCards.push({label:'meter(m)',value:qtyMeter.toLocaleString(),icon:'📐'});
+  if(qtyKg)stockCards.push({label:'킬로(kg)',value:qtyKg.toLocaleString(),icon:'⚖️'});
   if(!stockCards.length)stockCards.push({label:'총 재고',value:'0',icon:'📦'});
-  const topRow=[{label:'총 상품',value:totalProducts+'개',icon:'🧵'},...stockCards];
+  const topRow=[{label:'총 상품',value:totalProducts.toLocaleString(),icon:'🧵'},...stockCards];
   el.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(${Math.min(topRow.length,4)},1fr);gap:6px">
       ${topRow.map(s=>_statCard(s)).join('')}
