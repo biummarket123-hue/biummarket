@@ -13242,46 +13242,38 @@ function renderMypage(){
   }
 
   // 통계 계산
-  const myProducts=products.filter(p=>isMyProduct(p,u));
-  const wishes=products.filter(p=>lsGet('likedMap',{})[p.id]).length;
-  const localResvs=lsGet('reservationList',[]);
-  let done=localResvs.filter(r=>r.status==='confirmed'||r.status==='done').length;
+  const wishes=Object.keys(lsGet('likedMap',{})).length;
   const cartCnt=lsGet('cart',[]).length;
 
-  // 통계 렌더
+  // 통계 렌더 (초기값 표시 후 Supabase 조회로 갱신)
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('my-stat-products',myProducts.length);
+  set('my-stat-products',0);
   set('my-stat-wish',wishes);
-  set('my-stat-done',done);
+  set('my-stat-done',0);
 
-  // Supabase에서 거래완료 수 조회
+  // Supabase에서 등록상품/거래완료 직접 조회
   if(_sb&&curUser){
     const myId=curUser.id||curUser.email||'';
-    _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
-      if(count!=null&&count>done){set('my-stat-done',count);}
+    // 등록상품: products 테이블에서 seller_id = 내 id, deleted_at IS NULL
+    _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',myId).is('deleted_at',null).then(({count})=>{
+      if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}
     });
-    // 수락된 가격제안도 거래완료에 포함
-    _sb.from('price_offers').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','accepted').then(({count:oc})=>{
-      if(oc!=null){
-        const el=document.getElementById('my-stat-done');
-        const cur=parseInt(el?.textContent||'0');
-        set('my-stat-done',cur+oc);
-      }
+    // 거래완료: reservations 테이블에서 confirmed만 조회
+    _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
+      if(count!=null){set('my-stat-done',count);}
     });
   }
 
   // 메뉴 부제 업데이트
-  set('my-sub-products',myProducts.length+t('cnt_reg'));
+  set('my-sub-products','0'+t('cnt_reg'));
   set('my-sub-wish',wishes+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
   // 사업자 회원이면 등록상품 표시, 일반회원이면 사업자 신청 버튼으로 교체
-  const myProdCnt=products.filter(p=>isMyProduct(p,u)).length;
   const _statProdEl=document.getElementById('my-stat-products');
   const _statProdLbl=_statProdEl?.parentElement;
   if(_statProdLbl){
     if(isBusiness()||isAdmin()){
-      if(myProdCnt>0){set('my-stat-products',myProdCnt);set('my-sub-products',myProdCnt+t('cnt_reg'));}
       _statProdLbl.onclick=()=>showMySales();
     }else{
       // 일반회원: 사업자 신청 버튼으로 교체
