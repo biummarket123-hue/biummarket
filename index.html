@@ -8705,7 +8705,7 @@ function updateDetailHeart(p){
 function toggleDetailLike(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
   p.liked=!p.liked;p.likes+=p.liked?1:-1;saveProducts();
-  const likedMap=lsGet('likedMap',{});likedMap[p.id]=p.liked;lsSet('likedMap',likedMap);
+  const likedMap=lsGet('likedMap',{});if(p.liked){likedMap[p.id]=true;}else{delete likedMap[p.id];}lsSet('likedMap',likedMap);
   _sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
   updateDetailHeart(p);
   showToast(p.liked?t('like_add'):t('like_remove'));
@@ -13242,7 +13242,7 @@ function renderMypage(){
   }
 
   // 통계 계산
-  const wishes=Object.keys(lsGet('likedMap',{})).length;
+  const wishes=Object.values(lsGet('likedMap',{})).filter(Boolean).length;
   const cartCnt=lsGet('cart',[]).length;
 
   // 통계 렌더 (초기값 표시 후 Supabase 조회로 갱신)
