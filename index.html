@@ -5730,6 +5730,30 @@ try{
 if(window.Kakao&&!window.Kakao.isInitialized()){
   window.Kakao.init('07dd521cecc649be4a73c65f3c7d1edb');
 }
+
+/* ==================== WISHES (Supabase 기반 관심목록) ==================== */
+const _wishSet=new Set(); // 메모리 캐시: 현재 유저가 찜한 product_id 집합
+let _wishLoaded=false;
+async function _loadWishes(){
+  _wishSet.clear();_wishLoaded=false;
+  if(!_sb||!curUser)return;
+  const uid=curUser.id||curUser.email||'';
+  if(!uid)return;
+  const{data}=await _sb.from('wishes').select('product_id').eq('user_id',uid);
+  if(data)data.forEach(r=>_wishSet.add(r.product_id));
+  _wishLoaded=true;
+}
+function isWished(productId){return _wishSet.has(Number(productId));}
+async function _addWish(productId){
+  const uid=curUser?.id||curUser?.email||'';if(!uid||!_sb)return;
+  _wishSet.add(Number(productId));
+  await _sb.from('wishes').upsert({user_id:uid,product_id:Number(productId)},{onConflict:'user_id,product_id'});
+}
+async function _removeWish(productId){
+  const uid=curUser?.id||curUser?.email||'';if(!uid||!_sb)return;
+  _wishSet.delete(Number(productId));
+  await _sb.from('wishes').delete().eq('user_id',uid).eq('product_id',Number(productId));
+}
 // 카카오 리다이렉트 코드 처리 (users/curUser 선언 후 실행되도록 DOMContentLoaded에서 호출)
 /* ==================== USERS ==================== */
 const DEFAULT_USERS=[
@@ -5859,13 +5883,12 @@ function _productTimeAgo(createdAt){
   return Math.floor(mo/12)+'년 전';
 }
 function _mapSbProduct(p){
-  const likedMap=lsGet('likedMap',{});
   return{
     ...p,
     seller:p.seller||{name:'알수없음',temp:36.5,loc:''},
     seller_id:p.seller_id||(p.seller&&p.seller.id)||'',
     tags:Array.isArray(p.tags)?p.tags:(p.tags?p.tags.split(','):[]),
-    liked:!!likedMap[p.id],
+    liked:isWished(p.id),
     time:_productTimeAgo(p.created_at),
     likes:p.likes||0,
     chats:p.chats||0,
@@ -5888,6 +5911,7 @@ async function loadProductsFromSupabase(reset){
     _sbPage=0;_sbHasMore=true;products=[];
     _bannerStatsAll=null; // 배너 통계 캐시 초기화
     _showScrollEnd(false);
+    if(!_wishLoaded)await _loadWishes(); // 관심목록 캐시 로드
   }
   if(_sbLoading||!_sbHasMore)return;
   _sbLoading=true;
@@ -7725,8 +7749,7 @@ function renderAiRecs(){
   if(!el)return;
   if(!products.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">상품을 불러오는 중...</div>';return;}
   // 내 상품, 이미 찜한 상품 제외
-  const likedMap=lsGet('likedMap',{});
-  const pool=products.filter(p=>!isMyProduct(p,curUser||{})&&!likedMap[p.id]&&(p.qty||0)>0&&!p.is_hidden);
+  const pool=products.filter(p=>!isMyProduct(p,curUser||{})&&!isWished(p.id)&&(p.qty||0)>0&&!p.is_hidden);
   if(!pool.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">추천할 상품이 없어요</div>';return;}
   // 관심 카테고리
   const interestCats=lsGet('interestCats',[])||[];
@@ -8369,7 +8392,7 @@ function renderCard(p, idx){
       })()}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
     </div>
-    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
+    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${isWished(p.id)?'❤️':'🤍'}</button>
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
@@ -8385,17 +8408,14 @@ function renderCard(p, idx){
 /* ==================== LIKE ==================== */
 function toggleLike(id){
   const p=products.find(x=>x.id===id);if(!p)return;
-  const likedMap=lsGet('likedMap',{});
-  const nowLiked=!likedMap[id];
-  likedMap[id]=nowLiked||undefined;
-  if(!nowLiked)delete likedMap[id];
-  lsSet('likedMap',likedMap);
+  const nowLiked=!isWished(id);
+  if(nowLiked){_addWish(id);}else{_removeWish(id);}
+  p.liked=nowLiked;
   p.likes=Math.max(0,(p.likes||0)+(nowLiked?1:-1));
   saveProducts();
   if(_sb)_sb.from('products').update({likes:p.likes}).eq('id',id).then();
   renderList();
   showToast(nowLiked?t('like_add'):t('like_remove'));
-  // 관심 등록 알림 제거됨
 }
 
 /* ==================== DETAIL ==================== */
@@ -8415,8 +8435,7 @@ async function openDetail(id){
   if(!p){
     showToast(t('t_product_ended'));
     // 찜 목록에서 자동 제거
-    const likedMap=lsGet('likedMap',{});
-    if(likedMap[id]){delete likedMap[id];lsSet('likedMap',likedMap);renderWishlist();}
+    if(isWished(id)){_removeWish(id);renderWishlist();}
     return;
   }
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
@@ -8694,7 +8713,7 @@ async function openDetail(id){
   if(scroll&&hdr){scroll.onscroll=()=>hdr.classList.toggle('scrolled',scroll.scrollTop>20);}
 }
 function updateDetailHeart(p){
-  const liked=!!lsGet('likedMap',{})[p.id];
+  const liked=isWished(p.id);
   const btn=document.getElementById('d-heart');
   const icon=document.getElementById('d-hicon');
   if(btn)btn.className=(btn.className.split(' on')[0])+(liked?' on':'');
@@ -8704,12 +8723,12 @@ function updateDetailHeart(p){
 }
 function toggleDetailLike(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
-  p.liked=!p.liked;p.likes+=p.liked?1:-1;saveProducts();
-  const likedMap=lsGet('likedMap',{});if(p.liked){likedMap[p.id]=true;}else{delete likedMap[p.id];}lsSet('likedMap',likedMap);
-  _sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
+  const nowLiked=!isWished(p.id);
+  if(nowLiked){_addWish(p.id);}else{_removeWish(p.id);}
+  p.liked=nowLiked;p.likes+=nowLiked?1:-1;saveProducts();
+  if(_sb)_sb.from('products').update({likes:p.likes}).eq('id',p.id).then();
   updateDetailHeart(p);
-  showToast(p.liked?t('like_add'):t('like_remove'));
-  // 관심 등록 알림 제거됨
+  showToast(nowLiked?t('like_add'):t('like_remove'));
 }
 function editProduct(targetId){
   if(targetId!==undefined)curProductId=targetId;
@@ -9744,7 +9763,7 @@ async function switchSellerTab(tab,el){
       const intro=isMySelf?(curUser.intro||''):(seller.intro||userInfo.intro||extra.intro||'');
       const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name);
       const g=getGradeSync(seller.id);
-      const wishCnt=products.filter(p=>lsGet('likedMap',{})[p.id]).length;
+      const wishCnt=_wishSet.size;
       const followCnt=lsGet('myFollows',[]).length;
       content.innerHTML=`
         <!-- 등급 카드 -->
@@ -9781,9 +9800,9 @@ async function switchSellerTab(tab,el){
           ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
         </div>`:''}
         ${isMySelf?(()=>{
-          const likedIds=Object.keys(lsGet('likedMap',{})).filter(k=>lsGet('likedMap',{})[k]);
-          const wishProds=likedIds.map(id=>products.find(p=>String(p.id)===String(id))).filter(Boolean);
-          const cnt=wishProds.length;
+          const wishIds=[..._wishSet];
+          const wishProds=wishIds.map(id=>products.find(p=>Number(p.id)===Number(id))).filter(Boolean);
+          const cnt=_wishSet.size;
           return `<div style="padding:16px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
               <div style="font-size:var(--fs-lg);font-weight:700">❤️ 관심 목록 <span style="color:#6c63ff">${cnt}개</span></div>
@@ -11445,7 +11464,7 @@ function _renderSvCard(p){
       })()}
       <span class="fabric-badge" style="position:relative;z-index:1">${p.type}</span>
     </div>
-    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${(lsGet('likedMap',{})[p.id])?'❤️':'🤍'}</button>
+    <button class="card-heart" onclick="event.stopPropagation();toggleLike(${p.id})">${isWished(p.id)?'❤️':'🤍'}</button>
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
@@ -11815,8 +11834,7 @@ function renderRecentSearches(){
 
 /* ==================== WISHLIST ==================== */
 function renderWishlist(){
-  const likedMap=lsGet('likedMap',{});
-  const liked=products.filter(p=>likedMap[p.id]);
+  const liked=products.filter(p=>isWished(p.id));
   const list=document.getElementById('wishlist-list');
   const empty=document.getElementById('wishlist-empty');
   if(!liked.length){list.innerHTML='';list.style.display='none';empty.style.display='flex';}
@@ -13241,15 +13259,13 @@ function renderMypage(){
     scoreEl.innerHTML=scoreHtml||'';
   }
 
-  // 통계 계산 - 관심목록은 likedMap에서 실제 존재하는 상품만 카운트
-  const likedMap=lsGet('likedMap',{});
-  const likedIds=Object.keys(likedMap).filter(k=>likedMap[k]);
+  // 통계 계산
   const cartCnt=lsGet('cart',[]).length;
 
   // 통계 렌더 (초기값 표시 후 Supabase 조회로 갱신)
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('my-stat-products',0);
-  set('my-stat-wish',0);
+  set('my-stat-wish',_wishSet.size);
   set('my-stat-done',0);
 
   // Supabase에서 등록상품/관심목록/거래완료 직접 조회
@@ -13259,18 +13275,10 @@ function renderMypage(){
     _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',myId).is('deleted_at',null).then(({count})=>{
       if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}
     });
-    // 관심목록: likedMap의 id들이 실제 존재하는지 Supabase에서 확인
-    if(likedIds.length){
-      _sb.from('products').select('id').in('id',likedIds.map(Number)).is('deleted_at',null).then(({data})=>{
-        const validIds=data?data.map(r=>String(r.id)):[];
-        // 존재하지 않는 상품은 likedMap에서 정리
-        let cleaned=false;
-        likedIds.forEach(id=>{if(!validIds.includes(String(id))){delete likedMap[id];cleaned=true;}});
-        if(cleaned)lsSet('likedMap',likedMap);
-        set('my-stat-wish',validIds.length);
-        set('my-sub-wish',validIds.length+t('cnt_saved'));
-      });
-    }
+    // 관심목록: wishes 테이블에서 카운트
+    _sb.from('wishes').select('id',{count:'exact',head:true}).eq('user_id',myId).then(({count})=>{
+      if(count!=null){set('my-stat-wish',count);set('my-sub-wish',count+t('cnt_saved'));}
+    });
     // 거래완료: reservations 테이블에서 confirmed만 조회
     _sb.from('reservations').select('id',{count:'exact',head:true}).or(`buyer_id.eq.${myId},seller_id.eq.${myId}`).eq('status','confirmed').then(({count})=>{
       if(count!=null){set('my-stat-done',count);}
@@ -13279,7 +13287,7 @@ function renderMypage(){
 
   // 메뉴 부제 업데이트
   set('my-sub-products','0'+t('cnt_reg'));
-  set('my-sub-wish','0'+t('cnt_saved'));
+  set('my-sub-wish',_wishSet.size+t('cnt_saved'));
   set('my-sub-cart',cartCnt+t('cnt_cart'));
 
   // 사업자 회원이면 등록상품 표시, 일반회원이면 사업자 신청 버튼으로 교체
@@ -14112,8 +14120,7 @@ function renderActivity(){
   const catCount={};
   searchLog.forEach(x=>{if(x.cat&&x.cat!=='기타')catCount[x.cat]=(catCount[x.cat]||0)+1;});
   // 찜 기반 보완
-  const likedMap=lsGet('likedMap',{});
-  products.filter(p=>likedMap[p.id]||p.liked).forEach(p=>{
+  products.filter(p=>isWished(p.id)||p.liked).forEach(p=>{
     const cat=Object.keys(CATEGORY_MAP).find(k=>CATEGORY_MAP[k].includes(p.type))||'기타';
     if(cat!=='기타')catCount[cat]=(catCount[cat]||0)+2;
   });
