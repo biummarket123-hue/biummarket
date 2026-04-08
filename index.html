@@ -1717,7 +1717,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
         <div class="my-stat-val" id="my-stat-wish">0</div>
         <div class="my-stat-lbl" data-i18n="stat_wish">관심목록</div>
       </div>
-      <div class="my-stat" onclick="showView('reservations')">
+      <div class="my-stat" onclick="goToDoneReservations()">
         <div class="my-stat-val" id="my-stat-done">0</div>
         <div class="my-stat-lbl" data-i18n="stat_done">거래완료</div>
       </div>
@@ -13625,6 +13625,10 @@ function applyRoleVisibility(){
   const upgradeBtn=document.getElementById('menu-upgrade-biz');
   if(upgradeBtn)upgradeBtn.style.display='block';
   setFab(false);
+}
+function goToDoneReservations(){
+  if(!curUser){showToast(t('t_login_required'));return;}
+  showView('my-reservations');renderMyReservations();
 }
 function showMySales(){
   const u=curUser;
