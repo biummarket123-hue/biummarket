@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     const record = rows[0];
 
     // 만료 확인 (3분)
-    const elapsed = Date.now() - new Date(record.created_at).getTime();
+    const elapsed = Date.now() - new Date(record?.created_at || 0).getTime();
     if (elapsed > 180000) {
       res.status(400).json({ success: false, error: '인증번호가 만료됐어요. 다시 받아주세요.' });
       return;
