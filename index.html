@@ -843,9 +843,35 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     <div class="hdr-title" style="flex:1;text-align:left;font-size:17px;font-weight:800" data-i18n="b_find_pw">비밀번호 찾기</div>
   </div>
   <div style="padding:24px">
-    <div style="font-size:14px;color:#666677;margin-bottom:20px;line-height:1.6" data-i18n="v_find_pw_desc">가입한 이메일로 비밀번호 재설정 링크를 보내드려요.</div>
-    <div class="fg"><label>이메일 <span class="req">*</span></label><input type="email" class="fi" id="find-pw-email" placeholder="가입 시 입력한 이메일" data-i18n-ph="ph_find_email"/></div>
-    <button class="submit-btn" onclick="doFindPw()" style="margin-top:8px" data-i18n="b_send_reset_link">재설정 링크 보내기</button>
+    <div style="font-size:14px;color:#666677;margin-bottom:20px;line-height:1.6">가입 시 등록한 아이디와 전화번호로 비밀번호를 재설정할 수 있어요.</div>
+    <!-- 1단계: 아이디 + 전화번호 입력 -->
+    <div id="findpw-step1">
+      <div class="fg"><label>아이디 <span class="req">*</span></label><input type="text" class="fi" id="findpw-userid" placeholder="가입 시 입력한 아이디"/></div>
+      <div class="fg"><label>전화번호 <span class="req">*</span></label>
+        <div style="display:flex;gap:8px">
+          <input type="tel" class="fi" id="findpw-tel" placeholder="예) 010-1234-5678" style="flex:1"/>
+          <button type="button" id="findpw-sms-btn" onclick="findPwStep1()" style="padding:10px 14px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">인증번호 받기</button>
+        </div>
+      </div>
+    </div>
+    <!-- 2단계: SMS 인증번호 입력 -->
+    <div id="findpw-step2" style="display:none">
+      <div class="fg">
+        <label>인증번호 <span class="req">*</span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" class="fi" id="findpw-sms-code" placeholder="6자리 인증번호 입력" maxlength="6" style="flex:1"/>
+          <span id="findpw-timer" style="font-size:13px;font-weight:700;color:#e53935;min-width:42px;text-align:center"></span>
+          <button type="button" onclick="findPwStep2()" style="padding:10px 14px;background:#2ed573;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">인증 확인</button>
+        </div>
+        <div id="findpw-sms-msg" style="font-size:12px;margin-top:4px"></div>
+      </div>
+    </div>
+    <!-- 3단계: 새 비밀번호 설정 -->
+    <div id="findpw-step3" style="display:none">
+      <div class="fg"><label>새 비밀번호 <span class="req">*</span></label><input type="password" class="fi" id="findpw-new-pw" placeholder="6자 이상"/></div>
+      <div class="fg"><label>비밀번호 확인 <span class="req">*</span></label><input type="password" class="fi" id="findpw-new-pw-confirm" placeholder="비밀번호 재입력"/></div>
+      <button class="submit-btn" onclick="findPwStep3()" style="margin-top:8px">비밀번호 변경</button>
+    </div>
     <div id="find-pw-result" style="margin-top:16px;display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;font-size:14px;color:#1d4ed8;text-align:center"></div>
   </div>
 </div>
@@ -6668,21 +6694,111 @@ async function doFindId(){
   showToast(t('t_member_not_found'));
 }
 
-async function doFindPw(){
-  const email=document.getElementById('find-pw-email').value.trim();
-  if(!email){showToast(t('t_enter_email'));return;}
-  const result=document.getElementById('find-pw-result');
-  if(!_sb){showToast(t('t_email_find_needs_sb'));return;}
+// 비밀번호 찾기 - 전화번호 인증 방식 (3단계)
+let _findPwTimerId=null;
+let _findPwUserId=''; // 조회된 Supabase auth uid
+
+async function findPwStep1(){
+  // 1단계: 아이디 + 전화번호로 사용자 조회 후 SMS 발송
+  const userId=document.getElementById('findpw-userid').value.trim().toLowerCase();
+  const tel=document.getElementById('findpw-tel').value.trim();
+  if(!userId){showToast('아이디를 입력해주세요');return;}
+  if(!tel){showToast(t('t_enter_phone'));return;}
+  if(!/^01[0-9]-?\d{3,4}-?\d{4}$/.test(tel.replace(/\s/g,''))){showToast(t('t_enter_valid_phone'));return;}
+  if(!_sb){showToast('서버 연결이 필요해요');return;}
+
+  const btn=document.getElementById('findpw-sms-btn');
+  btn.disabled=true;btn.textContent='확인 중...';
+
   try{
-    const{error}=await _sb.auth.resetPasswordForEmail(email,{
-      redirectTo:'https://www.biummarket.com'
-    });
-    if(error)throw error;
-    result.style.display='block';
-    result.innerHTML=`📧 <b>${email}</b>로 비밀번호 재설정 링크를 보냈어요!<br><small style="color:#666">메일함을 확인해주세요 (스팸함도 확인)</small>`;
-  }catch(e){
-    showToast('이메일 전송 실패: '+e.message);
-  }
+    // 아이디 → 이메일 변환해서 users 테이블 조회
+    const email=userId.includes('@')?userId:(userId+'@bium.market');
+    const cleanTel=tel.replace(/[^0-9]/g,'');
+    const{data,error}=await _sb.from('users').select('id,email,tel,user_id').or(`email.eq.${email},user_id.eq.${userId}`).maybeSingle();
+    if(error||!data){showToast('등록된 정보와 일치하지 않아요');btn.disabled=false;btn.textContent='인증번호 받기';return;}
+    // 전화번호 매칭 확인
+    const dbTel=(data.tel||'').replace(/[^0-9]/g,'');
+    if(dbTel!==cleanTel){showToast('등록된 정보와 일치하지 않아요');btn.disabled=false;btn.textContent='인증번호 받기';return;}
+    _findPwUserId=data.id; // Supabase auth uid 저장
+
+    // SMS 인증번호 발송
+    const res=await fetch('/api/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel})});
+    const smsData=await res.json();
+    if(!res.ok||!smsData.success){showToast(smsData.error||'SMS 발송에 실패했어요');btn.disabled=false;btn.textContent='인증번호 받기';return;}
+
+    // 2단계 UI 표시
+    document.getElementById('findpw-step2').style.display='block';
+    document.getElementById('findpw-sms-code').value='';
+    document.getElementById('findpw-sms-msg').textContent='';
+    document.getElementById('findpw-userid').disabled=true;
+    document.getElementById('findpw-tel').disabled=true;
+    showToast(t('t_code_sent'));
+
+    // 3분 타이머
+    let sec=180;
+    const timerEl=document.getElementById('findpw-timer');
+    const _fmt=s=>Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;
+    timerEl.textContent=_fmt(sec);
+    if(_findPwTimerId)clearInterval(_findPwTimerId);
+    _findPwTimerId=setInterval(()=>{
+      sec--;timerEl.textContent=_fmt(sec);
+      if(sec<=0){clearInterval(_findPwTimerId);_findPwTimerId=null;timerEl.textContent='만료';
+        document.getElementById('findpw-sms-msg').innerHTML='<span style="color:#e53935">인증번호가 만료됐어요. 다시 받아주세요.</span>';
+        btn.disabled=false;btn.textContent='재발송';
+      }
+    },1000);
+    btn.textContent='재발송';
+    setTimeout(()=>{btn.disabled=false;},5000);
+  }catch(e){showToast('오류가 발생했어요: '+e.message);btn.disabled=false;btn.textContent='인증번호 받기';}
+}
+
+async function findPwStep2(){
+  // 2단계: SMS 인증번호 확인
+  const code=document.getElementById('findpw-sms-code').value.trim();
+  const tel=document.getElementById('findpw-tel').value.trim();
+  const msgEl=document.getElementById('findpw-sms-msg');
+  if(!code){showToast('인증번호를 입력해주세요');return;}
+  try{
+    const res=await fetch('/api/verify-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,code})});
+    const data=await res.json();
+    if(res.ok&&data.success){
+      if(_findPwTimerId){clearInterval(_findPwTimerId);_findPwTimerId=null;}
+      msgEl.innerHTML='<span style="color:#2ed573;font-weight:700">✅ 인증 완료</span>';
+      document.getElementById('findpw-sms-code').disabled=true;
+      document.getElementById('findpw-sms-btn').disabled=true;
+      // 3단계 UI 표시
+      document.getElementById('findpw-step3').style.display='block';
+    }else{
+      msgEl.innerHTML='<span style="color:#e53935">'+(data.error||'인증번호가 일치하지 않아요')+'</span>';
+    }
+  }catch(e){msgEl.innerHTML='<span style="color:#e53935">인증 확인 중 오류가 발생했어요</span>';}
+}
+
+async function findPwStep3(){
+  // 3단계: 새 비밀번호 설정
+  const newPw=document.getElementById('findpw-new-pw').value;
+  const newPwConfirm=document.getElementById('findpw-new-pw-confirm').value;
+  const resultEl=document.getElementById('find-pw-result');
+  if(!newPw||newPw.length<6){showToast('비밀번호는 6자 이상이어야 해요');return;}
+  if(newPw!==newPwConfirm){showToast('비밀번호가 일치하지 않아요');return;}
+  if(!_findPwUserId){showToast('사용자 정보를 찾을 수 없어요. 처음부터 다시 시도해주세요.');return;}
+
+  try{
+    const res=await fetch('/api/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:_findPwUserId,newPassword:newPw})});
+    const data=await res.json();
+    if(res.ok&&data.success){
+      // 로컬 users 배열에서도 비밀번호 업데이트
+      const u=users.find(x=>x.id===_findPwUserId);
+      if(u)u.pw=newPw;
+      lsSet('users',users);
+      resultEl.style.display='block';
+      resultEl.innerHTML='🎉 비밀번호가 변경됐어요!<br><small style="color:#666">새 비밀번호로 로그인해주세요.</small>';
+      // 3초 후 로그인 화면으로 이동
+      setTimeout(()=>{showView('login');resultEl.style.display='none';},3000);
+    }else{
+      showToast(data.error||'비밀번호 변경에 실패했어요');
+    }
+  }catch(e){showToast('비밀번호 변경 중 오류가 발생했어요');}
 }
 
 // 아이디 저장 / 자동 로그인 체크 상태
