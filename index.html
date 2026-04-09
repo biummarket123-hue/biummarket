@@ -7040,7 +7040,8 @@ async function doSignup(){
   if(!_agreeState.terms){showToast(t('t_agree_terms'));return;}
   if(!_agreeState.privacy){showToast(t('t_agree_privacy'));return;}
   const isOAuth=!!_oauthPendingUser;
-  const userId=(document.getElementById('s-userid')?.value.trim()||'').toLowerCase();
+  // 소셜 로그인: 이메일 앞부분을 아이디로 자동 설정
+  const userId=isOAuth?(_oauthPendingUser.email||'').split('@')[0]:(document.getElementById('s-userid')?.value.trim()||'').toLowerCase();
   // 아이디 검증 (소셜 로그인 제외)
   if(!isOAuth){
     if(!userId||userId.length<4){showToast('아이디를 4자 이상 입력해주세요');return;}
@@ -7256,9 +7257,11 @@ async function handleKakaoCode(code){
           const emailRow=document.getElementById('s-email');
           const pwRow=document.getElementById('s-pw');
           const pwcRow=document.getElementById('s-pw-confirm');
+          const userIdRow=document.getElementById('s-userid');
           if(emailRow)emailRow.closest('.fg').style.display='none';
           if(pwRow)pwRow.closest('.fg').style.display='none';
           if(pwcRow)pwcRow.closest('.fg').style.display='none';
+          if(userIdRow)userIdRow.closest('.fg').style.display='none';
           const nameEl=document.getElementById('s-name');
           if(nameEl)nameEl.value=nickname;
         },100);
@@ -7326,9 +7329,11 @@ async function handleNaverCode(code,state){
           const emailRow=document.getElementById('s-email');
           const pwRow=document.getElementById('s-pw');
           const pwcRow=document.getElementById('s-pw-confirm');
+          const userIdRow=document.getElementById('s-userid');
           if(emailRow)emailRow.closest('.fg').style.display='none';
           if(pwRow)pwRow.closest('.fg').style.display='none';
           if(pwcRow)pwcRow.closest('.fg').style.display='none';
+          if(userIdRow)userIdRow.closest('.fg').style.display='none';
           const nameEl=document.getElementById('s-name');
           if(nameEl)nameEl.value=nickname;
         },100);
@@ -17973,9 +17978,11 @@ async function renderBizStats(tab){
       const emailRow=document.getElementById('s-email');
       const pwRow=document.getElementById('s-pw');
       const pwcRow=document.getElementById('s-pw-confirm');
+      const userIdRow=document.getElementById('s-userid');
       if(emailRow)emailRow.closest('.fg').style.display='none';
       if(pwRow)pwRow.closest('.fg').style.display='none';
       if(pwcRow)pwcRow.closest('.fg').style.display='none';
+      if(userIdRow)userIdRow.closest('.fg').style.display='none';
       const nameEl=document.getElementById('s-name');
       if(nameEl&&_oauthPendingUser)nameEl.value=_oauthPendingUser.name||'';
     },100);
