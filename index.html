@@ -9562,8 +9562,8 @@ async function renderMyReservations(){
         buyerReviewHtml=`<button style="flex:1;padding:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:10px;font-size:13px;font-weight:700" disabled>✅ 후기 작성 완료</button>`;
       }else{
         const daysP=(Date.now()-new Date(r.completed_at||r.updatedAt||r.createdAt).getTime())/(1000*60*60*24);
-        if(daysP>7){buyerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 7일이 지나 후기를 작성할 수 없어요</div>`;}
-        else{buyerReviewHtml=`<button onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#ff6f00;margin-top:6px;text-align:center">후기 작성 가능 (${Math.ceil(7-daysP)}일 남음)</div>`;}
+        if(daysP>14){buyerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 14일이 지나 후기를 작성할 수 없어요</div>`;}
+        else{buyerReviewHtml=`<button onclick="openSellerReviewTab('${r.sellerId}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#ff6f00,#ff6584);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 후기 작성하기</button>`;buyerStatusHtml=`<div style="font-size:12px;color:#ff6f00;margin-top:6px;text-align:center">후기 작성 가능 (${Math.ceil(14-daysP)}일 남음)</div>`;}
       }
     }
     if(isSeller&&r.status==='confirmed'){
@@ -9571,8 +9571,8 @@ async function renderMyReservations(){
         sellerReviewHtml=`<button style="flex:1;padding:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:10px;font-size:13px;font-weight:700" disabled>✅ 후기 작성 완료</button>`;
       }else{
         const daysP=(Date.now()-new Date(r.completed_at||r.createdAt).getTime())/(1000*60*60*24);
-        if(daysP>7){sellerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 7일이 지나 후기를 작성할 수 없어요</div>`;}
-        else{sellerReviewHtml=`<button onclick="openBuyerReviewModal('${r.buyerId}','${(r.buyerName||'').replace(/'/g,"\\'")}','${r.id}','${r.completed_at||r.createdAt}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 구매자 후기 쓰기</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#6c63ff;margin-top:6px;text-align:center">구매자 후기 작성 가능 (${Math.ceil(7-daysP)}일 남음)</div>`;}
+        if(daysP>14){sellerReviewHtml=`<button style="flex:1;padding:10px;background:#f5f5f5;color:#999;border:1px solid #e0e0ea;border-radius:10px;font-size:13px;font-weight:700" disabled>⏰ 기간 만료</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#e53935;margin-top:6px;text-align:center">거래 완료 후 14일이 지나 후기를 작성할 수 없어요</div>`;}
+        else{sellerReviewHtml=`<button onclick="openBuyerReviewModal('${r.buyerId}','${(r.buyerName||'').replace(/'/g,"\\'")}','${r.id}','${r.completed_at||r.createdAt}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">⭐ 구매자 후기 쓰기</button>`;sellerStatusHtml=`<div style="font-size:12px;color:#6c63ff;margin-top:6px;text-align:center">구매자 후기 작성 가능 (${Math.ceil(14-daysP)}일 남음)</div>`;}
       }
     }
     return `
@@ -9886,9 +9886,9 @@ async function acceptReservation(resvId){
     await _sb.from('reservations').update({status:'confirmed',completed_at:completedNow,updated_at:completedNow}).eq('id',resvId);
     await sendNotification(resv.buyer_id,'reservation_confirmed','✅ 예약이 확정됐어요',`"${resv.product_title}" 상품 예약이 확정됐어요!`,{resvId,productId:resv.product_id});
     // 구매자에게 판매자 후기 작성 요청 알림
-    await sendNotification(resv.buyer_id,'review_request','✍️ 거래가 완료됐어요! 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. 7일 이내에 후기를 남겨주세요!`,{resvId,sellerId:curUser.id||curUser.email,sellerName:curUser.name||'판매자'});
+    await sendNotification(resv.buyer_id,'review_request','✍️ 거래가 완료됐어요! 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. 14일 이내에 후기를 남겨주세요!`,{resvId,sellerId:curUser.id||curUser.email,sellerName:curUser.name||'판매자'});
     // 판매자(자신)에게 구매자 후기 작성 요청 알림
-    await sendNotification(curUser.id||curUser.email,'buyer_review_request','✍️ 구매자 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. ${resv.buyer_name||'구매자'}님에 대한 후기를 7일 이내에 남겨주세요!`,{resvId,buyerId:resv.buyer_id,buyerName:resv.buyer_name||'구매자'});
+    await sendNotification(curUser.id||curUser.email,'buyer_review_request','✍️ 구매자 후기를 작성해주세요',`"${resv.product_title}" 거래가 완료됐어요. ${resv.buyer_name||'구매자'}님에 대한 후기를 14일 이내에 남겨주세요!`,{resvId,buyerId:resv.buyer_id,buyerName:resv.buyer_name||'구매자'});
     const roomId='chat_'+resv.product_id+'_'+resv.buyer_id.replace(/[^a-zA-Z0-9]/g,'_');
     await _sb.from('chat_messages').insert({
       room_id:roomId,
@@ -10167,7 +10167,7 @@ async function switchSellerTab(tab,el){
         const isMine=curUser&&(curUser.id===seller.id||curUser.name===seller.name||curUser.email===seller.email);
         const alreadyReviewed=curUser&&reviews.some(r=>r.buyer_id===curUser.id||r.buyer_name===curUser.name);
 
-        // 거래완료 예약 찾기 (7일 이내)
+        // 거래완료 예약 찾기 (14일 이내)
         let reviewableResv=null;
         if(curUser&&!isMine&&!alreadyReviewed&&_sb){
           const{data:resvs}=await _sb.from('reservations').select('*').eq('buyer_id',curUser.id).eq('seller_id',seller.id).eq('status','confirmed').order('updated_at',{ascending:false});
@@ -10195,7 +10195,7 @@ async function switchSellerTab(tab,el){
           if(oldResvs&&oldResvs.length){
             const completedAt=new Date(oldResvs[0].completed_at||oldResvs[0].updated_at).getTime();
             const{data:ex}=await _sb.from('reviews').select('id').eq('reservation_id',oldResvs[0].id).maybeSingle();
-            if(!ex&&(Date.now()-completedAt)>=7*24*60*60*1000)expired=true;
+            if(!ex&&(Date.now()-completedAt)>=14*24*60*60*1000)expired=true;
           }
         }
 
@@ -10205,11 +10205,11 @@ async function switchSellerTab(tab,el){
           if(alreadyReviewed){
             formHtml='<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center;color:#888;font-size:var(--fs-base)">✅ 이미 후기를 작성하셨어요</div>';
           }else if(expired){
-            formHtml='<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center"><div style="font-size:var(--fs-base);color:#e53935;margin-bottom:4px">⏰ 후기 작성 기간이 만료됐어요</div><div style="font-size:var(--fs-sm);color:#aaa">거래 완료 후 7일 이내에만 작성 가능해요</div></div>';
+            formHtml='<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center"><div style="font-size:var(--fs-base);color:#e53935;margin-bottom:4px">⏰ 후기 작성 기간이 만료됐어요</div><div style="font-size:var(--fs-sm);color:#aaa">거래 완료 후 14일 이내에만 작성 가능해요</div></div>';
           }else if(reviewableResv){
             formHtml=`<div style="padding:16px;border-bottom:8px solid #f5f5f5">
               <div style="font-size:var(--fs-lg);font-weight:700;margin-bottom:4px">${curUser.name}님, 거래는 어떠셨나요?</div>
-              <div style="font-size:var(--fs-sm);color:#888;margin-bottom:12px">거래 완료 후 7일 이내에 작성 가능해요</div>
+              <div style="font-size:var(--fs-sm);color:#888;margin-bottom:12px">거래 완료 후 14일 이내에 작성 가능해요</div>
               <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <span style="font-size:var(--fs-base);color:#555;font-weight:600">⭐ 원단 품질</span>
@@ -10228,7 +10228,7 @@ async function switchSellerTab(tab,el){
               <button onclick="submitSellerReview('${seller.id||seller.name}','${reviewableResv.id||''}','${reviewableResv.product_id||''}')" style="width:100%;padding:12px;background:#ff6f00;color:#fff;border:none;border-radius:12px;font-size:var(--fs-md);font-weight:700;cursor:pointer">후기 작성하기</button>
             </div>`;
           }else{
-            formHtml='<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center"><div style="font-size:var(--fs-base);color:#888;margin-bottom:4px">거래 완료 후 후기를 작성할 수 있어요</div><div style="font-size:var(--fs-sm);color:#aaa">예약 확정 후 7일 이내 작성 가능</div></div>';
+            formHtml='<div style="padding:16px;border-bottom:8px solid #f5f5f5;text-align:center"><div style="font-size:var(--fs-base);color:#888;margin-bottom:4px">거래 완료 후 후기를 작성할 수 있어요</div><div style="font-size:var(--fs-sm);color:#aaa">예약 확정 후 14일 이내 작성 가능</div></div>';
           }
         }
 
@@ -11045,23 +11045,23 @@ function openBuyerReviewModal(buyerId,buyerName,reservationId,completedAt){
   buyerReviewStarItems={communication:0,payment:0,promise:0};
   const body=document.getElementById('buyer-review-body');
   if(!body)return;
-  // 7일 만료 체크
+  // 14일 만료 체크
   const daysPassed=(Date.now()-new Date(completedAt).getTime())/(1000*60*60*24);
-  if(daysPassed>7){
+  if(daysPassed>14){
     body.innerHTML=`
       <div style="text-align:center;padding:40px 0">
         <div style="font-size:48px;margin-bottom:12px">⏰</div>
         <div style="font-size:16px;font-weight:700;color:#e53935;margin-bottom:8px">후기 작성 기간이 만료됐어요</div>
-        <div style="font-size:13px;color:#888">거래 완료 후 7일 이내에만 작성 가능해요</div>
+        <div style="font-size:13px;color:#888">거래 완료 후 14일 이내에만 작성 가능해요</div>
       </div>`;
     openModal('modal-buyer-review');
     return;
   }
-  const remain=Math.ceil(7-daysPassed);
+  const remain=Math.ceil(14-daysPassed);
   body.innerHTML=`
     <div style="margin-bottom:16px">
       <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:4px"><b>${buyerName||'구매자'}</b>님과의 거래는 어떠셨나요?</div>
-      <div style="font-size:12px;color:#888">거래 완료 후 7일 이내 작성 가능 (${remain}일 남음)</div>
+      <div style="font-size:12px;color:#888">거래 완료 후 14일 이내 작성 가능 (${remain}일 남음)</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -11148,19 +11148,19 @@ async function migrateLocalReviews(){
   if(migrated)console.log(`[후기 마이그레이션] ${migrated}건 완료`);
 }
 
-// 후기 재알림 체크 (3일 경과, 7일 미만, 미작성)
+// 후기 재알림 체크 (7일 경과, 14일 미만, 미작성)
 async function checkReviewReminders(){
   if(!_sb||!curUser)return;
   try{
     const now=new Date();
-    const threeDaysAgo=new Date(now.getTime()-3*24*60*60*1000).toISOString();
     const sevenDaysAgo=new Date(now.getTime()-7*24*60*60*1000).toISOString();
-    // 완료된 예약 중 3~7일 경과, 재알림 미발송
+    const fourteenDaysAgo=new Date(now.getTime()-14*24*60*60*1000).toISOString();
+    // 완료된 예약 중 7~14일 경과, 재알림 미발송
     const{data:resvs}=await _sb.from('reservations').select('*')
       .eq('status','confirmed')
       .eq('notified_review',false)
-      .lt('completed_at',threeDaysAgo)
-      .gt('completed_at',sevenDaysAgo);
+      .lt('completed_at',sevenDaysAgo)
+      .gt('completed_at',fourteenDaysAgo);
     if(!resvs||!resvs.length)return;
     for(const r of resvs){
       // 이미 후기 작성됐는지 체크
@@ -11173,7 +11173,7 @@ async function checkReviewReminders(){
       // 구매자 재알림 (판매자 후기 미작성)
       const{data:buyerRev}=await _sb.from('reviews').select('id').eq('reservation_id',r.id).eq('review_type','buyer_to_seller').maybeSingle();
       if(!buyerRev){
-        await sendNotification(r.buyer_id,'review_reminder','⏰ 아직 후기를 작성하지 않으셨어요',`"${r.product_title}" 후기 작성 기간이 곧 만료됩니다! 7일 이내에 작성해주세요.`,{resvId:r.id,sellerId:r.seller_id});
+        await sendNotification(r.buyer_id,'review_reminder','⏰ 아직 후기를 작성하지 않으셨어요',`"${r.product_title}" 후기 작성 기간이 곧 만료됩니다! 14일 이내에 작성해주세요.`,{resvId:r.id,sellerId:r.seller_id});
       }
       // 판매자 재알림 (구매자 후기 미작성)
       const{data:sellerRev}=await _sb.from('reviews').select('id').eq('reservation_id',r.id).eq('review_type','seller_to_buyer').maybeSingle();
@@ -13586,12 +13586,12 @@ async function _updateMyMenuBadges(){
       :`buyer_id.eq.${myId},seller_id.eq.${myId}`;
     const{data:allConfirmed}=await _sb.from('reservations').select('id,buyer_id,seller_id,created_at,updated_at').or(orFilter).eq('status','confirmed');
     if(allConfirmed&&allConfirmed.length){
-      // 7일 이내 예약만 (기간 만료 제외)
+      // 14일 이내 예약만 (기간 만료 제외)
       const now=Date.now();
-      const SEVEN_DAYS=7*24*60*60*1000;
+      const FOURTEEN_DAYS=14*24*60*60*1000;
       const validResvs=allConfirmed.filter(r=>{
         const confirmedAt=new Date(r.updated_at||r.created_at).getTime();
-        return(now-confirmedAt)<SEVEN_DAYS;
+        return(now-confirmedAt)<FOURTEEN_DAYS;
       });
       if(!validResvs.length){
         const el1=document.getElementById('badge-buyer-resvs');if(el1)el1.style.display='none';
