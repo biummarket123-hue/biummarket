@@ -7146,23 +7146,18 @@ async function doSignup(){
     }else{
       const{data,error}=await _sb.auth.signUp({email,password:pw});
       if(error){
-        // 이미 가입된 계정인 경우 친절한 안내
+        // 이미 가입된 계정인 경우 provider별 안내
         if(error.message&&error.message.includes('User already registered')){
           try{
-            const{data:existing}=await _sb.from('users').select('email,extra_info').or(`email.eq.${email},user_id.eq.${userId}`).maybeSingle();
-            const provider=(existing&&existing.extra_info)?(() => {try{const p=JSON.parse(existing.extra_info);return p.provider||'';}catch{return '';}})():'';
-            // Supabase auth 메타데이터에서 provider 확인
-            let authProvider=provider;
-            if(!authProvider&&existing){
-              const{data:authUsers}=await _sb.auth.admin?.listUsers?.({filter:`email eq "${email}"`})||{data:null};
-              if(authUsers?.users?.[0]?.app_metadata?.provider)authProvider=authUsers.users[0].app_metadata.provider;
-            }
-            if(authProvider==='google'){showToast('이미 구글 계정으로 가입된 이메일이에요. 구글 로그인을 이용해주세요.');showView('login');return;}
-            if(authProvider==='kakao'){showToast('이미 카카오 계정으로 가입된 이메일이에요. 카카오 로그인을 이용해주세요.');showView('login');return;}
-            if(authProvider==='naver'){showToast('이미 네이버 계정으로 가입된 이메일이에요. 네이버 로그인을 이용해주세요.');showView('login');return;}
+            const provRes=await fetch('/api/check-provider',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+            const provData=await provRes.json();
+            const prov=provData?.provider||'email';
+            if(prov==='google'){showToast('이미 구글 계정으로 가입된 이메일이에요. 구글 로그인을 이용해주세요.');showView('login');return;}
+            if(prov==='kakao'){showToast('이미 카카오 계정으로 가입된 이메일이에요. 카카오 로그인을 이용해주세요.');showView('login');return;}
+            if(prov==='naver'){showToast('이미 네이버 계정으로 가입된 이메일이에요. 네이버 로그인을 이용해주세요.');showView('login');return;}
           }catch(ex){console.error('[doSignup] provider 조회 오류:',ex);}
           // email 가입 또는 provider 확인 실패 → 안내 모달
-          showToast('이미 가입된 아이디예요. 아이디/비밀번호 찾기를 이용해주세요.');
+          showToast('이미 가입된 아이디예요. 로그인하거나 비밀번호 찾기를 이용해주세요.');
           _showDupAccountModal();
           return;
         }
