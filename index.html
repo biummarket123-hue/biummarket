@@ -5889,7 +5889,7 @@ async function checkUserIdDup(){
   if(localDup){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
   // Supabase 중복 체크
   if(_sb){
-    const{data}=await _sb.from('users').select('id').or(`user_id.eq.${uid},email.eq.${uid}@bium.market`).maybeSingle();
+    const{data}=await _sb.from('users').select('id').eq('email',uid+'@bium.market').maybeSingle();
     if(data){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
   }
   statusEl.textContent='✅ 사용 가능한 아이디예요';statusEl.style.color='#16a34a';statusEl.style.display='block';
@@ -6720,7 +6720,7 @@ async function findPwStep1(){
     // 아이디 → 이메일 변환해서 users 테이블 조회
     const email=userId.includes('@')?userId:(userId+'@bium.market');
     const cleanTel=tel.replace(/[^0-9]/g,'');
-    const{data,error}=await _sb.from('users').select('id,email,tel,user_id').or(`email.eq.${email},user_id.eq.${userId}`).maybeSingle();
+    const{data,error}=await _sb.from('users').select('id,email,tel').eq('email',email).maybeSingle();
     if(error||!data){showToast('등록된 정보와 일치하지 않아요');btn.disabled=false;btn.textContent='인증번호 받기';return;}
     // 전화번호 매칭 확인
     const dbTel=(data.tel||'').replace(/[^0-9]/g,'');
@@ -7183,7 +7183,7 @@ async function doSignup(){
     }
     const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:userId,name,email,user_id:isOAuth?'':userId,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const newProfile={id:userId,name,email,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     let insErr=null;
     if(isOAuth){
       // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
