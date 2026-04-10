@@ -12441,18 +12441,14 @@ async function sendChatMsg(){
       text,
       created_at:new Date().toISOString()
     });
-    // 채팅방 last_msg 업데이트 + 상대방 unread +1
+    // 채팅방 last_msg 업데이트
     const unreadField=isSeller?'unread_buyer':'unread_seller';
     await _sb.from('chat_rooms').update({
       last_msg:text,
-      last_time:new Date().toISOString(),
-      [unreadField]:(_sb.rpc?undefined:1)
+      last_time:new Date().toISOString()
     }).eq('id',curChatRoomId);
-    // unread 증가 (별도 처리)
-    const{data:curr}=await _sb.from('chat_rooms').select(unreadField).eq('id',curChatRoomId).single();
-    if(curr){
-      await _sb.from('chat_rooms').update({[unreadField]:(curr[unreadField]||0)+1}).eq('id',curChatRoomId);
-    }
+    // 상대방 unread 원자적 증가 (RPC)
+    await _sb.rpc('increment_chat_unread',{p_room_id:curChatRoomId,p_field:unreadField});
     // 채팅은 배지로만 표시 (알림 내역에 쌓지 않음)
   }
 }
