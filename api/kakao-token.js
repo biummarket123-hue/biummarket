@@ -13,22 +13,44 @@ export default async function handler(req, res) {
   }
 
   try {
+    const clientId = (process.env.KAKAO_CLIENT_ID || '27e1cc15dc74afe3bc3058cf623faf94').trim();
+    const rawSecret = process.env.KAKAO_CLIENT_SECRET;
+    const clientSecret = (rawSecret || '').trim();
+
+    // client_secret이 비어 있으면 body에서 제외 (undefined 문자열 전송 방지)
+    const bodyParams = {
+      grant_type: 'authorization_code',
+      client_id: clientId,
+      redirect_uri: 'https://www.biummarket.com',
+      code
+    };
+    if (clientSecret) bodyParams.client_secret = clientSecret;
+
     // 서버에서 카카오 토큰 교환 (client_secret 노출 방지)
     const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: process.env.KAKAO_CLIENT_ID || '27e1cc15dc74afe3bc3058cf623faf94',
-        client_secret: process.env.KAKAO_CLIENT_SECRET,
-        redirect_uri: 'https://www.biummarket.com',
-        code
-      })
+      body: new URLSearchParams(bodyParams)
     });
     const tokenData = await tokenRes.json();
 
     if(!tokenData.access_token) {
-      res.status(400).json({ error: tokenData.error_description || '토큰 발급 실패' });
+      console.error('[kakao-token] 토큰 발급 실패:', {
+        status: tokenRes.status,
+        kakaoResponse: tokenData,
+        clientIdLen: clientId.length,
+        hasClientSecret: !!clientSecret,
+        clientSecretLen: clientSecret.length
+      });
+      res.status(400).json({
+        error: tokenData.error_description || tokenData.msg || '토큰 발급 실패',
+        kakaoError: tokenData.error,
+        diagnostic: {
+          hasClientSecret: !!clientSecret,
+          clientSecretLen: clientSecret.length,
+          clientIdLen: clientId.length
+        }
+      });
       return;
     }
 
@@ -40,6 +62,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(userData);
   } catch(e) {
+    console.error('[kakao-token] 예외:', e);
     res.status(500).json({ error: e.message });
   }
 }
