@@ -17982,6 +17982,13 @@ async function renderBizStats(tab){
   const _pageParam=_urlParams.get('page');
   const _typeParam=_urlParams.get('type');
   const _productParam=_urlParams.get('product');
+  const _guestParam=_urlParams.get('guest');
+  // 랜딩 페이지 "원단 둘러보기" 버튼에서 온 경우 URL에서 guest 파라미터 제거 (히스토리 클린업)
+  if(_guestParam==='true'){
+    const _cleanGuestUrl=new URL(window.location.href);
+    _cleanGuestUrl.searchParams.delete('guest');
+    history.replaceState(null,'',_cleanGuestUrl.pathname+(_cleanGuestUrl.search||'')||'/');
+  }
   // 공유 링크로 상품 직접 접근
   if(_productParam){
     // URL에서 product 파라미터 제거 (뒤로가기 시 홈으로)
@@ -18038,6 +18045,9 @@ async function renderBizStats(tab){
     syncKeywordsFromSupabase();
     loadAppSettings();
     loadFontSize();
+  }else if(_guestParam==='true'){
+    // 랜딩 페이지 "원단 둘러보기" 버튼 → 로그인 화면 건너뛰고 게스트 모드로 바로 진입
+    enterGuestMode();
   }else{
     showView('login');
     // 아이디 저장/자동 로그인 복원
