@@ -51,7 +51,17 @@
       "Bash(JAVA_HOME=\"C:/Program Files/Android/jbr\" ./gradlew assembleDebug)",
       "Bash(identify og-image.png)",
       "Bash(bash /tmp/count_langs.sh)",
-      "WebFetch(domain:www.biummarket.com)"
+      "WebFetch(domain:www.biummarket.com)",
+      "Bash(cp \"C:/Users/A/다운로드/favicon/web-app-manifest-192x192.png\" \"C:/Users/A/biummarket/public/favicon-192.png\")",
+      "Bash(cp \"C:/Users/A/다운로드/favicon/web-app-manifest-512x512.png\" \"C:/Users/A/biummarket/public/favicon-512.png\")",
+      "Bash(cp \"C:/Users/A/다운로드/favicon/apple-touch-icon.png\" \"C:/Users/A/biummarket/public/apple-touch-icon.png\")",
+      "Bash(cp \"C:/Users/A/다운로드/favicon/favicon.ico\" \"C:/Users/A/biummarket/public/favicon.ico\")",
+      "Read(//c/Users/A/다운로드/**)",
+      "Read(//c/Users/A/Downloads/favicon/**)",
+      "Bash(cp \"C:/Users/A/Downloads/favicon/web-app-manifest-192x192.png\" \"C:/Users/A/biummarket/public/favicon-192.png\")",
+      "Bash(cp \"C:/Users/A/Downloads/favicon/web-app-manifest-512x512.png\" \"C:/Users/A/biummarket/public/favicon-512.png\")",
+      "Bash(cp \"C:/Users/A/Downloads/favicon/apple-touch-icon.png\" \"C:/Users/A/biummarket/public/apple-touch-icon.png\")",
+      "Bash(cp \"C:/Users/A/Downloads/favicon/favicon.ico\" \"C:/Users/A/biummarket/public/favicon.ico\")"
     ]
   }
 }
