@@ -7079,7 +7079,7 @@ function _showDupAccountModal(){
     document.body.appendChild(modal);
   }else{modal.style.display='flex';}
 }
-async function doSignup(){
+async function doSignup(_retriedAfterCleanup){
   // 필수 약관 동의 확인
   if(!_agreeState.terms){showToast(t('t_agree_terms'));return;}
   if(!_agreeState.privacy){showToast(t('t_agree_privacy'));return;}
@@ -7163,15 +7163,39 @@ async function doSignup(){
     return;
   }
   try{
-    let userId;
+    let authUid;
     if(isOAuth){
       // 소셜 로그인: 이미 auth 세션 있음, users 테이블에만 insert
-      userId=_oauthPendingUser.id;
+      authUid=_oauthPendingUser.id;
     }else{
       const{data,error}=await _sb.auth.signUp({email,password:pw});
       if(error){
-        // 이미 가입된 계정인 경우 provider별 안내
+        // 이미 가입된 계정인 경우 고아 레코드부터 확인
         if(error.message&&error.message.includes('User already registered')){
+          // 재시도 중이 아니라면 고아 레코드 감지 후 자동 정리 흐름
+          if(!_retriedAfterCleanup){
+            try{
+              const checkRes=await fetch('/api/check-userid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId})});
+              const checkData=await checkRes.json();
+              if(checkRes.ok&&checkData.orphan){
+                if(confirm('이전 가입 시도가 남아있어요. 정리 후 다시 시도할까요?')){
+                  const delRes=await fetch('/api/delete-orphan-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+                  const delData=await delRes.json();
+                  if(delRes.ok&&delData.success){
+                    // 정리 완료 → 가입 재시도 (무한 루프 방지 플래그 전달)
+                    return doSignup(true);
+                  }else{
+                    showToast('이전 레코드 정리 실패: '+(delData.error||delRes.status));
+                    return;
+                  }
+                }else{
+                  // 사용자가 취소 → 흐름 종료
+                  return;
+                }
+              }
+            }catch(e){console.error('[doSignup] 고아 확인 오류:',e);}
+          }
+          // 고아가 아니거나 정리 이후에도 실패 → 기존 provider 안내 흐름
           try{
             const provRes=await fetch('/api/check-provider',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
             const provData=await provRes.json();
@@ -7187,7 +7211,7 @@ async function doSignup(){
         }
         showToast(error.message||'회원가입에 실패했어요');return;
       }
-      userId=data.user.id;
+      authUid=data.user.id;
     }
     // 사업자등록증 base64 변환
     let bizfileBase64='';
@@ -7201,7 +7225,7 @@ async function doSignup(){
     }
     const extraData={...sellerExtra,...companyExtra,intro:sellerExtra?.intro||companyExtra?.intro||''};
     if(bizfileBase64)extraData.bizfile=bizfileBase64;
-    const newProfile={id:userId,name,email,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
+    const newProfile={id:authUid,name,email,type:actualType,loc,loc_detail:locDetail,tel,temp:36.5,join_date:new Date().toISOString().slice(0,10),created_at:new Date().toISOString(),seller_status:sellerStatus,requested_role:requestedRole,extra_info:JSON.stringify(extraData)};
     let insErr=null;
     if(isOAuth){
       // 카카오/네이버: 서버 API로 service_role insert (RLS 우회)
@@ -7217,7 +7241,7 @@ async function doSignup(){
       insErr=res.error;
     }
     if(insErr){console.error('[회원가입] users insert 오류:',insErr.message);showToast('가입 저장 오류: '+insErr.message);return;}
-    localStorage.setItem('bium_activeUserId', userId||email||'guest');
+    localStorage.setItem('bium_activeUserId', authUid||email||'guest');
     curUser={...newProfile,joinDate:newProfile.join_date,locDetail,sellerStatus,requestedRole,tel,intro:extraData.intro||'',profile:{...sellerExtra,...companyExtra},provider:isOAuth?(_oauthPendingUser.provider||'social'):'email'};
     // users 로컬 배열에도 추가
     users.push({...curUser});
