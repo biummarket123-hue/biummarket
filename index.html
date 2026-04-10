@@ -6552,6 +6552,14 @@ function showView(name,push=true){
   const target=document.getElementById('view-'+name);
   if(target){target.classList.add('active');window.scrollTo(0,0)}
   updateNotifDot();
+  // 회원가입 폼 진입 시 필드 가시성을 현재 상태에 맞게 동기화: OAuth 가입 대기면 아이디/비밀번호/이메일 숨김, 이메일 가입이면 표시
+  if(name==='signup'){
+    const _oauthMode=!!_oauthPendingUser;
+    ['s-email','s-pw','s-pw-confirm','s-userid'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&el.closest('.fg'))el.closest('.fg').style.display=_oauthMode?'none':'';
+    });
+  }
   if(name==='list'&&products.length)renderList();
   if(name==='mypage'){syncUserProfile();renderMypage();checkReservationReminders();}
   if(name==='settings'){syncUserProfile();}
