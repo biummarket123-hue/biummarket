@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const clientId = (process.env.KAKAO_CLIENT_ID || '27e1cc15dc74afe3bc3058cf623faf94').trim();
+    const clientId = (process.env.KAKAO_CLIENT_ID || '2a0cb674c93b653e5e51382a15763bf9').trim();
     const rawSecret = process.env.KAKAO_CLIENT_SECRET;
     const clientSecret = (rawSecret || '').trim();
 

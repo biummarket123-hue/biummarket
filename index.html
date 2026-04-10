@@ -7293,7 +7293,7 @@ async function doGoogleLogin(){
   }catch(e){_showLoginLoading(false);showToast('구글 로그인 실패: '+e.message);console.error(e);}
 }
 function doKakaoLogin(){
-  const REST_API_KEY='27e1cc15dc74afe3bc3058cf623faf94';
+  const REST_API_KEY='2a0cb674c93b653e5e51382a15763bf9';
   const REDIRECT_URI='https://www.biummarket.com';
   const kakaoAuthUrl=`https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&prompt=login`;
   const popup=window.open(kakaoAuthUrl,'kakaoLogin','width=500,height=600,scrollbars=yes');
