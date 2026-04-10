@@ -5885,14 +5885,24 @@ async function checkUserIdDup(){
   if(!uid||uid.length<4){statusEl.textContent='아이디는 4자 이상 입력해주세요';statusEl.style.color='#ef4444';statusEl.style.display='block';return;}
   if(uid.length>20){statusEl.textContent='아이디는 20자 이하로 입력해주세요';statusEl.style.color='#ef4444';statusEl.style.display='block';return;}
   // 로컬 중복 체크
-  const localDup=users.find(u=>u.userId===uid||u.email===uid+'@bium.market');
+  const localDup=users.find(u=>u.email===uid+'@bium.market');
   if(localDup){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
-  // Supabase 중복 체크
-  if(_sb){
-    const{data}=await _sb.from('users').select('id').eq('email',uid+'@bium.market').maybeSingle();
-    if(data){statusEl.textContent='이미 사용 중인 아이디예요';statusEl.style.color='#ef4444';statusEl.style.display='block';_userIdChecked=false;return;}
+  // 서버 중복 체크 (public.users + auth.users 고아 레코드까지 모두 확인)
+  statusEl.textContent='확인 중...';statusEl.style.color='#666';statusEl.style.display='block';
+  try{
+    const res=await fetch('/api/check-userid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:uid})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='중복확인 오류: '+(data.error||res.status);statusEl.style.color='#ef4444';_userIdChecked=false;return;}
+    if(!data.available){
+      statusEl.textContent='이미 사용 중인 아이디예요';
+      statusEl.style.color='#ef4444';
+      _userIdChecked=false;
+      return;
+    }
+  }catch(e){
+    statusEl.textContent='중복확인 중 네트워크 오류';statusEl.style.color='#ef4444';_userIdChecked=false;return;
   }
-  statusEl.textContent='✅ 사용 가능한 아이디예요';statusEl.style.color='#16a34a';statusEl.style.display='block';
+  statusEl.textContent='✅ 사용 가능한 아이디예요';statusEl.style.color='#16a34a';
   _userIdChecked=true;
 }
 
