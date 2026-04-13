@@ -18097,10 +18097,41 @@ async function renderBizStats(tab){
       const{data:{session}}=await _sb.auth.getSession();
       if(session){
         const prevUser=lsGet('curUser',null);
-        const{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',session.user.id).maybeSingle();
+        const authUid=session.user.id;
+        let{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',authUid).maybeSingle();
+        // auth.uid()로 못 찾으면 이메일로 조회 → id 불일치 시 자동 동기화
+        if(!profile&&session.user.email){
+          const{data:emailProfile}=await _sb.from('users').select('*').eq('email',session.user.email).maybeSingle();
+          if(emailProfile&&emailProfile.id!==authUid){
+            console.log('[ID 동기화-세션] public.users.id',emailProfile.id,'→ auth.uid()',authUid);
+            const oldId=emailProfile.id;
+            await _sb.from('users').update({id:authUid}).eq('id',oldId);
+            await Promise.allSettled([
+              _sb.from('products').update({seller_id:authUid}).eq('seller_id',oldId),
+              _sb.from('chat_rooms').update({seller_id:authUid}).eq('seller_id',oldId),
+              _sb.from('chat_rooms').update({buyer_id:authUid}).eq('buyer_id',oldId),
+              _sb.from('chat_messages').update({sender_id:authUid}).eq('sender_id',oldId),
+              _sb.from('wishes').update({user_id:authUid}).eq('user_id',oldId),
+              _sb.from('follows').update({follower_id:authUid}).eq('follower_id',oldId),
+              _sb.from('follows').update({seller_id:authUid}).eq('seller_id',oldId),
+              _sb.from('price_offers').update({buyer_id:authUid}).eq('buyer_id',oldId),
+              _sb.from('price_offers').update({seller_id:authUid}).eq('seller_id',oldId),
+              _sb.from('reservations').update({buyer_id:authUid}).eq('buyer_id',oldId),
+              _sb.from('reservations').update({seller_id:authUid}).eq('seller_id',oldId),
+            ]);
+            emailProfile.id=authUid;
+            profile=emailProfile;
+            profileErr=null;
+            console.log('[ID 동기화-세션] 완료');
+          }else if(emailProfile){
+            profile=emailProfile;
+            profileErr=null;
+          }
+        }
         const isComplete=profile&&!profileErr&&profile.tel;
         if(isComplete){
           curUser=mergeWithLocalUser({...profile});
+          curUser.id=authUid;
           // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
           if(prevUser&&(prevUser.id===session.user.id||prevUser.email===session.user.email))_preserveLocalFields(curUser,prevUser);
           // 구글 OAuth provider 감지
