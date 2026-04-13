@@ -18095,12 +18095,15 @@ async function renderBizStats(tab){
   if(_sb){
     try{
       const{data:{session}}=await _sb.auth.getSession();
+      console.log('[세션복원] session:',!!session,'user:',session?.user?.id,'email:',session?.user?.email);
       if(session){
         const prevUser=lsGet('curUser',null);
         const authUid=session.user.id;
         let{data:profile,error:profileErr}=await _sb.from('users').select('*').eq('id',authUid).maybeSingle();
+        console.log('[세션복원] authUid로 조회:',!!profile,'authUid:',authUid,'profileId:',profile?.id);
         // auth.uid()로 못 찾으면 이메일로 조회 → id 불일치 시 자동 동기화
         if(!profile&&session.user.email){
+          console.log('[세션복원] authUid로 못 찾음 → 이메일로 조회:',session.user.email);
           const{data:emailProfile}=await _sb.from('users').select('*').eq('email',session.user.email).maybeSingle();
           if(emailProfile&&emailProfile.id!==authUid){
             console.log('[ID 동기화-세션] public.users.id',emailProfile.id,'→ auth.uid()',authUid);
