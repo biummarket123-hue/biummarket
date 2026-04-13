@@ -9193,6 +9193,16 @@ function openSellerById(sellerId){
   }
 }
 
+// 판매자 프로필 소식 탭으로 바로 이동
+function openSellerNewsTab(sellerId){
+  openSellerById(sellerId);
+  // 프로필 렌더 후 소식 탭 전환 (비동기 렌더링 대기)
+  setTimeout(()=>{
+    const newsTab=document.querySelectorAll('#sh-tabs .seller-tab')[1];
+    if(newsTab)switchSellerTab('news',newsTab);
+  },500);
+}
+
 /* ==================== SLIDER ==================== */
 function slideMove(d){sliderIdx=Math.max(0,Math.min(sliderTotal-1,sliderIdx+d));updateSlider()}
 function updateSlider(){
@@ -17478,7 +17488,7 @@ function renderNotifView(){
       price_drop:{icon:'💸',bg:'rgba(0,200,100,.15)',title:'가격 인하',action:''},
       restock:{icon:'📦',bg:'rgba(108,99,255,.15)',title:'재입고 알림',action:''},
       reservation_remind:{icon:'📅',bg:'rgba(0,150,200,.15)',title:'예약 알림',action:"showView('my-reservations');renderMyReservations()"},
-      follow_news:{icon:'📢',bg:'rgba(255,111,0,.15)',title:'단골 소식',action:''},
+      follow_news:{icon:'📢',bg:'rgba(255,111,0,.15)',title:'단골 소식',action:'_openSellerNews'},
       dangol_msg:{icon:'💌',bg:'rgba(255,111,0,.15)',title:'단골 메시지',action:'_openSellerById'},
       dangol_new:{icon:'🆕',bg:'rgba(108,99,255,.15)',title:'단골 신상품',action:''},
       dangol_urgent:{icon:'⚡',bg:'rgba(255,101,132,.15)',title:'단골 급처',action:''},
@@ -17540,6 +17550,8 @@ function renderNotifView(){
       navAction=`openChatRoomById('${item._data.roomId}')`;
     }else if(item._action==='_openSellerReviewTab'&&item._data&&item._data.sellerId){
       navAction=`openSellerReviewTab('${item._data.sellerId}')`;
+    }else if(item._action==='_openSellerNews'&&item._data&&(item._data.authorId||item._data.senderId)){
+      navAction=`openSellerNewsTab('${item._data.authorId||item._data.senderId}')`;
     }else if(item._action==='_openSellerById'&&item._data&&item._data.senderId){
       navAction=`openSellerById('${item._data.senderId}')`;
     }else if(item._action==='_openMyProfileReview'){
@@ -17553,7 +17565,7 @@ function renderNotifView(){
     }
     // navAction 없는 알림은 타입에 따라 기본 이동
     if(!navAction){
-      if(item._type==='dangol_new'||item._type==='dangol_urgent'||item._type==='follow_news')navAction=`showView('list')`;
+      if(item._type==='dangol_new'||item._type==='dangol_urgent')navAction=`showView('list')`;
       else if(item._type==='price_drop'||item._type==='restock')navAction=item._data?.productId?`openDetail(${item._data.productId})`:`showView('list')`;
       else if(item._type==='fabric_review')navAction=`openSellerReviewTab('${curUser?.id||curUser?.email||''}')`;
     }
