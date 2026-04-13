@@ -12191,7 +12191,7 @@ async function openChatRoom(productId,fromDetail){
   if(!curUser){showToast(t('t_login_to_chat'));showView('login');return;}
   const p=products.find(x=>x.id===productId);if(!p)return;
   if(isMyProduct(p,curUser)){showToast(t('t_no_chat_own'));return;}
-  const sellerId=p.seller?.id||p.seller?.name||'';
+  const sellerId=p.seller_id||(p.seller&&p.seller.id)||'';
   const buyerId=curUser.id||curUser.email||'';
   const roomId='chat_'+productId+'_'+buyerId.replace(/[^a-zA-Z0-9]/g,'_');
   curChatRoomId=roomId;
