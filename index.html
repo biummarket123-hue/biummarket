@@ -18274,7 +18274,7 @@ async function renderBizStats(tab){
     other.value='기타';other.textContent='기타';
     sel.appendChild(other);
   })();
-}
+})();
 // 리얼타임 구독 함수 (로그인 후 재호출 가능)
 let _rtSubscribed=false;
 async function _initRealtimeSubscriptions(){
@@ -18399,7 +18399,6 @@ async function _initRealtimeSubscriptions(){
         }
       }).subscribe();
 }
-})();
 </script>
 <!-- 게스트 로그인 유도 모달 -->
 <div id="modal-guest-login" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
