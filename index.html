@@ -8693,6 +8693,23 @@ async function openDetail(id){
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
   document.getElementById('d-scroll').scrollTop=0;
 
+  // 본인 상품이면 액션바를 숨김/수정/광고로 변경
+  const _isMyProd=curUser&&isMyProduct(p,curUser);
+  const actionBar=document.querySelector('.pd-action-bar');
+  if(_isMyProd&&actionBar){
+    const isHidden=p.is_hidden===true;
+    actionBar.innerHTML=`
+      <button onclick="toggleProductStop(${p.id});setTimeout(()=>openDetail(${p.id}),300)" style="flex:1;padding:14px;background:${isHidden?'rgba(16,185,129,.1)':'rgba(0,0,0,.05)'};border:1.5px solid ${isHidden?'#10b981':'#ccc'};border-radius:14px;color:${isHidden?'#10b981':'#888'};font-size:14px;font-weight:700;cursor:pointer">${isHidden?'👁️ 노출':'🙈 숨김'}</button>
+      <button onclick="editProductById(${p.id})" style="flex:1;padding:14px;background:rgba(108,99,255,.1);border:1.5px solid #6c63ff;border-radius:14px;color:#6c63ff;font-size:14px;font-weight:700;cursor:pointer">✏️ 수정</button>
+      <button onclick="openHotDealApply(${p.id})" style="flex:1;padding:14px;background:rgba(255,111,0,.1);border:1.5px solid #ff6f00;border-radius:14px;color:#ff6f00;font-size:14px;font-weight:700;cursor:pointer">🔥 광고</button>`;
+  } else if(actionBar){
+    actionBar.innerHTML=`
+      <button class="pd-like-btn" id="d-heart" onclick="toggleDetailLike()"><span class="pd-hicon" id="d-hicon">🤍</span><span class="pd-lcnt" id="d-lcnt">${p.likes||0}</span></button>
+      <button class="pd-chat-btn" onclick="openChatModal()">💬 채팅</button>
+      <button class="pd-suggest-btn" onclick="openSuggestModal()">💰 가격제안</button>
+      <button class="pd-res-btn" onclick="openResModal()">📅 예약</button>`;
+  }
+
   // 재고 상태에 따른 버튼 처리
   const isSoldout=(p.qty||0)<=0;
   const chatBtn=document.querySelector('.pd-chat-btn');
