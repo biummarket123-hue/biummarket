@@ -6474,7 +6474,7 @@ function renderSimilarFabrics(type,color,data){
 
   // 관련 상품 필터링
   let similar=products.filter(p=>{
-    if(!p||p.is_hidden||(p.qty||0)<=0)return false;
+    if(!p||p.is_hidden||p.deleted_at||(p.qty||0)<=0)return false;
     const pType=(p.type||'').toLowerCase();
     const pTitle=(p.title||'').toLowerCase();
     const typeMatch=searchTypes.some(t=>
@@ -7663,7 +7663,7 @@ function renderCatStep2(){
           <span style="font-size:15px;color:#1a1a1a">${item}</span>
         </div>`).join('')}
     </div>
-    ${(()=>{const subProds=products.filter(p=>p.cat2===sub.name);return subProds.length?`
+    ${(()=>{const subProds=products.filter(p=>!p.deleted_at&&p.cat2===sub.name);return subProds.length?`
     <div style="margin-top:12px;background:#f8f8fa">
       <div style="padding:12px 20px 6px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:13px;color:#888;font-weight:500">전체 상품</span>
@@ -7987,7 +7987,7 @@ function renderAiRecs(){
   if(!el)return;
   if(!products.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">상품을 불러오는 중...</div>';return;}
   // 내 상품, 이미 찜한 상품 제외
-  const pool=products.filter(p=>!isMyProduct(p,curUser||{})&&!isWished(p.id)&&(p.qty||0)>0&&!p.is_hidden);
+  const pool=products.filter(p=>!p.deleted_at&&!isMyProduct(p,curUser||{})&&!isWished(p.id)&&(p.qty||0)>0&&!p.is_hidden);
   if(!pool.length){el.innerHTML='<div style="padding:20px;color:#666677;font-size:13px">추천할 상품이 없어요</div>';return;}
   // 관심 카테고리
   const interestCats=lsGet('interestCats',[])||[];
@@ -8259,7 +8259,7 @@ function renderHomeSections(){
     const sigungu=locParts[1]||'';
     const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
     const locKey=isMetro?sido:sigungu;
-    const nearbyProds=products.filter(p=>((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))&&!p.is_hidden&&(p.qty||0)>0).slice(0,10);
+    const nearbyProds=products.filter(p=>!p.deleted_at&&((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))&&!p.is_hidden&&(p.qty||0)>0).slice(0,10);
     if(nearbyProds.length){
       html+=`<div style="background:#fff;padding:16px 0 12px;margin-bottom:8px;border:1.5px solid rgba(0,179,134,.15);border-radius:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
@@ -10039,7 +10039,7 @@ async function switchSellerTab(tab,el){
         </div>`:''}
         ${isMySelf?(()=>{
           const wishIds=[..._wishSet];
-          const wishProds=wishIds.map(id=>products.find(p=>Number(p.id)===Number(id))).filter(Boolean);
+          const wishProds=wishIds.map(id=>products.find(p=>Number(p.id)===Number(id)&&!p.deleted_at)).filter(Boolean);
           const cnt=_wishSet.size;
           return `<div style="padding:16px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -10614,7 +10614,7 @@ async function renderDangolMyList(){
     const name=u.name||sellerInfo.name||'';
     const loc=u.loc||sellerInfo.loc||'';
     const type=u.type||sellerInfo.type||'';
-    const prods=products.filter(p=>p.seller?.id===key||p.seller?.name===key||p.seller_id===key);
+    const prods=products.filter(p=>!p.deleted_at&&(p.seller?.id===key||p.seller?.name===key||p.seller_id===key));
     return{key,name,loc,type,prodCount:prods.length};
   });
   // Supabase에서 최신 정보 보강
@@ -13018,7 +13018,7 @@ function renderSettings(){
   // 등록 상품 수
   const prodEl=document.getElementById('sett-prod-count');
   if(prodEl){
-    const cnt=u.name?products.filter(p=>isMyProduct(p,u)).length:0;
+    const cnt=u.name?products.filter(p=>!p.deleted_at&&isMyProduct(p,u)).length:0;
     prodEl.textContent=cnt+'개';
   }
 
@@ -13159,7 +13159,7 @@ function updateHomeLocBar(){
     const locKey=isMetro?sido:sigungu;
     locText.textContent=loc;
     if(nearby){
-      const cnt=products.filter(p=>(p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey)).length;
+      const cnt=products.filter(p=>!p.deleted_at&&((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))).length;
       nearby.textContent=cnt?`근처 ${cnt}개 상품`:'';
     }
   }else{
@@ -13885,7 +13885,7 @@ function goToDoneReservations(){
 function showMySales(){
   const u=curUser;
   if(!u){showToast(t('t_login_required'));return;}
-  const myP=products.filter(p=>isMyProduct(p,u));
+  const myP=products.filter(p=>!p.deleted_at&&isMyProduct(p,u));
   if(!myP.length){showToast(t('t_no_products'));return;}
   curCatKey='';
   curViewMode='my-products';
@@ -15594,7 +15594,7 @@ function showEmailVerifyScreen(email, isBusiness){
   `;
 }
 function openSimilarMore(p){
-  const similar=products.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,40);
+  const similar=products.filter(x=>x.id!==p.id&&!x.deleted_at&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,40);
   const el=document.getElementById('cat-products-list')||document.getElementById('cp-list');
   if(!el)return;
   curCatKey='';curViewMode='similar-more';
@@ -15824,7 +15824,7 @@ async function handleImgSearch(e){
     const matKeywords=[material,fabricType].join(' ')
       .replace(/[0-9]/g,'').split(/[\s\/\+,]+/)
       .filter(k=>k.length>1);
-    const matched=products.filter(p=>{
+    const matched=products.filter(p=>{if(p.deleted_at)return false;
       // 1. 카테고리 매칭
       const catMatch=cat&&(p.cat===cat||p.type===cat||(p.cat||'').includes(cat)||(p.type||'').includes(cat));
       // 2. 소재 키워드 매칭
