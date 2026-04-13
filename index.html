@@ -7372,6 +7372,7 @@ async function handleKakaoCode(code){
         _guestMode=false;const _gb1=document.getElementById('guest-badge');if(_gb1)_gb1.style.display='none';
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
+        loadChatRoomsFromSB();_startChatPoll();_initRealtimeSubscriptions();
         if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
           lsSet('bium_seller_guide_shown_'+curUser.id,true);setTimeout(()=>openGuideModal('seller'),1000);
         }
@@ -7448,6 +7449,7 @@ async function handleNaverCode(code,state){
         _guestMode=false;const _gb2=document.getElementById('guest-badge');if(_gb2)_gb2.style.display='none';
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
         showView('list');showListSkeleton();loadProductsFromSupabase(true);
+        loadChatRoomsFromSB();_startChatPoll();_initRealtimeSubscriptions();
         if((curUser.type==='business'||curUser.sellerStatus==='approved')&&!lsGet('bium_seller_guide_shown_'+curUser.id,false)){
           lsSet('bium_seller_guide_shown_'+curUser.id,true);setTimeout(()=>openGuideModal('seller'),1000);
         }
@@ -18250,8 +18252,23 @@ async function renderBizStats(tab){
     _startChatPoll();
   }
   // Supabase 리얼타임 구독
-  if(_sb&&curUser){
-    const myId=curUser.id||'';
+  if(_sb&&curUser) _initRealtimeSubscriptions();
+}
+// 리얼타임 구독 함수 (로그인 후 재호출 가능)
+let _rtSubscribed=false;
+async function _initRealtimeSubscriptions(){
+  if(!_sb||!curUser)return;
+  // 세션 유효성 확인
+  const{data:{session:rtSession}}=await _sb.auth.getSession();
+  console.log('[Realtime] 구독 시작, authUid:',rtSession?.user?.id||'세션없음');
+  if(!rtSession){console.warn('[Realtime] auth 세션 없음 — 구독 생략');return;}
+  // 기존 구독 정리
+  if(_rtSubscribed){
+    _sb.removeAllChannels();
+    _rtSubscribed=false;
+  }
+  _rtSubscribed=true;
+  const myId=curUser.id||'';
     _sb.channel('notif-'+myId)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+myId},payload=>{
         const n=payload.new;
@@ -18360,7 +18377,7 @@ async function renderBizStats(tab){
           loadChatRoomsFromSB();
         }
       }).subscribe();
-  }
+}
   // 저장된 언어 자동 적용
   if(curLang!=='ko')setLang(curLang);
   // 앱 포커스 복귀 시 프로필 자동 동기화 (승인/거절 실시간 반영)
