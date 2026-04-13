@@ -8267,7 +8267,7 @@ function renderHomeSections(){
       html+=`<div style="background:#fff;padding:16px 0 12px;margin-bottom:8px;border:1.5px solid rgba(0,179,134,.15);border-radius:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
           <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">📍 ${locKey} 근처 상품</div><div style="font-size:var(--fs-sm);color:#888;margin-top:2px">내 주변에서 거래 가능한 원단</div></div>
-          <span onclick="goSearchCat('전체')" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 ›</span>
+          <span onclick="openNearbyMore()" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 ›</span>
         </div>
         <div style="display:flex;align-items:stretch;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">${nearbyProds.map(p=>`<div style="min-width:160px;max-width:160px;flex-shrink:0">${gridCardHtml(p).replace('overflow:hidden;cursor:pointer"','overflow:hidden;cursor:pointer;height:100%;display:flex;flex-direction:column"').replace('padding:8px"','padding:8px;flex:1;display:flex;flex-direction:column;justify-content:space-between"')}</div>`).join('')}</div>
       </div>`;
@@ -8567,6 +8567,17 @@ function goSearchCat(cat){
   // 홈에서 해당 카테고리로 Supabase 필터 적용
   showView('list');
   setHomeCat(cat);
+}
+function openNearbyMore(){
+  const myLoc=curUser?.loc||'';
+  if(!myLoc)return;
+  const parts=myLoc.split(' ');
+  const sido=parts[0]||'';
+  const sigungu=parts[1]||'';
+  const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
+  const locKey=isMetro?sido:sigungu;
+  const items=products.filter(p=>!p.deleted_at&&((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))&&!p.is_hidden&&(p.qty||0)>0);
+  openHomeMoreView('📍 '+locKey+' 근처 상품','내 주변에서 거래 가능한 원단',items);
 }
 
 function openNoticeModal(){openModal('modal-notice')}
