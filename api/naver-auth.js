@@ -33,63 +33,54 @@ export default async function handler(req, res) {
     const naverId = profile.id;
     const nickname = profile.name || profile.nickname || '네이버사용자';
     const email = profile.email || ('naver_' + naverId + '@naver.com');
+    // OAuth 사용자 전용 고정 비밀번호 (서버에서만 사용)
+    const fixedPw = 'BiumOAuth_' + email.replace(/[^a-zA-Z0-9]/g, '_') + '_!Secure2026';
 
-    // 3. Supabase Admin API로 auth user 조회/생성
-    const headers = {
+    // 3. Supabase Admin API
+    const adminHeaders = {
       'apikey': SUPABASE_SERVICE_KEY,
       'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
       'Content-Type': 'application/json'
     };
 
     // 이메일로 기존 auth user 검색
-    const listRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=1&per_page=1`, {
-      method: 'GET',
-      headers
-    });
-    // 이메일 기반 검색은 admin API에서 직접 지원하지 않으므로 다른 방법 사용
-    // signInWithPassword 대신 이메일로 조회
     let authUser = null;
-
-    // 기존 사용자 조회 (이메일 기반)
     const searchRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-      method: 'GET',
-      headers
+      method: 'GET', headers: adminHeaders
     });
     if(searchRes.ok) {
       const allUsers = await searchRes.json();
       const userList = allUsers.users || allUsers;
-      if(Array.isArray(userList)) {
-        authUser = userList.find(u => u.email === email);
-      }
+      if(Array.isArray(userList)) authUser = userList.find(u => u.email === email);
     }
 
     if(!authUser) {
-      // 신규 auth user 생성 (임시 비밀번호, 이메일 확인 스킵)
-      const randomPw = 'OAuth_' + crypto.randomUUID();
+      // 신규 auth user 생성
       const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-        method: 'POST',
-        headers,
+        method: 'POST', headers: adminHeaders,
         body: JSON.stringify({
-          email,
-          password: randomPw,
-          email_confirm: true,
+          email, password: fixedPw, email_confirm: true,
           user_metadata: { name: nickname, provider: 'naver', naver_id: naverId }
         })
       });
       if(!createRes.ok) {
         const errText = await createRes.text();
-        console.error('[naver-auth] auth user 생성 실패:', errText);
         res.status(500).json({error:'auth user 생성 실패', detail: errText}); return;
       }
       authUser = await createRes.json();
-      console.log('[naver-auth] 새 auth user 생성:', authUser.id);
+      console.log('[naver-auth] 새 auth user:', authUser.id);
     } else {
-      console.log('[naver-auth] 기존 auth user 발견:', authUser.id);
+      // 기존 user의 비밀번호를 고정 비밀번호로 갱신
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authUser.id}`, {
+        method: 'PUT', headers: adminHeaders,
+        body: JSON.stringify({ password: fixedPw })
+      });
+      console.log('[naver-auth] 기존 auth user:', authUser.id);
     }
 
     const authUid = authUser.id;
 
-    // 4. public.users.id 동기화 (불일치 시)
+    // 4. public.users.id 동기화
     const pubRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id`, {
       headers: {'apikey': SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`}
     });
@@ -98,83 +89,43 @@ export default async function handler(req, res) {
       if(pubUsers.length && pubUsers[0].id !== authUid) {
         const oldId = pubUsers[0].id;
         console.log('[naver-auth] ID 동기화:', oldId, '→', authUid);
-        // public.users id 업데이트
         await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${oldId}`, {
-          method: 'PATCH',
-          headers: {...headers, 'Prefer': 'return=minimal'},
+          method: 'PATCH', headers: {...adminHeaders, 'Prefer': 'return=minimal'},
           body: JSON.stringify({id: authUid})
         });
-        // 관련 테이블 참조 업데이트
         const tables = [
-          {table:'products', field:'seller_id'},
-          {table:'chat_rooms', field:'seller_id'},
-          {table:'chat_rooms', field:'buyer_id'},
-          {table:'chat_messages', field:'sender_id'},
-          {table:'wishes', field:'user_id'},
-          {table:'follows', field:'follower_id'},
-          {table:'follows', field:'seller_id'},
-          {table:'price_offers', field:'buyer_id'},
-          {table:'price_offers', field:'seller_id'},
-          {table:'reservations', field:'buyer_id'},
-          {table:'reservations', field:'seller_id'},
+          {table:'products',field:'seller_id'},{table:'chat_rooms',field:'seller_id'},
+          {table:'chat_rooms',field:'buyer_id'},{table:'chat_messages',field:'sender_id'},
+          {table:'wishes',field:'user_id'},{table:'follows',field:'follower_id'},
+          {table:'follows',field:'seller_id'},{table:'price_offers',field:'buyer_id'},
+          {table:'price_offers',field:'seller_id'},{table:'reservations',field:'buyer_id'},
+          {table:'reservations',field:'seller_id'},
         ];
         await Promise.allSettled(tables.map(t =>
           fetch(`${SUPABASE_URL}/rest/v1/${t.table}?${t.field}=eq.${oldId}`, {
-            method: 'PATCH',
-            headers: {...headers, 'Prefer': 'return=minimal'},
+            method: 'PATCH', headers: {...adminHeaders, 'Prefer': 'return=minimal'},
             body: JSON.stringify({[t.field]: authUid})
           })
         ));
-        console.log('[naver-auth] ID 동기화 완료');
       }
     }
 
-    // 5. 임시 토큰 생성 (generateLink로 magic link 생성 후 토큰 추출)
-    const linkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+    // 5. signInWithPassword로 세션 토큰 발급
+    const signInRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
-      headers,
-      body: JSON.stringify({
-        type: 'magiclink',
-        email,
-        options: { data: { provider: 'naver' } }
-      })
+      headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: fixedPw })
     });
-    if(!linkRes.ok) {
-      const errText = await linkRes.text();
-      console.error('[naver-auth] generate_link 실패:', errText);
-      res.status(500).json({error:'토큰 생성 실패'}); return;
+    if(!signInRes.ok) {
+      const errText = await signInRes.text();
+      console.error('[naver-auth] signIn 실패:', errText);
+      res.status(500).json({error:'세션 생성 실패', detail: errText}); return;
     }
-    const linkData = await linkRes.json();
-
-    // OTP로 세션 검증
-    const verifyRes = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        type: 'magiclink',
-        token: linkData.properties?.hashed_token || linkData.hashed_token,
-        email
-      })
-    });
-
-    if(!verifyRes.ok) {
-      const errText = await verifyRes.text();
-      console.error('[naver-auth] verify 실패:', errText);
-      res.status(500).json({error:'세션 검증 실패'}); return;
-    }
-
-    const sessionData = await verifyRes.json();
+    const sessionData = await signInRes.json();
 
     res.status(200).json({
-      success: true,
-      authUid,
-      session: {
-        access_token: sessionData.access_token,
-        refresh_token: sessionData.refresh_token
-      },
+      success: true, authUid,
+      session: { access_token: sessionData.access_token, refresh_token: sessionData.refresh_token },
       profile: { ...profile, email, nickname }
     });
 
