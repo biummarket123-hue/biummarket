@@ -8375,7 +8375,7 @@ async function renderHomeHotDealSection(){
       const{data:sp}=await _sb.from('products').select('*').eq('id',d.product_id).maybeSingle();
       if(sp){p=sp;products.push(sp);}
     }
-    if(p)prods.push({...p,_hotdeal:d});
+    if(p&&!p.deleted_at)prods.push({...p,_hotdeal:d});
   }
   if(!prods.length){sec.style.display='none';return;}
   sec.style.display='block';
