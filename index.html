@@ -8310,13 +8310,13 @@ function _renderHorizCard(p){
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
   const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
   return `<div onclick="openDetail(${p.id})" style="min-width:160px;max-width:160px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #f0f0f5;cursor:pointer;flex-shrink:0">
-    <div style="width:160px;height:120px;background:${bg};position:relative;overflow:hidden">
+    <div style="width:160px;height:160px;background:${bg};position:relative;overflow:hidden">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
       ${p.is_urgent?'<span style="position:absolute;top:6px;left:6px;background:#ff6b35;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</span>':''}
       ${p.is_free?'<span style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">🎁 나눔</span>':''}
     </div>
-    <div style="padding:10px">
-      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+    <div style="padding:10px;max-width:160px;box-sizing:border-box">
+      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${p.title}</div>
       <div style="font-size:var(--fs-base);font-weight:800;margin-top:4px">${p.is_free?'<span style="color:#00b386">무료나눔</span>':'<span style="color:#e53935">'+(hasBulk?_fp(p.bulk_price)+'-'+_fp(p.price):_fp(p.price))+'</span><span style="color:#1a1a1a">원/'+unit+'</span>'}</div>
       ${p.loc?`<div style="font-size:var(--fs-xs);color:#888;margin-top:3px">📍${p.loc.split(' ').slice(-1)[0]}</div>`:''}
     </div>
