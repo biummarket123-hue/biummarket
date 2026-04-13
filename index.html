@@ -16208,8 +16208,8 @@ function openImageViewer(imgUrls,startIdx){
   window._ivNext=()=>{if(curIdx<imgUrls.length-1){curIdx++;render();}};
   window._ivGo=(i)=>{curIdx=i;render();};
   overlay.onclick=(e)=>{if(e.target===overlay&&scale<=1)overlay.remove();};
-  render();
   document.body.appendChild(overlay);
+  render();
   // 키보드 좌우
   const _ivKey=(e)=>{if(!document.getElementById('img-viewer-overlay')){document.removeEventListener('keydown',_ivKey);return;}if(e.key==='ArrowLeft')_ivPrev();else if(e.key==='ArrowRight')_ivNext();else if(e.key==='Escape')overlay.remove();};
   document.addEventListener('keydown',_ivKey);
