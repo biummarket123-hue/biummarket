@@ -12079,7 +12079,7 @@ async function renderWishlist(){
   const wishIds=[..._wishSet];
   if(!wishIds.length){list.innerHTML='';list.style.display='none';empty.style.display='flex';return;}
   // 로컬 products에서 먼저 찾고, 없는 건 Supabase에서 직접 조회
-  let liked=wishIds.map(id=>products.find(p=>Number(p.id)===Number(id))).filter(Boolean);
+  let liked=wishIds.map(id=>products.find(p=>Number(p.id)===Number(id)&&!p.deleted_at)).filter(Boolean);
   const localIds=new Set(liked.map(p=>Number(p.id)));
   const missingIds=wishIds.filter(id=>!localIds.has(Number(id)));
   if(missingIds.length&&_sb){
@@ -13535,8 +13535,12 @@ function renderMypage(){
     _sb.from('products').select('id',{count:'exact',head:true}).eq('seller_id',myId).is('deleted_at',null).then(({count})=>{
       if(count!=null){set('my-stat-products',count);set('my-sub-products',count+t('cnt_reg'));}
     });
-    // 관심목록: wishes 테이블에서 카운트
-    _sb.from('wishes').select('id',{count:'exact',head:true}).eq('user_id',myId).then(({count})=>{
+    // 관심목록: wishes 테이블에서 삭제되지 않은 상품만 카운트
+    _sb.from('wishes').select('product_id').eq('user_id',myId).then(async({data:wishRows})=>{
+      if(!wishRows)return;
+      const wIds=wishRows.map(r=>r.product_id);
+      if(!wIds.length){set('my-stat-wish',0);set('my-sub-wish','0'+t('cnt_saved'));return;}
+      const{count}=await _sb.from('products').select('id',{count:'exact',head:true}).in('id',wIds).is('deleted_at',null);
       if(count!=null){set('my-stat-wish',count);set('my-sub-wish',count+t('cnt_saved'));}
     });
     // 거래완료: 사업자=판매기준(seller_id), 일반회원=구매기준(buyer_id)
