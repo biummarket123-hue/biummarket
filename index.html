@@ -12199,7 +12199,7 @@ async function openChatRoom(productId,fromDetail){
   // Supabase에서 기존 채팅방 조회
   let _isNewRoom=false;
   if(_sb){
-    const{data:existing}=await _sb.from('chat_rooms').select('*').eq('id',roomId).single();
+    const{data:existing}=await _sb.from('chat_rooms').select('*').eq('id',roomId).maybeSingle();
     if(!existing){
       // 새 채팅방 — DB 생성은 첫 메시지 전송 시까지 지연
       _isNewRoom=true;
@@ -12225,7 +12225,7 @@ async function openChatRoom(productId,fromDetail){
     lastTime:formatChatTime(new Date()),
     unread:0,
     ...(chatRooms[roomId]||{}),
-    _pending:_isNewRoom&&!(chatRooms[roomId]&&chatRooms[roomId]._pending===false)
+    _pending:_isNewRoom
   };
   lsSet('chatRooms',chatRooms);
   showView('chat-room');
@@ -12273,7 +12273,7 @@ async function _ensureChatRoomCreated(roomId){
   const room=chatRooms[roomId];
   if(!room||!room._pending||!_sb)return;
   const p=products.find(x=>x.id===room.productId);
-  await _sb.from('chat_rooms').insert({
+  const{error:insErr}=await _sb.from('chat_rooms').insert({
     id:roomId,
     product_id:String(room.productId),
     product_title:room.productTitle,
@@ -12287,7 +12287,11 @@ async function _ensureChatRoomCreated(roomId){
     unread_seller:1,
     unread_buyer:0
   });
-  if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+  if(insErr){
+    console.error('[채팅방 생성 실패]',insErr.message);
+  }else{
+    if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+  }
   room._pending=false;
   lsSet('chatRooms',chatRooms);
 }
@@ -12544,7 +12548,7 @@ async function sendChatMsg(){
   // 대기 중인 채팅방이면 DB에 실제 생성
   if(_sb&&room._pending){
     const p=products.find(x=>x.id===room.productId);
-    await _sb.from('chat_rooms').insert({
+    const{error:insErr}=await _sb.from('chat_rooms').insert({
       id:curChatRoomId,
       product_id:String(room.productId),
       product_title:room.productTitle,
@@ -12558,8 +12562,14 @@ async function sendChatMsg(){
       unread_seller:1,
       unread_buyer:0
     });
-    // 상품 채팅수 증가
-    if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+    if(insErr){
+      console.error('[채팅방 생성 실패]',insErr.message);
+      // 중복 키 에러면 이미 존재 — pending 해제만
+      if(!insErr.message?.includes('duplicate'))showToast('채팅방 생성 실패: '+insErr.message);
+    }else{
+      // 상품 채팅수 증가
+      if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+    }
     room._pending=false;
     lsSet('chatRooms',chatRooms);
   }
