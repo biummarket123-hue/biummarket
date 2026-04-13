@@ -8383,9 +8383,11 @@ async function renderHomeHotDealSection(){
   sec.style.display='block';
   const makeCard=(p)=>_renderHotDealCard(p);
   const perPage=4;
-  const totalPages=Math.ceil(prods.length/perPage);
+  const totalPages=prods.length>perPage?prods.length:1;
+  // 순환 방식으로 항상 4칸 채우기
   const renderPage=(idx)=>{
-    const ps=prods.slice(idx*perPage,idx*perPage+perPage);
+    const ps=[];
+    for(let j=0;j<perPage;j++)ps.push(prods[(idx+j)%prods.length]);
     return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
   };
   sec.innerHTML=`
@@ -8421,7 +8423,8 @@ function goHotDealSlide(i){
   const prods=window._hdProds||[];
   const perPage=window._hdPerPage||4;
   const makeCard=(p)=>_renderHotDealCard(p);
-  const ps=prods.slice(i*perPage,i*perPage+perPage);
+  const ps=[];
+  for(let j=0;j<perPage;j++)ps.push(prods[(i+j)%prods.length]);
   const wrap=document.getElementById('hd-page-wrap');
   if(wrap)wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
   document.querySelectorAll('.hd-dot').forEach((d,idx)=>{d.style.background=idx===i?'#ff6f00':'#ddd';});
