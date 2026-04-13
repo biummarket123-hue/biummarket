@@ -6943,9 +6943,41 @@ async function doLogin(isAuto){
       return;
     }
     const prevUser=lsGet('curUser',null);
-    const{data:profile}=await _sb.from('users').select('*').eq('id',data.user.id).maybeSingle();
-    const localMatch=users.find(u=>u.id===data.user.id||u.email===email);
-    curUser=mergeWithLocalUser(profile)||localMatch||{id:data.user.id,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    const authUid=data.user.id;
+    let{data:profile}=await _sb.from('users').select('*').eq('id',authUid).maybeSingle();
+    // auth.uid()로 못 찾으면 이메일로 조회 → id 불일치 시 자동 동기화
+    if(!profile){
+      const{data:emailProfile}=await _sb.from('users').select('*').eq('email',email).maybeSingle();
+      if(emailProfile&&emailProfile.id!==authUid){
+        console.log('[ID 동기화] public.users.id',emailProfile.id,'→ auth.uid()',authUid);
+        const oldId=emailProfile.id;
+        // public.users id를 auth.uid()로 업데이트
+        await _sb.from('users').update({id:authUid}).eq('id',oldId);
+        // 관련 테이블의 참조도 업데이트
+        await Promise.allSettled([
+          _sb.from('products').update({seller_id:authUid}).eq('seller_id',oldId),
+          _sb.from('chat_rooms').update({seller_id:authUid}).eq('seller_id',oldId),
+          _sb.from('chat_rooms').update({buyer_id:authUid}).eq('buyer_id',oldId),
+          _sb.from('chat_messages').update({sender_id:authUid}).eq('sender_id',oldId),
+          _sb.from('wishes').update({user_id:authUid}).eq('user_id',oldId),
+          _sb.from('follows').update({follower_id:authUid}).eq('follower_id',oldId),
+          _sb.from('follows').update({seller_id:authUid}).eq('seller_id',oldId),
+          _sb.from('price_offers').update({buyer_id:authUid}).eq('buyer_id',oldId),
+          _sb.from('price_offers').update({seller_id:authUid}).eq('seller_id',oldId),
+          _sb.from('reservations').update({buyer_id:authUid}).eq('buyer_id',oldId),
+          _sb.from('reservations').update({seller_id:authUid}).eq('seller_id',oldId),
+        ]);
+        emailProfile.id=authUid;
+        profile=emailProfile;
+        console.log('[ID 동기화] 완료');
+      }else if(emailProfile){
+        profile=emailProfile;
+      }
+    }
+    const localMatch=users.find(u=>u.id===authUid||u.email===email);
+    curUser=mergeWithLocalUser(profile)||localMatch||{id:authUid,email,name:email,type:'member',temp:36.5,loc:'',joinDate:data.user.created_at?.slice(0,10)||''};
+    // curUser.id를 auth.uid()로 강제 보장
+    curUser.id=authUid;
     // localStorage에 저장된 값 보존 (Supabase에 없는 필드)
     if(prevUser&&(prevUser.id===curUser.id||prevUser.email===email))_preserveLocalFields(curUser,prevUser);
     if(curUser.status==='suspended'){curUser=null;_showLoginLoading(false);showToast(t('t_account_suspended'));return;}
