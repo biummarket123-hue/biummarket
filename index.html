@@ -12193,10 +12193,12 @@ async function openChatRoom(productId,fromDetail){
   const buyerId=curUser.id||curUser.email||'';
   const roomId='chat_'+productId+'_'+buyerId.replace(/[^a-zA-Z0-9]/g,'_');
   curChatRoomId=roomId;
+  console.log('[채팅 디버그] sellerId:',sellerId,'buyerId:',buyerId,'p.seller_id:',p.seller_id,'p.seller:',p.seller,'roomId:',roomId);
 
   // Supabase에서 채팅방 조회 또는 생성
   if(_sb){
     const{data:existing}=await _sb.from('chat_rooms').select('*').eq('id',roomId).maybeSingle();
+    console.log('[채팅 디버그] existing:',existing);
     if(!existing){
       // 새 채팅방 생성
       const{error:insErr}=await _sb.from('chat_rooms').insert({
@@ -12299,7 +12301,8 @@ function setChatFilter(filter){
 async function loadChatRoomsFromSB(){
   if(!_sb||!curUser)return;
   const myId=curUser.id||curUser.email||'';
-  const{data}=await _sb.from('chat_rooms').select('*').or(`seller_id.eq.${myId},buyer_id.eq.${myId}`).order('last_time',{ascending:false});
+  const{data,error:ldErr}=await _sb.from('chat_rooms').select('*').or(`seller_id.eq.${myId},buyer_id.eq.${myId}`).order('last_time',{ascending:false});
+  console.log('[채팅 로드] myId:',myId,'rooms:',data?.length||0,'error:',ldErr?.message||'없음');
   if(!data)return;
   data.forEach(r=>{
     const isSeller=r.seller_id===myId;
