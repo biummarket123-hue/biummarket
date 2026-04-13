@@ -14402,7 +14402,7 @@ function renderActivity(){
   const catCount={};
   searchLog.forEach(x=>{if(x.cat&&x.cat!=='기타')catCount[x.cat]=(catCount[x.cat]||0)+1;});
   // 찜 기반 보완
-  products.filter(p=>isWished(p.id)||p.liked).forEach(p=>{
+  products.filter(p=>!p.deleted_at&&(isWished(p.id)||p.liked)).forEach(p=>{
     const cat=Object.keys(CATEGORY_MAP).find(k=>CATEGORY_MAP[k].includes(p.type))||'기타';
     if(cat!=='기타')catCount[cat]=(catCount[cat]||0)+2;
   });
@@ -14497,13 +14497,14 @@ function openTradeStats(){
   const MMAX=289;
   const CAT_COLORS={'면/린넨':'#22c55e','울/모직':'#4A90D9','니트/저지':'#a855f7','기능성':'#f97316','데님':'#ec4899','실크':'#6366f1','기타':'#aaaacc'};
   const catTally={};
-  products.forEach(p=>{
+  const _activeProds=products.filter(p=>!p.deleted_at);
+  _activeProds.forEach(p=>{
     const cat=Object.keys(CATEGORY_MAP).find(k=>CATEGORY_MAP[k].includes(p.type))||'기타';
     catTally[cat]=(catTally[cat]||0)+1;
   });
   const totalP=Object.values(catTally).reduce((s,v)=>s+v,0)||1;
-  const cnt=products.length||289;
-  const totalAmt=products.reduce((s,p)=>s+(p.price||0)*(p.qty||1),0)||289000000;
+  const cnt=_activeProds.length||289;
+  const totalAmt=_activeProds.reduce((s,p)=>s+(p.price||0)*(p.qty||1),0)||289000000;
   const avgAmt=Math.round(totalAmt/(cnt||1));
   document.getElementById('trade-stats-view-content').innerHTML=`
     <div style="padding:14px">
