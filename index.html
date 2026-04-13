@@ -2723,6 +2723,7 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
     </div>
     <span style="color:#6c63ff;font-size:16px">›</span>
   </div>
+  <div id="cr-dangol-banner" style="display:none;padding:12px 16px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-bottom:1px solid #ffe0b2;flex-shrink:0"></div>
   <div class="croom-body" id="cr-body" style="flex:1;overflow-y:auto;padding:14px 14px 10px;display:flex;flex-direction:column;gap:12px;background:#ffffff"></div>
   <div class="chat-input-bar">
     <input type="text" id="cr-input" placeholder="메시지를 입력하세요" data-i18n-ph="ph_chat_input" onkeydown="if(event.key==='Enter')sendChatMsg()"/>
@@ -12162,29 +12163,29 @@ function formatChatTime(d){
   if(d.getFullYear()===now.getFullYear())return(d.getMonth()+1)+'/'+d.getDate();
   return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
 }
-const DANGOL_HINT_PREFIX='안녕하세요! 단골 고객님께 특별 혜택';
-async function _sendDangolChatHint(roomId,buyerId,sellerId,p){
+// 채팅방 상단 단골 할인 배너 표시 (스크롤해도 고정)
+async function _showDangolBanner(roomId){
+  const banner=document.getElementById('cr-dangol-banner');
+  if(!banner){return;}
+  banner.style.display='none';
+  banner.innerHTML='';
+  if(!_sb||!curUser)return;
+  const room=chatRooms[roomId];if(!room)return;
+  const myId=curUser.id||curUser.email||'';
+  const sellerId=room.sellerId;
+  const buyerId=room.buyerId;
+  // 구매자만 배너 표시 (판매자에게는 안 보임)
+  if(myId!==buyerId)return;
   try{
-    // 이미 안내 메시지가 있는지 텍스트로 확인
-    const{data:msgs}=await _sb.from('chat_messages').select('text').eq('room_id',roomId).like('text',DANGOL_HINT_PREFIX+'%').limit(1);
-    if(msgs&&msgs.length)return; // 이미 발송됨
-    // 단골 확인
     const{data:frow}=await _sb.from('follows').select('id').eq('follower_id',buyerId).eq('seller_id',sellerId).maybeSingle();
     if(!frow)return;
-    // 판매자 할인율 조회
     const{data:sp}=await _sb.from('users').select('extra_info').eq('id',sellerId).maybeSingle();
     let disc=0;
     try{disc=JSON.parse(sp?.extra_info||'{}').dangolDiscount||0;}catch(e){}
     if(!disc)return;
-    const autoMsg=`${DANGOL_HINT_PREFIX}을 드려요 😊\n✅ 단골 전용 할인: ${disc}%\n💰 할인된 가격으로 구매를 원하시면 가격제안 버튼을 이용해주세요!\n궁금한 점은 편하게 채팅 주세요 🙌`;
-    await _sb.from('chat_messages').insert({
-      room_id:roomId,
-      sender_id:sellerId,
-      sender_name:p.seller?.name||'판매자',
-      text:autoMsg,
-      created_at:new Date().toISOString()
-    });
-  }catch(e){console.error('단골 안내 오류:',e);}
+    banner.style.display='block';
+    banner.innerHTML=`<div style="font-size:13px;color:#333;line-height:1.7">안녕하세요! 단골 고객님께 특별 혜택을 드려요 😊<br>✅ 단골 전용 할인: <b style="color:#e53935">${disc}%</b><br>💰 할인된 가격으로 구매를 원하시면 가격제안 버튼을 이용해주세요!</div>`;
+  }catch(e){}
 }
 async function openChatRoom(productId,fromDetail){
   if(!curUser){showToast(t('t_login_to_chat'));showView('login');return;}
@@ -12205,7 +12206,6 @@ async function openChatRoom(productId,fromDetail){
     } else {
       // 기존 채팅방 - 구매자 unread 0으로
       await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
-      if(fromDetail) await _sendDangolChatHint(roomId,buyerId,sellerId,p);
     }
   }
 
@@ -12289,7 +12289,6 @@ async function _ensureChatRoomCreated(roomId){
   if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
   room._pending=false;
   lsSet('chatRooms',chatRooms);
-  await _sendDangolChatHint(roomId,room.buyerId,room.sellerId,p);
 }
 let curChatFilter='all';
 function setChatFilter(filter){
@@ -12417,12 +12416,15 @@ async function renderChatRoom(roomId){
         senderName:m.sender_name,
         text:m.text,
         time:formatChatTime(new Date(m.created_at)),
-        isSystem:!!m.is_system||m.text?.startsWith(DANGOL_HINT_PREFIX)
+        isSystem:!!m.is_system
       }));
       room.messages=messages;
       lsSet('chatRooms',chatRooms);
     }
   }
+
+  // 단골 할인 배너 (상단 고정)
+  _showDangolBanner(roomId);
 
   const body=document.getElementById('cr-body');
   body.innerHTML=messages.map(m=>{
@@ -12558,8 +12560,6 @@ async function sendChatMsg(){
     if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
     room._pending=false;
     lsSet('chatRooms',chatRooms);
-    // 단골 할인 안내
-    await _sendDangolChatHint(curChatRoomId,room.buyerId,room.sellerId,p);
   }
 
   // Supabase에 메시지 저장
