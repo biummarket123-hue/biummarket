@@ -12318,7 +12318,8 @@ async function loadChatRoomsFromSB(){
       bgColor:chatRooms[r.id]?.bgColor||'#6c63ff',lastMsg:r.last_msg||'',
       lastTimeRaw:r.last_time||'',
       lastTime:r.last_time?formatChatTime(new Date(r.last_time)):'',
-      unread:isSeller?(r.unread_seller||0):(r.unread_buyer||0)
+      unread:isSeller?(r.unread_seller||0):(r.unread_buyer||0),
+      _pending:false
     };
   });
   lsSet('chatRooms',chatRooms);
