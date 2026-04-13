@@ -2541,11 +2541,14 @@ html.font-s5{--fs-xs:12px;--fs-sm:14px;--fs-base:16px;--fs-md:18px;--fs-lg:19px;
   <div class="sv-filter-row">
     <button class="sv-filter-btn on" id="svf-all" onclick="setSvFilter('전체');updateSvFilterBtns('전체')">전체</button>
     <button class="sv-filter-btn" id="svf-면" onclick="setSvFilter('면');updateSvFilterBtns('면')">면</button>
-    <button class="sv-filter-btn" id="svf-폴리" onclick="setSvFilter('폴리');updateSvFilterBtns('폴리')">폴리</button>
-    <button class="sv-filter-btn" id="svf-울" onclick="setSvFilter('울');updateSvFilterBtns('울')">울</button>
     <button class="sv-filter-btn" id="svf-린넨" onclick="setSvFilter('린넨');updateSvFilterBtns('린넨')">린넨</button>
+    <button class="sv-filter-btn" id="svf-인견/레이온" onclick="setSvFilter('인견/레이온');updateSvFilterBtns('인견/레이온')">인견/레이온</button>
+    <button class="sv-filter-btn" id="svf-폴리" onclick="setSvFilter('폴리');updateSvFilterBtns('폴리')">폴리</button>
+    <button class="sv-filter-btn" id="svf-나일론" onclick="setSvFilter('나일론');updateSvFilterBtns('나일론')">나일론</button>
+    <button class="sv-filter-btn" id="svf-울/캐시미어" onclick="setSvFilter('울/캐시미어');updateSvFilterBtns('울/캐시미어')">울/캐시미어</button>
     <button class="sv-filter-btn" id="svf-실크" onclick="setSvFilter('실크');updateSvFilterBtns('실크')">실크</button>
-    <button class="sv-filter-btn" id="svf-혼방" onclick="setSvFilter('혼방');updateSvFilterBtns('혼방')">혼방</button>
+    <button class="sv-filter-btn" id="svf-아세테이트" onclick="setSvFilter('아세테이트');updateSvFilterBtns('아세테이트')">아세테이트</button>
+    <button class="sv-filter-btn" id="svf-혼방/특수사" onclick="setSvFilter('혼방/특수사');updateSvFilterBtns('혼방/특수사')">혼방/특수사</button>
   </div>
   <div class="sv-filter-row" style="padding-top:0">
     <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
@@ -11733,7 +11736,7 @@ async function _svSearchSupabase(reset){
     let query=_sb.from('products').select('*').is('deleted_at',null)
       .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
       .order('created_at',{ascending:false});
-    if(svFilter!=='전체')query=query.eq('type',svFilter);
+    if(svFilter!=='전체')query=query.eq('cat2',svFilter);
     if(svPriceMin&&svPriceMax)query=query.or(`and(price.gte.${svPriceMin},price.lte.${svPriceMax}),and(bulk_price.gte.${svPriceMin},bulk_price.lte.${svPriceMax})`);
     else if(svPriceMin)query=query.or(`price.gte.${svPriceMin},bulk_price.gte.${svPriceMin}`);
     else if(svPriceMax)query=query.or(`price.lte.${svPriceMax},bulk_price.lte.${svPriceMax}`);
@@ -11744,7 +11747,7 @@ async function _svSearchSupabase(reset){
       let q2=_sb.from('products').select('*')
         .or(`title.ilike.${likeQ},material.ilike.${likeQ},type.ilike.${likeQ},color.ilike.${likeQ}`)
         .order('created_at',{ascending:false});
-      if(svFilter!=='전체')q2=q2.eq('type',svFilter);
+      if(svFilter!=='전체')q2=q2.eq('cat2',svFilter);
       if(svPriceMin&&svPriceMax)q2=q2.or(`and(price.gte.${svPriceMin},price.lte.${svPriceMax}),and(bulk_price.gte.${svPriceMin},bulk_price.lte.${svPriceMax})`);
       else if(svPriceMin)q2=q2.or(`price.gte.${svPriceMin},bulk_price.gte.${svPriceMin}`);
       else if(svPriceMax)q2=q2.or(`price.lte.${svPriceMax},bulk_price.lte.${svPriceMax}`);
@@ -11900,7 +11903,7 @@ function setSvFilter(f){
   renderSearchView();
 }
 function updateSvFilterBtns(active){
-  const map={'전체':'all','면':'면','폴리':'폴리','울':'울','린넨':'린넨','실크':'실크','혼방':'혼방'};
+  const map={'전체':'all','면':'면','린넨':'린넨','인견/레이온':'인견/레이온','폴리':'폴리','나일론':'나일론','울/캐시미어':'울/캐시미어','실크':'실크','아세테이트':'아세테이트','혼방/특수사':'혼방/특수사'};
   Object.entries(map).forEach(([label,id])=>{
     const btn=document.getElementById('svf-'+id);
     if(btn)btn.className='sv-filter-btn'+(label===active?' on':'');
