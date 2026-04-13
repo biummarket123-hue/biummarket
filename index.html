@@ -9770,6 +9770,7 @@ async function submitSuggest(){
   // 채팅으로 메시지 전송
   setTimeout(async()=>{
     await openChatRoom(prod.id);
+    await _ensureChatRoomCreated(curChatRoomId);
     if(curChatRoomId&&_sb){
       await _sb.from('chat_messages').insert({
         room_id:curChatRoomId,
@@ -9893,6 +9894,7 @@ async function submitReservation(){
   // 채팅으로 알림
   setTimeout(async()=>{
     await openChatRoom(prod.id);
+    await _ensureChatRoomCreated(curChatRoomId);
     if(curChatRoomId&&_sb){
       await _sb.from('chat_messages').insert({
         room_id:curChatRoomId,
@@ -12183,39 +12185,21 @@ async function openChatRoom(productId,fromDetail){
   const roomId='chat_'+productId+'_'+buyerId.replace(/[^a-zA-Z0-9]/g,'_');
   curChatRoomId=roomId;
 
-  // Supabase에서 채팅방 조회 또는 생성
+  // Supabase에서 기존 채팅방 조회
+  let _isNewRoom=false;
   if(_sb){
     const{data:existing}=await _sb.from('chat_rooms').select('*').eq('id',roomId).single();
     if(!existing){
-      // 새 채팅방 생성
-      await _sb.from('chat_rooms').insert({
-        id:roomId,
-        product_id:String(productId),
-        product_title:p.title,
-        product_img:p.image_url||'',
-        seller_id:sellerId,
-        seller_name:p.seller?.name||'판매자',
-        buyer_id:buyerId,
-        buyer_name:curUser.name||'구매자',
-        last_msg:`"${p.title}" 상품 문의`,
-        last_time:new Date().toISOString(),
-        unread_seller:1,
-        unread_buyer:0
-      });
-      // 상품 채팅수 증가
-      p.chats=(p.chats||0)+1;
-      _sb.from('products').update({chats:p.chats}).eq('id',productId).then();
-      // 단골이면 할인 안내 메시지 자동 발송 (상세페이지 채팅 버튼에서만)
-      if(fromDetail) await _sendDangolChatHint(roomId,buyerId,sellerId,p);
+      // 새 채팅방 — DB 생성은 첫 메시지 전송 시까지 지연
+      _isNewRoom=true;
     } else {
       // 기존 채팅방 - 구매자 unread 0으로
       await _sb.from('chat_rooms').update({unread_buyer:0}).eq('id',roomId);
-      // 기존 채팅방이지만 단골 안내 메시지가 없으면 1회 발송 (상세페이지에서만)
       if(fromDetail) await _sendDangolChatHint(roomId,buyerId,sellerId,p);
     }
   }
 
-  // localStorage 동기화
+  // localStorage 동기화 (로컬에서만 준비, 새 채팅방은 _pending 플래그)
   chatRooms[roomId]={
     id:roomId,productId,
     productTitle:p.title,
@@ -12226,11 +12210,12 @@ async function openChatRoom(productId,fromDetail){
     buyerName:curUser.name||'구매자',
     bgColor:getFColor(p.type,p.color),
     messages:[],
-    lastMsg:`"${p.title}" 상품 문의`,
+    lastMsg:'',
     lastTimeRaw:new Date().toISOString(),
     lastTime:formatChatTime(new Date()),
     unread:0,
-    ...(chatRooms[roomId]||{})
+    ...(chatRooms[roomId]||{}),
+    _pending:_isNewRoom&&!(chatRooms[roomId]&&chatRooms[roomId]._pending===false)
   };
   lsSet('chatRooms',chatRooms);
   showView('chat-room');
@@ -12272,6 +12257,30 @@ async function openChatRoomById(roomId){
   }
   showView('chat-room');
 }
+// _pending 채팅방을 DB에 실제 생성하는 헬퍼
+async function _ensureChatRoomCreated(roomId){
+  const room=chatRooms[roomId];
+  if(!room||!room._pending||!_sb)return;
+  const p=products.find(x=>x.id===room.productId);
+  await _sb.from('chat_rooms').insert({
+    id:roomId,
+    product_id:String(room.productId),
+    product_title:room.productTitle,
+    product_img:room.productImg||'',
+    seller_id:room.sellerId,
+    seller_name:room.sellerName||'판매자',
+    buyer_id:room.buyerId,
+    buyer_name:room.buyerName||'구매자',
+    last_msg:'',
+    last_time:new Date().toISOString(),
+    unread_seller:1,
+    unread_buyer:0
+  });
+  if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+  room._pending=false;
+  lsSet('chatRooms',chatRooms);
+  await _sendDangolChatHint(roomId,room.buyerId,room.sellerId,p);
+}
 let curChatFilter='all';
 function setChatFilter(filter){
   curChatFilter=filter;
@@ -12309,7 +12318,7 @@ async function loadChatRoomsFromSB(){
 function renderChatList(){
   const wrap=document.getElementById('chat-list-wrap');
   const empty=document.getElementById('chat-list-empty');
-  let rooms=Object.values(chatRooms);
+  let rooms=Object.values(chatRooms).filter(r=>!r._pending);
   if(!rooms.length){wrap.innerHTML='';wrap.style.display='none';empty.style.display='flex';return;}
 
   // 필터 적용
@@ -12516,6 +12525,31 @@ async function sendChatMsg(){
     div.innerHTML=`<div class="msg-col"><div class="msg-bubble" style="white-space:pre-wrap">${text}</div><div class="msg-time">${time}</div></div>`;
     body.appendChild(div);
     body.scrollTop=body.scrollHeight;
+  }
+
+  // 대기 중인 채팅방이면 DB에 실제 생성
+  if(_sb&&room._pending){
+    const p=products.find(x=>x.id===room.productId);
+    await _sb.from('chat_rooms').insert({
+      id:curChatRoomId,
+      product_id:String(room.productId),
+      product_title:room.productTitle,
+      product_img:room.productImg||'',
+      seller_id:room.sellerId,
+      seller_name:room.sellerName||'판매자',
+      buyer_id:room.buyerId,
+      buyer_name:room.buyerName||'구매자',
+      last_msg:text,
+      last_time:new Date().toISOString(),
+      unread_seller:1,
+      unread_buyer:0
+    });
+    // 상품 채팅수 증가
+    if(p){p.chats=(p.chats||0)+1;_sb.from('products').update({chats:p.chats}).eq('id',room.productId).then();}
+    room._pending=false;
+    lsSet('chatRooms',chatRooms);
+    // 단골 할인 안내
+    await _sendDangolChatHint(curChatRoomId,room.buyerId,room.sellerId,p);
   }
 
   // Supabase에 메시지 저장
