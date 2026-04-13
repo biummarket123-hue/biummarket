@@ -7347,20 +7347,27 @@ function doKakaoLogin(){
 async function handleKakaoCode(code){
   _showLoginLoading(true,'카카오 로그인 중...');
   try{
-    // 서버에서 카카오 토큰 교환 (client_secret 보호)
-    const res=await fetch('/api/kakao-token?code='+encodeURIComponent(code)).then(r=>r.json());
-    if(res.error)throw new Error(res.error);
-    const kakaoId=res.id;
-    const nickname=res.kakao_account?.profile?.nickname||res.properties?.nickname||'카카오사용자';
-    const email=res.kakao_account?.email||('kakao_'+kakaoId+'@kakao.com');
+    // 서버에서 카카오 인증 + Supabase auth 세션 생성
+    const res=await fetch('/api/kakao-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const result=await res.json();
+    if(result.error)throw new Error(result.error);
+    const authUid=result.authUid;
+    const nickname=result.profile?.nickname||'카카오사용자';
+    const email=result.profile?.email||'';
+    const kakaoId=result.profile?.kakaoId||'';
+    // Supabase auth 세션 설정
+    if(_sb&&result.session){
+      await _sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});
+      console.log('[카카오 로그인] Supabase 세션 설정 완료, authUid:',authUid);
+    }
     if(_sb){
-      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).maybeSingle();
+      const{data:sbProfile}=await _sb.from('users').select('*').eq('id',authUid).maybeSingle();
       if(sbProfile&&sbProfile.tel){
-        // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        curUser.id=authUid;
         curUser.provider='kakao';
         lsSet('curUser',curUser);
-        localStorage.setItem('bium_activeUserId',curUser.id||email);
+        localStorage.setItem('bium_activeUserId',authUid);
         _showLoginLoading(false);
         _guestMode=false;const _gb1=document.getElementById('guest-badge');if(_gb1)_gb1.style.display='none';
         showToast('카카오 로그인 성공! 환영합니다 '+nickname);
@@ -7370,9 +7377,8 @@ async function handleKakaoCode(code){
         }
       }else{
         _showLoginLoading(false);
-        // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
-        _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
+        _oauthPendingUser={id:authUid,email,name:nickname,provider:'kakao',kakaoId};
         showView('signup');
         setTimeout(()=>{
           const emailRow=document.getElementById('s-email');
@@ -7389,7 +7395,7 @@ async function handleKakaoCode(code){
       }
     }else{
       _showLoginLoading(false);
-      _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId:String(kakaoId)};
+      _oauthPendingUser={id:authUid||crypto.randomUUID(),email,name:nickname,provider:'kakao',kakaoId};
       showView('signup');
     }
   }catch(e){_showLoginLoading(false);showToast('카카오 로그인 오류: '+e.message);console.error(e);}
@@ -7418,21 +7424,26 @@ async function handleNaverCode(code,state){
   if(state!==savedState){showToast(t('t_security_error'));return;}
   _showLoginLoading(true,'네이버 로그인 중...');
   try{
-    const res=await fetch(`/api/naver-token?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
-    const userData=await res.json();
-    if(userData.error)throw new Error(userData.error);
-    const profile=userData.response;
-    const naverId=profile.id;
-    const nickname=profile.name||profile.nickname||'네이버사용자';
-    const email=profile.email||('naver_'+naverId+'@naver.com');
+    // 서버에서 네이버 인증 + Supabase auth 세션 생성
+    const res=await fetch('/api/naver-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,state})});
+    const result=await res.json();
+    if(result.error)throw new Error(result.error);
+    const authUid=result.authUid;
+    const nickname=result.profile?.nickname||result.profile?.name||'네이버사용자';
+    const email=result.profile?.email||'';
+    // Supabase auth 세션 설정
+    if(_sb&&result.session){
+      await _sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});
+      console.log('[네이버 로그인] Supabase 세션 설정 완료, authUid:',authUid);
+    }
     if(_sb){
-      const{data:sbProfile}=await _sb.from('users').select('*').eq('email',email).maybeSingle();
+      const{data:sbProfile}=await _sb.from('users').select('*').eq('id',authUid).maybeSingle();
       if(sbProfile&&sbProfile.tel){
-        // 가입 완료된 유저 → 바로 로그인
         curUser=mergeWithLocalUser(sbProfile);
+        curUser.id=authUid;
         curUser.provider='naver';
         lsSet('curUser',curUser);
-        localStorage.setItem('bium_activeUserId',curUser.id||email);
+        localStorage.setItem('bium_activeUserId',authUid);
         _showLoginLoading(false);
         _guestMode=false;const _gb2=document.getElementById('guest-badge');if(_gb2)_gb2.style.display='none';
         showToast('네이버 로그인 성공! 환영합니다 '+nickname);
@@ -7442,9 +7453,8 @@ async function handleNaverCode(code,state){
         }
       }else{
         _showLoginLoading(false);
-        // 신규 또는 가입 미완료 → 회원가입 폼으로
         if(sbProfile&&!sbProfile.tel)await _sb.from('users').delete().eq('id',sbProfile.id);
-        _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
+        _oauthPendingUser={id:authUid,email,name:nickname,provider:'naver'};
         showView('signup');
         setTimeout(()=>{
           const emailRow=document.getElementById('s-email');
@@ -7461,7 +7471,7 @@ async function handleNaverCode(code,state){
       }
     }else{
       _showLoginLoading(false);
-      _oauthPendingUser={id:crypto.randomUUID(),email,name:nickname,provider:'naver',naverId:String(naverId)};
+      _oauthPendingUser={id:authUid||crypto.randomUUID(),email,name:nickname,provider:'naver'};
       showView('signup');
     }
   }catch(e){_showLoginLoading(false);showToast('네이버 로그인 오류: '+e.message);console.error(e);}
