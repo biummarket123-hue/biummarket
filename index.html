@@ -8880,7 +8880,7 @@ async function openDetail(id){
   const simSection=document.getElementById('pd-similar-section');
   const simScroll=document.getElementById('pd-similar-scroll');
   if(simSection&&simScroll){
-    const similar=products.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,20);
+    const similar=products.filter(x=>x.id!==p.id&&!x.deleted_at&&(x.cat===p.cat||x.type===p.type||(p.material&&x.material===p.material))).slice(0,20);
     if(similar.length){
       simScroll.innerHTML=similar.map(s=>gridCardHtml(s)).join('');
       simSection.style.display='';
@@ -8900,7 +8900,7 @@ async function openDetail(id){
   const sellerScroll=document.getElementById('pd-seller-scroll');
   if(sellerSection&&sellerScroll){
     const sellerId=p.seller_id||(p.seller&&p.seller.id);
-    const sellerProds=products.filter(x=>x.id!==p.id&&(x.seller_id===sellerId||(x.seller&&x.seller.id===sellerId))).slice(0,4);
+    const sellerProds=products.filter(x=>x.id!==p.id&&!x.deleted_at&&(x.seller_id===sellerId||(x.seller&&x.seller.id===sellerId))).slice(0,4);
     if(sellerProds.length){
       sellerScroll.innerHTML=sellerProds.map(s=>gridCardHtml(s)).join('');
       sellerSection.style.display='';
@@ -13969,7 +13969,7 @@ async function syncKeywordsFromSupabase(){
 
 function openTopSellers(){
   const sellerMap={};
-  products.forEach(p=>{
+  products.filter(p=>!p.deleted_at).forEach(p=>{
     const name=(p.seller?.name)||'알수없음';
     if(!sellerMap[name])sellerMap[name]={name,temp:p.seller?.temp||36.5,loc:p.seller?.loc||'',likes:0,chats:0,cnt:0,seller:p.seller||{}};
     sellerMap[name].likes+=(p.likes||0);
