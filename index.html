@@ -9992,7 +9992,7 @@ async function switchSellerTab(tab,el){
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
   let extra={};
   try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
-  const myProds=products.filter(p=>isMyProduct(p,seller));
+  const myProds=products.filter(p=>!p.deleted_at&&isMyProduct(p,seller));
 
     const isBiz=seller.type==='business'||seller.type==='both'||seller.type==='seller'||seller.role==='business';
 
@@ -10365,7 +10365,7 @@ function renderSellerPage(seller){
   const userInfo=users.find(u=>u.id===seller.id||u.name===seller.name)||{};
   let extra={};
   try{extra=JSON.parse(userInfo.extra_info||seller.extra_info||'{}');}catch(e){}
-  const myProds=products.filter(p=>isMyProduct(p,seller));
+  const myProds=products.filter(p=>!p.deleted_at&&isMyProduct(p,seller));
   // 후기 수/평점은 비동기로 Supabase에서 로드 (초기값 0, 로드 후 갱신)
   let reviewCount=0;
   let rating=0;
