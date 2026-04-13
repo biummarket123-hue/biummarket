@@ -12257,7 +12257,8 @@ async function openChatRoomById(roomId){
         bgColor:chatRooms[roomId]?.bgColor||'#6c63ff',
         lastMsg:room.last_msg||'',
         lastTime:room.last_time?formatChatTime(new Date(room.last_time)):'',
-        unread:0
+        unread:0,
+        _pending:false
       };
       lsSet('chatRooms',chatRooms);
     }
