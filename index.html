@@ -5968,6 +5968,28 @@ let _sbCatFilter='전체'; // 카테고리 필터
 let _sbSortKey='latest'; // latest, price, priceDesc
 let _sbUrgentOnly=false;  // 급처 필터
 let _sbFreeOnly=false;    // 무료나눔 필터
+// HOT DEAL prefetch — products 로드와 병렬로 진행. 상품 레코드까지 한 번에 캐시해 렌더 시 await 제거
+let _hotDealsPrefetch=null; // Promise
+let _hotDealsCache=null;    // {deals, prodMap}
+function _prefetchHotDeals(){
+  if(!_sb){_hotDealsPrefetch=null;_hotDealsCache={deals:[],prodMap:{}};return;}
+  _hotDealsCache=null;
+  const now=new Date().toISOString();
+  _hotDealsPrefetch=(async()=>{
+    const{data}=await _sb.from('hot_deals').select('*').eq('status','approved').gt('expires_at',now).order('order_num').limit(10);
+    const deals=data||[];
+    const prodMap={};
+    if(deals.length){
+      const ids=[...new Set(deals.map(d=>d.product_id).filter(Boolean))];
+      if(ids.length){
+        const{data:prodRows}=await _sb.from('products').select('*').in('id',ids).is('deleted_at',null);
+        (prodRows||[]).forEach(p=>{prodMap[String(p.id)]=_mapSbProduct(p);});
+      }
+    }
+    _hotDealsCache={deals,prodMap};
+    return _hotDealsCache;
+  })();
+}
 
 function _productTimeAgo(createdAt){
   if(!createdAt)return '';
@@ -6009,6 +6031,7 @@ async function loadProductsFromSupabase(reset){
   if(reset){
     _sbPage=0;_sbHasMore=true;products=[];
     _bannerStatsAll=null; // 배너 통계 캐시 초기화
+    _prefetchHotDeals();  // HOT DEAL 을 products 조회와 병렬로 선조회 (한 템포 지연 제거)
     _showScrollEnd(false);
     if(!_wishLoaded)await _loadWishes(); // 관심목록 캐시 로드
   }
@@ -6038,6 +6061,10 @@ async function loadProductsFromSupabase(reset){
     }
     lsSet('products',products);
     _sbPage++;
+    // HOT DEAL prefetch 가 아직 진행 중이면 완료를 기다려 모든 섹션이 동시에 렌더되도록 함 (reset 로드일 때만)
+    if(isFirst&&_hotDealsPrefetch&&!_hotDealsCache){
+      try{await _hotDealsPrefetch;}catch(e){}
+    }
     renderList();
     _showScrollLoading(false);
     if(!_sbHasMore)_showScrollEnd(true);
@@ -6603,7 +6630,7 @@ function showView(name,push=true){
       if(el&&el.closest('.fg'))el.closest('.fg').style.display=_oauthMode?'none':'';
     });
   }
-  if(name==='list'&&products.length)renderList();
+  if(name==='list')renderList(); // 빈 상태여도 재렌더 — 삭제 직후 홈 즉시 반영
   if(name==='mypage'){syncUserProfile();renderMypage();checkReservationReminders();}
   if(name==='settings'){syncUserProfile();}
   if(name==='admin')renderAdmin();
@@ -7632,6 +7659,10 @@ function filterByCategory(prods,key){
   }
   return prods.filter(p=> p.cat===key || p.type===key);
 }
+// 카테고리 화면에 실제 노출되는 조건 (숨김·삭제·품절 제외) — 카운트와 렌더가 일치하도록 공통 사용
+function _isCatVisibleProd(p){
+  return !p.is_hidden && !p.deleted_at && (p.qty||0) > 0;
+}
 function filterByCat2(prods,cat1Key,cat2Key){
   if(!cat2Key)return filterByCategory(prods,cat1Key);
   const base=filterByCategory(prods,cat1Key);
@@ -7666,7 +7697,7 @@ function renderCatStep0(){
   </div>`).join('');
   grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 14px 80px';
   grid.innerHTML=adHtml+CATEGORY_DATA.map(cat=>{
-    const prodCnt=filterByCategory(products,cat.id).length;
+    const prodCnt=filterByCategory(products,cat.id).filter(_isCatVisibleProd).length;
     const subCnt=cat.sub.length;
     return `<div class="cat-grid-item" onclick="catGoStep1('${cat.id}')">
       <span class="cat-icon">${cat.emoji}</span>
@@ -7680,7 +7711,7 @@ function renderCatStep1(){
   const catData=CATEGORY_DATA.find(c=>c.id===catSelId);
   if(!catData)return;
   const grid=document.getElementById('cat-grid');
-  const prodCnt=filterByCategory(products,catSelId).length;
+  const prodCnt=filterByCategory(products,catSelId).filter(_isCatVisibleProd).length;
   grid.style.cssText='display:block;padding:0 0 80px';
   const step1Ads=getCategoryAds(catData.id);
   step1Ads.forEach(a=>trackAdImpression(a.id));
@@ -7716,7 +7747,7 @@ function renderCatStep1(){
         <span style="font-size:var(--fs-base);color:#888;font-weight:500">전체 상품</span>
         <span style="font-size:var(--fs-base);color:#6c63ff;font-weight:700">${prodCnt}건</span>
       </div>
-      ${filterByCategory(products,catSelId).slice(0,5).map(p=>renderHomeProduct(p)).join('')}
+      ${filterByCategory(products,catSelId).filter(_isCatVisibleProd).slice(0,5).map(p=>renderHomeProduct(p)).join('')}
     </div>`;
 }
 
@@ -7937,7 +7968,8 @@ function renderCatProducts(){
   if(curViewMode==='my-products'){renderMyProductsSorted();return;}
   const el=document.getElementById('cp-list');
   if(!el)return;
-  let items=filterByCategory(products,curCatKey);
+  // 카운트와 일치하도록 숨김·삭제·품절 제외
+  let items=filterByCategory(products,curCatKey).filter(_isCatVisibleProd);
   // 중분류 필터 (다중 선택)
   if(_fsSubs.length){
     items=items.filter(p=>_fsSubs.includes(p.cat2));
@@ -8286,6 +8318,23 @@ async function toggleProductStop(productId){
   showMySales();
 }
 function editProductById(id){editProduct(id);}
+// 상품 삭제 후 홈·카테고리·HOT DEAL 캐시를 즉시 갱신해 지연 없이 반영
+function _refreshAfterProductChange(removedIds){
+  // HOT DEAL prodMap 에서 삭제된 상품 제거
+  if(_hotDealsCache&&_hotDealsCache.prodMap&&removedIds&&removedIds.length){
+    removedIds.forEach(id=>{delete _hotDealsCache.prodMap[String(id)];});
+  }
+  // 현재 활성 뷰가 홈이면 재렌더
+  const listView=document.getElementById('view-list');
+  if(listView&&listView.classList.contains('active')){
+    try{renderList();}catch(e){}
+  }
+  // 카테고리 뷰가 활성이면 재렌더
+  const catView=document.getElementById('view-category');
+  if(catView&&catView.classList.contains('active')){
+    try{renderCategoryView();}catch(e){}
+  }
+}
 async function deleteProductById(id){
   const p=products.find(x=>x.id===id);if(!p)return;
   if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
@@ -8295,6 +8344,7 @@ async function deleteProductById(id){
   }
   products=products.filter(x=>x.id!==id);
   saveProducts();
+  _refreshAfterProductChange([id]);
   showToast(t('t_product_deleted'));
   showMySales();
 }
@@ -8368,7 +8418,7 @@ function renderHomeSections(){
   }
 
   html+=sections.map(sec=>{
-    const items=getProductsByHomeCat(sec.key).slice(0,5);
+    const items=getProductsByHomeCat(sec.key).filter(_isCatVisibleProd).slice(0,5);
     if(!items.length)return '';
     return `<div class="cat-section">
       <div class="cat-section-hd">
@@ -8422,19 +8472,19 @@ function _renderHotDealCard(p,isModal){
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
   const priceStr=p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString();
   const closeModal=isModal?"document.getElementById('modal-hotdeal-all').classList.remove('open');":'';
-  return `<div onclick="${closeModal}openDetail(${p.id})" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1)">
-    <div style="height:110px;background:${bg};position:relative;overflow:hidden">
+  return `<div onclick="${closeModal}openDetail(${p.id})" class="hd-card" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1);display:flex;flex-direction:column">
+    <div style="height:110px;background:${bg};position:relative;overflow:hidden;flex-shrink:0">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
       <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
     </div>
-    <div style="padding:8px 10px">
-      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-      <div style="font-size:var(--fs-xs);color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}${locShort?' · <span style="color:#6c63ff">📍'+locShort+'</span>':''}</div>
-      <div style="font-size:var(--fs-sm);font-weight:800;margin-top:4px">${p.is_free?'<span style="color:#00b386">🎁 무료나눔</span>':`<span style="color:#ff6f00">${priceStr}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span>`}</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;align-items:center">
-        ${p.moq?`<span style="background:#fff3cd;color:#856404;border-radius:4px;padding:1px 5px;font-size:var(--fs-xs);font-weight:500">MOQ ${p.moq}${unit}</span>`:''}
-        ${discPct?`<span style="background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:var(--fs-xs);padding:1px 5px;border-radius:4px">-${discPct}%</span>`:''}
-        <span style="font-size:var(--fs-xs);color:#888;margin-left:auto">💬${p.chats||0} 🤍${p.likes||0}</span>
+    <div style="padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${p.title}</div>
+      <div style="font-size:var(--fs-xs);color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}${locShort?' · <span style="color:#6c63ff">📍'+locShort+'</span>':''}</div>
+      <div style="font-size:var(--fs-sm);font-weight:800;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.is_free?'<span style="color:#00b386">🎁 무료나눔</span>':`<span style="color:#ff6f00">${priceStr}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span>`}</div>
+      <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;margin-top:auto;overflow:hidden;min-width:0">
+        ${p.moq?`<span style="background:#fff3cd;color:#856404;border-radius:4px;padding:1px 5px;font-size:var(--fs-xs);font-weight:500;white-space:nowrap;flex-shrink:0">MOQ ${p.moq}${unit}</span>`:''}
+        ${discPct?`<span style="background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:var(--fs-xs);padding:1px 5px;border-radius:4px;white-space:nowrap;flex-shrink:0">-${discPct}%</span>`:''}
+        <span style="font-size:var(--fs-xs);color:#888;margin-left:auto;white-space:nowrap;flex-shrink:0">💬${p.chats||0} 🤍${p.likes||0}</span>
       </div>
     </div>
   </div>`;
@@ -8445,18 +8495,22 @@ async function renderHomeHotDealSection(){
   const sec=document.getElementById('home-hotdeal-section');
   if(!sec)return;
   if(!_sb){sec.style.display='none';return;}
-  const now=new Date().toISOString();
-  const{data:deals,error:hdErr}=await _sb.from('hot_deals').select('*').eq('status','approved').gt('expires_at',now).order('order_num').limit(10);
-  console.log('[HOT DEAL]',deals?.length||0,'건 조회',hdErr?'오류:'+hdErr.message:'',deals?.map(d=>({id:d.id,product_id:d.product_id,expires:d.expires_at,days:d.days})));
-  if(!deals||!deals.length){sec.style.display='none';return;}
+  // prefetch 캐시를 우선 사용 — 캐시에 deals + prodMap 이 함께 들어있어 개별 상품 조회 불필요
+  let cached;
+  if(_hotDealsCache){
+    cached=_hotDealsCache;
+  }else{
+    if(!_hotDealsPrefetch)_prefetchHotDeals();
+    cached=await _hotDealsPrefetch;
+  }
+  const deals=cached?.deals||[];
+  const prodMap=cached?.prodMap||{};
+  console.log('[HOT DEAL]',deals.length,'건 조회',deals.map(d=>({id:d.id,product_id:d.product_id,expires:d.expires_at,days:d.days})));
+  if(!deals.length){sec.style.display='none';return;}
   const prods=[];
   for(const d of deals){
-    let p=products.find(x=>String(x.id)===String(d.product_id));
-    // products 배열에 없으면 Supabase에서 직접 조회
-    if(!p&&_sb){
-      const{data:sp}=await _sb.from('products').select('*').eq('id',d.product_id).maybeSingle();
-      if(sp){p=sp;products.push(sp);}
-    }
+    // 1순위: prefetch 된 prodMap, 2순위: 이미 로드된 products 배열
+    const p=prodMap[String(d.product_id)]||products.find(x=>String(x.id)===String(d.product_id));
     if(p&&!p.deleted_at)prods.push({...p,_hotdeal:d});
   }
   if(!prods.length){sec.style.display='none';return;}
@@ -8468,7 +8522,7 @@ async function renderHomeHotDealSection(){
   const renderPage=(idx)=>{
     const ps=[];
     for(let j=0;j<perPage;j++)ps.push(prods[(idx+j)%prods.length]);
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:220px;gap:8px">${ps.map(makeCard).join('')}</div>`;
   };
   sec.innerHTML=`
     <div style="background:#fff;padding:16px 0 12px;margin-top:8px">
@@ -8506,7 +8560,7 @@ function goHotDealSlide(i){
   const ps=[];
   for(let j=0;j<perPage;j++)ps.push(prods[(i+j)%prods.length]);
   const wrap=document.getElementById('hd-page-wrap');
-  if(wrap)wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map(makeCard).join('')}</div>`;
+  if(wrap)wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:220px;gap:8px">${ps.map(makeCard).join('')}</div>`;
   document.querySelectorAll('.hd-dot').forEach((d,idx)=>{d.style.background=idx===i?'#ff6f00':'#ddd';});
 }
 
@@ -9142,12 +9196,14 @@ function editProduct(targetId){
 async function deleteProduct(){
   const p=products.find(x=>x.id===curProductId);if(!p)return;
   if(!confirm('"'+p.title+'" 상품을 삭제하시겠어요?'))return;
+  const removedId=curProductId;
   if(_sb){
     const{error}=await _sb.from('products').update({deleted_at:new Date().toISOString()}).eq('id',curProductId);
     if(error){showToast('삭제 실패: '+error.message);return;}
   }
   products=products.filter(x=>x.id!==curProductId);
   saveProducts();
+  _refreshAfterProductChange([removedId]);
   showToast(t('t_product_deleted'));
   goBack();
 }
@@ -16657,7 +16713,9 @@ function filterAdminProducts(q){
 async function adminDeleteProduct(id){
   if(!confirm('정말 삭제할까요?'))return;
   if(_sb){const{error}=await _sb.from('products').update({deleted_at:new Date().toISOString()}).eq('id',id);if(error)console.error('delete error:',error);}
-  products=products.filter(p=>p.id!==id);saveProducts();showAdminProducts();showToast(t('t_deleted'));
+  products=products.filter(p=>p.id!==id);saveProducts();
+  _refreshAfterProductChange([id]);
+  showAdminProducts();showToast(t('t_deleted'));
 }
 function adminViewProduct(id){
   const p=products.find(x=>x.id===id);if(!p)return;
@@ -16889,6 +16947,7 @@ async function approveHotDeal(id){
   await sendNotification(d.seller_id,'hotdeal_approved','🔥 HOT DEAL 승인','광고 신청이 승인됐어요! 홈화면에 노출됩니다.',{productId:String(d.product_id||d.productId||'')});
   showToast(t('t_hotdeal_approved'));
   showAdminHotDeal();
+  _prefetchHotDeals();  // 캐시 무효화 및 재선조회
   renderHomeHotDealSection();
 }
 
@@ -16906,6 +16965,7 @@ async function removeHotDeal(id){
   await _sb.from('hot_deals').update({status:'removed'}).eq('id',id);
   showToast(t('t_remove_done'));
   showAdminHotDeal();
+  _prefetchHotDeals();  // 캐시 무효화 및 재선조회
   renderHomeHotDealSection();
 }
 
