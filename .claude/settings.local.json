@@ -65,7 +65,13 @@
       "Bash(mv public/favicon.ico ./favicon.ico)",
       "Bash(mv public/favicon-192.png ./favicon-192.png)",
       "Bash(mv public/favicon-512.png ./favicon-512.png)",
-      "Bash(mv public/apple-touch-icon.png ./apple-touch-icon.png)"
+      "Bash(mv public/apple-touch-icon.png ./apple-touch-icon.png)",
+      "Bash(sed 's/^function\\\\s\\\\+\\\\\\([a-zA-Z_]*\\\\\\).*/\\\\1/')",
+      "Read(//tmp/**)",
+      "Bash(awk '$1>1')",
+      "Bash(npx *)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill *)"
     ]
   }
 }
