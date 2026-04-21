@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#6c63ff"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="비움마켓"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <meta name="description" content="재고원단 B2B 거래 플랫폼. 염색지·나염지·생지·수입원단을 판매자와 직거래. 가격제안·채팅·예약 서비스 제공."/>
 <meta name="keywords" content="재고원단,원단거래,B2B원단,동대문원단,원단도매,염색지,나염지,생지,수입원단"/>
 <title>재고원단 B2B 플랫폼 — 비움마켓 BIUM MARKET</title>
@@ -48,7 +48,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:17px}
-body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#ffffff;color:#1a1a1a;min-height:100vh;display:flex;justify-content:center}
+body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#ffffff;color:#1a1a1a;min-height:100vh;display:flex;justify-content:center;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);box-sizing:border-box}
 button{cursor:pointer;border:none;background:none;font-family:inherit}
 input,select,textarea{font-family:inherit}
 ul{list-style:none}
@@ -9102,6 +9102,9 @@ async function openDetail(id){
   curSellerData=seller;
   if(fromSearch){viewHistory.push('search-view');showView('detail',false);}
   else{showView('detail');}
+  // 뷰가 활성화(display:flex)된 이후에 스크롤을 최상단으로 재설정
+  // display:none 상태에서 설정한 scrollTop은 일부 브라우저에서 반영되지 않기 때문
+  requestAnimationFrame(()=>{const _ds=document.getElementById('d-scroll');if(_ds)_ds.scrollTop=0;});
 
   // 수정/삭제 버튼 (내 상품 관리에서 진입 시만 헤더에 표시)
   const ownerBar=document.getElementById('pd-owner-bar');
@@ -18497,8 +18500,8 @@ async function _initRealtimeSubscriptions(){
 }
 </script>
 <!-- 게스트 로그인 유도 모달 -->
-<div id="modal-guest-login" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:20px;padding:32px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+<div id="modal-guest-login" onclick="if(event.target===this)closeGuestModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
+  <div onclick="event.stopPropagation()" style="background:#fff;border-radius:20px;padding:32px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
     <div style="font-size:48px;margin-bottom:12px">🔒</div>
     <div style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:10px">로그인이 필요한 기능이에요</div>
     <div style="font-size:14px;color:#666;line-height:1.6;margin-bottom:24px;white-space:pre-line">비움마켓 회원이 되면
