@@ -2,8 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>비움마켓 - 프리미엄 재고원단 거래 플랫폼</title>
+    <!-- PWA standalone 유지: index.html과 동일한 메타태그 없으면 iOS에서 브라우저 chrome 노출됨 -->
+    <link rel="manifest" href="/manifest.json"/>
+    <meta name="theme-color" content="#0F172A"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="apple-mobile-web-app-title" content="비움마켓"/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://www.biummarket.com"/>
     <meta property="og:title" content="재고원단 B2B 플랫폼 — 비움마켓 BIUM MARKET"/>
@@ -400,14 +407,16 @@
             } catch(e) {}
         }
         if (isLoggedIn) {
-            window.location.href = 'https://www.biummarket.com?page=mypage';
+            // 상대 경로 이동: PWA standalone 컨테이너 유지 (절대 URL은 iOS/Android에서 브라우저 chrome 노출 원인)
+            window.location.href = '/?page=mypage';
         } else {
-            window.location.href = 'https://www.biummarket.com?page=register&type=business';
+            window.location.href = '/?page=register&type=business';
         }
     }
     function handleLandingBtn() {
         // 게스트 둘러보기 모드로 바로 진입 (로그인된 유저는 index.html 초기화에서 분기)
-        window.location.href = 'https://www.biummarket.com?guest=true';
+        // 상대 경로 이동: PWA standalone 컨테이너 유지
+        window.location.href = '/?guest=true';
     }
 
     const POLICIES={
