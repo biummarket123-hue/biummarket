@@ -407,7 +407,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .msg-row.me .msg-bubble{background:linear-gradient(135deg,#6c63ff,#7c73ff);color:#fff;border-bottom-right-radius:4px}
 .msg-row.other .msg-bubble{background:#f0f0f5;color:#1a1a1a;border-bottom-left-radius:4px}
 .msg-time{font-size:10px;color:#666677;margin-top:3px;padding:0 4px}
-.chat-input-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#f8f8fa;border-top:1px solid #e0e0ea;padding:10px 12px;display:flex;gap:8px;z-index:200}
+.chat-input-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#f8f8fa;border-top:1px solid #e0e0ea;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:200}
 .chat-input-bar input{flex:1;border:1.5px solid #d8d8e8;border-radius:22px;padding:9px 16px;font-size:14px;outline:none;font-family:inherit;transition:border-color .15s;background:#eeeeee;color:#1a1a1a}
 .chat-input-bar input:focus{border-color:#6c63ff}
 .chat-send{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#ff6584);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -2753,7 +2753,7 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <span style="color:#6c63ff;font-size:16px">›</span>
   </div>
   <div id="cr-dangol-banner" style="display:none;padding:12px 16px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-bottom:1px solid #ffe0b2;flex-shrink:0"></div>
-  <div class="croom-body" id="cr-body" style="flex:1;overflow-y:auto;padding:14px 14px 10px;display:flex;flex-direction:column;gap:12px;background:#ffffff"></div>
+  <div class="croom-body" id="cr-body" style="flex:1;overflow-y:auto;padding:14px 14px calc(80px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;background:#ffffff"></div>
   <div class="chat-input-bar">
     <input type="text" id="cr-input" placeholder="메시지를 입력하세요" data-i18n-ph="ph_chat_input" onkeydown="if(event.key==='Enter')sendChatMsg()"/>
     <button class="chat-send" onclick="sendChatMsg()">↑</button>
@@ -6317,6 +6317,34 @@ function playNotifSound(type){
 
   if(s.vibrate&&navigator.vibrate)navigator.vibrate([100,50,100]);
 }
+
+// 상품 등록/수정 성공 효과음 — 비움마켓 브랜드 징글 ("비움!") + 가벼운 진동
+// 알림 종류가 아닌 액션 피드백이므로 DND만 체크하고 개별 소리 설정은 무시
+function playRegisterSound(){
+  try{
+    const s=soundSettings;
+    if(s.dnd)return;
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    const v=Math.max(0,Math.min(1,(s.volume||80)/100))*.4;
+    const now=_audioCtx.currentTime;
+    // "비" - 높은 음 짧게
+    const o1=_audioCtx.createOscillator();const g1=_audioCtx.createGain();
+    o1.type='triangle';o1.frequency.setValueAtTime(880,now);o1.frequency.linearRampToValueAtTime(1100,now+.12);
+    g1.gain.setValueAtTime(v*.7,now);g1.gain.linearRampToValueAtTime(v*.5,now+.1);g1.gain.exponentialRampToValueAtTime(0.001,now+.15);
+    o1.connect(g1);g1.connect(_audioCtx.destination);o1.start(now);o1.stop(now+.2);
+    // "움!" - 낮은 음 통통 튀는 느낌
+    const o2=_audioCtx.createOscillator();const g2=_audioCtx.createGain();
+    o2.type='triangle';o2.frequency.setValueAtTime(660,now+.15);o2.frequency.exponentialRampToValueAtTime(440,now+.35);
+    g2.gain.setValueAtTime(0,now+.15);g2.gain.linearRampToValueAtTime(v*.8,now+.17);g2.gain.setValueAtTime(v*.6,now+.25);g2.gain.exponentialRampToValueAtTime(0.001,now+.45);
+    o2.connect(g2);g2.connect(_audioCtx.destination);o2.start(now+.15);o2.stop(now+.5);
+    // 마무리 반짝임
+    const o3=_audioCtx.createOscillator();const g3=_audioCtx.createGain();
+    o3.type='sine';o3.frequency.value=1760;
+    g3.gain.setValueAtTime(v*.2,now+.35);g3.gain.exponentialRampToValueAtTime(0.001,now+.55);
+    o3.connect(g3);g3.connect(_audioCtx.destination);o3.start(now+.35);o3.stop(now+.6);
+    if(s.vibrate&&navigator.vibrate)navigator.vibrate([60,40,80]);
+  }catch(e){console.warn('[playRegisterSound]',e);}
+}
 let tradeSettings=lsGet('tradeSettings',{priceOffer:false,delivery:true,directTrade:false});
 let urgent=false;
 let formEditId=null;
@@ -6597,6 +6625,63 @@ function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg;el.classList.add('show');
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* ==================== 비움마켓 커스텀 확인 모달 ====================
+   네이티브 confirm() 대신 사용 — 도메인 주소 노출 없이 비움마켓 브랜드 톤으로 표시
+   사용 예: const ok = await biumConfirm({title:'상품을 등록할까요?', desc:'...', okText:'등록하기'});
+*/
+function biumConfirm(opts){
+  const options = typeof opts === 'string' ? {title: opts} : (opts || {});
+  const {
+    title = '확인해 주세요',
+    desc = '',
+    icon = '📦',
+    okText = '확인',
+    cancelText = '취소',
+    tone = 'brand' // 'brand'(보라/핑크), 'gold'(셀러 골드), 'danger'(빨강)
+  } = options;
+  return new Promise(resolve=>{
+    // 이미 열린 확인 모달이 있으면 제거
+    const prev = document.getElementById('bium-confirm-overlay');
+    if(prev) prev.remove();
+
+    const gradient = tone==='danger'
+      ? 'linear-gradient(135deg,#ff5c7c,#ff3355)'
+      : tone==='gold'
+        ? 'linear-gradient(135deg,#d4a017,#c8962a)'
+        : 'linear-gradient(135deg,#6c63ff,#ff6584)';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'bium-confirm-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,20,35,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:24px;animation:biumFadeIn .18s ease-out';
+    overlay.innerHTML = `
+      <style>
+        @keyframes biumFadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes biumPopIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+      </style>
+      <div role="dialog" aria-modal="true" style="background:#fff;border-radius:22px;width:100%;max-width:340px;padding:28px 24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:biumPopIn .22s cubic-bezier(.2,.9,.3,1.2);text-align:center">
+        <div style="width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:${gradient};display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 24px rgba(108,99,255,.25)">${icon}</div>
+        <div style="font-size:17px;font-weight:800;color:#1a1a1a;margin-bottom:${desc?'8px':'18px'};line-height:1.4">${title}</div>
+        ${desc?`<div style="font-size:13px;color:#666677;line-height:1.55;margin-bottom:20px;white-space:pre-line">${desc}</div>`:''}
+        <div style="display:flex;gap:10px">
+          <button id="bium-confirm-cancel" style="flex:1;padding:13px 0;background:#f0f0f5;color:#555;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s">${cancelText}</button>
+          <button id="bium-confirm-ok" style="flex:1.2;padding:13px 0;background:${gradient};color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(108,99,255,.3)">${okText}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close=(v)=>{overlay.remove();document.removeEventListener('keydown',onKey);resolve(v);};
+    overlay.querySelector('#bium-confirm-ok').onclick=()=>close(true);
+    overlay.querySelector('#bium-confirm-cancel').onclick=()=>close(false);
+    // 오버레이 바깥 클릭 시 취소
+    overlay.addEventListener('click',e=>{if(e.target===overlay)close(false);});
+    // ESC/Enter 키
+    const onKey=(e)=>{if(e.key==='Escape')close(false);else if(e.key==='Enter')close(true);};
+    document.addEventListener('keydown',onKey);
+    // 포커스 이동
+    setTimeout(()=>overlay.querySelector('#bium-confirm-ok').focus(),50);
+  });
 }
 
 /* ==================== VIEW ==================== */
@@ -11673,7 +11758,15 @@ function _showSubmitLoading(show){
 }
 async function submitForm(){
   if(_submitLock)return;
-  if(!confirm('상품을 등록하시겠습니까?'))return;
+  const _isEdit=!!formEditId;
+  const _ok=await biumConfirm({
+    icon:_isEdit?'✏️':'📦',
+    title:_isEdit?'상품을 수정할까요?':'상품을 등록할까요?',
+    desc:_isEdit?'변경한 내용으로 상품 정보가 업데이트돼요.':'입력하신 내용으로 상품이 등록돼요.\n등록 후에도 언제든 수정할 수 있어요.',
+    okText:_isEdit?'수정하기':'등록하기',
+    cancelText:'다시 확인'
+  });
+  if(!_ok)return;
   _submitLock=true;
   _showSubmitLoading(true);
   const title=document.getElementById('f-title').value.trim();
@@ -11732,13 +11825,13 @@ async function submitForm(){
       const idx=products.findIndex(x=>x.id===formEditId);
       if(idx>=0)products[idx]={...products[idx],...payload};
       formEditId=null;
-      saveProducts();resetForm();showMySales();showToast(t('t_edit_done'));
+      saveProducts();resetForm();showMySales();showToast(t('t_edit_done'));playRegisterSound();
     }else{
       const newP={...payload,id:Date.now(),liked:false,image_url:image_url||undefined};
       // 로컬 전용 상품 표시
       newP._localOnly=true;
       products.unshift(newP);saveProducts();
-      resetForm();showView('list');showToast(t('registered'));
+      resetForm();showView('list');showToast(t('registered'));playRegisterSound();
       // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
     }
@@ -11763,7 +11856,7 @@ async function submitForm(){
       if(idx>=0)products[idx]={...products[idx],...upd};
       const productId=formEditId;
       formEditId=null;
-      resetForm();showMySales();showToast(t('t_edit_done'));
+      resetForm();showMySales();showToast(t('t_edit_done'));playRegisterSound();
       // 가격 인하 시 찜한 사용자에게 알림
       if(_sb&&oldPrice&&newPrice<oldPrice){
         const{data:likedUsers}=await _sb.from('product_likes').select('user_id').eq('product_id',String(productId)).catch(()=>({data:null}));
@@ -11822,7 +11915,7 @@ async function submitForm(){
           description: payload.description||''
         }).then(()=>{}).catch(e=>console.warn('fabric_specs 저장 오류:',e));
       }
-      resetForm();showView('list');showToast(t('registered'));
+      resetForm();showView('list');showToast(t('registered'));playRegisterSound();
       // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       // 키워드 알림 - Supabase에서 매칭되는 키워드 조회 후 알림 발송
       if(_sb){
