@@ -604,6 +604,79 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .match-cta-title{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:2px;line-height:1.3}
 .match-cta-sub{font-size:11px;color:#94A3B8;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .match-cta-arrow{font-size:18px;color:#CBD5E1;font-weight:300;flex-shrink:0}
+/* 역매칭 결과 화면 */
+.mv-header{position:sticky;top:0;background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #F1F5F9;z-index:10}
+.mv-back,.mv-refresh{background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px;color:#1E293B}
+.mv-title{flex:1;font-size:16px;font-weight:700;color:#1E293B}
+.mv-summary{background:#F8FAFC;padding:14px 18px;border-bottom:1px solid #E2E8F0}
+.mv-summary-label{font-size:10px;font-weight:700;color:#64748B;letter-spacing:0.5px;margin-bottom:6px}
+.mv-summary-row{font-size:12px;color:#334155;line-height:1.6}
+.mv-summary-row b{color:#1E293B;font-weight:700}
+.mv-tabs{display:flex;background:#fff;border-bottom:2px solid #E2E8F0;position:sticky;top:60px;z-index:9}
+.mv-tab{flex:1;padding:14px 8px;background:none;border:none;font-size:13px;font-weight:600;color:#64748B;cursor:pointer;position:relative;transition:color .2s}
+.mv-tab.active{color:#1E293B;font-weight:700}
+.mv-tab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:#028090}
+.mv-tab-count{display:inline-block;background:#F1F5F9;color:#64748B;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px;font-weight:700}
+.mv-tab.active .mv-tab-count{background:#028090;color:#fff}
+.mv-results{padding:14px}
+.mv-loading,.mv-empty{text-align:center;padding:60px 20px;color:#94A3B8;font-size:13px}
+.mv-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:14px;margin-bottom:12px;display:flex;gap:12px;cursor:pointer}
+.mv-card-img{width:80px;height:80px;border-radius:10px;flex-shrink:0;background:#F1F5F9;object-fit:cover}
+.mv-card-info{flex:1;min-width:0}
+.mv-card-title{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv-card-score{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.mv-score-badge{background:#028090;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px}
+.mv-score-badge.good{background:#0284C7}
+.mv-score-badge.consider{background:#94A3B8}
+.mv-card-meta{font-size:12px;color:#64748B;margin-bottom:6px}
+.mv-card-meta b{color:#1E293B;font-weight:700}
+.mv-reasons{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.mv-reason{background:#F0FDF4;color:#059669;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.mv-card-actions{display:flex;gap:6px}
+.mv-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer}
+.mv-btn-primary{background:#1E293B;color:#fff;flex:1}
+.mv-btn-secondary{background:#F1F5F9;color:#64748B}
+/* 역매칭 조건 입력 화면 */
+.mi-header{position:sticky;top:0;background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #F1F5F9;z-index:10}
+.mi-back{background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px;color:#1E293B}
+.mi-title{flex:1;font-size:16px;font-weight:700;color:#1E293B}
+.mi-hero{padding:28px 22px 18px}
+.mi-h2{font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-0.8px;color:#1E293B;margin-bottom:8px}
+.mi-h2 b{color:#028090;font-style:italic}
+.mi-p{font-size:12px;color:#64748B;line-height:1.5}
+.mi-form{padding:0 20px 100px}
+.mi-field{margin-bottom:24px}
+.mi-label{font-size:13px;font-weight:700;color:#1E293B;margin-bottom:4px;display:block}
+.mi-required{color:#EF4444}
+.mi-hint{font-size:11px;color:#94A3B8;margin-bottom:10px}
+.mi-chips{display:flex;flex-wrap:wrap;gap:8px}
+.mi-chip{padding:9px 16px;border-radius:20px;background:#F5F7FA;border:1.5px solid #E2E8F0;color:#64748B;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.mi-chip:hover{border-color:#CBD5E1}
+.mi-chip.active{background:#1E293B;border-color:#1E293B;color:#fff}
+.mi-range{display:flex;align-items:center;gap:10px}
+.mi-range-sep{color:#94A3B8;font-size:14px}
+.mi-input{flex:1;padding:12px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;color:#1E293B;background:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;width:100%}
+.mi-input:focus{border-color:#1E293B}
+.mi-price-row{display:flex;gap:8px}
+.mi-input-price{flex:1}
+.mi-unit-group{display:flex;background:#F5F7FA;border-radius:10px;padding:3px;gap:2px}
+.mi-unit-btn{padding:9px 12px;background:transparent;border:none;border-radius:8px;font-size:12px;font-weight:600;color:#64748B;cursor:pointer;transition:all .15s}
+.mi-unit-btn.active{background:#1E293B;color:#fff}
+.mi-footer{position:sticky;bottom:0;padding:12px 20px 18px;background:#fff;border-top:1px solid #F1F5F9;z-index:11}
+.mi-btn-submit{width:100%;padding:16px;background:#1E293B;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(30,41,59,0.2);transition:transform .15s}
+.mi-btn-submit:active{transform:scale(.98)}
+.mi-btn-submit:disabled{background:#CBD5E1;cursor:not-allowed;box-shadow:none}
+/* 상품 상세 내 역매칭 CTA 카드 */
+.detail-match-cta{margin:20px 16px;padding:20px;background:linear-gradient(135deg,#1E293B 0%,#0F172A 100%);border-radius:16px;color:#fff;cursor:pointer;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(30,41,59,0.15)}
+.detail-match-cta::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(2,195,154,0.15),transparent 70%);border-radius:50%;pointer-events:none}
+.detail-match-cta:active{transform:scale(.98)}
+.dmc-badge{display:inline-block;background:#02C39A;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;margin-bottom:10px;position:relative}
+.dmc-title{font-size:16px;font-weight:800;margin-bottom:6px;position:relative}
+.dmc-desc{font-size:12px;color:#94A3B8;line-height:1.5;margin-bottom:14px;position:relative}
+.dmc-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:11px 16px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;position:relative}
+/* 조건 입력 화면 - 상품 기반 자동입력 안내 뱃지 */
+.mi-source-badge{background:#F0FDF9;color:#028090;padding:10px 14px;border-radius:10px;font-size:12px;margin-top:14px;border-left:3px solid #02C39A;line-height:1.5}
+.mi-source-badge b{font-weight:800}
 .home-scroll{flex:1;overflow-y:auto;padding-bottom:72px}
 .home-cats{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:visible;padding:12px 14px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .home-cats::-webkit-scrollbar{display:none}
@@ -1272,7 +1345,7 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     </div>
   </header>
   <!-- 역방향 매칭 CTA (조건으로 원단 찾기) -->
-  <div id="home-match-cta" class="home-match-cta" onclick="alert('역방향 매칭 기능 준비 중입니다. 오후에 연결 예정!')">
+  <div id="home-match-cta" class="home-match-cta" onclick="openMatchInput()">
     <div class="match-cta-icon">🔍</div>
     <div class="match-cta-text">
       <div class="match-cta-title" data-i18n="match_cta_title">조건으로 원단 찾기</div>
@@ -1483,6 +1556,15 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <div class="pd-section" id="pd-seller-section" style="display:none">
       <div class="pd-section-title" style="font-size:var(--fs-lg);font-weight:700">판매자의 다른 상품</div>
       <div id="pd-seller-scroll" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 2px"></div>
+    </div>
+    <!-- 역매칭 진입 CTA (현재 상품 기준 자동 매칭) -->
+    <div class="detail-match-cta" onclick="openMatchFromProduct(curProductId)">
+      <div class="dmc-badge">✨ NEW</div>
+      <div class="dmc-title">이런 원단 더 찾아볼까요?</div>
+      <div class="dmc-desc">이 상품과 비슷한 스펙의<br>다른 판매자 재고를 자동으로 찾아드려요</div>
+      <div class="dmc-btn">
+        <span>🔍</span><span>유사 원단 자동 매칭</span><span>→</span>
+      </div>
     </div>
     <!-- 태그 -->
     <div class="pd-tag-row" id="pd-tags"></div>
@@ -2437,6 +2519,86 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <div style="width:38px"></div>
   </header>
   <div style="flex:1;overflow-y:auto;padding-bottom:20px" id="notices-list"></div>
+</div>
+
+<!-- ========== MATCH RESULT (역매칭 결과) ========== -->
+<div id="view-matchResult" class="view">
+  <div class="mv-header">
+    <button class="mv-back" onclick="goBack()">←</button>
+    <div class="mv-title">매칭 결과</div>
+    <button class="mv-refresh" onclick="reExecuteMatching()" title="재매칭">🔄</button>
+  </div>
+  <div id="mv-summary" class="mv-summary"></div>
+  <div class="mv-tabs">
+    <button class="mv-tab active" data-tier="perfect" onclick="switchMatchTab('perfect')">딱 맞음 <span class="mv-tab-count" id="mv-count-perfect">0</span></button>
+    <button class="mv-tab" data-tier="good" onclick="switchMatchTab('good')">거의 맞음 <span class="mv-tab-count" id="mv-count-good">0</span></button>
+    <button class="mv-tab" data-tier="consider" onclick="switchMatchTab('consider')">고려 <span class="mv-tab-count" id="mv-count-consider">0</span></button>
+  </div>
+  <div id="mv-results" class="mv-results" style="flex:1;overflow-y:auto">
+    <div class="mv-loading">매칭 중...</div>
+  </div>
+</div>
+
+<!-- ========== MATCH INPUT (역매칭 조건 입력) ========== -->
+<div id="view-matchInput" class="view">
+  <div class="mi-header">
+    <button class="mi-back" onclick="goBack()">←</button>
+    <div class="mi-title">원단 찾기</div>
+  </div>
+  <div class="mi-hero">
+    <h2 class="mi-h2">어떤 원단을<br><b>찾고</b> 계세요?</h2>
+    <p class="mi-p">조건을 입력하면 판매자 재고에서 자동으로 찾아드려요</p>
+  </div>
+  <div class="mi-form">
+    <!-- 소재 -->
+    <div class="mi-field">
+      <label class="mi-label">소재 <span class="mi-required">*</span></label>
+      <div class="mi-hint">복수 선택 가능</div>
+      <div class="mi-chips" id="mi-materials">
+        <button type="button" class="mi-chip" data-value="면">면</button>
+        <button type="button" class="mi-chip" data-value="폴리">폴리</button>
+        <button type="button" class="mi-chip" data-value="린넨">린넨</button>
+        <button type="button" class="mi-chip" data-value="울">울</button>
+        <button type="button" class="mi-chip" data-value="실크">실크</button>
+        <button type="button" class="mi-chip" data-value="나일론">나일론</button>
+        <button type="button" class="mi-chip" data-value="레이온">레이온</button>
+        <button type="button" class="mi-chip" data-value="혼방">혼방</button>
+      </div>
+    </div>
+    <!-- 중량 -->
+    <div class="mi-field">
+      <label class="mi-label">중량 (g/m²)</label>
+      <div class="mi-hint">원단 두께의 척도 · 입력 안 하면 제한 없음</div>
+      <div class="mi-range">
+        <input type="number" id="mi-weight-min" class="mi-input" placeholder="최소" min="0">
+        <span class="mi-range-sep">~</span>
+        <input type="number" id="mi-weight-max" class="mi-input" placeholder="최대" min="0">
+      </div>
+    </div>
+    <!-- 예산 + 단위 -->
+    <div class="mi-field">
+      <label class="mi-label">예산 · 단위</label>
+      <div class="mi-price-row">
+        <input type="number" id="mi-price-max" class="mi-input mi-input-price" placeholder="최대 금액" min="0">
+        <div class="mi-unit-group">
+          <button type="button" class="mi-unit-btn active" data-unit="yard">yd</button>
+          <button type="button" class="mi-unit-btn" data-unit="m">m</button>
+          <button type="button" class="mi-unit-btn" data-unit="kg">kg</button>
+        </div>
+      </div>
+    </div>
+    <!-- 수량 -->
+    <div class="mi-field">
+      <label class="mi-label">수량 (최소)</label>
+      <div class="mi-hint">이 수량 이상 재고 있는 원단만 매칭</div>
+      <input type="number" id="mi-quantity-min" class="mi-input" placeholder="예: 100" min="0">
+    </div>
+  </div>
+  <div class="mi-footer">
+    <button class="mi-btn-submit" onclick="submitMatchRequest()">
+      <span>✨</span><span>매칭 시작하기</span>
+    </button>
+  </div>
 </div>
 
 <!-- ========== PROFILE EDIT ========== -->
@@ -8991,6 +9153,8 @@ async function openDetail(id){
     if(isWished(id)){_removeWish(id);renderWishlist();}
     return;
   }
+  // 역매칭 CTA가 참조할 현재 상품 캐시
+  window._currentDetailProduct=p;
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
   document.getElementById('d-scroll').scrollTop=0;
 
@@ -14277,6 +14441,506 @@ function isMyProduct(p,u){
 /* ===== 역할 판별 헬퍼 ===== */
 function _getRole(){return curUser&&(curUser.role||curUser.type)||'';}
 function isAdmin(){return _getRole()==='admin';}
+
+/* ==================== 역방향 매칭 알고리즘 ==================== */
+// products.material 표기 정규화 ("폴리 100%"/"면100%"/"면 100%" → "폴리"/"면")
+function _normalizeMaterial(raw){
+  if(!raw)return '';
+  const s=String(raw).toLowerCase().replace(/\s+/g,'');
+  // 주요 소재 키워드 매칭
+  if(s.includes('면')||s.includes('코튼')||s.includes('cotton'))return '면';
+  if(s.includes('폴리')||s.includes('polyester'))return '폴리';
+  if(s.includes('린넨')||s.includes('마')||s.includes('linen'))return '린넨';
+  if(s.includes('울')||s.includes('양모')||s.includes('wool'))return '울';
+  if(s.includes('실크')||s.includes('견')||s.includes('silk'))return '실크';
+  if(s.includes('나일론')||s.includes('nylon'))return '나일론';
+  if(s.includes('레이온')||s.includes('rayon'))return '레이온';
+  if(s.includes('스판')||s.includes('spandex'))return '스판';
+  // 혼방 감지 (두 개 이상 소재 포함)
+  let count=0;
+  ['면','폴리','린넨','울','실크','나일론','레이온'].forEach(m=>{
+    if(s.includes(m)||s.includes(m.toLowerCase()))count++;
+  });
+  if(count>=2)return '혼방';
+  return '기타';
+}
+
+// 요청-상품 매칭 점수 (총 100점: 소재35/중량25/가격20/수량15/폭5)
+function calculateMatchScore(request,product){
+  const breakdown={};
+  let score=0;
+  // 1. 소재 (35점)
+  const productMaterial=_normalizeMaterial(product.material);
+  const requestMaterials=(request.materials||[]).map(_normalizeMaterial);
+  if(requestMaterials.length===0){
+    breakdown.material=0;
+  }else if(requestMaterials.includes(productMaterial)){
+    breakdown.material=35;
+  }else if(productMaterial==='혼방'&&requestMaterials.some(m=>m!=='기타')){
+    // 혼방은 요청 소재 포함 가능성 있으므로 부분 점수
+    breakdown.material=15;
+  }else{
+    breakdown.material=0;
+  }
+  score+=breakdown.material;
+  // 2. 중량 (25점)
+  if(request.weight_min==null&&request.weight_max==null){
+    breakdown.weight=0;
+  }else{
+    const w=Number(product.weight);
+    if(!w){
+      breakdown.weight=5; // 정보 없음 - 기본점
+    }else{
+      const wMin=request.weight_min||0;
+      const wMax=request.weight_max||9999;
+      if(w>=wMin&&w<=wMax){
+        breakdown.weight=25;
+      }else{
+        const diff=w<wMin?(wMin-w):(w-wMax);
+        const range=wMax-wMin||50;
+        const penalty=Math.min(25,Math.floor((diff/range)*25));
+        breakdown.weight=Math.max(0,25-penalty);
+      }
+    }
+  }
+  score+=breakdown.weight;
+  // 3. 가격 (20점) - 예산 이하면 만점
+  if(request.price_max==null){
+    breakdown.price=0;
+  }else{
+    const priceRef=Number(product.bulk_price||product.price||0);
+    if(priceRef===0){
+      breakdown.price=0;
+    }else if(priceRef<=request.price_max){
+      breakdown.price=20;
+    }else{
+      const overRatio=(priceRef-request.price_max)/request.price_max;
+      const penalty=Math.min(20,Math.floor(overRatio*40));
+      breakdown.price=Math.max(0,20-penalty);
+    }
+  }
+  score+=breakdown.price;
+  // 4. 수량 (15점)
+  if(request.quantity_min==null){
+    breakdown.quantity=0;
+  }else{
+    const qty=Number(product.qty)||0;
+    if(qty>=request.quantity_min){
+      breakdown.quantity=15;
+    }else if(qty>0){
+      const ratio=qty/request.quantity_min;
+      breakdown.quantity=Math.floor(15*ratio);
+    }else{
+      breakdown.quantity=0;
+    }
+  }
+  score+=breakdown.quantity;
+  // 5. 폭 (5점) - 있을 때만 체크
+  if(request.width_min==null&&request.width_max==null){
+    breakdown.width=5; // 요청에 없으면 기본점
+  }else{
+    const wid=Number(product.width);
+    if(!wid){
+      breakdown.width=2; // 상품 정보 없음
+    }else{
+      const widMin=request.width_min||0;
+      const widMax=request.width_max||9999;
+      if(wid>=widMin&&wid<=widMax){
+        breakdown.width=5;
+      }else{
+        breakdown.width=0;
+      }
+    }
+  }
+  score+=breakdown.width;
+  return{score,breakdown};
+}
+
+// 매칭 등급 (perfect >=80 / good >=60 / consider >=30 / low)
+function getMatchTier(score){
+  if(score>=80)return 'perfect';
+  if(score>=60)return 'good';
+  if(score>=30)return 'consider';
+  return 'low';
+}
+
+// 매칭 실행: 요청 조회 → 상품 조회 → 점수 계산 → match_results 저장
+async function executeMatching(requestId){
+  if(!_sb){console.error('[매칭] Supabase 연결 없음');return[];}
+  try{
+    // 1. 요청 정보 조회
+    const{data:request,error:reqErr}=await _sb
+      .from('matching_requests').select('*').eq('id',requestId).single();
+    if(reqErr||!request){console.error('[매칭] 요청 조회 실패:',reqErr);return[];}
+    // 2. 활성 상품 전체 조회
+    const{data:products,error:prodErr}=await _sb
+      .from('products').select('*').is('deleted_at',null).eq('is_hidden',false);
+    if(prodErr){console.error('[매칭] 상품 조회 실패:',prodErr);return[];}
+    // 3. 모든 상품에 대해 점수 계산
+    const results=(products||[])
+      .map(p=>{
+        const{score,breakdown}=calculateMatchScore(request,p);
+        return{
+          request_id:requestId,
+          product_id:p.id,
+          seller_id:p.seller_id,
+          score,
+          score_breakdown:breakdown,
+          tier:getMatchTier(score),
+          _product:p // 임시 저장 (저장 시 제외)
+        };
+      })
+      .filter(r=>r.score>=30) // 30점 이상만
+      .sort((a,b)=>b.score-a.score);
+    // 4. DB 저장 (상위 50개만, 재매칭 대비 기존 결과 삭제 후 삽입)
+    const toSave=results.slice(0,50).map(r=>({
+      request_id:r.request_id,
+      product_id:r.product_id,
+      seller_id:r.seller_id,
+      score:r.score,
+      score_breakdown:r.score_breakdown,
+      tier:r.tier
+    }));
+    if(toSave.length>0){
+      // 1) 재매칭 대비: 기존 캐시 먼저 삭제 (실패해도 INSERT 시도 — 레코드가 없을 수 있음)
+      const{error:delErr}=await _sb.from('match_results').delete().eq('request_id',requestId);
+      if(delErr)console.warn('[매칭] 기존 결과 삭제 실패:',delErr);
+      // 2) 신규 결과 INSERT (실패해도 results 반환은 그대로 유지 — DB는 캐시 목적)
+      const{error:insErr}=await _sb.from('match_results').insert(toSave);
+      if(insErr)console.warn('[매칭] 결과 저장 실패:',insErr);
+    }
+    return results;
+  }catch(err){
+    console.error('[매칭] 실행 오류:',err);return[];
+  }
+}
+
+// 자동 문의 메시지 템플릿 (셀러 채팅방 첫 메시지용)
+function generateInquiryMessage(request,product){
+  const materials=(request.materials||[]).join(', ');
+  const weightRange=request.weight_min&&request.weight_max
+    ?`${request.weight_min}~${request.weight_max}g/m²`
+    :'제한 없음';
+  const priceMax=request.price_max
+    ?request.price_max.toLocaleString()+'원/'+(request.quantity_unit||'yd')
+    :'제한 없음';
+  return `안녕하세요! 조건 매칭으로 연락드립니다.
+
+[찾고 있는 원단]
+- 소재: ${materials||'무관'}
+- 중량: ${weightRange}
+- 수량: ${request.quantity_min?request.quantity_min+' '+(request.quantity_unit||'yd')+' 이상':'제한 없음'}
+- 예산: ${priceMax} 이내
+
+${product.title}이(가) 조건에 맞아 연락드렸습니다.
+가격 협상 가능한지, 재고가 확실한지 답변 부탁드립니다.
+
+감사합니다.`;
+}
+
+// === 역매칭 결과 화면 상태 ===
+let _currentMatchRequest=null;   // 현재 조회중인 요청
+let _currentMatchResults=null;   // 매칭 결과 캐시 (_product 포함)
+let _currentMatchTier='perfect'; // 현재 선택된 탭
+
+// 매칭 결과 화면 진입
+async function openMatchResult(requestId){
+  showView('matchResult');
+  const resultsEl=document.getElementById('mv-results');
+  resultsEl.innerHTML='<div class="mv-loading">매칭 결과 불러오는 중...</div>';
+  try{
+    const{data:request}=await _sb.from('matching_requests').select('*').eq('id',requestId).single();
+    if(!request){resultsEl.innerHTML='<div class="mv-empty">요청을 찾을 수 없습니다.</div>';return;}
+    _currentMatchRequest=request;
+    renderMatchSummary(request);
+    const results=await executeMatching(requestId);
+    _currentMatchResults=results;
+    updateMatchTabCounts(results);
+    _currentMatchTier='perfect';
+    renderMatchResults('perfect');
+  }catch(err){
+    console.error('[매칭결과] 오류:',err);
+    resultsEl.innerHTML='<div class="mv-empty">매칭 결과를 불러오는 중 오류가 발생했습니다.</div>';
+  }
+}
+
+// 요청 조건 요약
+function renderMatchSummary(request){
+  const el=document.getElementById('mv-summary');
+  const materials=(request.materials||[]).join(', ')||'무관';
+  const weightRange=(request.weight_min||request.weight_max)
+    ?`${request.weight_min||0}~${request.weight_max||'∞'}g`:'무관';
+  const priceMax=request.price_max
+    ?request.price_max.toLocaleString()+'원/'+(request.quantity_unit||'yd'):'무관';
+  const quantityMin=request.quantity_min
+    ?request.quantity_min+(request.quantity_unit||'yd')+' 이상':'무관';
+  el.innerHTML=`
+    <div class="mv-summary-label">🔍 내 요청 조건</div>
+    <div class="mv-summary-row"><b>소재</b> ${materials} · <b>중량</b> ${weightRange} · <b>예산</b> ${priceMax}</div>
+    <div class="mv-summary-row"><b>수량</b> ${quantityMin}</div>`;
+}
+
+// 탭 카운트 업데이트
+function updateMatchTabCounts(results){
+  const counts={perfect:0,good:0,consider:0};
+  (results||[]).forEach(r=>{if(counts[r.tier]!==undefined)counts[r.tier]++;});
+  document.getElementById('mv-count-perfect').textContent=counts.perfect;
+  document.getElementById('mv-count-good').textContent=counts.good;
+  document.getElementById('mv-count-consider').textContent=counts.consider;
+}
+
+// 탭 전환
+function switchMatchTab(tier){
+  _currentMatchTier=tier;
+  document.querySelectorAll('.mv-tab').forEach(t=>{
+    t.classList.toggle('active',t.dataset.tier===tier);
+  });
+  renderMatchResults(tier);
+}
+
+// 결과 리스트 렌더
+function renderMatchResults(tier){
+  const el=document.getElementById('mv-results');
+  const filtered=(_currentMatchResults||[]).filter(r=>r.tier===tier);
+  if(filtered.length===0){
+    const tierName={perfect:'딱 맞는',good:'거의 맞는',consider:'고려할만한'}[tier];
+    el.innerHTML=`<div class="mv-empty">${tierName} 원단이 없어요</div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(r=>renderMatchCard(r)).join('');
+}
+
+// 매칭 카드 HTML
+function renderMatchCard(result){
+  const p=result._product;
+  if(!p)return '';
+  // products 구조에서는 p.image_url 사용 (기존 카드들과 동일)
+  const img=p.image_url||(p.images&&p.images[0])||'';
+  const imgHtml=img
+    ?`<img class="mv-card-img" src="${img}" alt="${_escHtml(p.title||'')}">`
+    :`<div class="mv-card-img" style="display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:28px">📦</div>`;
+  // 가격 (최솟값)
+  const bulk=Number(p.bulk_price)||0;
+  const price=Number(p.price)||0;
+  const vals=[bulk,price].filter(v=>v>0);
+  const priceMin=vals.length?Math.min(...vals):0;
+  const unitDisp=p.unit==='yard'?'yd':(p.unit||'m');
+  const priceStr=priceMin?priceMin.toLocaleString()+'원/'+unitDisp:'-';
+  // 뱃지 톤
+  const tierClass=result.tier==='perfect'?'':result.tier;
+  const tierLabel=result.tier==='perfect'?'딱 맞음':result.tier==='good'?'거의 맞음':'고려';
+  // 매칭 이유 (breakdown 만점 항목)
+  const reasons=[];
+  const bd=result.score_breakdown||{};
+  if(bd.material===35)reasons.push('✓ 소재 일치');
+  if(bd.weight===25)reasons.push('✓ 중량 범위 내');
+  if(bd.price===20)reasons.push('✓ 예산 내');
+  if(bd.quantity===15)reasons.push('✓ 수량 충족');
+  const reasonHtml=reasons.length?reasons.map(r=>`<span class="mv-reason">${r}</span>`).join(''):'';
+  return `
+    <div class="mv-card" onclick="openDetail(${p.id})">
+      ${imgHtml}
+      <div class="mv-card-info">
+        <div class="mv-card-title">${_escHtml(p.title||'')}</div>
+        <div class="mv-card-score">
+          <span class="mv-score-badge ${tierClass}">${result.score}점</span>
+          <span style="font-size:11px;color:#64748B">${tierLabel}</span>
+        </div>
+        <div class="mv-card-meta"><b>${priceStr}</b> · 재고 ${(p.qty||0).toLocaleString()}${unitDisp}</div>
+        <div class="mv-reasons">${reasonHtml}</div>
+        <div class="mv-card-actions" onclick="event.stopPropagation()">
+          <button class="mv-btn mv-btn-primary" onclick="sendMatchInquiry('${result.request_id}', ${p.id})">💬 문의하기</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// 재매칭
+async function reExecuteMatching(){
+  if(!_currentMatchRequest)return;
+  const el=document.getElementById('mv-results');
+  el.innerHTML='<div class="mv-loading">재매칭 중...</div>';
+  const results=await executeMatching(_currentMatchRequest.id);
+  _currentMatchResults=results;
+  updateMatchTabCounts(results);
+  renderMatchResults(_currentMatchTier);
+}
+
+// 문의하기 (임시 — 채팅 연동 전, 미리보기 confirm)
+async function sendMatchInquiry(requestId,productId){
+  if(!curUser){alert('로그인이 필요합니다.');return;}
+  const hit=(_currentMatchResults||[]).find(r=>r.product_id===productId);
+  const product=hit&&hit._product;
+  if(!product){alert('상품 정보를 찾을 수 없습니다.');return;}
+  // 페이지네이션 대응: products 배열에 없으면 merge (openChatRoom이 products.find 사용)
+  if(!products.some(p=>String(p.id)===String(product.id))){
+    products.push(product);
+  }
+  // 본인 상품 미리 차단 (openChatRoom 내부에도 있지만 UX 친화적)
+  const myId=curUser.id||curUser.email||'';
+  if(product.seller_id&&String(product.seller_id)===String(myId)){
+    alert('본인 상품에는 문의할 수 없습니다.');return;
+  }
+  const message=generateInquiryMessage(_currentMatchRequest,product);
+  const confirmed=confirm('아래 메시지를 판매자에게 보냅니다:\n\n'+message+'\n\n전송하시겠습니까?');
+  if(!confirmed)return;
+  // 버튼 로딩
+  const btn=document.querySelector(`[onclick*="sendMatchInquiry"][onclick*="${productId}"]`);
+  const originalHTML=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='전송 중...';}
+  try{
+    // 채팅방 열기 (lazy 생성, curChatRoomId 세팅)
+    await openChatRoom(Number(productId),false);
+    // showView 전환 후 DOM 준비 대기
+    await new Promise(r=>setTimeout(r,200));
+    const input=document.getElementById('cr-input');
+    if(!input){alert('채팅창을 열지 못했습니다. 다시 시도해주세요.');return;}
+    input.value=message;
+    // sendChatMsg: lazy 방 생성 + 메시지 insert + 상품 chats++ + 상대 unread RPC 한 번에
+    await sendChatMsg();
+  }catch(err){
+    console.error('[매칭 문의] 오류:',err);
+    alert('메시지 전송 중 오류가 발생했습니다.');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=originalHTML;}
+  }
+}
+
+// === 역매칭 조건 입력 화면 ===
+// 칩 토글 / 단위 버튼 이벤트 바인딩 (최초 1회)
+function initMatchInputForm(){
+  document.querySelectorAll('#mi-materials .mi-chip').forEach(chip=>{
+    chip.onclick=()=>chip.classList.toggle('active');
+  });
+  document.querySelectorAll('.mi-unit-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.mi-unit-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
+}
+
+// 조건 입력 화면 열기 (초기화 + 뷰 전환)
+function openMatchInput(){
+  document.querySelectorAll('#mi-materials .mi-chip').forEach(c=>c.classList.remove('active'));
+  const wMin=document.getElementById('mi-weight-min');if(wMin)wMin.value='';
+  const wMax=document.getElementById('mi-weight-max');if(wMax)wMax.value='';
+  const pMax=document.getElementById('mi-price-max');if(pMax)pMax.value='';
+  const qMin=document.getElementById('mi-quantity-min');if(qMin)qMin.value='';
+  document.querySelectorAll('.mi-unit-btn').forEach(b=>b.classList.remove('active'));
+  const defUnit=document.querySelector('.mi-unit-btn[data-unit="yard"]');
+  if(defUnit)defUnit.classList.add('active');
+  // 이전 상품 기반 입력 뱃지 제거 (재진입 시 잔존 방지)
+  const oldBadge=document.querySelector('.mi-source-badge');
+  if(oldBadge)oldBadge.remove();
+  showView('matchInput');
+  if(!window._miInit){initMatchInputForm();window._miInit=true;}
+}
+
+// 매칭 요청 제출 → matching_requests INSERT → openMatchResult
+async function submitMatchRequest(){
+  if(!curUser||!curUser.id){alert('로그인이 필요합니다.');return;}
+  const materials=Array.from(document.querySelectorAll('#mi-materials .mi-chip.active')).map(c=>c.dataset.value);
+  const weight_min=parseInt(document.getElementById('mi-weight-min').value)||null;
+  const weight_max=parseInt(document.getElementById('mi-weight-max').value)||null;
+  const price_max=parseInt(document.getElementById('mi-price-max').value)||null;
+  const quantity_min=parseInt(document.getElementById('mi-quantity-min').value)||null;
+  const quantity_unit=document.querySelector('.mi-unit-btn.active')?.dataset.unit||'yard';
+  if(materials.length===0&&!weight_min&&!price_max&&!quantity_min){
+    alert('하나 이상의 조건을 입력해주세요.');return;
+  }
+  const btn=document.querySelector('.mi-btn-submit');
+  const originalHTML=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='<span>⏳</span><span>매칭 중...</span>';
+  try{
+    const{data,error}=await _sb.from('matching_requests').insert({
+      user_id:curUser.id,
+      materials:materials.length>0?materials:null,
+      weight_min,weight_max,price_max,quantity_min,quantity_unit,
+      status:'active'
+    }).select().single();
+    if(error){
+      console.error('[매칭 요청 저장 실패]',error);
+      alert('매칭 요청 저장 실패: '+(error.message||'Unknown'));
+      return;
+    }
+    await openMatchResult(data.id);
+  }catch(err){
+    console.error('[매칭 요청] 오류:',err);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=originalHTML;
+  }
+}
+
+// 홈 CTA 박스 진입점 (최신 요청 확인은 추후 확장 여지)
+function openMyLatestMatching(){
+  openMatchInput();
+}
+
+// 상품 상세 → 유사 원단 매칭 (현재 상품 스펙 기준 ± 여유 자동 입력)
+function openMatchFromProduct(productId){
+  const product=window._currentDetailProduct
+    ||(Array.isArray(products)?products.find(p=>String(p.id)===String(productId)):null);
+  if(!product){alert('상품 정보를 불러올 수 없습니다.');return;}
+  openMatchInput();
+  // showView 이후 DOM 접근을 위해 짧은 딜레이
+  setTimeout(()=>{
+    // 1) 소재 자동 선택
+    const normalizedMaterial=_normalizeMaterial(product.material);
+    if(normalizedMaterial&&normalizedMaterial!=='기타'){
+      const chip=document.querySelector(`.mi-chip[data-value="${normalizedMaterial}"]`);
+      if(chip)chip.classList.add('active');
+    }
+    // 2) 중량 ±15%
+    const w=Number(product.weight);
+    if(w>0){
+      document.getElementById('mi-weight-min').value=Math.floor(w*0.85);
+      document.getElementById('mi-weight-max').value=Math.ceil(w*1.15);
+    }
+    // 3) 예산: 참조가 대비 +20% 여유
+    const priceRef=Number(product.bulk_price||product.price||0);
+    if(priceRef>0){
+      document.getElementById('mi-price-max').value=Math.ceil(priceRef*1.20);
+    }
+    // 4) 수량: 현재 재고의 10% 또는 최소 50
+    const qty=Number(product.qty)||0;
+    if(qty>0){
+      document.getElementById('mi-quantity-min').value=Math.max(50,Math.floor(qty*0.1));
+    }
+    // 5) 단위 일치
+    if(product.unit){
+      const targetUnit=['yard','m','kg'].includes(product.unit)?product.unit:'yard';
+      document.querySelectorAll('.mi-unit-btn').forEach(b=>b.classList.remove('active'));
+      const unitBtn=document.querySelector(`.mi-unit-btn[data-unit="${targetUnit}"]`);
+      if(unitBtn)unitBtn.classList.add('active');
+    }
+    // 6) 상단에 출처 안내 뱃지
+    const hero=document.querySelector('.mi-hero');
+    if(hero&&!document.querySelector('.mi-source-badge')){
+      const badge=document.createElement('div');
+      badge.className='mi-source-badge';
+      badge.innerHTML=`📦 <b>${_escHtml(product.title||'')}</b> 기준으로 자동 입력됨`;
+      hero.appendChild(badge);
+    }
+  },100);
+}
+
+// 콘솔 테스트용
+window._testMatching={
+  normalize:_normalizeMaterial,
+  calculate:calculateMatchScore,
+  tier:getMatchTier,
+  execute:executeMatching,
+  inquiry:generateInquiryMessage,
+  open:openMatchResult,
+  input:openMatchInput,
+  submit:submitMatchRequest,
+  fromProduct:openMatchFromProduct
+};
+
 // 관리자 비밀 URL 체크 (페이지 로드 시)
 const ADMIN_SECRET_CODE='bium2024admin';
 const ADMIN_PASSWORD='bium@admin!2024';
