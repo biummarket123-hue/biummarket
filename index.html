@@ -1505,6 +1505,16 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
   </header>
   <div class="f-scroll">
 
+    <!-- 작성 중이던 내용 복원 안내 배너 (draft 복원 시에만 표시) -->
+    <div id="draft-restored-banner" style="display:none;margin:12px 14px 0;padding:12px 14px;background:linear-gradient(135deg,#eef2ff,#fdf2f8);border:1px solid #d8c9ff;border-radius:12px;align-items:center;gap:10px">
+      <div style="font-size:20px;flex-shrink:0">📝</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a">작성 중이던 내용을 불러왔어요</div>
+        <div style="font-size:11px;color:#6666aa;margin-top:2px">이어서 작성하거나 새로 시작할 수 있어요</div>
+      </div>
+      <button type="button" onclick="_startFormFresh()" style="flex-shrink:0;padding:7px 12px;background:#fff;color:#6c63ff;border:1.5px solid #c9bfff;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">새로 작성</button>
+    </div>
+
     <!-- 원단 사진 (최대 10장) -->
     <div class="form-sec-hd"><span class="form-sec-label">원단 사진</span></div>
     <input type="file" id="file-input" accept="image/*" multiple style="display:none"/>
@@ -5701,7 +5711,7 @@ function _guestGuard(){
 
 /* ==================== LOCAL STORAGE ==================== */
 // 계정별로 분리해야 하는 키 목록
-const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser','companyPhotos','alertKeywords'];
+const USER_SCOPED_KEYS=['interestCats','interestCatsSet','likedMap','wishlist','priceOffers','reservationList','sellerReviews','myFollows','sellerFollowers','bizNews','cart','recentSearches','chatRooms','appNotifications','notifHistory','dangolMsgHistory','dangolSettings','soundSettings','lastUserId','curUser','companyPhotos','alertKeywords','productDraft'];
 function _lsUserKey(k){
   // 계정별 분리가 필요한 키는 userId prefix 추가
   if(!USER_SCOPED_KEYS.includes(k))return 'bium_'+k;
@@ -5710,6 +5720,7 @@ function _lsUserKey(k){
 }
 function lsGet(k,def){try{const v=localStorage.getItem(_lsUserKey(k));return v?JSON.parse(v):def}catch{return def}}
 function lsSet(k,v){try{localStorage.setItem(_lsUserKey(k),JSON.stringify(v))}catch{}}
+function lsDel(k){try{localStorage.removeItem(_lsUserKey(k))}catch{}}
 const _CACHE_TTL=5*60*1000;
 function lsGetTTL(k){try{const raw=localStorage.getItem('bium_ttl_'+k);if(!raw)return null;const o=JSON.parse(raw);if(Date.now()-o.__t>_CACHE_TTL)return null;return o.__v}catch{return null}}
 function lsSetTTL(k,v){try{localStorage.setItem('bium_ttl_'+k,JSON.stringify({__v:v,__t:Date.now()}))}catch{}}
@@ -11580,6 +11591,7 @@ function selectCat1(id){
   document.getElementById('f-type').value=id;
   document.querySelectorAll('#cat1-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',btn.dataset.id===id));
   renderCat2Chips();
+  if(typeof _saveFormDraft==='function')_saveFormDraft();
 }
 function renderCat2Chips(){
   const wrap=document.getElementById('cat2-wrap');
@@ -11598,6 +11610,7 @@ function selectCat2(idx){
   formCat3='';
   document.querySelectorAll('#cat2-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.idx)===idx));
   renderCat3Chips(idx);
+  if(typeof _saveFormDraft==='function')_saveFormDraft();
 }
 function renderCat3Chips(idx){
   const wrap=document.getElementById('cat3-wrap');
@@ -11614,6 +11627,7 @@ function renderCat3Chips(idx){
 function selectCat3(idx,val){
   formCat3=val;
   document.querySelectorAll('#cat3-chips .cat-chip').forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.idx)===idx));
+  if(typeof _saveFormDraft==='function')_saveFormDraft();
 }
 
 // 샘플 토글
@@ -11622,6 +11636,7 @@ function setSample(val){
   formSample=val;
   document.getElementById('sample-yes').classList.toggle('active',val);
   document.getElementById('sample-no').classList.toggle('active',!val);
+  if(typeof _saveFormDraft==='function')_saveFormDraft();
 }
 
 // AI 자동입력 버튼 핸들러
@@ -11679,6 +11694,144 @@ async function runFormAIAnalysis(dataUrl){
 }
 
 // 폼 초기화 시 칩 렌더링
+/* ==================== 상품 등록 임시저장(작성 중 내용 유지) ====================
+   사용자가 입력 도중 다른 화면(예: 판매현황)으로 이동했다 돌아와도
+   입력 내용이 유지되도록 localStorage에 draft를 저장/복원한다.
+   - 이미지는 용량이 커서 제외 (사진만 다시 첨부 필요)
+   - 편집 모드(formEditId)일 때는 저장하지 않음
+*/
+let _formDraftSaveTimer=null;
+function _saveFormDraft(){
+  if(formEditId)return; // 편집 모드면 저장하지 않음
+  clearTimeout(_formDraftSaveTimer);
+  _formDraftSaveTimer=setTimeout(()=>{
+    try{
+      const g=id=>document.getElementById(id);
+      const draft={
+        title:g('f-title')?.value||'',
+        material:g('f-material')?.value||'',
+        weight:g('f-weight')?.value||'',
+        weightUnit:g('f-weight-unit')?.value||'g/yd',
+        width:g('f-width')?.value||'',
+        widthUnit:g('f-width-unit')?.value||'cm',
+        desc:g('f-desc')?.value||'',
+        unit:g('f-unit')?.value||'yard',
+        qty:g('f-qty')?.value||'',
+        moq:g('f-moq')?.value||'',
+        listPrice:g('f-list-price')?.value||'',
+        price:g('f-price')?.value||'',
+        bulkMoq:g('f-bulk-moq')?.value||'',
+        bulkPrice:g('f-bulk-price')?.value||'',
+        urgent:g('urgentToggle')?.checked||false,
+        isFree:g('freeToggle')?.checked||false,
+        sample:typeof formSample==='boolean'?formSample:true,
+        cat1:formCat1||'',
+        cat2:formCat2||'',
+        cat3:formCat3||'',
+        savedAt:Date.now()
+      };
+      // 실질적 입력이 하나도 없으면 저장하지 않고 기존 draft도 제거
+      const hasContent=draft.title||draft.material||draft.desc||draft.qty||draft.price||draft.cat1||draft.weight||draft.width;
+      if(!hasContent){lsDel('productDraft');return;}
+      lsSet('productDraft',draft);
+    }catch(e){console.warn('[saveFormDraft]',e);}
+  },300);
+}
+function _restoreFormDraft(){
+  if(formEditId)return false;
+  const draft=lsGet('productDraft',null);
+  if(!draft)return false;
+  try{
+    const g=id=>document.getElementById(id);
+    const setV=(id,v)=>{const el=g(id);if(el&&v!==undefined&&v!==null&&v!=='')el.value=v;};
+    setV('f-title',draft.title);
+    setV('f-material',draft.material);
+    setV('f-weight',draft.weight);
+    setV('f-weight-unit',draft.weightUnit);
+    setV('f-width',draft.width);
+    setV('f-width-unit',draft.widthUnit);
+    setV('f-desc',draft.desc);
+    setV('f-unit',draft.unit);
+    setV('f-qty',draft.qty);
+    setV('f-moq',draft.moq);
+    setV('f-list-price',draft.listPrice);
+    setV('f-price',draft.price);
+    setV('f-bulk-moq',draft.bulkMoq);
+    setV('f-bulk-price',draft.bulkPrice);
+    // 급처 토글 복원
+    if(draft.urgent){
+      urgent=true;
+      const ut=g('urgentToggle');if(ut)ut.checked=true;
+      const us=g('urgentSlider');if(us)us.style.background='#ff6b35';
+      const uth=g('urgentThumb');if(uth)uth.style.transform='translateX(24px)';
+    }
+    // 무료나눔 토글 복원
+    if(draft.isFree){
+      const ft=g('freeToggle');if(ft)ft.checked=true;
+      toggleFreeGiveaway(true);
+    }
+    if(typeof draft.sample==='boolean')setSample(draft.sample);
+    // 카테고리 복원
+    if(draft.cat1){
+      selectCat1(draft.cat1);
+      if(draft.cat2){
+        const catData=CATEGORY_DATA.find(c=>c.id===draft.cat1);
+        if(catData){
+          const subIdx=catData.sub.findIndex(s=>s.name===draft.cat2);
+          if(subIdx>=0){
+            selectCat2(subIdx);
+            if(draft.cat3){
+              const itemIdx=catData.sub[subIdx].items.findIndex(it=>it===draft.cat3);
+              if(itemIdx>=0)selectCat3(itemIdx,draft.cat3);
+            }
+          }
+        }
+      }
+    }
+    // 할인 배지 재계산
+    if(typeof calcFormDiscount==='function')calcFormDiscount();
+    if(typeof calcBulkDiscount==='function')calcBulkDiscount();
+    return true;
+  }catch(e){console.warn('[restoreFormDraft]',e);return false;}
+}
+function _clearFormDraft(){lsDel('productDraft');}
+
+// 복원 안내 배너 표시/숨김
+function _showDraftBanner(show){
+  const el=document.getElementById('draft-restored-banner');
+  if(!el)return;
+  el.style.display=show?'flex':'none';
+}
+// "새로 작성" 버튼 - draft 삭제 후 폼 초기화
+async function _startFormFresh(){
+  const ok=await biumConfirm({
+    icon:'🧹',
+    title:'처음부터 새로 작성할까요?',
+    desc:'지금 불러온 내용은 삭제돼요.',
+    okText:'새로 작성',
+    cancelText:'계속 이어서'
+  });
+  if(!ok)return;
+  _clearFormDraft();
+  window._skipFormInit=true; // 초기화 후 다시 복원되지 않도록
+  initFormView();
+  _showDraftBanner(false);
+  window._skipFormInit=false;
+}
+
+// 상품등록 폼 입력 이벤트 위임 (한 번만 바인딩)
+function _bindFormDraftListeners(){
+  const wrap=document.getElementById('view-form');
+  if(!wrap||wrap._draftBound)return;
+  wrap._draftBound=true;
+  wrap.addEventListener('input',e=>{
+    if(e.target&&(e.target.matches('input,textarea,select')))_saveFormDraft();
+  });
+  wrap.addEventListener('change',e=>{
+    if(e.target&&(e.target.matches('input,select')))_saveFormDraft();
+  });
+}
+
 function initFormView(){
   uploadedImgs=[];renderFormImgs();
   formEditId=null;
@@ -11709,6 +11862,17 @@ function initFormView(){
   if(formTitle)formTitle.textContent='원단 판매 등록';
   const submitBtn=document.getElementById('form-submit-text');
   if(submitBtn)submitBtn.textContent='📦 상품 등록하기';
+  // 입력 리스너 바인딩(최초 1회) + 임시저장된 내용이 있으면 복원
+  // (편집 모드에서 초기화 목적으로 호출된 경우 _skipFormInit=true → 복원 스킵)
+  _bindFormDraftListeners();
+  _showDraftBanner(false);
+  if(!window._skipFormInit){
+    const restored=_restoreFormDraft();
+    if(restored){
+      showToast('📝 작성 중이던 내용을 불러왔어요');
+      _showDraftBanner(true);
+    }
+  }
 }
 
 function calcTotal(){}
@@ -11831,7 +11995,7 @@ async function submitForm(){
       // 로컬 전용 상품 표시
       newP._localOnly=true;
       products.unshift(newP);saveProducts();
-      resetForm();showView('list');showToast(t('registered'));playRegisterSound();
+      _clearFormDraft();resetForm();showView('list');showToast(t('registered'));playRegisterSound();
       // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       {const _ak=lsGet('alertKeywords',[]);if(_ak.length){const _pt=(payload.title+' '+(payload.tags||[]).join(' ')+' '+(payload.type||'')).toLowerCase();_ak.forEach(kw=>{if(_pt.includes(kw.toLowerCase()))addNotif('🔔','rgba(245,197,24,.15)','키워드 알림','"'+kw+'" 관련 새 상품 등록: '+payload.title);});}}
     }
@@ -11915,7 +12079,7 @@ async function submitForm(){
           description: payload.description||''
         }).then(()=>{}).catch(e=>console.warn('fabric_specs 저장 오류:',e));
       }
-      resetForm();showView('list');showToast(t('registered'));playRegisterSound();
+      _clearFormDraft();resetForm();showView('list');showToast(t('registered'));playRegisterSound();
       // 신규 상품 등록 알림 제거됨 (단골 알림은 별도 유지)
       // 키워드 알림 - Supabase에서 매칭되는 키워드 조회 후 알림 발송
       if(_sb){
@@ -13529,6 +13693,7 @@ function selectFormUnit(unit,el){
   document.querySelectorAll('#unit-chips .fs-chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   updateUnitSuffix();
+  if(typeof _saveFormDraft==='function')_saveFormDraft();
 }
 function calcFormDiscount(){
   const listPrice=parseFloat(document.getElementById('f-list-price')?.value)||0;
