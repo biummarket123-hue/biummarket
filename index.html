@@ -589,23 +589,40 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 #list-sentinel{height:60px}
 
 /* HOME REDESIGN */
-.home-hdr{position:sticky;top:0;z-index:100;background:#f8f8fa;border-bottom:1px solid #e0e0ea;padding:0 12px;height:56px;display:flex;align-items:center;gap:8px}
+.home-hdr{position:sticky;top:0;z-index:100;background:#f8f8fa;border-bottom:1px solid #e0e0ea;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.home-hdr-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.home-hdr-loc{display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:12px;color:#64748B;font-weight:600;white-space:nowrap;padding:4px 6px;border-radius:8px;transition:background .15s}
+.home-hdr-loc:hover{background:#EEF2F7}
+.home-hdr-loc .loc-pin{font-size:13px}
 .home-search-bar{flex:1;display:flex;align-items:center;gap:8px;background:#f5f5f5;border:1.5px solid #d8d8e8;border-radius:22px;padding:6px 6px 6px 14px;cursor:pointer;transition:background .15s}
 .home-search-bar:hover{background:#e0e0ea}
+/* 역방향 매칭 진입 CTA */
+.home-match-cta{margin:10px 16px 10px;background:#ffffff;border:2px solid #1E293B;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 4px 16px rgba(30,41,59,0.08);transition:transform .15s,box-shadow .15s}
+.home-match-cta:active{transform:scale(.98)}
+.match-cta-icon{width:38px;height:38px;background:#1E293B;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#ffffff;flex-shrink:0}
+.match-cta-text{flex:1;min-width:0}
+.match-cta-title{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:2px;line-height:1.3}
+.match-cta-sub{font-size:11px;color:#94A3B8;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-cta-arrow{font-size:18px;color:#CBD5E1;font-weight:300;flex-shrink:0}
 .home-scroll{flex:1;overflow-y:auto;padding-bottom:72px}
-.notice-banner{margin:12px 14px 0;background:#fffbeb;border:1px solid #f0e68c;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:var(--fs-base);font-weight:600;color:#92400e;overflow:hidden;white-space:nowrap}
-.notice-banner .nb-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
-.notice-banner:hover{border-color:#d4a000}
-.notice-banner .nb-arrow{margin-left:auto;color:#f59e0b;font-size:var(--fs-md)}
 .home-cats{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:visible;padding:12px 14px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .home-cats::-webkit-scrollbar{display:none}
 .home-cat{flex-shrink:0;padding:7px 15px;border-radius:20px;font-size:var(--fs-sm);font-weight:600;background:#eeeeee;color:#666677;border:1.5px solid #e0e0ea;cursor:pointer;transition:all .15s;white-space:nowrap}
 .home-cat.on{background:#1a1a1a;color:#ffffff;border-color:#1a1a1a}
-.premium-banner{margin:14px 14px 0;background:linear-gradient(135deg,#1a2340,#0f1a30,#162040);border:1px solid rgba(180,150,80,.4);border-radius:18px;padding:28px 20px;min-height:180px;box-sizing:border-box;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
-.premium-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(180,150,80,.15)}
+/* 홈 카테고리 칩 (심플 알약 버튼) — .cat-chip(상품 등록 폼용)과 충돌 방지를 위해 네임스페이스 분리 */
+.home-cat-chip{flex-shrink:0;padding:9px 16px;border-radius:20px;background:#F5F7FA;color:#64748B;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border:none;transition:all .15s}
+.home-cat-chip:hover{background:#E2E8F0}
+.home-cat-chip.active{background:#1E293B;color:#ffffff}
+.premium-banner{margin:0 16px 20px;background:linear-gradient(135deg,#1E293B 0%,#0F172A 100%);border-radius:16px;padding:20px 18px;min-height:180px;box-sizing:border-box;position:relative;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:center}
+/* 글씨 크기 커질수록 배너도 내부 여유 확장 */
+html.font-s4 .premium-banner{padding:24px 20px;min-height:200px}
+html.font-s5 .premium-banner{padding:28px 22px;min-height:220px}
+.premium-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(2,195,154,0.18),transparent 70%);pointer-events:none}
 .premium-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#b49650,#e8c97e);color:#0a0a0f;font-size:var(--fs-xs);font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;margin-bottom:8px}
 .premium-title{font-size:var(--fs-3xl);font-weight:800;color:#ffffff;margin-bottom:6px;position:relative;z-index:1}
 .premium-sub{font-size:var(--fs-md);color:rgba(255,255,255,.65);position:relative;z-index:1}
+@keyframes biumLivePulse{0%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}100%{opacity:1;transform:scale(1)}}
+.bium-live-dot{width:6px;height:6px;border-radius:50%;background:#02C39A;box-shadow:0 0 6px rgba(2,195,154,.6);animation:biumLivePulse 1.4s ease-in-out infinite}
 .ai-section{margin:16px 14px 0;background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:none;border-radius:20px;padding:20px 16px;position:relative;overflow:hidden}
 .ai-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .ai-section-title{font-size:var(--fs-md);font-weight:800;color:#1a1a1a}
@@ -629,12 +646,17 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .h-product-img{width:var(--card-img);height:var(--card-img);border-radius:12px;overflow:hidden;flex-shrink:0;background:#eeeeee;display:flex;align-items:center;justify-content:center;position:relative}
 .h-product-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .h-product-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;min-height:var(--card-img)}
-.h-badge-urgent{position:absolute;top:4px;left:4px;z-index:2;background:#e53935;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center}
+/* 상품 카드 공통 배지 (이미지 좌상단 절대위치). 단일 배지 정책 — 무료나눔 > 급처 > NEW > HOT */
+.home-card-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;z-index:3;letter-spacing:0.2px;line-height:1.2}
+.home-card-badge.free{background:rgba(0,179,134,0.85)}
+.home-card-badge.hot{background:linear-gradient(135deg,#EF4444,#DC2626)}
+.home-card-badge.soldout{background:rgba(0,0,0,0.6)}
+.home-card-badge.hide{left:auto;right:10px}
 .h-product-name{font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;margin-bottom:2px;line-height:1.4}
 .h-meta{font-size:var(--fs-base);color:#888;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .h-fabric-badge{font-size:var(--fs-sm);padding:3px 8px;border-radius:10px;background:#eeeeee;color:#888899;font-weight:500}
-.h-weight-badge{font-size:var(--fs-sm);padding:3px 8px;border-radius:10px;background:#f0f0f0;color:#555555;font-weight:500}
+.h-weight-badge{font-size:var(--fs-sm);padding:3px 8px;border-radius:10px;background:rgba(148,163,184,0.1);color:#64748B;font-weight:500}
 .h-price{font-size:var(--fs-2xl);font-weight:800;color:#e53935;margin-bottom:5px}
 .h-price .h-pu{font-size:var(--fs-sm);font-weight:400;color:#666677;margin-left:2px}
 .h-bottom{display:flex;justify-content:space-between;align-items:center;gap:4px}
@@ -1239,73 +1261,62 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
 <!-- ========== LIST ========== -->
 <div id="view-list" class="view">
   <header class="home-hdr">
-    <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;gap:1px"><span style="font-size:16px;font-weight:900;letter-spacing:-0.3px"><span style="color:#1a1a1a">비움</span><span style="color:#fbbf24">마켓</span></span><span style="font-size:8px;font-weight:600;color:#aaaaaa;letter-spacing:0.8px">BIUM MARKET</span></div>
-    <div class="home-search-bar" onclick="openSearchOverlay()">
-      <!-- AI 이미지 검색 (추후 재오픈) -->
-      <span style="width:1px;height:16px;background:#d8d8e8;flex-shrink:0"></span>
-      <span style="flex:1;font-size:13px;color:#888899" data-i18n="home_search_ph">원단명, 색상, 종류 검색...</span>
-      <button onclick="event.stopPropagation();openSearchOverlay()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0" title="검색">🔍</button>
+    <div class="home-hdr-logo" style="flex:none;font-size:19px;font-weight:800;letter-spacing:-0.5px;color:#1E293B;line-height:1">비움<b style="color:#028090;font-weight:800">마켓</b></div>
+    <div class="home-hdr-right">
+      <span class="home-hdr-loc" onclick="openSettLocModal()" title="위치 설정">
+        <span class="loc-pin">📍</span>
+        <span id="home-loc-text">위치 설정</span>
+      </span>
+      <span id="guest-badge" onclick="openGuestLoginModal()" style="display:none;background:#e8e8ee;color:#666;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap">로그인</span>
+      <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #f8f8fa"></span></button>
     </div>
-    <span id="guest-badge" onclick="openGuestLoginModal()" style="display:none;background:#e8e8ee;color:#666;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap">로그인</span>
-    <button class="hdr-btn" id="btn-alert" title="알림" style="position:relative">🔔<span id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1.5px solid #f8f8fa"></span></button>
   </header>
-  <!-- 위치 바 -->
-  <div id="home-loc-bar" onclick="openSettLocModal()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border-bottom:1px solid #f0f0f5;cursor:pointer">
-    <span style="font-size:14px">📍</span>
-    <span id="home-loc-text" style="font-size:13px;font-weight:600;color:#1a1a1a">위치 설정</span>
-    <span style="font-size:11px;color:#aaa">▾</span>
-    <span style="flex:1"></span>
-    <span id="home-loc-nearby" style="font-size:11px;color:#6c63ff;font-weight:600"></span>
+  <!-- 역방향 매칭 CTA (조건으로 원단 찾기) -->
+  <div id="home-match-cta" class="home-match-cta" onclick="alert('역방향 매칭 기능 준비 중입니다. 오후에 연결 예정!')">
+    <div class="match-cta-icon">🔍</div>
+    <div class="match-cta-text">
+      <div class="match-cta-title" data-i18n="match_cta_title">조건으로 원단 찾기</div>
+      <div class="match-cta-sub" data-i18n="match_cta_sub">소재·중량·수량 조건만 알려주세요</div>
+    </div>
+    <div class="match-cta-arrow">›</div>
   </div>
-  <!-- 레거시 호환용 숨김 요소 -->
+  <!-- 레거시 호환용 숨김 요소 (#search-input: 12161 addEventListener 의존, #filter-chips: 7679 참조) -->
   <input type="text" id="search-input" placeholder="원단 종류, 색상, 업체명 검색" data-i18n-ph="ph_search_main" autocomplete="off" style="display:none"/>
   <div id="filter-chips" style="display:none"></div>
   <div class="home-scroll">
     <!-- 1. 대형 슬라이드 배너 -->
-    <div id="home-premium-banner" class="premium-banner">
-      <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
-    </div>
+    <div id="home-premium-banner" class="premium-banner"></div>
 
     <!-- 2. 카테고리 아이콘 바 -->
-    <div style="background:#fff;padding:14px 0 10px">
-      <div id="home-cats" style="display:flex;gap:10px;padding:0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
-    </div>
-
-    <!-- 3. 공지 한줄 배너 -->
-    <div class="notice-banner" onclick="showView('notices')">
-      <span>📢</span>
-      <span class="nb-text" id="notice-banner-text" data-i18n="notice_text">[공지] 비움마켓 베타 오픈 안내</span>
-      <span class="nb-arrow">›</span>
-    </div>
-
+    <div id="home-cats" style="display:flex;gap:8px;padding:4px 16px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
 
     <!-- 4. 급처 특가 원단 -->
-    <div id="home-urgent-section" style="display:none;background:#fff;padding:16px 0 12px;margin-top:8px">
+    <div id="home-urgent-section" style="display:none;background:#fff;padding:18px 0 22px;margin-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
-        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">⚡ 급처 특가 원단</div><div style="font-size:var(--fs-sm);color:#888;margin-top:2px">빠른 거래가 필요한 특가 상품</div></div>
-        <span onclick="openHomeMoreView('⚡ 급처 특가 원단','빠른 거래가 필요한 특가 상품',products.filter(p=>p.is_urgent&&!p.is_hidden&&!p.deleted_at))" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
+        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1E293B">⚡ 급처 특가 원단</div><div style="font-size:var(--fs-sm);color:#94A3B8;margin-top:2px">빠른 거래가 필요한 특가 상품</div></div>
+        <span onclick="openUrgentMore()" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
       </div>
-      <div id="home-urgent-scroll" style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+      <div id="home-urgent-scroll" style="display:flex;gap:12px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     </div>
 
     <div id="home-hotdeal-section" style="display:none"></div>
 
     <!-- 5. 신규 입고 원단 -->
-    <div id="home-new-section" style="display:none;background:#fff;padding:16px 0 12px;margin-top:8px">
+    <div id="home-new-section" style="display:none;background:#fff;padding:18px 0 22px;margin-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
-        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🆕 신규 입고 원단</div></div>
+        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1E293B">🆕 신규 입고 원단</div></div>
         <span onclick="openHomeMoreView('🆕 신규 입고 원단','',products.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0&&p.created_at&&(Date.now()-new Date(p.created_at).getTime())<240*60*60*1000))" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
       </div>
-      <div id="home-new-scroll" style="display:flex;gap:10px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+      <div id="home-new-scroll" style="display:flex;gap:12px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     </div>
 
     <!-- 6. 인피드 광고 배너 -->
     <div id="home-infeed-ad" style="display:none;margin-top:8px"></div>
 
     <!-- 7. 인기 원단 랭킹 -->
-    <div id="home-popular-section" style="display:none;background:#fff;padding:16px 0 12px;margin-top:8px">
+    <div id="home-popular-section" style="display:none;background:#fff;padding:18px 0 22px;margin-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
-        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🔥 인기 원단 랭킹</div><div style="font-size:var(--fs-sm);color:#888;margin-top:2px">찜·채팅이 많은 인기 상품 TOP 5</div></div>
+        <div><div style="font-size:var(--fs-xl);font-weight:800;color:#1E293B">🔥 인기 원단 랭킹</div><div style="font-size:var(--fs-sm);color:#94A3B8;margin-top:2px">찜·채팅이 많은 인기 상품 TOP 5</div></div>
         <span onclick="openPopularRankingView()" style="font-size:var(--fs-sm);color:#6c63ff;font-weight:600;cursor:pointer">더보기 →</span>
       </div>
       <div id="home-popular-list" style="padding:0 16px"></div>
@@ -5665,22 +5676,30 @@ function fmtPrice(n){return n.toLocaleString('ko-KR')+'원'}
 function gridCardHtml(s){
   const _f=n=>n?.toLocaleString('ko-KR')||'0';
   const u=s.unit||'m';
-  const priceStr=s.bulk_price&&s.price?_f(s.bulk_price)+'~'+_f(s.price)+'<span style="font-size:var(--fs-xs);font-weight:400">원/'+u+'</span>':_f(s.price)+'<span style="font-size:var(--fs-xs);font-weight:400">원/'+u+'</span>';
-  const stype=s.seller?.type||s.sellerType||'';
-  const isBizSeller=stype==='business'||stype==='both'||stype==='seller';
+  const uDisp=u==='yard'?'yd':u;
   const isSoldout=(s.qty||0)<=0;
+  const hasBulk=s.bulk_price&&s.bulk_price!==s.price;
+  // 가격: 범위일 때 최솟값+~
+  const priceVal=hasBulk?_f(s.bulk_price):_f(s.price||0);
+  const priceSuffix=hasBulk?'~':'';
+  const priceHtml=s.is_free
+    ?'<span style="color:#00b386;font-weight:800">무료나눔</span>'
+    :`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px">원/${uDisp}</span>`;
+  // 단일 배지: 재고소진 > 무료나눔 > 급처
+  let badgeHtml='';
+  if(isSoldout)badgeHtml='<span class="home-card-badge soldout">재고소진</span>';
+  else if(s.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
+  else if(s.is_urgent)badgeHtml='<span class="home-card-badge">⚡ 급처</span>';
   return `<div onclick="openDetail(${s.id})" style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;overflow:hidden;cursor:pointer">
     <div style="width:100%;aspect-ratio:1;background:${getFColor(s.type,s.color)};position:relative;overflow:hidden">
       ${s.image_url?`<img src="${s.image_url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:''}
-      ${isSoldout?'<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">재고소진</div>':s.is_urgent?'<div style="position:absolute;top:6px;left:6px;background:#ff5722;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</div>':''}
-      ${isBizSeller?'<div style="position:absolute;top:6px;right:6px;background:rgba(21,101,194,.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">🏢 인증업체</div>':''}
-      <span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px">${s.type||''}</span>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 65%,rgba(0,0,0,0.15));pointer-events:none"></div>
+      ${badgeHtml}
     </div>
     <div style="padding:8px">
       <div style="font-size:var(--fs-sm);font-weight:600;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-bottom:3px">${s.title||''}</div>
-      <div style="font-size:var(--fs-sm);color:#e53935;font-weight:700;margin-bottom:3px">${priceStr}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-xs);color:#999">
-        <span>${s.loc?'📍'+s.loc.split(' ').slice(-1)[0]:''}</span>
+      <div style="font-size:var(--fs-sm);margin-bottom:3px">${priceHtml}</div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;font-size:var(--fs-xs);color:#999">
         <span>🤍${s.likes||0} 💬${s.chats||0}</span>
       </div>
     </div>
@@ -6042,7 +6061,9 @@ async function loadProductsFromSupabase(reset){
   if(reset){
     _sbPage=0;_sbHasMore=true;products=[];
     _bannerStatsAll=null; // 배너 통계 캐시 초기화
+    _urgentProdsCache=null; // 급처 캐시 초기화
     _prefetchHotDeals();  // HOT DEAL 을 products 조회와 병렬로 선조회 (한 템포 지연 제거)
+    if(typeof _loadUrgentProds==='function')_loadUrgentProds(); // 급처 전체도 병렬 prefetch
     _showScrollEnd(false);
     if(!_wishLoaded)await _loadWishes(); // 관심목록 캐시 로드
   }
@@ -8104,19 +8125,14 @@ function getProductsByHomeCat(cat){
   return filterByCategory(products,cat);
 }
 
-const _catIconMap={'전체':{icon:'🏠',bg:'#f0f0f5'},'염색지':{icon:'🎨',bg:'#fff0e0'},'나염지':{icon:'🖨️',bg:'#e8f0ff'},'생지':{icon:'🪡',bg:'#e8f8e8'},'수입원단':{icon:'✈️',bg:'#fff0f5'},'홈/인테리어':{icon:'🏠',bg:'#f0f0ff'}};
 function renderHomeCats(){
   const el=document.getElementById('home-cats');
   if(!el)return;
   // 전체 + CATEGORY_DATA 카테고리 (기타 제외)
   const cats=[{key:'전체',label:'전체'},...CATEGORY_DATA.map(c=>({key:c.id,label:c.id}))];
   el.innerHTML=cats.map(c=>{
-    const m=_catIconMap[c.key]||{icon:CATEGORY_DATA.find(x=>x.id===c.key)?.emoji||'🧵',bg:'#f5f5f5'};
     const isOn=homeCurCat===c.key;
-    return `<button onclick="setHomeCat('${c.key}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:10px 8px;border-radius:14px;background:${m.bg};border:2px solid ${isOn?'#c8a84b':'transparent'};cursor:pointer;flex-shrink:0;transition:all .15s">
-      <span style="font-size:22px">${m.icon}</span>
-      <span style="font-size:11px;font-weight:${isOn?'800':'600'};color:${isOn?'#c8a84b':'#555'};white-space:nowrap">${c.label}</span>
-    </button>`;
+    return `<button class="home-cat-chip${isOn?' active':''}" onclick="setHomeCat('${c.key}')">${c.label}</button>`;
   }).join('');
 }
 
@@ -8254,35 +8270,33 @@ function renderHomeProduct(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const unitDisp=unit==='yard'?'yd':unit;
   const seller=p.seller||{};
-  const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const priceColor='#e53935';
-  const sellerLoc=p.loc||seller.loc||'';
   const metaParts=[seller.name,p.time||''].filter(Boolean);
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
-  const priceHtml=p.bulk_price&&p.price
-    ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}-${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
-    :p.bulk_price
-    ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
-    :`<span style="color:${priceColor}">${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`;
+  const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
+  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price||p.bulk_price||0);
+  const priceSuffix=hasBulk?'~':'';
+  const priceHtml=`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
+  // 단일 배지: 무료나눔 > 급처
+  let badgeHtml='';
+  if(p.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
+  else if(urgent)badgeHtml='<span class="home-card-badge">⚡ 급처</span>';
   return `<div class="h-product-card" onclick="openDetail(${p.id})">
     <div class="h-product-img" style="background:${bg}">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:'' }
-      ${p.is_free?'<span style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:6px;z-index:2">🎁 무료나눔</span>':urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 65%,rgba(0,0,0,0.15));pointer-events:none"></div>
+      ${badgeHtml}
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}</div>
-      <div class="h-meta">${metaParts.join(' · ')}${sellerLoc?` · <span style="color:#6c63ff">📍${sellerLoc.split(' ').slice(-1)[0]}</span>`:''}</div>
+      <div class="h-meta">${metaParts.join(' · ')}</div>
       <div class="h-badges">
-        <span class="h-fabric-badge">${p.type}</span>
-        ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
+        ${(p.qty||0)>0?`<span class="h-weight-badge">재고 ${(p.qty||0).toLocaleString()}${unitDisp}</span>`:''}
       </div>
       <div class="h-price">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':priceHtml}</div>
       <div class="h-bottom">
-        <div style="display:flex;gap:4px;align-items:center;flex:1;flex-wrap:wrap">
-          ${p.moq?`<span class="h-moq-tag">MOQ ${p.moq}${unit}</span>`:''}
-          ${discPct?`<span class="h-disc-tag">-${discPct}%</span>`:''}
-        </div>
+        <div style="flex:1"></div>
         <span class="h-counts"><span>💬${p.chats||0}</span><span>🤍${p.likes||0}</span></span>
       </div>
     </div>
@@ -8292,38 +8306,37 @@ function renderMyProductCard(p){
   const urgent=p.is_urgent===true;
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const unitDisp=unit==='yard'?'yd':unit;
   const seller=p.seller||{};
-  const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const priceColor=(urgent||discPct)?'#e53935':'#1a1a1a';
-  const sellerLoc2=p.loc||seller.loc||'';
   const metaParts=[seller.name,p.time||''].filter(Boolean);
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
-  const priceHtml=p.bulk_price&&p.price
-    ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}-${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
-    :p.bulk_price
-    ?`<span style="color:${priceColor}">${_fp(p.bulk_price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`
-    :`<span style="color:${priceColor}">${_fp(p.price)}</span><span style="color:#1a1a1a">원</span><span class="h-pu">/${unit}</span>`;
+  const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
+  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price||p.bulk_price||0);
+  const priceSuffix=hasBulk?'~':'';
+  const priceHtml=p.is_free
+    ?'<span style="color:#00b386;font-weight:800">무료나눔</span>'
+    :`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
   const isSoldout=(p.qty||0)<=0;
   const isHidden=p.is_hidden===true;
+  // 단일 배지: 무료나눔 > 급처 (재고소진은 .soldout 오버레이로 별도 표시, 숨김은 우상단 별도)
+  let badgeHtml='';
+  if(!isSoldout){
+    if(p.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
+    else if(urgent)badgeHtml='<span class="home-card-badge">⚡ 급처</span>';
+  }
   return `<div class="h-product-card" onclick="openDetailFromMyProducts(${p.id})" style="${isHidden?'opacity:.5':''}">
     <div class="h-product-img${isSoldout?' soldout':''}" style="background:${bg};position:relative">
       ${p.image_url?`<img src="${p.image_url}" alt="">`:''}
-      ${isSoldout?'':urgent?'<span class="h-badge-urgent">⚡ 급처</span>':''}
-      ${isHidden?'<span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;z-index:4">숨김</span>':''}
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 65%,rgba(0,0,0,0.15));pointer-events:none"></div>
+      ${badgeHtml}
+      ${isHidden?'<span class="home-card-badge hide">숨김</span>':''}
     </div>
     <div class="h-product-body">
       <div class="h-product-name">${p.title||'(제목 없음)'}${isHidden?' <span style="color:#aaa;font-size:11px">(숨김)</span>':''}</div>
-      <div class="h-meta">${metaParts.join(' · ')}${sellerLoc2?` · <span style="color:#6c63ff">📍${sellerLoc2.split(' ').slice(-1)[0]}</span>`:''}</div>
-      <div class="h-badges">
-        <span class="h-fabric-badge">${p.type}</span>
-        ${p.weight?`<span class="h-weight-badge">${p.weight}g/yd</span>`:''}
-      </div>
+      <div class="h-meta">${metaParts.join(' · ')}</div>
       <div class="h-price">${priceHtml}</div>
       <div class="h-bottom">
-        <div style="display:flex;gap:4px;align-items:center;flex:1;flex-wrap:wrap">
-          ${p.moq?`<span class="h-moq-tag">MOQ ${p.moq}${unit}</span>`:''}
-          ${discPct?`<span class="h-disc-tag">-${discPct}%</span>`:''}
-        </div>
+        <div style="flex:1"></div>
         <span class="h-counts"><span>💬${p.chats||0}</span><span>🤍${p.likes||0}</span></span>
       </div>
       <div style="margin-top:6px">
@@ -8529,56 +8542,100 @@ function renderHomeSections(){
 }
 
 // ── 홈 급처 특가 섹션 ──
-function _renderHorizCard(p){
+function _renderHorizCard(p,opts){
+  opts=opts||{};
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const unitDisp=unit==='yard'?'yd':unit;
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
   const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
-  return `<div onclick="openDetail(${p.id})" style="min-width:160px;max-width:160px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #e0e0ea;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;flex-shrink:0">
+  // 단일 배지: 무료나눔 > 급처 > NEW
+  let badgeHtml='';
+  if(p.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
+  else if(p.is_urgent)badgeHtml='<span class="home-card-badge">⚡ 급처</span>';
+  else if(opts.isNew)badgeHtml='<span class="home-card-badge">NEW</span>';
+  // 가격: 범위일 때 최솟값만 + "~"
+  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
+  const priceSuffix=hasBulk?'~':'';
+  const priceHtml=p.is_free
+    ?'<span style="color:#00b386;font-weight:800;font-size:17px">무료나눔</span>'
+    :`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px;font-size:18px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:12px;margin-left:2px">원/${unitDisp}</span>`;
+  return `<div onclick="openDetail(${p.id})" style="min-width:160px;max-width:160px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #eef0f4;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;flex-shrink:0">
     <div style="width:160px;height:160px;background:${bg};position:relative;overflow:hidden">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-      ${p.is_urgent?'<span style="position:absolute;top:6px;left:6px;background:#ff6b35;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">⚡ 급처</span>':''}
-      ${p.is_free?'<span style="position:absolute;top:6px;left:6px;background:#00b386;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 6px;border-radius:4px">🎁 나눔</span>':''}
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 65%,rgba(0,0,0,0.15));pointer-events:none"></div>
+      ${badgeHtml}
     </div>
     <div style="padding:10px;max-width:160px;box-sizing:border-box">
-      <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${p.title}</div>
-      <div style="font-size:var(--fs-base);font-weight:800;margin-top:4px">${p.is_free?'<span style="color:#00b386">무료나눔</span>':'<span style="color:#e53935">'+(hasBulk?_fp(p.bulk_price)+'-'+_fp(p.price):_fp(p.price))+'</span><span style="color:#1a1a1a">원/'+unit+'</span>'}</div>
-      ${p.loc?`<div style="font-size:var(--fs-xs);color:#888;margin-top:3px">📍${p.loc.split(' ').slice(-1)[0]}</div>`:''}
+      <div style="font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;margin-bottom:6px;line-height:1.25">${p.title}</div>
+      <div>${priceHtml}</div>
     </div>
   </div>`;
+}
+// 급처 상품 전용 캐시 — 페이지네이션과 무관하게 전체 급처를 보여주기 위함
+let _urgentProdsCache=null;
+async function _loadUrgentProds(){
+  if(_urgentProdsCache)return _urgentProdsCache;
+  if(!_sb)return null;
+  try{
+    let{data,error}=await _sb.from('products').select('*').eq('is_urgent',true).is('deleted_at',null).order('created_at',{ascending:false}).limit(30);
+    if(error&&error.message&&error.message.includes('deleted_at')){
+      ({data,error}=await _sb.from('products').select('*').eq('is_urgent',true).order('created_at',{ascending:false}).limit(30));
+    }
+    if(data)_urgentProdsCache=(data||[]).map(p=>_mapSbProduct(p));
+  }catch(e){}
+  return _urgentProdsCache;
+}
+// 급처 "더보기" 핸들러 — 페이지네이션 전체 급처를 보여주기 위해 캐시 사용
+async function openUrgentMore(){
+  await _loadUrgentProds();
+  const list=_urgentProdsCache
+    ?_urgentProdsCache.filter(p=>!p.is_hidden&&!p.deleted_at)
+    :products.filter(p=>p.is_urgent&&!p.is_hidden&&!p.deleted_at);
+  openHomeMoreView('⚡ 급처 특가 원단','빠른 거래가 필요한 특가 상품',list);
 }
 function renderHomeUrgentSection(){
   const sec=document.getElementById('home-urgent-section');
   const scroll=document.getElementById('home-urgent-scroll');
   if(!sec||!scroll)return;
-  const urgent=products.filter(p=>p.is_urgent&&!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0).slice(0,10);
+  let urgent;
+  if(_urgentProdsCache){
+    urgent=_urgentProdsCache.filter(p=>!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0);
+  }else{
+    // 캐시 로드 전: 현재 products에서 급처 필터 + 백그라운드로 전체 조회 후 재렌더
+    urgent=products.filter(p=>p.is_urgent&&!p.is_hidden&&!p.deleted_at&&(p.qty||0)>0);
+    _loadUrgentProds().then(list=>{if(list&&list.length)renderHomeUrgentSection();});
+  }
+  urgent=urgent.slice(0,10);
   if(!urgent.length){sec.style.display='none';return;}
   sec.style.display='block';
   scroll.innerHTML=urgent.map(p=>_renderHorizCard(p)).join('');
 }
 
-// ── HOT DEAL 카드 공통 렌더러 ──
+// ── HOT DEAL 카드 공통 렌더러 (주황 테마 + 🔥 HOT 배지 + 할인% 예외 유지) ──
 function _renderHotDealCard(p,isModal){
   const bg=getFColor(p.type,p.color);
   const unit=p.unit||'m';
+  const unitDisp=unit==='yard'?'yd':unit;
   const seller=p.seller||{};
   const sellerName=seller.name||'';
-  const sellerLoc=p.loc||seller.loc||'';
-  const locShort=sellerLoc?sellerLoc.split(' ').slice(-1)[0]:'';
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
-  const priceStr=p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString();
+  const _fp=(n)=>(n||0).toLocaleString('ko-KR');
+  const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
+  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
+  const priceSuffix=hasBulk?'~':'';
   const closeModal=isModal?"document.getElementById('modal-hotdeal-all').classList.remove('open');":'';
   return `<div onclick="${closeModal}openDetail(${p.id})" class="hd-card" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1);display:flex;flex-direction:column">
     <div style="height:110px;background:${bg};position:relative;overflow:hidden;flex-shrink:0">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-      <span style="position:absolute;top:6px;left:6px;background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:3px 7px;border-radius:20px">🔥 HOT</span>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 65%,rgba(0,0,0,0.15));pointer-events:none"></div>
+      <span class="home-card-badge hot">🔥 HOT</span>
     </div>
     <div style="padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
       <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${p.title}</div>
-      <div style="font-size:var(--fs-xs);color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}${locShort?' · <span style="color:#6c63ff">📍'+locShort+'</span>':''}</div>
-      <div style="font-size:var(--fs-sm);font-weight:800;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.is_free?'<span style="color:#00b386">🎁 무료나눔</span>':`<span style="color:#ff6f00">${priceStr}</span><span style="color:#1a1a1a">원</span><span style="font-size:var(--fs-xs);color:#888">/${unit}</span>`}</div>
+      <div style="font-size:var(--fs-xs);color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}</div>
+      <div style="font-size:var(--fs-sm);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`}</div>
       <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;margin-top:auto;overflow:hidden;min-width:0">
-        ${p.moq?`<span style="background:#fff3cd;color:#856404;border-radius:4px;padding:1px 5px;font-size:var(--fs-xs);font-weight:500;white-space:nowrap;flex-shrink:0">MOQ ${p.moq}${unit}</span>`:''}
         ${discPct?`<span style="background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:var(--fs-xs);padding:1px 5px;border-radius:4px;white-space:nowrap;flex-shrink:0">-${discPct}%</span>`:''}
         <span style="font-size:var(--fs-xs);color:#888;margin-left:auto;white-space:nowrap;flex-shrink:0">💬${p.chats||0} 🤍${p.likes||0}</span>
       </div>
@@ -8621,10 +8678,10 @@ async function renderHomeHotDealSection(){
     return `<div style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:220px;gap:8px">${ps.map(makeCard).join('')}</div>`;
   };
   sec.innerHTML=`
-    <div style="background:#fff;padding:16px 0 12px;margin-top:8px">
+    <div style="background:#fff;padding:18px 0 22px;margin-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:var(--fs-xl);font-weight:800;color:#1a1a1a">🔥 HOT DEAL</span>
+          <span style="font-size:var(--fs-xl);font-weight:800;color:#1E293B">🔥 HOT DEAL</span>
           <span style="background:#ff6f00;color:#fff;font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:20px">AD</span>
         </div>
         <button onclick="openHotDealAll()" style="font-size:var(--fs-sm);color:#ff6f00;font-weight:700;background:none;border:none;cursor:pointer">더보기 ›</button>
@@ -8688,11 +8745,7 @@ function renderHomeNewSection(){
   }).slice(0,10);
   if(!recent.length){sec.style.display='none';return;}
   sec.style.display='block';
-  scroll.innerHTML=recent.map(p=>{
-    const card=_renderHorizCard(p);
-    return card.replace('position:relative;overflow:hidden">',
-      `position:relative;overflow:hidden"><span style="position:absolute;top:6px;right:6px;background:#10b981;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;z-index:1">NEW</span>`);
-  }).join('');
+  scroll.innerHTML=recent.map(p=>_renderHorizCard(p,{isNew:true})).join('');
 }
 
 // ── 홈 인기 원단 랭킹 ──
@@ -8705,19 +8758,34 @@ function renderHomePopularSection(){
     .sort((a,b)=>b._score-a._score).slice(0,5);
   if(!ranked.length){sec.style.display='none';return;}
   sec.style.display='block';
-  list.innerHTML=ranked.map((p,i)=>`<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:10px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
-    <span style="font-size:var(--fs-lg);font-weight:900;color:#c8a84b;width:24px;text-align:center;flex-shrink:0">${i+1}</span>
-    <div style="width:72px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
-      ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
-    </div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:var(--fs-base);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-      <div style="font-size:var(--fs-md);font-weight:800;margin-top:2px">${p.is_free?'<span style="color:#00b386">무료나눔</span>':'<span style="color:#e53935">'+(p.bulk_price&&p.bulk_price!==p.price?(p.bulk_price||0).toLocaleString()+'-'+(p.price||0).toLocaleString():(p.price||0).toLocaleString())+'</span><span style="color:#1a1a1a">원/'+(p.unit||'m')+'</span>'}</div>
-    </div>
-    <div style="text-align:right;flex-shrink:0">
-      <span style="font-size:var(--fs-xs);color:#888">🤍${p.likes||0} 💬${p.chats||0}</span>
-    </div>
-  </div>`).join('');
+  const _fp=(n)=>(n||0).toLocaleString('ko-KR');
+  list.innerHTML=ranked.map((p,i)=>{
+    const rank=String(i+1).padStart(2,'0');
+    // 1,2,3위 점점 연한 틸 → 4,5위 회색
+    const rankColors=['#028090','#14B8A6','#5EEAD4','#CBD5E1','#CBD5E1'];
+    const rankColor=rankColors[i]||'#CBD5E1';
+    const unit=p.unit||'m';
+    const unitDisp=unit==='yard'?'yd':unit;
+    const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
+    const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
+    const priceSuffix=hasBulk?'~':'';
+    const priceTxt=p.is_free?'무료나눔':`${priceVal}${priceSuffix}원/${unitDisp}`;
+    const loc=p.loc?p.loc.split(' ').slice(-1)[0]:'';
+    const metaParts=[priceTxt,loc].filter(Boolean).join(' · ');
+    const priceTag=p.is_free
+      ?'<span style="color:#00b386;font-weight:800;font-size:15px">무료나눔</span>'
+      :`<span style="color:#1E293B;font-weight:800;font-size:15px;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
+    return `<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
+      <span style="font-size:24px;font-weight:900;color:${rankColor};width:34px;text-align:center;flex-shrink:0;letter-spacing:-0.5px">${rank}</span>
+      <div style="width:54px;height:54px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
+        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px;line-height:1.25">${p.title}</div>
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${priceTag}${loc?`<span style="color:#94A3B8;font-size:11px;margin-left:6px">· ${loc}</span>`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── 홈 인피드 광고 ──
@@ -8831,7 +8899,7 @@ function renderList(){
   renderHomePopularSection();
   renderHomeInfeedAd();
   renderHomeSections();
-  initNoticeRotation();
+  // initNoticeRotation(); // 공지 배너 제거로 비활성화 (배너 복귀 시 주석 해제)
   renderHomeBanners();
   updateBannerStats();
 }
@@ -8882,7 +8950,7 @@ function renderCard(p, idx){
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
       <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price?_f(p.bulk_price)+'-'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
       <div class="pfoot">
-        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
+        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:''}</span>
         <span class="pcnt"><span>🤍${p.likes}</span><span>💬${p.chats}</span></span>
       </div>
     </div>
@@ -12181,7 +12249,7 @@ function _renderSvCard(p){
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
       <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':`<span style="color:#e53935">${fmtPrice(p.price)}</span><span class="pu" style="color:#666677">/m</span>`}</div>
       <div class="pfoot">
-        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:p.moq?'MOQ: '+p.moq:''}</span>
+        <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:''}</span>
         <span class="pcnt"><span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span></span>
       </div>
     </div>
@@ -13663,7 +13731,8 @@ function updateHomeLocBar(){
     const sigungu=locParts[1]||'';
     const isMetro=['서울','부산','대구','인천','광주','대전','울산','세종'].includes(sido);
     const locKey=isMetro?sido:sigungu;
-    locText.textContent=loc;
+    // 헤더 공간이 좁으므로 시/구 중 마지막 부분만 표시 (예: "양주시")
+    locText.textContent=locKey||loc;
     if(nearby){
       const cnt=products.filter(p=>!p.deleted_at&&((p.loc||'').includes(locKey)||(p.seller?.loc||'').includes(locKey))).length;
       nearby.textContent=cnt?`근처 ${cnt}개 상품`:'';
@@ -15154,24 +15223,30 @@ function renderHomeBanners(){
   adminBanners=lsGet('adminBanners',[]);
   const active=adminBanners.filter(b=>b.active!==false);
   const adBanners=getActiveAds('배너 슬라이드');
-  const DEFAULT={title:'재고원단 직거래 플랫폼',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
+  // _default 플래그로 DEFAULT 슬라이드(기본 상태) 식별 — 통계 박스만 노출
+  const DEFAULT={_default:true,title:'재고원단 직거래 플랫폼',desc:'검증된 셀러의 고품질 원단을 만나보세요'};
   const all=[DEFAULT,...active,...adBanners.map(a=>({title:a.name,desc:'',_ad:true,_adId:a.id,image:a.image||a.imageUrl,linkUrl:a.linkUrl}))];
   const renderSlide=(b,dots)=>{
     if(b._ad&&b.image){
       if(b._adId)trackAdImpression(b._adId);
       return `<div onclick="trackAdClick('${b._adId||''}');${b.linkUrl?`window.open('${b.linkUrl}','_blank')`:''}" style="cursor:${b.linkUrl?'pointer':'default'};position:relative;z-index:1">
-        <img src="${b.image}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
-        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px">${b.title}</div>
-        ${b.linkUrl?'<div style="font-size:10px;color:rgba(255,255,255,.6)">AD · 탭하여 이동</div>':''}
+        <img src="${b.image}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:8px">${b.title}</div>
+        ${b.linkUrl?'<div style="font-size:10px;color:#02C39A;font-weight:600;margin-top:2px;letter-spacing:0.3px">AD · 탭하여 이동</div>':''}
       </div>${dots}`;
     }
-    return `<div style="font-size:11px;font-weight:700;color:#c8a84b;letter-spacing:1px;margin-bottom:6px">★ BIUM MARKET</div>
-    <div style="font-size:22px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:6px">${b.title}</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:14px">${b.desc||b.description||''}</div>
-    <div id="banner-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:16px"></div>
-    ${dots}`;
+    // DEFAULT 슬라이드: 외곽 배너가 통계 박스 역할 — 내부는 통계만
+    if(b._default){
+      return `<div id="banner-stats" style="position:relative;z-index:1"></div>${dots}`;
+    }
+    // 관리자 배너: 타이틀/서브 (새 다크 톤에 맞춘 텍스트 색)
+    return `<div style="position:relative;z-index:1">
+      <div style="font-size:10px;font-weight:700;color:#94A3B8;letter-spacing:1.2px;margin-bottom:8px">★ BIUM MARKET</div>
+      <div style="font-size:22px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:6px">${b.title}</div>
+      <div style="font-size:13px;color:#94A3B8;margin-bottom:14px">${b.desc||b.description||''}</div>
+    </div>${dots}`;
   };
-  const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:10px;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'};transition:.3s"></div>`).join('')}</div>`:'';
+  const makeDots=(idx)=>all.length>1?`<div style="display:flex;gap:5px;margin-top:14px;justify-content:center;position:relative;z-index:1">${all.map((_,i)=>`<div style="width:${i===idx?16:6}px;height:6px;border-radius:3px;background:${i===idx?'#02C39A':'rgba(255,255,255,.25)'};transition:.3s"></div>`).join('')}</div>`:'';
   if(all.length===1){wrap.innerHTML=renderSlide(all[0],'');return;}
   _bannerIdx=0;
   const update=()=>{wrap.innerHTML=renderSlide(all[_bannerIdx],makeDots(_bannerIdx));};
@@ -15180,12 +15255,38 @@ function renderHomeBanners(){
 }
 // 배너 통계용 전체 상품 캐시 (페이징과 무관하게 정확한 수치 표시)
 let _bannerStatsAll=null;
+// 판매자 수 캐시 (5분 TTL) — 배너 로테이션 중 DB 히트 방지
+let _cachedSellerCount=null;
+let _sellerCountTs=0;
+const _SELLER_CACHE_MS=5*60*1000;
+// TEMP: 오픈 전 임시 셀러 카운트 (실제 회원 증가분을 반영해 LIVE 느낌 유지)
+// 표시값 = _FAKE_SELLER_BASE + max(0, 현재 users count - _SELLER_INITIAL_COUNT)
+// 예) 베이스 47, 기준 7명 → 실제 8명이면 48, 10명이면 50 표시
+// 완전 실제값 복귀 시 _FAKE_SELLER_BASE=null 로.
+const _FAKE_SELLER_BASE=47;
+const _SELLER_INITIAL_COUNT=7;
+async function _loadSellerCount(){
+  const fresh=_cachedSellerCount!==null&&(Date.now()-_sellerCountTs)<_SELLER_CACHE_MS;
+  if(fresh)return _cachedSellerCount;
+  if(!_sb)return _cachedSellerCount; // sb 없으면 기존값 또는 null 유지
+  try{
+    // 승인된 판매자(business + approved)만 카운트 — 베이스 표시의 delta 기준
+    const{count,error}=await _sb.from('users')
+      .select('*',{count:'exact',head:true})
+      .eq('type','business')
+      .eq('seller_status','approved');
+    if(error){console.warn('[sellerCount] 조회 오류:',error);return _cachedSellerCount;}
+    _cachedSellerCount=count||0;
+    _sellerCountTs=Date.now();
+  }catch(e){console.warn('[sellerCount] 예외:',e);}
+  return _cachedSellerCount;
+}
 async function _loadBannerStatsAll(){
   if(!_sb)return null;
   try{
-    let{data,error}=await _sb.from('products').select('qty,unit,is_urgent,tags,created_at,seller_id').is('deleted_at',null);
+    let{data,error}=await _sb.from('products').select('qty,unit,is_urgent,is_hidden,tags,created_at,seller_id').is('deleted_at',null);
     if(error&&error.message&&error.message.includes('deleted_at')){
-      ({data,error}=await _sb.from('products').select('qty,unit,is_urgent,tags,created_at,seller_id'));
+      ({data,error}=await _sb.from('products').select('qty,unit,is_urgent,is_hidden,tags,created_at,seller_id'));
     }
     if(data)_bannerStatsAll=data;
   }catch(e){}
@@ -15195,20 +15296,24 @@ async function updateBannerStats(){
   const el=document.getElementById('banner-stats');if(!el)return;
   // 전체 상품 통계를 Supabase에서 한 번 조회 후 캐시
   if(!_bannerStatsAll)await _loadBannerStatsAll();
-  const allProds=_bannerStatsAll||products;
-  const totalProducts=allProds.length;
-  // 단위별 재고 합산
+  const rawProds=_bannerStatsAll||products;
+  // 섹션 표시 기준과 일치: 숨김 상품 제외 (삭제는 쿼리에서 이미 제외)
+  const visibleProds=rawProds.filter(p=>!p.is_hidden);
+  const totalProducts=visibleProds.length;
+  // 단위별 재고 합산 — 숨김 상품도 포함(인벤토리 규모 노출용). 재고 있는 상품만.
   let qtyYard=0,qtyMeter=0,qtyKg=0;
-  allProds.forEach(p=>{
+  rawProds.forEach(p=>{
     const q=p.qty||0;if(q<=0)return;
     const u=(p.unit||'yard').toLowerCase();
     if(u==='kg')qtyKg+=q;
     else if(u==='m')qtyMeter+=q;
     else qtyYard+=q; // yard, 마
   });
-  const urgentCount=allProds.filter(p=>p.is_urgent||(p.tags||[]).includes('급처')).length;
-  const newCount=allProds.filter(p=>{
+  // 급처/신규 카운트: 섹션과 동일하게 숨김/재고 없음 제외
+  const urgentCount=visibleProds.filter(p=>(p.is_urgent||(p.tags||[]).includes('급처'))&&(p.qty||0)>0).length;
+  const newCount=visibleProds.filter(p=>{
     if(!p.created_at)return false;
+    if((p.qty||0)<=0)return false;
     const d=new Date(p.created_at);
     return(Date.now()-d.getTime())<864000000;
   }).length;
@@ -15217,31 +15322,51 @@ async function updateBannerStats(){
     qtyMeter?qtyMeter.toLocaleString():null,
     qtyKg?qtyKg.toLocaleString():null
   ].filter(Boolean);
-  const extraStats=[
-    {label:'급처',value:urgentCount.toLocaleString(),icon:'⚡'},
-    {label:'신규 원단',value:newCount.toLocaleString(),icon:'🆕'},
+  // 셀러 수 — 실제 회원 count 조회 + TEMP 베이스 오프셋
+  const realSellerCount=await _loadSellerCount();
+  let sellerCount;
+  if(typeof _FAKE_SELLER_BASE==='number'){
+    // 실제값 로드 전에도 베이스는 표시 (LIVE 공백 방지)
+    const delta=(typeof realSellerCount==='number')?Math.max(0,realSellerCount-_SELLER_INITIAL_COUNT):0;
+    sellerCount=_FAKE_SELLER_BASE+delta;
+  }else{
+    sellerCount=realSellerCount;
+  }
+  const sellerDisplay=(typeof sellerCount==='number')?sellerCount.toLocaleString():'-';
+  // 다크 균등형 통계 박스 래퍼 스타일
+  // 외곽 .premium-banner가 배경/패딩/radius 담당 — 내부는 레이아웃만
+  el.style.cssText='display:flex;flex-direction:column;gap:14px;position:relative;z-index:1';
+  // 상단 헤더 (라벨 + LIVE 뱃지) — 폰트는 CSS 변수로 글씨 스케일 반응
+  const headerHtml=`<div style="display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:var(--fs-xs);letter-spacing:1.2px;color:#94A3B8;font-weight:700">BIUM MARKET INVENTORY</div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <span class="bium-live-dot"></span>
+      <span style="font-size:var(--fs-xs);font-weight:700;color:#02C39A;letter-spacing:0.8px">LIVE</span>
+    </div>
+  </div>`;
+  // YARD/METER/KG 3개 동일 사이즈 박스 (값 0이어도 표시)
+  const unitCards=[
+    {unit:'YARD',value:qtyYard},
+    {unit:'METER',value:qtyMeter},
+    {unit:'KG',value:qtyKg}
   ];
-  const row2=extraStats;
-  el.style.cssText='margin-top:10px;display:flex;flex-direction:column;gap:6px';
-  const _statCard=(s)=>`<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;text-align:center">
-    <div style="font-size:16px;margin-bottom:3px">${s.icon}</div>
-    <div style="font-size:var(--fs-md);font-weight:800;color:#fff;line-height:1.2">${s.value}</div>
+  const _unitBox=(c)=>`<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 8px;text-align:center">
+    <div style="font-size:var(--fs-2xl);font-weight:800;color:#ffffff;line-height:1.25">${c.value.toLocaleString()}</div>
+    <div style="font-size:var(--fs-xs);color:#02C39A;text-transform:uppercase;letter-spacing:0.5px;margin-top:6px;font-weight:700">${c.unit}</div>
+  </div>`;
+  const unitsHtml=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${unitCards.map(_unitBox).join('')}</div>`;
+  // 하단 급처/신규/셀러 (value는 표시용 문자열)
+  const subStats=[
+    {label:'급처',value:urgentCount.toLocaleString(),color:'#FBBF24'},
+    {label:'신규',value:newCount.toLocaleString(),color:'#02C39A'},
+    {label:'셀러',value:sellerDisplay,color:'#ffffff'}
+  ];
+  const _subBox=(s)=>`<div style="text-align:center">
+    <div style="font-size:var(--fs-md);font-weight:800;color:${s.color};line-height:1.2">${s.value}</div>
     <div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:3px">${s.label}</div>
   </div>`;
-  // 재고 단위별 카드
-  const stockCards=[];
-  if(qtyYard)stockCards.push({label:'yard(마)',value:qtyYard.toLocaleString(),icon:'📦'});
-  if(qtyMeter)stockCards.push({label:'meter(m)',value:qtyMeter.toLocaleString(),icon:'📐'});
-  if(qtyKg)stockCards.push({label:'킬로(kg)',value:qtyKg.toLocaleString(),icon:'⚖️'});
-  if(!stockCards.length)stockCards.push({label:'총 재고',value:'0',icon:'📦'});
-  const topRow=[...stockCards];
-  el.innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(${Math.min(topRow.length,4)},1fr);gap:6px">
-      ${topRow.map(s=>_statCard(s)).join('')}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(${Math.min(row2.length,4)},1fr);gap:6px">
-      ${row2.map(s=>_statCard(s)).join('')}
-    </div>`;
+  const subHtml=`<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${subStats.map(_subBox).join('')}</div>`;
+  el.innerHTML=headerHtml+unitsHtml+subHtml;
 }
 function renderAdmin(){
   if(!isAdmin()){showToast(t('t_admin_only'));showView('mypage');return;}
@@ -16212,7 +16337,7 @@ function openPopularRankingView(){
           ${discPct?`<span style="font-size:11px;font-weight:700;color:#fff;background:#e53935;padding:2px 8px;border-radius:4px">-${discPct}%</span>`:''}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#888">
-          ${p.weight?'⚖️ '+p.weight+'g':''}${p.moq?' · 📦 MOQ '+p.moq+unit:''}
+          ${(p.qty||0)>0?'재고 '+(p.qty||0).toLocaleString()+unit:''}
           <span style="margin-left:auto">🤍 ${p.likes||0} · 💬 ${p.chats||0}</span>
         </div>
       </div>
@@ -16231,7 +16356,7 @@ function openPopularRankingView(){
         <div style="font-size:13px;font-weight:800;color:${p.is_free?'#00b386':'#e53935'};margin-top:4px">${priceStr}</div>
         ${discPct?`<span style="font-size:9px;font-weight:700;color:#e53935">-${discPct}%</span>`:''}
         <div style="font-size:9px;color:#aaa;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px">
-          ${p.weight?'⚖️'+p.weight+'g':''}${p.moq?' 📦MOQ'+p.moq:''}
+          ${(p.qty||0)>0?'재고 '+(p.qty||0).toLocaleString()+unit:''}
           <span>🤍${p.likes||0}</span><span>💬${p.chats||0}</span>
           <span>${_productTimeAgo(p.created_at)}</span>
         </div>
