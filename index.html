@@ -273,7 +273,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .sstat .sl{font-size:11px;color:#666677;margin-top:2px}
 .seller-tabs{display:flex;background:#f8f8fa;border-bottom:1px solid #e0e0ea;position:sticky;top:56px;z-index:50}
 .seller-tab{flex:1;padding:13px 4px;text-align:center;font-size:13px;font-weight:600;color:#666677;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
-.seller-tab.on{color:#c8962a;border-bottom-color:#c8962a}
+.seller-tab.on{color:#1E293B;border-bottom-color:#028090}
 .seller-intro{padding:14px 16px;font-size:13px;color:#888899;line-height:1.7;background:#f8f8fa;border-bottom:6px solid #f0f0f5}
 
 /* MYPAGE */
@@ -465,6 +465,51 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .sv-section{padding:16px 14px 8px}
 .sv-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sv-section-title{font-size:11px;font-weight:700;color:#666677;letter-spacing:.6px;text-transform:uppercase}
+/* 검색 뷰 - 조건 매칭 CTA */
+.sv-match-cta{background:#fff;border:2px solid #1E293B;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 4px 14px rgba(30,41,59,0.08);transition:transform .15s;margin:0 14px 8px}
+.sv-match-cta:active{transform:scale(.98)}
+.smc-icon{width:36px;height:36px;background:#1E293B;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
+.smc-text{flex:1;min-width:0}
+.smc-title{font-size:13px;font-weight:700;color:#1E293B;margin-bottom:2px}
+.smc-sub{font-size:11px;color:#94A3B8;font-weight:500}
+.smc-arrow{font-size:16px;color:#CBD5E1;flex-shrink:0}
+/* 검색 뷰 - 최근 매칭 요청 아이템 */
+.sv-match-item{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
+.sv-match-item:hover{border-color:#CBD5E1}
+.smi-icon{font-size:14px;color:#94A3B8;flex-shrink:0}
+.smi-content{flex:1;min-width:0}
+.smi-conditions{font-size:12px;font-weight:600;color:#1E293B;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smi-meta{font-size:10px;color:#94A3B8}
+.smi-meta b{color:#028090;font-weight:700}
+.smi-delete{background:none;border:none;font-size:16px;color:#CBD5E1;padding:4px 6px;cursor:pointer;line-height:1;flex-shrink:0}
+/* 검색 뷰 - 히어로 */
+.sv-hero{padding:28px 24px 16px}
+.sv-hero-title{font-size:24px;font-weight:800;line-height:1.25;color:#1E293B;margin:0 0 10px;letter-spacing:-0.8px}
+.sv-hero-title b{color:#028090;font-style:italic;font-weight:800}
+.sv-hero-sub{font-size:13px;color:#64748B;line-height:1.55;margin:0}
+/* 검색 뷰 - 메인 CTA */
+.sv-main-cta-wrap{padding:4px 20px 24px}
+.sv-main-cta{width:100%;padding:18px;background:#1E293B;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(30,41,59,0.2);transition:transform .15s}
+.sv-main-cta:active{transform:scale(.98)}
+/* 검색 뷰 - 빠른 시작 칩 */
+.sv-quick-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 8px}
+.sv-quick-chip{padding:10px 16px;background:#fff;border:1.5px solid #E2E8F0;border-radius:20px;font-size:13px;font-weight:600;color:#1E293B;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.sv-quick-chip:hover{border-color:#1E293B;background:#F8FAFC}
+.sv-chip-count{background:#F1F5F9;color:#64748B;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:700}
+/* 조건 입력 화면 - 이전 요청 섹션 */
+.mi-recent-wrap{padding:4px 20px 20px}
+.mi-recent-label{font-size:var(--fs-xs);font-weight:700;color:#64748B;letter-spacing:0.3px;margin-bottom:8px}
+#mi-recent-list{display:flex;flex-direction:column;gap:6px}
+.mi-recent-item{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s}
+.mi-recent-item:hover{border-color:#028090;background:#F0FDFA}
+.mi-recent-icon{color:#94A3B8;font-size:var(--fs-sm);flex-shrink:0}
+.mi-recent-content{flex:1;min-width:0}
+.mi-recent-conditions{font-size:var(--fs-sm);font-weight:600;color:#1E293B;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mi-recent-meta{font-size:var(--fs-xs);color:#94A3B8}
+.mi-recent-meta b{color:#028090;font-weight:700}
+.mi-or-divider{text-align:center;position:relative;margin:14px 0 10px;font-size:var(--fs-xs);color:#94A3B8;font-weight:500}
+.mi-or-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#E2E8F0;z-index:0}
+.mi-or-divider span{background:#fff;padding:0 12px;position:relative;z-index:1}
 .sv-section-clear{font-size:11px;color:#6c63ff;font-weight:600}
 .sv-recent-row{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 14px}
 .sv-recent-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px 6px 12px;border-radius:20px;background:#f8f8fa;border:1px solid #e0e0ea;font-size:12px;color:#888899;cursor:pointer;transition:border-color .15s}
@@ -639,31 +684,33 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 /* 역매칭 조건 입력 화면 */
 .mi-header{position:sticky;top:0;background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #F1F5F9;z-index:10}
 .mi-back{background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px;color:#1E293B}
-.mi-title{flex:1;font-size:16px;font-weight:700;color:#1E293B}
-.mi-hero{padding:28px 22px 18px}
-.mi-h2{font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-0.8px;color:#1E293B;margin-bottom:8px}
-.mi-h2 b{color:#028090;font-style:italic}
-.mi-p{font-size:12px;color:#64748B;line-height:1.5}
-.mi-form{padding:0 20px 100px}
-.mi-field{margin-bottom:24px}
-.mi-label{font-size:13px;font-weight:700;color:#1E293B;margin-bottom:4px;display:block}
+.mi-title{flex:1;font-size:var(--fs-md);font-weight:700;color:#1E293B}
+/* 검색 히어로(.sv-hero)와 동일한 값으로 통일 */
+.mi-hero{padding:28px 24px 16px}
+.mi-h2{font-size:24px;font-weight:800;line-height:1.25;color:#1E293B;margin:0 0 10px;letter-spacing:-0.8px}
+.mi-h2 b{color:#028090;font-style:italic;font-weight:800}
+.mi-p{font-size:13px;color:#64748B;line-height:1.55;margin:0}
+.mi-form{padding:0 20px 6px}
+.mi-field{margin-bottom:16px}
+.mi-label{font-size:var(--fs-sm);font-weight:700;color:#1E293B;margin-bottom:2px;display:block}
 .mi-required{color:#EF4444}
-.mi-hint{font-size:11px;color:#94A3B8;margin-bottom:10px}
-.mi-chips{display:flex;flex-wrap:wrap;gap:8px}
-.mi-chip{padding:9px 16px;border-radius:20px;background:#F5F7FA;border:1.5px solid #E2E8F0;color:#64748B;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.mi-hint{font-size:var(--fs-xs);color:#94A3B8;margin-bottom:8px}
+.mi-chips{display:flex;flex-wrap:wrap;gap:6px}
+.mi-chip{padding:7px 14px;border-radius:18px;background:#F5F7FA;border:1.5px solid #E2E8F0;color:#64748B;font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:all .15s}
 .mi-chip:hover{border-color:#CBD5E1}
 .mi-chip.active{background:#1E293B;border-color:#1E293B;color:#fff}
-.mi-range{display:flex;align-items:center;gap:10px}
-.mi-range-sep{color:#94A3B8;font-size:14px}
-.mi-input{flex:1;padding:12px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;color:#1E293B;background:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;width:100%}
+.mi-range{display:flex;align-items:center;gap:8px}
+.mi-range-sep{color:#94A3B8;font-size:var(--fs-base)}
+.mi-input{flex:1;padding:11px 13px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:var(--fs-base);color:#1E293B;background:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;width:100%}
 .mi-input:focus{border-color:#1E293B}
-.mi-price-row{display:flex;gap:8px}
+.mi-price-row{display:flex;gap:6px}
 .mi-input-price{flex:1}
 .mi-unit-group{display:flex;background:#F5F7FA;border-radius:10px;padding:3px;gap:2px}
-.mi-unit-btn{padding:9px 12px;background:transparent;border:none;border-radius:8px;font-size:12px;font-weight:600;color:#64748B;cursor:pointer;transition:all .15s}
+.mi-unit-btn{padding:8px 11px;background:transparent;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;color:#64748B;cursor:pointer;transition:all .15s}
 .mi-unit-btn.active{background:#1E293B;color:#fff}
-.mi-footer{position:sticky;bottom:0;padding:12px 20px 18px;background:#fff;border-top:1px solid #F1F5F9;z-index:11}
-.mi-btn-submit{width:100%;padding:16px;background:#1E293B;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(30,41,59,0.2);transition:transform .15s}
+/* 폼과 매칭 버튼을 한 흐름으로 묶음 (sticky 제거) */
+.mi-footer{padding:8px 20px 10px;background:transparent;border:none}
+.mi-btn-submit{width:100%;padding:14px;background:#1E293B;color:#fff;border:none;border-radius:12px;font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(30,41,59,0.16);transition:transform .15s}
 .mi-btn-submit:active{transform:scale(.98)}
 .mi-btn-submit:disabled{background:#CBD5E1;cursor:not-allowed;box-shadow:none}
 /* 상품 상세 내 역매칭 CTA 카드 */
@@ -1809,7 +1856,7 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <div style="position:sticky;top:0;z-index:100;background:#fff;display:flex;align-items:center;padding:0 14px;height:56px;border-bottom:1px solid #e0e0ea">
       <button onclick="goBack()" style="background:none;border:none;font-size:var(--fs-icon);cursor:pointer;padding:0 8px 0 0;color:#1a1a1a">←</button>
       <div style="flex:1;font-size:var(--fs-xl);font-weight:700;color:#1a1a1a" id="sh-hdr-title">업체 정보</div>
-      <button onclick="shareSellerProfile()" style="width:38px;height:38px;border-radius:12px;background:#7B9FE0;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+      <button onclick="shareSellerProfile()" style="width:38px;height:38px;border-radius:12px;background:#fff;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 8l5-5 5 5" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round"/></svg></button>
     </div>
     <!-- 업체명 + 기본 정보 -->
     <div style="padding:16px 16px 0">
@@ -1817,37 +1864,37 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
         <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0">
           <div id="sh-profile-avatar" class="my-av" style="width:60px;height:60px;font-size:24px;flex-shrink:0">?</div>
           <div style="flex:1;min-width:0">
-          <div style="font-size:var(--fs-3xl);font-weight:800;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sh-name"></div>
+          <div style="font-size:var(--fs-3xl);font-weight:800;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sh-name"></div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
-            <span style="font-size:var(--fs-md);color:#f5c518;font-weight:700" id="sh-rating">⭐ 0.0</span>
-            <span style="font-size:var(--fs-base);color:#666" id="sh-review-cnt">후기 0</span>
-            <span style="font-size:var(--fs-base);color:#666">·</span>
-            <span style="font-size:var(--fs-base);color:#666" id="sh-follower-cnt">단골 0</span>
+            <span style="font-size:var(--fs-md);color:#FBBF24;font-weight:700" id="sh-rating">⭐ 0.0</span>
+            <span style="font-size:var(--fs-base);color:#64748B" id="sh-review-cnt">후기 0</span>
+            <span style="font-size:var(--fs-base);color:#94A3B8">·</span>
+            <span style="font-size:var(--fs-base);color:#64748B" id="sh-follower-cnt">단골 0</span>
           </div>
-          <div style="font-size:var(--fs-base);color:#888;margin-top:4px" id="sh-loc"></div>
+          <div style="font-size:var(--fs-base);color:#64748B;margin-top:4px" id="sh-loc"></div>
           <div id="sh-cert-badge" style="margin-top:6px"></div>
         </div>
         </div>
-        <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:8px 16px;background:#ff6f00;color:#fff;border:none;border-radius:20px;font-size:var(--fs-md);font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
+        <button id="sh-follow-btn" onclick="toggleSellerFollow()" style="padding:9px 18px;background:#1E293B;color:#fff;border:none;border-radius:10px;font-size:var(--fs-md);font-weight:700;cursor:pointer;white-space:nowrap">+ 단골맺기</button>
       </div>
     </div>
     <!-- 사진 갤러리 -->
     <div id="sh-photos-gallery" style="display:flex;gap:4px;overflow-x:auto;padding:12px 16px;scrollbar-width:none"></div>
     <!-- 탭 메뉴 -->
     <div style="display:flex;border-bottom:1px solid #e0e0ea;background:#fff;position:sticky;top:56px;z-index:50" id="sh-tabs">
-      <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
-      <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
-      <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 0</div>
-      <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-      <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
+      <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:700;border-bottom:2px solid #028090;color:#1E293B;cursor:pointer">홈</div>
+      <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">소식</div>
+      <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer" id="sh-tab-review">후기 0</div>
+      <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">상품</div>
+      <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">사진</div>
     </div>
     <!-- 탭 컨텐츠 -->
     <div id="sh-tab-content" style="padding-bottom:20px"></div>
   </div>
   <!-- 하단 버튼 -->
   <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e0ea;padding:12px 16px;display:flex;gap:10px">
-    <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
-    <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+    <button onclick="callSeller()" style="flex:1;padding:14px;background:linear-gradient(135deg,#028090,#015866);border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">📞 전화 문의</button>
+    <button onclick="openChatModal()" style="flex:1;padding:14px;background:#1E293B;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
   </div>
 </div>
 
@@ -2547,7 +2594,7 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
   </div>
   <div class="mi-hero">
     <h2 class="mi-h2">어떤 원단을<br><b>찾고</b> 계세요?</h2>
-    <p class="mi-p">조건을 입력하면 판매자 재고에서 자동으로 찾아드려요</p>
+    <p class="mi-p">조건만 알려주시면 판매자 재고에서<br>자동으로 찾아드려요</p>
   </div>
   <div class="mi-form">
     <!-- 소재 -->
@@ -2598,6 +2645,12 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <button class="mi-btn-submit" onclick="submitMatchRequest()">
       <span>✨</span><span>매칭 시작하기</span>
     </button>
+  </div>
+  <!-- 이전 매칭 요청 (버튼 하단) — 로그인 + 데이터 있을 때만 표시 -->
+  <div id="mi-recent-wrap" class="mi-recent-wrap" style="display:none">
+    <div class="mi-or-divider"><span>또는 이전 요청 사용</span></div>
+    <div class="mi-recent-label">⏱ 이전 요청으로 다시 매칭</div>
+    <div id="mi-recent-list"></div>
   </div>
 </div>
 
@@ -2745,29 +2798,57 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
       <button onclick="doSvSearch()" style="background:rgba(108,99,255,.15);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;color:#6c63ff;font-size:13px;font-weight:700;flex-shrink:0;margin-left:6px">🔍</button>
     </div>
   </div>
+  <!-- 필터 행 (검색어 입력 시 노출) — 원래 구조 복원 -->
+  <div id="sv-filters" style="display:none">
+    <div style="padding:12px 16px 4px">
+      <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px">필터</div>
+    </div>
+    <div class="sv-filter-row">
+      <button class="sv-filter-btn on" id="svf-all" onclick="setSvFilter('전체');updateSvFilterBtns('전체')">전체</button>
+      <button class="sv-filter-btn" id="svf-면" onclick="setSvFilter('면');updateSvFilterBtns('면')">면</button>
+      <button class="sv-filter-btn" id="svf-린넨" onclick="setSvFilter('린넨');updateSvFilterBtns('린넨')">린넨</button>
+      <button class="sv-filter-btn" id="svf-인견/레이온" onclick="setSvFilter('인견/레이온');updateSvFilterBtns('인견/레이온')">인견/레이온</button>
+      <button class="sv-filter-btn" id="svf-폴리" onclick="setSvFilter('폴리');updateSvFilterBtns('폴리')">폴리</button>
+      <button class="sv-filter-btn" id="svf-나일론" onclick="setSvFilter('나일론');updateSvFilterBtns('나일론')">나일론</button>
+      <button class="sv-filter-btn" id="svf-울/캐시미어" onclick="setSvFilter('울/캐시미어');updateSvFilterBtns('울/캐시미어')">울/캐시미어</button>
+      <button class="sv-filter-btn" id="svf-실크" onclick="setSvFilter('실크');updateSvFilterBtns('실크')">실크</button>
+      <button class="sv-filter-btn" id="svf-아세테이트" onclick="setSvFilter('아세테이트');updateSvFilterBtns('아세테이트')">아세테이트</button>
+      <button class="sv-filter-btn" id="svf-혼방/특수사" onclick="setSvFilter('혼방/특수사');updateSvFilterBtns('혼방/특수사')">혼방/특수사</button>
+    </div>
+    <div class="sv-filter-row" style="padding-top:0">
+      <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
+      <button class="sv-filter-btn" id="svf-지역" onclick="openLocFilter()">지역 ▾</button>
+      <button class="sv-filter-btn" id="svf-free" onclick="toggleSvFree()">🎁 나눔</button>
+    </div>
+  </div>
   <div id="sv-scroll-wrap" style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y">
-  <!-- 필터 섹션 -->
-  <div style="padding:12px 16px 4px">
-    <div style="font-size:11px;font-weight:700;color:#666677;letter-spacing:.5px">필터</div>
+  <!-- 매칭 UI (검색어 없을 때만 표시) -->
+  <div id="sv-match-section">
+    <!-- 히어로 -->
+    <div class="sv-hero">
+      <h2 class="sv-hero-title">어떤 원단을<br><b>찾고</b> 계세요?</h2>
+      <p class="sv-hero-sub">조건만 알려주시면 판매자 재고에서<br>자동으로 찾아드려요</p>
+    </div>
+    <!-- 메인 CTA -->
+    <div class="sv-main-cta-wrap">
+      <button class="sv-main-cta" onclick="openMatchInput()">
+        <span>✨</span><span>매칭 시작하기</span>
+      </button>
+    </div>
+    <!-- 빠른 시작 -->
+    <div class="sv-section">
+      <div class="sv-section-hd"><span class="sv-section-title">빠른 시작</span></div>
+      <div class="sv-quick-chips" id="sv-quick-chips">
+        <button class="sv-quick-chip" onclick="quickStartMatch('urgent')">🔥 급처 <span class="sv-chip-count" id="qs-count-urgent">-</span></button>
+        <button class="sv-quick-chip" onclick="quickStartMatch('new')">🆕 신규 <span class="sv-chip-count" id="qs-count-new">-</span></button>
+        <button class="sv-quick-chip" onclick="quickStartMatch('cotton')">면 원단</button>
+        <button class="sv-quick-chip" onclick="quickStartMatch('linen-blend')">린넨 혼방</button>
+        <button class="sv-quick-chip" onclick="quickStartMatch('navy')">네이비 계열</button>
+        <button class="sv-quick-chip" onclick="quickStartMatch('large-qty')">500야드+</button>
+      </div>
+    </div>
   </div>
-  <div class="sv-filter-row">
-    <button class="sv-filter-btn on" id="svf-all" onclick="setSvFilter('전체');updateSvFilterBtns('전체')">전체</button>
-    <button class="sv-filter-btn" id="svf-면" onclick="setSvFilter('면');updateSvFilterBtns('면')">면</button>
-    <button class="sv-filter-btn" id="svf-린넨" onclick="setSvFilter('린넨');updateSvFilterBtns('린넨')">린넨</button>
-    <button class="sv-filter-btn" id="svf-인견/레이온" onclick="setSvFilter('인견/레이온');updateSvFilterBtns('인견/레이온')">인견/레이온</button>
-    <button class="sv-filter-btn" id="svf-폴리" onclick="setSvFilter('폴리');updateSvFilterBtns('폴리')">폴리</button>
-    <button class="sv-filter-btn" id="svf-나일론" onclick="setSvFilter('나일론');updateSvFilterBtns('나일론')">나일론</button>
-    <button class="sv-filter-btn" id="svf-울/캐시미어" onclick="setSvFilter('울/캐시미어');updateSvFilterBtns('울/캐시미어')">울/캐시미어</button>
-    <button class="sv-filter-btn" id="svf-실크" onclick="setSvFilter('실크');updateSvFilterBtns('실크')">실크</button>
-    <button class="sv-filter-btn" id="svf-아세테이트" onclick="setSvFilter('아세테이트');updateSvFilterBtns('아세테이트')">아세테이트</button>
-    <button class="sv-filter-btn" id="svf-혼방/특수사" onclick="setSvFilter('혼방/특수사');updateSvFilterBtns('혼방/특수사')">혼방/특수사</button>
-  </div>
-  <div class="sv-filter-row" style="padding-top:0">
-    <button class="sv-filter-btn" id="svf-가격" onclick="openPriceFilter()">가격 ▾</button>
-    <button class="sv-filter-btn" id="svf-지역" onclick="openLocFilter()">지역 ▾</button>
-    <button class="sv-filter-btn" id="svf-free" onclick="toggleSvFree()">🎁 나눔</button>
-  </div>
-  <!-- 최근 검색어 -->
+  <!-- 최근 검색어 (유지) -->
   <div id="sv-recent-section" style="display:none">
     <div class="sv-section">
       <div class="sv-section-hd">
@@ -2776,15 +2857,6 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
       </div>
     </div>
     <div class="sv-recent-row" id="sv-recent-chips"></div>
-  </div>
-  <!-- 인기 검색어 -->
-  <div id="sv-popular-section" style="display:none">
-    <div class="sv-section">
-      <div class="sv-section-hd">
-        <span class="sv-section-title">🔥 인기 검색어</span>
-      </div>
-    </div>
-    <div class="sv-popular-row" id="sv-popular-chips"></div>
   </div>
   <!-- 결과 카운트 -->
   <div id="sv-result-hd" class="sv-result-hd" style="display:none"></div>
@@ -7000,10 +7072,23 @@ function openSearchOverlay(){
     el.style.animation='searchViewIn .2s ease-out forwards';
   });
   renderSearchView();
+  // 빠른 시작 칩 카운트 갱신 (급처/신규 실시간)
+  if(typeof updateQuickChipCounts==='function')updateQuickChipCounts();
+  // 검색 모드 초기화 + input 이벤트 최초 1회 바인딩
+  if(typeof _toggleSearchMode==='function'){
+    const svInput=document.getElementById('sv-input');
+    _toggleSearchMode(!!(svInput&&svInput.value.trim()));
+    if(svInput&&!svInput._svModeBound){
+      svInput.addEventListener('input',()=>_toggleSearchMode(svInput.value.trim().length>0));
+      svInput._svModeBound=true;
+    }
+  }
 }
 function closeSearchOverlay(){
   const el=document.getElementById('view-search-view');
   if(el)el.classList.remove('open');
+  // 다음 진입 시 매칭 UI가 노출되도록 모드 초기화
+  if(typeof _toggleSearchMode==='function')_toggleSearchMode(false);
   // body 스크롤 복원
   document.body.style.overflow='';
   document.body.style.position='';
@@ -10494,9 +10579,9 @@ async function rejectReservation(resvId){
 async function switchSellerTab(tab,el){
   document.querySelectorAll('#sh-tabs .seller-tab').forEach(t=>{
     t.style.borderBottomColor='transparent';
-    t.style.color='#666677';
+    t.style.color='#94A3B8';
   });
-  if(el){el.style.borderBottomColor='#ff6f00';el.style.color='#ff6f00';}
+  if(el){el.style.borderBottomColor='#028090';el.style.color='#1E293B';}
   const content=document.getElementById('sh-tab-content');
   const seller=curSellerData||{};
   const isMySelf=curUser&&curUser.id!=='admin'&&(curUser.id===seller.id||(curUser.email&&curUser.email===seller.email));
@@ -10594,11 +10679,21 @@ async function switchSellerTab(tab,el){
     const rows=[];
     if(hours)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">🕐</span><div style="font-size:var(--fs-md);color:#1a1a1a">${hours}</div></div>`);
     if(tel){
-      rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📞</span><a href="tel:${tel}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;border-radius:12px;font-size:var(--fs-md);font-weight:700;text-decoration:none">📞 전화걸기</a></div>`);
+      rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center;color:#028090">📞</span><a href="tel:${tel}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#028090,#015866);color:#fff;border-radius:12px;font-size:var(--fs-md);font-weight:700;text-decoration:none">📞 전화걸기</a></div>`);
     }
-    if(insta)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="5" stroke="#E1306C" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="#E1306C"/></svg></span><div style="font-size:var(--fs-md);color:#E1306C;font-weight:600">${insta}</div></div>`);
+    if(insta){
+      // URL 정리: "@계정" 형식이면 그대로, URL이면 계정만 추출
+      const _instaHandle=(()=>{
+        const s=String(insta).trim();
+        if(s.startsWith('@'))return s;
+        const m=s.match(/instagram\.com\/([A-Za-z0-9_.]+)/i);
+        return m?('@'+m[1]):s;
+      })();
+      const _instaHref=/^https?:\/\//i.test(insta)?insta:(insta.startsWith('@')?`https://instagram.com/${insta.slice(1)}`:`https://instagram.com/${insta}`);
+      rows.push(`<a href="${_instaHref}" target="_blank" rel="noopener" style="text-decoration:none"><div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📷</span><div style="flex:1;font-size:var(--fs-md);color:#1E293B;font-weight:600">인스타그램 <span style="color:#64748B;font-weight:500">${_instaHandle}</span></div><span style="font-size:10px;color:#94A3B8">↗</span></div></a>`);
+    }
     if(blog)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:center"><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#03C75A" stroke-width="2" rx="2"/><path d="M8 8h3v8H8V8zm5 3.5L15.5 16H13v-4.5zM15.5 8H13v3l2.5-3z" fill="#03C75A"/></svg></span><div style="font-size:var(--fs-md);color:#03C75A;font-weight:600">${blog}</div></div>`);
-    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center">📍</span><div style="font-size:var(--fs-md);color:#6c63ff;font-weight:600">${address}</div></div>`);
+    if(address)rows.push(`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start"><span style="font-size:var(--fs-icon);width:28px;text-align:center;color:#028090">📍</span><div style="font-size:var(--fs-md);color:#1E293B;font-weight:600">${address}</div></div>`);
 
     // 통계 (MY 기능 연동)
     const myOffers=lsGet('priceOffers',[]).filter(o=>o.sellerId===seller.id||o.sellerName===seller.name||o.sellerName===seller.email);
@@ -10613,8 +10708,8 @@ async function switchSellerTab(tab,el){
       ${isMine?`
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:8px solid #f5f5f5">
         <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5">
-          <div style="font-size:var(--fs-2xl);font-weight:800;color:#ff6f00">${myProds.length}</div>
-          <div style="font-size:var(--fs-sm);color:#888;margin-top:2px">상품</div>
+          <div style="font-size:var(--fs-2xl);font-weight:800;color:#1E293B">${myProds.length}</div>
+          <div style="font-size:var(--fs-sm);color:#94A3B8;margin-top:2px">상품</div>
         </div>
         <div style="padding:16px 8px;text-align:center;border-right:1px solid #f0f0f5;cursor:pointer" onclick="showView('my-offers');renderMyOffers()">
           <div style="font-size:var(--fs-2xl);font-weight:800;color:${pendingOffers>0?'#e53935':'#1a1a1a'}">${pendingOffers}</div>
@@ -10655,7 +10750,7 @@ async function switchSellerTab(tab,el){
       <!-- 소개 -->
       <div style="padding:16px;border-top:8px solid #f5f5f5;margin-top:${rows.length?8:0}px">
         <div style="font-size:var(--fs-xl);font-weight:700;margin-bottom:8px">소개</div>
-        <div style="font-size:var(--fs-md);color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100).replace(/\n/g,'<br>')+'...<span onclick="expandSellerIntro()" style="color:#ff6f00;cursor:pointer;font-weight:600"> 더보기</span>':intro.replace(/\n/g,'<br>')}</div>
+        <div style="font-size:var(--fs-md);color:#444;line-height:1.7" id="sh-intro-text">${intro.length>100?intro.slice(0,100).replace(/\n/g,'<br>')+'...<span onclick="expandSellerIntro()" style="color:#1E293B;cursor:pointer;font-weight:700;text-decoration:underline"> 더보기</span>':intro.replace(/\n/g,'<br>')}</div>
         ${(()=>{const tags=isMySelf?(curUser.profile?.tags||[]):(seller.profile?.tags||userInfo.profile?.tags||extra.tags||[]);return tags.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+tags.map(t=>'<span style="background:rgba(108,99,255,.1);color:#6c63ff;font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:20px">#'+t+'</span>').join('')+'</div>':'';})()}
         ${(userInfo.bizStatus||userInfo.sellerStatus)==='approved'?'<div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:var(--fs-base);color:#1565c0">🛡️ 사업자등록증 및 인증 정보</div>':''}
         ${getFabricScoreHtml(seller.id||seller.name,'detail')}
@@ -10664,8 +10759,8 @@ async function switchSellerTab(tab,el){
       <!-- 등록 상품 (2열 그리드) -->
       <div style="padding:16px;border-top:8px solid #f5f5f5">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-size:var(--fs-xl);font-weight:700">등록 상품 <span style="color:#ff6f00">${myProds.length}</span></div>
-          ${myProds.length>4?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:var(--fs-base);color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
+          <div style="font-size:var(--fs-xl);font-weight:700;color:#1E293B">등록 상품 <span style="color:#1E293B">${myProds.length}</span></div>
+          ${myProds.length>4?`<div onclick="switchSellerTab('products',document.querySelectorAll('#sh-tabs .seller-tab')[3])" style="font-size:var(--fs-base);color:#64748B;cursor:pointer;font-weight:600">더보기 ›</div>`:''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         ${myProds.slice(0,4).map(p=>gridCardHtml(p)).join('')}
@@ -10679,8 +10774,8 @@ async function switchSellerTab(tab,el){
         if(!news.length)return '';
         return `<div style="padding:16px;border-top:8px solid #f5f5f5">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-size:var(--fs-xl);font-weight:700">최근 소식</div>
-            <div onclick="switchSellerTab('news',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#ff6f00;cursor:pointer;font-weight:600">더보기 ›</div>
+            <div style="font-size:var(--fs-xl);font-weight:700;color:#1E293B">최근 소식</div>
+            <div onclick="switchSellerTab('news',document.querySelectorAll('#sh-tabs .seller-tab')[1])" style="font-size:var(--fs-base);color:#64748B;cursor:pointer;font-weight:600">더보기 ›</div>
           </div>
           ${news.map(n=>`
             <div style="padding:10px 0;border-bottom:1px solid #f5f5f5">
@@ -10946,8 +11041,9 @@ function renderSellerPage(seller){
   const isFollowing=myFollows.includes(seller.id||seller.name);
   if(followBtn){
     followBtn.textContent=isFollowing?'✓ 단골중':'+ 단골맺기';
-    followBtn.style.background=isFollowing?'#f5f5f5':'#ff6f00';
-    followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
+    followBtn.style.background=isFollowing?'#F5F7FA':'#1E293B';
+    followBtn.style.color=isFollowing?'#64748B':'#fff';
+    followBtn.style.border=isFollowing?'1px solid #E2E8F0':'none';
   }
   const gallery=document.getElementById('sh-photos-gallery');
   const photos=isMySelf?lsGet('companyPhotos',[]):(seller.photos||[]);
@@ -10974,8 +11070,8 @@ function renderSellerPage(seller){
       // 탭 구성 변경 (홈/받은후기)
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #6c63ff;color:#6c63ff;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('buyer-review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-buyer-review">받은후기</div>
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:700;border-bottom:2px solid #028090;color:#1E293B;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('buyer-review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer" id="sh-tab-buyer-review">받은후기</div>
       `;
       // 일반 회원은 단골맺기 버튼 숨김 (구매자는 단골 받을 필요 없음)
       if(followBtn)followBtn.style.display='none';
@@ -10984,7 +11080,7 @@ function renderSellerPage(seller){
       if(bottomBtns){
         const _isMySelf=curUser&&(curUser.id===seller.id||curUser.email===seller.email);
         if(_isMySelf){bottomBtns.style.display='none';}
-        else{bottomBtns.innerHTML=`<button onclick="openChatModal()" style="width:100%;padding:14px;background:#6c63ff;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>`;}
+        else{bottomBtns.innerHTML=`<button onclick="openChatModal()" style="width:100%;padding:14px;background:#1E293B;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>`;}
       }
       // 사진 없으면 갤러리 숨김
       const galleryEl=document.getElementById('sh-photos-gallery');
@@ -11002,17 +11098,17 @@ function renderSellerPage(seller){
       // 사업자 회원 - 기존 탭 유지
       const tabsEl=document.getElementById('sh-tabs');
       if(tabsEl)tabsEl.innerHTML=`
-        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid #ff6f00;color:#ff6f00;cursor:pointer">홈</div>
-        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">소식</div>
-        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
-        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">상품</div>
-        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#666677;cursor:pointer">사진</div>
+        <div class="seller-tab on" onclick="switchSellerTab('home',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:700;border-bottom:2px solid #028090;color:#1E293B;cursor:pointer">홈</div>
+        <div class="seller-tab" onclick="switchSellerTab('news',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">소식</div>
+        <div class="seller-tab" onclick="switchSellerTab('review',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer" id="sh-tab-review">후기 ${reviewCount}</div>
+        <div class="seller-tab" onclick="switchSellerTab('products',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">상품</div>
+        <div class="seller-tab" onclick="switchSellerTab('photos',this)" style="flex:1;padding:12px 4px;text-align:center;font-size:var(--fs-base);font-weight:600;border-bottom:2px solid transparent;color:#94A3B8;cursor:pointer">사진</div>
       `;
       // 하단 버튼 - 전화+채팅
       const bottomBtns=document.querySelector('#view-seller > div:last-child');
       if(bottomBtns)bottomBtns.innerHTML=`
-        <button onclick="callSeller()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#1a1a1a;cursor:pointer">📞 전화 문의</button>
-        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#ff6f00;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
+        <button onclick="callSeller()" style="flex:1;padding:14px;background:linear-gradient(135deg,#028090,#015866);border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">📞 전화 문의</button>
+        <button onclick="openChatModal()" style="flex:1;padding:14px;background:#1E293B;border:none;border-radius:12px;font-size:var(--fs-lg);font-weight:700;color:#fff;cursor:pointer">💬 채팅 문의</button>
       `;
     }
 
@@ -11103,8 +11199,9 @@ async function toggleSellerFollow(){
   const isFollowing=myFollows.includes(key);
   if(followBtn){
     followBtn.textContent=isFollowing?'✓ 단골중':'+ 단골맺기';
-    followBtn.style.background=isFollowing?'#f5f5f5':'#ff6f00';
-    followBtn.style.color=isFollowing?'#1a1a1a':'#fff';
+    followBtn.style.background=isFollowing?'#F5F7FA':'#1E293B';
+    followBtn.style.color=isFollowing?'#64748B':'#fff';
+    followBtn.style.border=isFollowing?'1px solid #E2E8F0':'none';
   }
   const followerEl=document.getElementById('sh-follower-cnt');
   if(followerEl)followerEl.textContent=`단골 ${followers[key]||0}`;
@@ -12479,6 +12576,8 @@ async function renderSearchView(){
   const endEl=document.getElementById('sv-scroll-end');
   const q=svSearch.trim();
   if(clearBtn)clearBtn.style.display=q?'inline':'none';
+  // 매칭 UI ↔ 필터 UI 토글 동기화 (어떤 경로로 오든 상태 일관 보장)
+  if(typeof _toggleSearchMode==='function')_toggleSearchMode(!!q);
   if(!q){
     _svResults=[];_svPage=0;_svHasMore=true;
     list.innerHTML='';list.style.display='none';empty.style.display='none';
@@ -12759,6 +12858,8 @@ function clearSvInput(){
   if(el)el.value='';
   svSearch='';
   renderSearchView();
+  // 매칭 UI 복원 (X 버튼·Backspace·Enter 후 비우기 통일)
+  if(typeof _toggleSearchMode==='function')_toggleSearchMode(false);
 }
 function renderRecentSearches(){
   const section=document.getElementById('sv-recent-section');
@@ -14822,6 +14923,9 @@ function initMatchInputForm(){
 
 // 조건 입력 화면 열기 (초기화 + 뷰 전환)
 function openMatchInput(){
+  // 검색 오버레이가 열려있으면 먼저 닫기 (매칭 화면이 뒤에 가려지는 문제 방지)
+  const searchEl=document.getElementById('view-search-view');
+  if(searchEl&&searchEl.classList.contains('open')&&typeof closeSearchOverlay==='function')closeSearchOverlay();
   document.querySelectorAll('#mi-materials .mi-chip').forEach(c=>c.classList.remove('active'));
   const wMin=document.getElementById('mi-weight-min');if(wMin)wMin.value='';
   const wMax=document.getElementById('mi-weight-max');if(wMax)wMax.value='';
@@ -14835,6 +14939,8 @@ function openMatchInput(){
   if(oldBadge)oldBadge.remove();
   showView('matchInput');
   if(!window._miInit){initMatchInputForm();window._miInit=true;}
+  // 이전 매칭 요청 로드 (비로그인/데이터 없으면 자동 숨김)
+  if(typeof loadRecentMatchesForInput==='function')loadRecentMatchesForInput();
 }
 
 // 매칭 요청 제출 → matching_requests INSERT → openMatchResult
@@ -14880,6 +14986,226 @@ function openMyLatestMatching(){
   openMatchInput();
 }
 
+// 상대 시간 포맷 (방금 / n분 전 / n시간 전 / 어제 / n일 전 / M/D)
+function _formatRelativeTime(isoString){
+  if(!isoString)return '';
+  const now=new Date();
+  const past=new Date(isoString);
+  const diffSec=Math.floor((now-past)/1000);
+  if(diffSec<60)return '방금';
+  const diffMin=Math.floor(diffSec/60);
+  if(diffMin<60)return diffMin+'분 전';
+  const diffHour=Math.floor(diffMin/60);
+  if(diffHour<24)return diffHour+'시간 전';
+  const diffDay=Math.floor(diffHour/24);
+  if(diffDay===1)return '어제';
+  if(diffDay<7)return diffDay+'일 전';
+  return(past.getMonth()+1)+'/'+past.getDate();
+}
+
+// 검색 뷰 - 최근 매칭 요청 조회/렌더
+async function renderRecentMatches(){
+  const container=document.getElementById('sv-recent-matches');
+  const listEl=document.getElementById('sv-recent-matches-list');
+  if(!container||!listEl)return;
+  if(!curUser||!curUser.id||!_sb){container.style.display='none';return;}
+  try{
+    const{data,error}=await _sb.from('matching_requests')
+      .select('*, match_results(count)')
+      .eq('user_id',curUser.id)
+      .eq('status','active')
+      .order('created_at',{ascending:false})
+      .limit(5);
+    if(error){console.warn('[최근매칭] 조회 실패:',error);container.style.display='none';return;}
+    if(!data||data.length===0){container.style.display='none';return;}
+    container.style.display='';
+    listEl.innerHTML=data.map(req=>renderMatchHistoryItem(req)).join('');
+  }catch(err){
+    console.error('[최근매칭] 오류:',err);
+    container.style.display='none';
+  }
+}
+
+// 단일 매칭 요청 아이템 HTML
+function renderMatchHistoryItem(req){
+  const materials=(req.materials||[]).join(', ')||'전체';
+  const parts=[materials];
+  if(req.price_max){
+    parts.push(req.price_max.toLocaleString()+'원 이하');
+  }else if(req.weight_min||req.weight_max){
+    parts.push((req.weight_min||0)+'~'+(req.weight_max||'∞')+'g');
+  }
+  const conditions=parts.join(' · ');
+  const matchCount=req.match_results&&req.match_results[0]?req.match_results[0].count:0;
+  const when=_formatRelativeTime(req.created_at);
+  return `<div class="sv-match-item" onclick="openMatchResult('${req.id}')">
+    <span class="smi-icon">↻</span>
+    <div class="smi-content">
+      <div class="smi-conditions">${_escHtml(conditions)}</div>
+      <div class="smi-meta">${matchCount>0?'<b>'+matchCount+'개 매칭</b> · ':''}${when}</div>
+    </div>
+    <button class="smi-delete" onclick="event.stopPropagation();deleteMatchRequest('${req.id}')" title="삭제">×</button>
+  </div>`;
+}
+
+// 개별 매칭 요청 soft delete (status=cancelled)
+async function deleteMatchRequest(requestId){
+  if(!confirm('이 매칭 요청을 삭제할까요?'))return;
+  try{
+    const{error}=await _sb.from('matching_requests').update({status:'cancelled'}).eq('id',requestId);
+    if(error){alert('삭제 실패: '+error.message);return;}
+    await renderRecentMatches();
+  }catch(err){console.error(err);}
+}
+
+// 검색 뷰 - 매칭 UI ↔ 검색/필터 UI 토글 (검색어 유무 기준)
+function _toggleSearchMode(hasQuery){
+  const matchSection=document.getElementById('sv-match-section');
+  const filters=document.getElementById('sv-filters');
+  const recentSection=document.getElementById('sv-recent-section');
+  if(hasQuery){
+    if(matchSection)matchSection.style.display='none';
+    if(filters)filters.style.display='';
+    if(recentSection)recentSection.style.display='none';
+  }else{
+    if(matchSection)matchSection.style.display='';
+    if(filters)filters.style.display='none';
+    // 최근 검색어는 기존 렌더 로직이 display 토글하므로 건드리지 않음
+  }
+}
+
+// 검색 뷰 - 필터 버튼 클릭 stub (실제 필터링 로직은 다음 단계에서)
+function onSvFilterClick(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  console.log('[sv-filter] clicked:',btn.dataset.filter,'active=',btn.classList.contains('active'));
+}
+
+// 검색 뷰 - 빠른 시작 프리셋
+const _QUICK_PRESETS={
+  urgent:{_action:'openInput'},
+  new:{_action:'openInput'},
+  navy:{_action:'openInput'},
+  cotton:{materials:['면'],quantity_unit:'yard'},
+  'linen-blend':{materials:['린넨','혼방'],quantity_unit:'yard'},
+  'large-qty':{quantity_min:500,quantity_unit:'yard'}
+};
+
+// 빠른 시작 칩 → 즉시 매칭 또는 조건 입력 화면
+async function quickStartMatch(preset){
+  if(!curUser||!curUser.id){alert('로그인이 필요합니다.');return;}
+  const p=_QUICK_PRESETS[preset];
+  if(!p)return;
+  // 검색 오버레이가 열려있으면 먼저 닫기 (결과 화면이 뒤에 가려지는 문제 방지)
+  const searchEl=document.getElementById('view-search-view');
+  if(searchEl&&searchEl.classList.contains('open')&&typeof closeSearchOverlay==='function')closeSearchOverlay();
+  if(p._action==='openInput'){openMatchInput();return;}
+  if(!_sb){alert('DB 연결이 필요합니다.');return;}
+  try{
+    const insertData={user_id:curUser.id,status:'active',...p};
+    delete insertData._action;
+    const{data,error}=await _sb.from('matching_requests').insert(insertData).select().single();
+    if(error){console.error('[빠른시작] 요청 저장 실패:',error);alert('매칭 요청 저장 실패. 잠시 후 다시 시도해주세요.');return;}
+    await openMatchResult(data.id);
+  }catch(err){console.error('[빠른시작] 오류:',err);alert('오류가 발생했습니다.');}
+}
+
+// 빠른 시작 칩 카운트 갱신 (급처/신규 실시간 개수)
+async function updateQuickChipCounts(){
+  if(!_sb)return;
+  try{
+    const{count:urgentCount}=await _sb.from('products')
+      .select('*',{count:'exact',head:true})
+      .is('deleted_at',null).eq('is_hidden',false).eq('is_urgent',true);
+    const tenDaysAgo=new Date(Date.now()-10*24*60*60*1000).toISOString();
+    const{count:newCount}=await _sb.from('products')
+      .select('*',{count:'exact',head:true})
+      .is('deleted_at',null).eq('is_hidden',false).gte('created_at',tenDaysAgo);
+    const el1=document.getElementById('qs-count-urgent');
+    const el2=document.getElementById('qs-count-new');
+    if(el1&&urgentCount!==null)el1.textContent=urgentCount;
+    if(el2&&newCount!==null)el2.textContent=newCount;
+  }catch(err){console.warn('[빠른시작] 카운트 업데이트 실패:',err);}
+}
+
+// 조건 입력 화면 - 이전 요청 3개 로드
+async function loadRecentMatchesForInput(){
+  const wrap=document.getElementById('mi-recent-wrap');
+  const list=document.getElementById('mi-recent-list');
+  if(!wrap||!list)return;
+  wrap.style.display='none';
+  if(!curUser||!curUser.id||!_sb)return;
+  try{
+    const{data,error}=await _sb.from('matching_requests')
+      .select('*, match_results(count)')
+      .eq('user_id',curUser.id).eq('status','active')
+      .order('created_at',{ascending:false}).limit(3);
+    if(error||!data||data.length===0)return;
+    list.innerHTML=data.map(req=>renderInputRecentItem(req)).join('');
+    wrap.style.display='';
+  }catch(err){console.warn('[조건입력 최근요청] 로드 실패:',err);}
+}
+
+// 조건 입력 - 이전 요청 카드 HTML
+function renderInputRecentItem(req){
+  const materials=(req.materials||[]).join(', ')||'전체';
+  const parts=[materials];
+  if(req.price_max)parts.push(req.price_max.toLocaleString()+'원 이하');
+  else if(req.weight_min||req.weight_max)parts.push((req.weight_min||0)+'~'+(req.weight_max||'∞')+'g');
+  const conditions=parts.join(' · ');
+  const matchCount=req.match_results&&req.match_results[0]?req.match_results[0].count:0;
+  const when=_formatRelativeTime(req.created_at);
+  // JSON을 HTML attribute로 안전하게 넣기 위해 쌍따옴표는 &quot; 로
+  const materialsAttr=JSON.stringify(req.materials||[]).replace(/"/g,'&quot;');
+  return `<div class="mi-recent-item" data-materials="${materialsAttr}" data-weight-min="${req.weight_min||''}" data-weight-max="${req.weight_max||''}" data-price-max="${req.price_max||''}" data-quantity-min="${req.quantity_min||''}" data-quantity-unit="${req.quantity_unit||'yard'}" onclick="applyRecentMatchRequest(this)">
+    <span class="mi-recent-icon">↻</span>
+    <div class="mi-recent-content">
+      <div class="mi-recent-conditions">${_escHtml(conditions)}</div>
+      <div class="mi-recent-meta">${matchCount>0?'<b>'+matchCount+'개 매칭됨</b> · ':''}${when}</div>
+    </div>
+  </div>`;
+}
+
+// 이전 요청 클릭 → 폼 자동 입력
+function applyRecentMatchRequest(el){
+  document.querySelectorAll('#mi-materials .mi-chip').forEach(c=>c.classList.remove('active'));
+  try{
+    const materials=JSON.parse(el.dataset.materials||'[]');
+    materials.forEach(m=>{
+      const chip=document.querySelector(`.mi-chip[data-value="${m}"]`);
+      if(chip)chip.classList.add('active');
+    });
+  }catch(e){}
+  document.getElementById('mi-weight-min').value=el.dataset.weightMin||'';
+  document.getElementById('mi-weight-max').value=el.dataset.weightMax||'';
+  document.getElementById('mi-price-max').value=el.dataset.priceMax||'';
+  document.getElementById('mi-quantity-min').value=el.dataset.quantityMin||'';
+  const unit=el.dataset.quantityUnit||'yard';
+  document.querySelectorAll('.mi-unit-btn').forEach(b=>b.classList.remove('active'));
+  const unitBtn=document.querySelector(`.mi-unit-btn[data-unit="${unit}"]`);
+  if(unitBtn)unitBtn.classList.add('active');
+  // 적용 효과 (틸 플래시)
+  el.style.background='#F0FDFA';
+  el.style.borderColor='#028090';
+  setTimeout(()=>{el.style.background='';el.style.borderColor='';},600);
+  setTimeout(()=>{
+    const form=document.querySelector('.mi-form');
+    if(form)form.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+}
+
+// 최근 매칭 전체 soft delete
+async function clearRecentMatches(){
+  if(!curUser||!curUser.id)return;
+  if(!confirm('최근 매칭 요청을 모두 삭제할까요?'))return;
+  try{
+    const{error}=await _sb.from('matching_requests').update({status:'cancelled'})
+      .eq('user_id',curUser.id).eq('status','active');
+    if(error){alert('전체 삭제 실패: '+error.message);return;}
+    await renderRecentMatches();
+  }catch(err){console.error(err);}
+}
+
 // 상품 상세 → 유사 원단 매칭 (현재 상품 스펙 기준 ± 여유 자동 입력)
 function openMatchFromProduct(productId){
   const product=window._currentDetailProduct
@@ -14917,7 +15243,7 @@ function openMatchFromProduct(productId){
       const unitBtn=document.querySelector(`.mi-unit-btn[data-unit="${targetUnit}"]`);
       if(unitBtn)unitBtn.classList.add('active');
     }
-    // 6) 상단에 출처 안내 뱃지
+    // 6) 상단에 출처 안내 뱃지 + 이전 요청 섹션 숨김
     const hero=document.querySelector('.mi-hero');
     if(hero&&!document.querySelector('.mi-source-badge')){
       const badge=document.createElement('div');
@@ -14925,6 +15251,8 @@ function openMatchFromProduct(productId){
       badge.innerHTML=`📦 <b>${_escHtml(product.title||'')}</b> 기준으로 자동 입력됨`;
       hero.appendChild(badge);
     }
+    const recentWrap=document.getElementById('mi-recent-wrap');
+    if(recentWrap)recentWrap.style.display='none';
   },100);
 }
 
