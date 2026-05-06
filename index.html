@@ -835,6 +835,16 @@ html.font-s5 .premium-banner{padding:28px 22px;min-height:220px}
 .pd-chat-main{flex:1;background:#1E293B;color:#fff;border:none;padding:14px 20px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(30,41,59,0.2);transition:transform .15s,box-shadow .15s}
 .pd-chat-main:hover{background:#0F172A;box-shadow:0 6px 16px rgba(30,41,59,0.3)}
 .pd-chat-main:active{transform:scale(0.98)}
+/* 채팅 0건 비활성 상태 */
+.pd-chat-main.disabled{background:#F5F7FA;color:#94A3B8;box-shadow:none;cursor:not-allowed}
+.pd-chat-main.disabled:hover{background:#F5F7FA;box-shadow:none}
+#pd-chat-count{display:inline-block;margin-left:4px;padding:2px 8px;background:rgba(255,255,255,0.2);border-radius:10px;font-size:12px}
+/* 본인 상품용 ⋯ 더보기 버튼 + 드롭다운 메뉴 */
+.pd-more-btn{width:44px;height:44px;background:#fff;border:1.5px solid #E2E8F0;border-radius:12px;font-size:20px;color:#64748B;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:all .15s;flex-shrink:0}
+.pd-more-btn:hover{border-color:#1E293B;color:#1E293B}
+.pd-more-menu{position:absolute;bottom:70px;right:16px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:160px;z-index:100}
+.pd-more-menu button{display:block;width:100%;padding:12px 14px;background:#fff;border:none;border-radius:8px;text-align:left;font-size:14px;color:#1E293B;font-weight:600;cursor:pointer;transition:background .1s}
+.pd-more-menu button:hover{background:#F5F7FA}
 /* Detail v3 */
 .d-slider-badge-row{position:absolute;bottom:12px;right:12px;display:flex;gap:6px;z-index:2}
 .d-slider-badge{background:rgba(0,0,0,.5);backdrop-filter:blur(4px);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
@@ -2970,6 +2980,7 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
 <!-- ========== CHAT LIST ========== -->
 <div id="view-chat" class="view">
   <header class="hdr">
+    <button class="hdr-back" id="chat-back-btn" onclick="goBackFromProductChats()" style="display:none">←</button>
     <div class="hdr-title" style="flex:1;text-align:left;font-size:18px;font-weight:800">채팅</div>
     <button class="hdr-btn" onclick="showToast(t('t_chat_search_prep'))">🔍</button>
   </header>
@@ -6971,6 +6982,8 @@ function showView(name,push=true){
     const curName=cur?cur.id.replace('view-',''):'';
     if(curName&&curName!==name)viewHistory.push(curName);
   }
+  // 채팅/채팅방이 아닌 뷰로 이동 시 "이 상품 채팅" 필터 초기화
+  if(name!=='chat'&&name!=='chat-room')curChatProductFilter=null;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const target=document.getElementById('view-'+name);
   if(target){target.classList.add('active');window.scrollTo(0,0)}
@@ -9244,15 +9257,22 @@ async function openDetail(id){
   const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.textContent=v;};
   document.getElementById('d-scroll').scrollTop=0;
 
-  // 본인 상품이면 액션바를 숨김/수정/광고로 변경
+  // 본인 상품이면 액션바를 좋아요 + 대화중인 채팅 + ⋯ 메뉴로 변경
   const _isMyProd=curUser&&isMyProduct(p,curUser);
   const actionBar=document.querySelector('.pd-action-bar');
   if(_isMyProd&&actionBar){
     const isHidden=p.is_hidden===true;
     actionBar.innerHTML=`
-      <button onclick="toggleProductStop(${p.id});setTimeout(()=>openDetail(${p.id}),300)" style="flex:1;padding:14px;background:${isHidden?'rgba(16,185,129,.1)':'rgba(0,0,0,.05)'};border:1.5px solid ${isHidden?'#10b981':'#ccc'};border-radius:14px;color:${isHidden?'#10b981':'#888'};font-size:14px;font-weight:700;cursor:pointer">${isHidden?'👁️ 노출':'🙈 숨김'}</button>
-      <button onclick="editProductById(${p.id})" style="flex:1;padding:14px;background:rgba(108,99,255,.1);border:1.5px solid #6c63ff;border-radius:14px;color:#6c63ff;font-size:14px;font-weight:700;cursor:pointer">✏️ 수정</button>
-      <button onclick="openHotDealApply(${p.id})" style="flex:1;padding:14px;background:rgba(255,111,0,.1);border:1.5px solid #ff6f00;border-radius:14px;color:#ff6f00;font-size:14px;font-weight:700;cursor:pointer">🔥 광고</button>`;
+      <button class="pd-like-btn" id="d-heart" onclick="toggleDetailLike()"><span class="pd-hicon" id="d-hicon">🤍</span><span class="pd-lcnt" id="d-lcnt">${p.likes||0}</span></button>
+      <button class="pd-chat-main" id="pd-my-chat-btn" onclick="openMyProductChats(${p.id})">💬 대화중인 채팅 <span id="pd-chat-count">…</span></button>
+      <button class="pd-more-btn" id="pd-more-btn" onclick="togglePdMoreMenu(event)">⋯</button>
+      <div class="pd-more-menu" id="pd-more-menu" style="display:none">
+        <button onclick="editProductById(${p.id});closePdMoreMenu()">✏️ 수정하기</button>
+        <button onclick="openHotDealApply(${p.id});closePdMoreMenu()">🔥 광고</button>
+        <button onclick="toggleProductStop(${p.id});setTimeout(()=>openDetail(${p.id}),300);closePdMoreMenu()">${isHidden?'👁️ 노출':'🙈 숨기기'}</button>
+      </div>`;
+    // 채팅 카운트 비동기 로드
+    loadMyProductChatCount(p.id);
   } else if(actionBar){
     actionBar.innerHTML=`
       <button class="pd-like-btn" id="d-heart" onclick="toggleDetailLike()"><span class="pd-hicon" id="d-hicon">🤍</span><span class="pd-lcnt" id="d-lcnt">${p.likes||0}</span></button>
@@ -13016,6 +13036,72 @@ async function openChatRoomById(roomId){
   showView('chat-room');
 }
 let curChatFilter='all';
+// 본인 상품 → "이 상품 채팅"으로 진입했을 때 적용되는 추가 product_id 필터
+let curChatProductFilter=null;
+
+// 본인 상품 상세에서 채팅방 개수 비동기 로드 후 버튼 갱신
+async function loadMyProductChatCount(productId){
+  if(!_sb||!curUser)return;
+  const myId=curUser.id||curUser.email||'';
+  if(!myId)return;
+  try{
+    const{count,error}=await _sb
+      .from('chat_rooms')
+      .select('*',{count:'exact',head:true})
+      .eq('product_id',String(productId))
+      .eq('seller_id',myId);
+    if(error){console.warn('[채팅 카운트] 조회 실패:',error.message);return;}
+    const btn=document.getElementById('pd-my-chat-btn');
+    const countEl=document.getElementById('pd-chat-count');
+    if(!btn)return;
+    if(count&&count>0){
+      if(countEl)countEl.textContent=`(${count})`;
+      btn.classList.remove('disabled');
+    }else{
+      btn.innerHTML='💬 대화중인 채팅 없음';
+      btn.classList.add('disabled');
+      btn.onclick=null;
+    }
+  }catch(err){console.error('[채팅 카운트] 오류:',err);}
+}
+
+// 본인 상품의 진행 중 채팅 목록으로 이동 (해당 상품으로 필터)
+function openMyProductChats(productId){
+  curChatFilter='sell';
+  curChatProductFilter=String(productId);
+  showView('chat');
+  if(typeof loadChatRoomsFromSB==='function'){
+    loadChatRoomsFromSB().then(renderChatList);
+  }else{
+    renderChatList();
+  }
+}
+
+// "이 상품 채팅" 화면에서 뒤로가기 → 상품 상세로 복귀
+function goBackFromProductChats(){
+  curChatProductFilter=null;
+  if(curProductId){
+    openDetail(curProductId);
+  }else{
+    showView('list');
+  }
+}
+
+// ⋯ 더보기 메뉴 토글 (외부 클릭 시 자동 닫힘)
+function togglePdMoreMenu(event){
+  if(event)event.stopPropagation();
+  const menu=document.getElementById('pd-more-menu');
+  if(!menu)return;
+  const isOpen=menu.style.display!=='none'&&menu.style.display!=='';
+  if(isOpen){closePdMoreMenu();return;}
+  menu.style.display='block';
+  setTimeout(()=>{document.addEventListener('click',closePdMoreMenu,{once:true});},0);
+}
+function closePdMoreMenu(){
+  const menu=document.getElementById('pd-more-menu');
+  if(menu)menu.style.display='none';
+}
+
 function setChatFilter(filter){
   curChatFilter=filter;
   // 탭 스타일 업데이트
@@ -13054,11 +13140,19 @@ async function loadChatRoomsFromSB(){
 function renderChatList(){
   const wrap=document.getElementById('chat-list-wrap');
   const empty=document.getElementById('chat-list-empty');
+  // "이 상품 채팅" 진입 시 뒤로가기 버튼 항상 노출 (empty 케이스 포함)
+  const _chatBack=document.getElementById('chat-back-btn');
+  if(_chatBack)_chatBack.style.display=curChatProductFilter?'':'none';
   let rooms=Object.values(chatRooms);
   // pending이면서 실제 메시지 히스토리가 없는 방은 목록에서 숨김
   // (상세페이지에서 채팅만 눌렀다 나간 빈 방 노출 방지)
   rooms=rooms.filter(r=>!(r._pending&&(!r.messages||!r.messages.length)));
-  if(!rooms.length){wrap.innerHTML='';wrap.style.display='none';empty.style.display='flex';return;}
+  if(!rooms.length){
+    wrap.innerHTML='';wrap.style.display='none';empty.style.display='flex';
+    const _hdr=document.querySelector('#view-chat .hdr-title');
+    if(_hdr)_hdr.textContent=curChatProductFilter?'이 상품 채팅 (0건)':'채팅';
+    return;
+  }
 
   // 필터 적용
   const myId=curUser?.id||curUser?.email||'';
@@ -13071,6 +13165,16 @@ function renderChatList(){
   } else if(curChatFilter==='unread'){
     // 안읽은 채팅만
     rooms=rooms.filter(r=>r.unread&&r.unread>0);
+  }
+  // 본인 상품 상세에서 진입한 경우 — 해당 상품의 채팅방만 노출
+  if(curChatProductFilter){
+    rooms=rooms.filter(r=>String(r.productId)===String(curChatProductFilter));
+  }
+
+  // 채팅 목록 헤더: 상품 필터 적용 시 "이 상품 채팅 (N건)" 표시 (뒤로가기는 함수 시작부에서 처리)
+  const _chatHdr=document.querySelector('#view-chat .hdr-title');
+  if(_chatHdr){
+    _chatHdr.textContent=curChatProductFilter?`이 상품 채팅 (${rooms.length}건)`:'채팅';
   }
 
   if(!rooms.length){
