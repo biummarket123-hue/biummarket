@@ -1816,60 +1816,59 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
       <div class="f-hint" style="padding-left:2px;margin-top:6px">💡 대량 기준수량 이상 주문 시 할인가 적용</div>
     </div>
 
-    <!-- 샘플 -->
-    <div class="fg" style="margin-top:14px">
-      <label>샘플</label>
-      <div class="sample-toggle">
-        <button class="sample-btn active" id="sample-yes" onclick="setSample(true)">✅ 가능</button>
-        <button class="sample-btn" id="sample-no" onclick="setSample(false)">❌ 불가</button>
-      </div>
-    </div>
-
-    <!-- 급처 상품 -->
-    <div style="background:#1a1a2e;border:1px solid #ff6b35;border-radius:12px;padding:16px;margin-bottom:0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div style="min-width:0;flex:1">
-          <div class="f-toggle-title" style="color:#ff6b35">⚡ 급처 상품</div>
-          <div class="f-toggle-desc" style="color:#aaa">활성화 시 피드 상단 노출</div>
+    <!-- 옵션 통합 카드 (샘플 / 급처 / 무료나눔 / 가격제안) — 기본 모두 비활성 -->
+    <div style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;margin-top:14px;overflow:hidden">
+      <!-- 샘플 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:18px;flex-shrink:0">📦</span>
+        <div style="flex:1;font-size:15px;font-weight:700;color:#1E293B">샘플 발송</div>
+        <div class="sample-toggle" style="gap:6px">
+          <button class="sample-btn" id="sample-yes" onclick="setSample(true)" style="padding:7px 12px;font-size:13px;border-radius:8px">가능</button>
+          <button class="sample-btn active" id="sample-no" onclick="setSample(false)" style="padding:7px 12px;font-size:13px;border-radius:8px">불가</button>
         </div>
-        <label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0">
-          <input type="checkbox" id="urgentToggle" style="opacity:0;width:0;height:0;" onchange="urgent=this.checked;document.getElementById('urgentSlider').style.background=this.checked?'#ff6b35':'#333';document.getElementById('urgentThumb').style.transform=this.checked?'translateX(24px)':'translateX(0)'">
-          <span id="urgentSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s;"></span>
-          <span id="urgentThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
+      </div>
+      <!-- 급처 상품 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:18px;flex-shrink:0">⚡</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:#1E293B">급처 상품</div>
+          <div style="font-size:12px;color:#94a3b8;line-height:1.4">피드 상단 노출</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
+          <input type="checkbox" id="urgentToggle" style="opacity:0;width:0;height:0;" onchange="urgent=this.checked;document.getElementById('urgentSlider').style.background=this.checked?'#ff6b35':'#cbd5e1';document.getElementById('urgentThumb').style.transform=this.checked?'translateX(20px)':'translateX(0)'">
+          <span id="urgentSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:.3s;"></span>
+          <span id="urgentThumb" style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>
         </label>
       </div>
-    </div>
-
-    <!-- 무료나눔 -->
-    <div style="background:#f0faf6;border:1px solid #00b386;border-radius:12px;padding:16px;margin-top:10px;margin-bottom:0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div style="min-width:0;flex:1">
-          <div class="f-toggle-title" style="color:#00b386">🎁 무료나눔</div>
-          <div class="f-toggle-desc" style="color:#888">활성화 시 가격 0원으로 자동 설정</div>
+      <!-- 무료나눔 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:18px;flex-shrink:0">🎁</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:#1E293B">무료나눔</div>
+          <div style="font-size:12px;color:#94a3b8;line-height:1.4">가격 0원 자동 설정</div>
         </div>
-        <label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0">
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
           <input type="checkbox" id="freeToggle" style="opacity:0;width:0;height:0;" onchange="toggleFreeGiveaway(this.checked)">
-          <span id="freeSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
-          <span id="freeThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
+          <span id="freeSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:.3s;"></span>
+          <span id="freeThumb" style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>
         </label>
       </div>
-      <div id="free-hint" style="display:none;margin-top:10px;padding:10px 12px;background:#e6f9f1;border-radius:8px;font-size:var(--fs-sm);color:#00875a;font-weight:600;line-height:1.4">💬 나눔 조건은 채팅으로 협의해주세요</div>
-    </div>
-
-    <!-- 가격 제안 받기 토글 (기본 ON) -->
-    <div style="background:#fff;border:1px solid #e0e0ea;border-radius:12px;padding:16px;margin-top:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div style="min-width:0;flex:1">
-          <div class="f-toggle-title" style="color:#1E293B">💰 가격 제안 받기</div>
-          <div class="f-toggle-desc" style="color:#64748B">구매자가 가격을 제안할 수 있어요</div>
+      <!-- 가격 제안 받기 (기본 OFF) -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+        <span style="font-size:18px;flex-shrink:0">💰</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:#1E293B">가격 제안 받기</div>
+          <div style="font-size:12px;color:#94a3b8;line-height:1.4">구매자가 가격 제안 가능</div>
         </div>
-        <label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0">
-          <input type="checkbox" id="f-allow-offer" checked style="opacity:0;width:0;height:0;" onchange="document.getElementById('allowOfferSlider').style.background=this.checked?'#1E293B':'#ccc';document.getElementById('allowOfferThumb').style.transform=this.checked?'translateX(24px)':'translateX(0)'">
-          <span id="allowOfferSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#1E293B;border-radius:28px;transition:.3s;"></span>
-          <span id="allowOfferThumb" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;transform:translateX(24px)"></span>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
+          <input type="checkbox" id="f-allow-offer" style="opacity:0;width:0;height:0;" onchange="document.getElementById('allowOfferSlider').style.background=this.checked?'#1E293B':'#cbd5e1';document.getElementById('allowOfferThumb').style.transform=this.checked?'translateX(20px)':'translateX(0)'">
+          <span id="allowOfferSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:.3s;"></span>
+          <span id="allowOfferThumb" style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>
         </label>
       </div>
     </div>
+    <!-- 무료나눔 안내 (토글 ON 시 표시) -->
+    <div id="free-hint" style="display:none;margin-top:8px;padding:10px 12px;background:#e6f9f1;border-radius:8px;font-size:var(--fs-sm);color:#00875a;font-weight:600;line-height:1.4">💬 나눔 조건은 채팅으로 협의해주세요</div>
 
     <!-- 하단 고정 등록 버튼 -->
     <div class="form-submit-fixed">
@@ -5968,12 +5967,11 @@ function gridCardHtml(s){
   const uDisp=u==='yard'?'yd':u;
   const isSoldout=(s.qty||0)<=0;
   const hasBulk=s.bulk_price&&s.bulk_price!==s.price;
-  // 가격: 범위일 때 최솟값+~
-  const priceVal=hasBulk?_f(s.bulk_price):_f(s.price||0);
-  const priceSuffix=hasBulk?'~':'';
+  // 대량판매가~판매가 형식 표시 + 빨강 색상 (홈 카드 톤 통일)
+  const priceTxt=hasBulk?`${_f(s.bulk_price)}~${_f(s.price)}`:_f(s.price||0);
   const priceHtml=s.is_free
     ?'<span style="color:#00b386;font-weight:800">무료나눔</span>'
-    :`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px">원/${uDisp}</span>`;
+    :`<span style="color:#e53935;font-weight:800;letter-spacing:-0.3px">${priceTxt}</span><span style="color:#e53935;font-weight:500;font-size:11px;margin-left:2px">원/${uDisp}</span>`;
   // 단일 배지: 재고소진 > 무료나눔 > 급처
   let badgeHtml='';
   if(isSoldout)badgeHtml='<span class="home-card-badge soldout">재고소진</span>';
@@ -9076,16 +9074,16 @@ function renderHomePopularSection(){
     const loc=p.loc?p.loc.split(' ').slice(-1)[0]:'';
     const metaParts=[priceTxt,loc].filter(Boolean).join(' · ');
     const priceTag=p.is_free
-      ?'<span style="color:#00b386;font-weight:800;font-size:15px">무료나눔</span>'
-      :`<span style="color:#e53935;font-weight:800;font-size:15px;letter-spacing:-0.3px">${priceRange}</span><span style="color:#e53935;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
-    return `<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
-      <span style="font-size:24px;font-weight:900;color:${rankColor};width:34px;text-align:center;flex-shrink:0;letter-spacing:-0.5px">${rank}</span>
-      <div style="width:54px;height:54px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
+      ?'<span style="color:#00b386;font-weight:800;font-size:17px">무료나눔</span>'
+      :`<span style="color:#e53935;font-weight:800;font-size:17px;letter-spacing:-0.3px">${priceRange}</span><span style="color:#e53935;font-weight:500;font-size:13px;margin-left:3px">원/${unitDisp}</span>`;
+    return `<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:14px;padding:16px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
+      <span style="font-size:32px;font-weight:900;color:${rankColor};width:44px;text-align:center;flex-shrink:0;letter-spacing:-0.5px">${rank}</span>
+      <div style="width:72px;height:72px;border-radius:12px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
         ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px;line-height:1.25">${p.title}</div>
-        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${priceTag}${loc?`<span style="color:#94A3B8;font-size:11px;margin-left:6px">· ${loc}</span>`:''}</div>
+        <div style="font-size:17px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px;line-height:1.25">${p.title}</div>
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${priceTag}${loc?`<span style="color:#94A3B8;font-size:12px;margin-left:6px">· ${loc}</span>`:''}</div>
       </div>
     </div>`;
   }).join('');
@@ -9628,8 +9626,8 @@ function editProduct(targetId){
   const us=document.getElementById('urgentSlider');
   const uth=document.getElementById('urgentThumb');
   if(ut)ut.checked=urgent;
-  if(us)us.style.background=urgent?'#ff6b35':'#333';
-  if(uth)uth.style.transform=urgent?'translateX(24px)':'translateX(0)';
+  if(us)us.style.background=urgent?'#ff6b35':'#cbd5e1';
+  if(uth)uth.style.transform=urgent?'translateX(20px)':'translateX(0)';
   // 무료나눔 토글 복원
   const isFreeEdit=p.is_free===true;
   const ftEl=document.getElementById('freeToggle');
@@ -9641,8 +9639,8 @@ function editProduct(targetId){
   const aoSlider=document.getElementById('allowOfferSlider');
   const aoThumb=document.getElementById('allowOfferThumb');
   if(aoEl)aoEl.checked=aoEdit;
-  if(aoSlider)aoSlider.style.background=aoEdit?'#1E293B':'#ccc';
-  if(aoThumb)aoThumb.style.transform=aoEdit?'translateX(24px)':'translateX(0)';
+  if(aoSlider)aoSlider.style.background=aoEdit?'#1E293B':'#cbd5e1';
+  if(aoThumb)aoThumb.style.transform=aoEdit?'translateX(20px)':'translateX(0)';
   if(p.cat||p.type)selectCat1(p.cat||p.type);
   if(p.cat2){
     const catData=CATEGORY_DATA.find(c=>c.id===(p.cat||p.type));
@@ -12073,7 +12071,7 @@ function selectCat3(idx,val){
 }
 
 // 샘플 토글
-let formSample=true;
+let formSample=false;
 function setSample(val){
   formSample=val;
   document.getElementById('sample-yes').classList.toggle('active',val);
@@ -12291,21 +12289,21 @@ function initFormView(){
   const ut=document.getElementById('urgentToggle');
   if(ut)ut.checked=false;
   const us=document.getElementById('urgentSlider');
-  if(us)us.style.background='#333';
+  if(us)us.style.background='#cbd5e1';
   const uth=document.getElementById('urgentThumb');
   if(uth)uth.style.transform='translateX(0)';
   // 무료나눔 토글 초기화
   const ft=document.getElementById('freeToggle');
   if(ft)ft.checked=false;
   toggleFreeGiveaway(false);
-  // 가격 제안 받기 토글 — 신규 등록 시 기본 ON
+  // 가격 제안 받기 토글 — 신규 등록 시 기본 OFF
   const aoInit=document.getElementById('f-allow-offer');
-  if(aoInit)aoInit.checked=true;
+  if(aoInit)aoInit.checked=false;
   const aoSliderInit=document.getElementById('allowOfferSlider');
-  if(aoSliderInit)aoSliderInit.style.background='#1E293B';
+  if(aoSliderInit)aoSliderInit.style.background='#cbd5e1';
   const aoThumbInit=document.getElementById('allowOfferThumb');
-  if(aoThumbInit)aoThumbInit.style.transform='translateX(24px)';
-  setSample(true);
+  if(aoThumbInit)aoThumbInit.style.transform='translateX(0)';
+  setSample(false);
   setAiCardLoading(false);
   const formTitle=document.querySelector('#view-form .hdr-title');
   if(formTitle)formTitle.textContent='원단 판매 등록';
@@ -12333,8 +12331,8 @@ function toggleFreeGiveaway(on){
   const hint=document.getElementById('free-hint');
   const slider=document.getElementById('freeSlider');
   const thumb=document.getElementById('freeThumb');
-  if(slider)slider.style.background=on?'#00b386':'#ccc';
-  if(thumb)thumb.style.transform=on?'translateX(24px)':'translateX(0)';
+  if(slider)slider.style.background=on?'#00b386':'#cbd5e1';
+  if(thumb)thumb.style.transform=on?'translateX(20px)':'translateX(0)';
   if(hint)hint.style.display=on?'block':'none';
   if(on){
     if(priceEl){priceEl.value='0';priceEl.disabled=true;priceEl.style.background='#f0f0f5';}
@@ -12416,7 +12414,7 @@ async function submitForm(){
     moq:parseInt(document.getElementById('f-moq').value)||null,
     bulk_moq:parseInt(document.getElementById('f-bulk-moq').value)||null,
     sample:formSample,is_urgent:urgent,is_free:isFree,
-    allow_offer:document.getElementById('f-allow-offer')?.checked??true,
+    allow_offer:document.getElementById('f-allow-offer')?.checked??false,
     description,
     seller:sellerInfo,
     seller_id:curUser?.id||'',
