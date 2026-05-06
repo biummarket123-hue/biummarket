@@ -71,7 +71,10 @@
       "Bash(awk '$1>1')",
       "Bash(npx *)",
       "Bash(netstat -ano)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(cmd *)",
+      "PowerShell(Get-ChildItem -Path C:\\\\Users\\\\A\\\\biummarket -Force | Where-Object {$_.Name -notmatch \"node_modules|\\\\.git$|android\"} | Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\A\\\\biummarket\" -Force -Exclude node_modules,.git,android,ios | ForEach-Object { $_.Name })"
     ]
   }
 }

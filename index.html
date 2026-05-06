@@ -8506,7 +8506,7 @@ function renderAiRecs(){
       </div>
       <div class="ai-card-info">
         <div class="ai-card-name">${p.title}</div>
-        <div><span class="ai-card-price">${fmtPrice(Math.min(p.price||Infinity,p.bulk_price||Infinity))}/${p.unit||'m'}</span></div>
+        <div><span class="ai-card-price" style="color:#e53935">${(()=>{const _f=n=>n?.toLocaleString('ko-KR')||'0';const hasBulk=p.bulk_price&&p.bulk_price!==p.price;return hasBulk?`${_f(p.bulk_price)}~${_f(p.price)}원`:fmtPrice(p.price||p.bulk_price||0);})()}/${p.unit||'m'}</span></div>
       </div>
     </div>`;
   }).join('');
@@ -8521,10 +8521,10 @@ function renderHomeProduct(p){
   const seller=p.seller||{};
   const metaParts=[seller.name,p.time||''].filter(Boolean);
   const _fp=(n)=>n?.toLocaleString('ko-KR')||'0';
+  // 대량판매가~판매가 형식 표시 (대량가 있을 때만 범위 표시)
   const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
-  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price||p.bulk_price||0);
-  const priceSuffix=hasBulk?'~':'';
-  const priceHtml=`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
+  const priceTxt=hasBulk?`${_fp(p.bulk_price)}~${_fp(p.price)}`:_fp(p.price||p.bulk_price||0);
+  const priceHtml=`<span style="color:#e53935;font-weight:800;letter-spacing:-0.3px">${priceTxt}</span><span style="color:#e53935;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
   // 단일 배지: 무료나눔 > 급처
   let badgeHtml='';
   if(p.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
@@ -8801,12 +8801,11 @@ function _renderHorizCard(p,opts){
   if(p.is_free)badgeHtml='<span class="home-card-badge free">🎁 나눔</span>';
   else if(p.is_urgent)badgeHtml='<span class="home-card-badge">⚡ 급처</span>';
   else if(opts.isNew)badgeHtml='<span class="home-card-badge">NEW</span>';
-  // 가격: 범위일 때 최솟값만 + "~"
-  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
-  const priceSuffix=hasBulk?'~':'';
+  // 대량판매가~판매가 형식 표시
+  const priceTxt=hasBulk?`${_fp(p.bulk_price)}~${_fp(p.price)}`:_fp(p.price);
   const priceHtml=p.is_free
     ?'<span style="color:#00b386;font-weight:800;font-size:17px">무료나눔</span>'
-    :`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px;font-size:18px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:12px;margin-left:2px">원/${unitDisp}</span>`;
+    :`<span style="color:#e53935;font-weight:800;letter-spacing:-0.3px;font-size:18px">${priceTxt}</span><span style="color:#e53935;font-weight:500;font-size:12px;margin-left:2px">원/${unitDisp}</span>`;
   return `<div onclick="openDetail(${p.id})" style="min-width:160px;max-width:160px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid #eef0f4;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;flex-shrink:0">
     <div style="width:160px;height:160px;background:${bg};position:relative;overflow:hidden">
       ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:''}
@@ -8869,8 +8868,8 @@ function _renderHotDealCard(p,isModal){
   const discPct=p.list_price&&p.list_price>p.price?Math.round((1-p.price/p.list_price)*100):0;
   const _fp=(n)=>(n||0).toLocaleString('ko-KR');
   const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
-  const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
-  const priceSuffix=hasBulk?'~':'';
+  // 대량판매가~판매가 형식 표시
+  const priceTxt=hasBulk?`${_fp(p.bulk_price)}~${_fp(p.price)}`:_fp(p.price);
   const closeModal=isModal?"document.getElementById('modal-hotdeal-all').classList.remove('open');":'';
   return `<div onclick="${closeModal}openDetail(${p.id})" class="hd-card" style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid #ffe0b2;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,.1);display:flex;flex-direction:column">
     <div style="height:110px;background:${bg};position:relative;overflow:hidden;flex-shrink:0">
@@ -8881,7 +8880,7 @@ function _renderHotDealCard(p,isModal){
     <div style="padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
       <div style="font-size:var(--fs-sm);font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${p.title}</div>
       <div style="font-size:var(--fs-xs);color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3">${sellerName}${sellerName&&p.time?' · ':''}${p.time||''}</div>
-      <div style="font-size:var(--fs-sm);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':`<span style="color:#1E293B;font-weight:800;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`}</div>
+      <div style="font-size:var(--fs-sm);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':`<span style="color:#e53935;font-weight:800;letter-spacing:-0.3px">${priceTxt}</span><span style="color:#e53935;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`}</div>
       <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;margin-top:auto;overflow:hidden;min-width:0">
         ${discPct?`<span style="background:rgba(25,118,210,.1);color:#1976d2;font-weight:700;font-size:var(--fs-xs);padding:1px 5px;border-radius:4px;white-space:nowrap;flex-shrink:0">-${discPct}%</span>`:''}
         <span style="font-size:var(--fs-xs);color:#888;margin-left:auto;white-space:nowrap;flex-shrink:0">💬${p.chats||0} 🤍${p.likes||0}</span>
@@ -9014,14 +9013,14 @@ function renderHomePopularSection(){
     const unit=p.unit||'m';
     const unitDisp=unit==='yard'?'yd':unit;
     const hasBulk=p.bulk_price&&p.bulk_price!==p.price;
-    const priceVal=hasBulk?_fp(p.bulk_price):_fp(p.price);
-    const priceSuffix=hasBulk?'~':'';
-    const priceTxt=p.is_free?'무료나눔':`${priceVal}${priceSuffix}원/${unitDisp}`;
+    // 대량판매가~판매가 형식 표시
+    const priceRange=hasBulk?`${_fp(p.bulk_price)}~${_fp(p.price)}`:_fp(p.price);
+    const priceTxt=p.is_free?'무료나눔':`${priceRange}원/${unitDisp}`;
     const loc=p.loc?p.loc.split(' ').slice(-1)[0]:'';
     const metaParts=[priceTxt,loc].filter(Boolean).join(' · ');
     const priceTag=p.is_free
       ?'<span style="color:#00b386;font-weight:800;font-size:15px">무료나눔</span>'
-      :`<span style="color:#1E293B;font-weight:800;font-size:15px;letter-spacing:-0.3px">${priceVal}${priceSuffix}</span><span style="color:#94A3B8;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
+      :`<span style="color:#e53935;font-weight:800;font-size:15px;letter-spacing:-0.3px">${priceRange}</span><span style="color:#e53935;font-weight:500;font-size:11px;margin-left:2px">원/${unitDisp}</span>`;
     return `<div onclick="openDetail(${p.id})" style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<4?'border-bottom:1px solid #f0f0f5;':''}cursor:pointer">
       <span style="font-size:24px;font-weight:900;color:${rankColor};width:34px;text-align:center;flex-shrink:0;letter-spacing:-0.5px">${rank}</span>
       <div style="width:54px;height:54px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${getFColor(p.type,p.color)}">
@@ -9195,7 +9194,7 @@ function renderCard(p, idx){
     <div class="pinfo">
       <div class="pname">${p.title}</div>
       <div class="pmeta">${p.color} · ${p.width}cm · ${p.qty}m</div>
-      <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price?_f(p.bulk_price)+'-'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
+      <div class="pprice">${p.is_free?'<span style="color:#00b386;font-weight:800">🎁 무료나눔</span>':(()=>{const u=p.unit||'m';const _f=n=>n?.toLocaleString('ko-KR')||'0';return p.bulk_price&&p.price&&p.bulk_price!==p.price?_f(p.bulk_price)+'~'+_f(p.price)+'<span class="pu">원/'+u+'</span>':_f(p.price)+'<span class="pu">원/'+u+'</span>';})()}</div>
       <div class="pfoot">
         <span class="ploc">${p.loc?'📍'+p.loc.split(' ').slice(-1)[0]:''}</span>
         <span class="pcnt"><span>🤍${p.likes}</span><span>💬${p.chats}</span></span>
