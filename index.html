@@ -9278,10 +9278,6 @@ async function openDetail(id){
     const notice=document.getElementById('soldout-notice');
     if(notice)notice.remove();
   }
-  // 판매자 가격제안 허용 설정 확인
-  if(suggestBtn&&!isSoldout){
-    suggestBtn.style.display=(p.allow_offer===false)?'none':'';
-  }
 
   const unit=p.unit||'m';
   const seller=p.seller||{};
