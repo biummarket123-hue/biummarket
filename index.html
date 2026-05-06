@@ -10368,8 +10368,15 @@ async function submitSuggest(){
 
   // 채팅으로 메시지 전송
   setTimeout(async()=>{
-    await openChatRoom(prod.id);
+    // 이미 해당 상품 채팅방 안이면 openChatRoom 호출 스킵 (중복 갱신 방지)
+    const _sanitizedBuyerId=String(curUser.id||curUser.email).replace(/[^a-zA-Z0-9]/g,'_');
+    const _expectedRoomId=`chat_${prod.id}_${_sanitizedBuyerId}`;
+    if(curChatRoomId!==_expectedRoomId){
+      await openChatRoom(prod.id);
+    }
     if(curChatRoomId&&_sb){
+      // 채팅방이 _pending(DB 미생성) 상태면 먼저 생성 — 외래키 위반(409) 방지
+      await _ensureChatRoomExists(curChatRoomId,`💰 가격제안 ${price.toLocaleString()}원/m`,false);
       await _sb.from('chat_messages').insert({
         room_id:curChatRoomId,
         sender_id:curUser.id||curUser.email,
@@ -10385,6 +10392,46 @@ async function submitSuggest(){
     }
     renderChatRoom(curChatRoomId);
   },300);
+}
+
+// 채팅방이 _pending(DB 미생성) 상태면 lazy 생성 — 가격제안/예약 등 sendChatMsg를 거치지 않는 경로용
+// isSeller: 현재 유저가 판매자 시점인지 (unread 카운트 분기에 사용)
+async function _ensureChatRoomExists(roomId,initialLastMsg,isSeller){
+  if(!_sb||!roomId)return;
+  const room=chatRooms[roomId];
+  if(!room||!room._pending)return;
+  const{error}=await _sb.from('chat_rooms').insert({
+    id:roomId,
+    product_id:String(room.productId),
+    product_title:room.productTitle,
+    product_img:room.productImg||'',
+    seller_id:room.sellerId,
+    seller_name:room.sellerName||'판매자',
+    buyer_id:room.buyerId,
+    buyer_name:room.buyerName||'구매자',
+    last_msg:initialLastMsg||'',
+    last_time:new Date().toISOString(),
+    unread_seller:isSeller?0:1,
+    unread_buyer:isSeller?1:0
+  });
+  if(error){
+    // 23505(unique violation) — 이미 존재하면 정상으로 간주
+    if(error.code==='23505'||(error.message||'').includes('duplicate')){
+      room._pending=false;
+      lsSet('chatRooms',chatRooms);
+      return;
+    }
+    console.error('[채팅방 lazy 생성 실패]',error.message);
+    return;
+  }
+  room._pending=false;
+  lsSet('chatRooms',chatRooms);
+  // 상품 채팅수 +1
+  const _prod=products.find(x=>String(x.id)===String(room.productId));
+  if(_prod){
+    _prod.chats=(_prod.chats||0)+1;
+    _sb.from('products').update({chats:_prod.chats}).eq('id',_prod.id).then();
+  }
 }
 function selectRes(type,el){
   curResType=type;
@@ -10491,8 +10538,15 @@ async function submitReservation(){
 
   // 채팅으로 알림
   setTimeout(async()=>{
-    await openChatRoom(prod.id);
+    // 이미 해당 상품 채팅방 안이면 openChatRoom 호출 스킵 (중복 갱신 방지)
+    const _sanitizedBuyerId=String(curUser.id||curUser.email).replace(/[^a-zA-Z0-9]/g,'_');
+    const _expectedRoomId=`chat_${prod.id}_${_sanitizedBuyerId}`;
+    if(curChatRoomId!==_expectedRoomId){
+      await openChatRoom(prod.id);
+    }
     if(curChatRoomId&&_sb){
+      // 채팅방이 _pending 상태면 먼저 생성 — 외래키 위반(409) 방지
+      await _ensureChatRoomExists(curChatRoomId,`📅 예약신청 ${date}`,false);
       await _sb.from('chat_messages').insert({
         room_id:curChatRoomId,
         sender_id:curUser.id||curUser.email,
