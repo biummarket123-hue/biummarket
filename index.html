@@ -416,7 +416,7 @@ textarea.fi{resize:vertical;min-height:90px;line-height:1.6}
 .cpb-info{flex:1;min-width:0}
 .cpb-title{font-size:12px;font-weight:600;color:#6c63ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cpb-price{font-size:11px;color:#666677;margin-top:1px}
-/* 채팅방 액션 pill (가격제안/예약/단골할인 — 구매자 전용 가로 3개 둥근 버튼) */
+/* 채팅방 액션 pill (가격제안/예약 — 구매자 전용 가로 둥근 버튼, 단골할인은 상단 배너로 분리) */
 .cr-action-pills{display:flex;gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid #F1F5F9}
 .cr-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#F5F7FA;border:1px solid #E2E8F0;border-radius:24px;font-size:13px;font-weight:600;color:#1E293B;cursor:pointer;transition:all .15s;white-space:nowrap}
 .cr-pill:hover{background:#E2E8F0;border-color:#CBD5E1}
@@ -3034,16 +3034,13 @@ html.font-s5{--fs-xs:13px;--fs-sm:15px;--fs-base:18px;--fs-md:20px;--fs-lg:21px;
     <span style="color:#6c63ff;font-size:16px">›</span>
   </div>
   <div id="cr-dangol-banner" style="display:none;padding:12px 16px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-bottom:1px solid #ffe0b2;flex-shrink:0"></div>
-  <!-- 액션 pill 영역 (가격제안/예약/단골할인) — 구매자 전용 -->
+  <!-- 액션 pill 영역 (가격제안/예약) — 구매자 전용 (단골할인은 상단 배너로 별도 표시) -->
   <div class="cr-action-pills" id="cr-action-pills" style="display:none">
     <button class="cr-pill cr-pill-offer" onclick="onClickNoticeOffer(event)">
       <span class="cr-pill-icon">💰</span><span>가격제안</span>
     </button>
     <button class="cr-pill cr-pill-reserve" onclick="onClickNoticeReservation(event)">
       <span class="cr-pill-icon">📅</span><span>예약하기</span>
-    </button>
-    <button class="cr-pill cr-pill-discount" onclick="showDangolDiscount(event)">
-      <span class="cr-pill-icon">🎁</span><span>단골할인</span>
     </button>
   </div>
   <!-- 안내 말풍선 -->
@@ -13005,14 +13002,21 @@ async function _showNoticeCards(roomId){
   }catch(err){console.error('[안내] 오류:',err);}
 }
 
-// 액션 pill 클릭 핸들러 (Phase 3에서 모달 연결 예정 — 임시 alert)
+// 액션 pill 클릭 — 채팅방 컨텍스트의 상품으로 모달 열기 (curProductId 세팅 후 호출)
 function onClickNoticeOffer(event){
   const btn=event&&event.currentTarget;
   if(btn&&btn.classList.contains('disabled')){
     alert('이 상품은 가격 제안이 불가능해요.');
     return;
   }
-  alert('가격 제안 기능은 다음 단계에서 연결됩니다.');
+  if(!curChatRoomId||!chatRooms[curChatRoomId]){
+    console.warn('[가격제안] 채팅방 정보 없음');return;
+  }
+  const productId=chatRooms[curChatRoomId].productId;
+  if(!productId){console.warn('[가격제안] 상품 ID 없음');return;}
+  // openSuggestModal은 curProductId 전역에 의존 — 호출 직전 세팅
+  curProductId=parseInt(productId)||productId;
+  openSuggestModal();
 }
 function onClickNoticeReservation(event){
   const btn=event&&event.currentTarget;
@@ -13020,11 +13024,13 @@ function onClickNoticeReservation(event){
     alert('재고가 없어 예약할 수 없어요.');
     return;
   }
-  alert('예약 요청 기능은 다음 단계에서 연결됩니다.');
-}
-// 단골 할인 pill — 단골 정보 표시 (Phase에서 단골 모달 연결)
-function showDangolDiscount(event){
-  alert('단골 할인 정보 표시는 다음 단계에서 연결됩니다.');
+  if(!curChatRoomId||!chatRooms[curChatRoomId]){
+    console.warn('[예약] 채팅방 정보 없음');return;
+  }
+  const productId=chatRooms[curChatRoomId].productId;
+  if(!productId){console.warn('[예약] 상품 ID 없음');return;}
+  curProductId=parseInt(productId)||productId;
+  openResModal();
 }
 
 // 채팅방 상단 단골 할인 배너 표시 (스크롤해도 고정)
